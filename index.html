@@ -1825,8 +1825,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+  pointer-events: none;  /* 닫혀있을 땐 클릭 통과 */
 }
-.bas-sheet.open { transform: translate(-50%, 0); }
+.bas-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
 
 .bas-grip {
   padding: 10px 0 4px;
@@ -2283,8 +2284,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+  pointer-events: none;  /* 닫혀있을 땐 클릭 통과 */
 }
-.bd-sheet.open { transform: translate(-50%, 0); }
+.bd-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
 
 .bd-head {
   padding: 8px 16px 14px;
@@ -2624,8 +2626,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; flex-direction: column;
   transition: transform .3s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(0,0,0,.15);
+  pointer-events: none;
 }
-.settings-sheet.open { transform: translate(-50%, 0); }
+.settings-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
 
 .settings-grip {
   padding: 10px 0 4px;
