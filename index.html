@@ -3065,8 +3065,8 @@ const BA = {
   stage: 'search',
   selected: null,       // 선택된 책 정보 (Google or manual)
   tagsSelected: [],     // 추가 시 선택한 태그
-  abortCtrl: null,      // fetch 취소용
 };
+let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
 /* ─── 팔레트 자동 선택 (타이틀 해시 기반) ─── */
 const PALETTE_KEYS = ['demian','1984','sapiens','cosmos','prince','guns','nudge','endhistory','factful','atomic','homo','courage'];
@@ -3116,25 +3116,27 @@ function goToStage(stage) {
 /* ─── Stage 1: Google Books 검색 ─── */
 async function searchBooks(query) {
   const q = query.trim();
+  console.log('[search] 시작:', q);
   if (!q) { renderSearchWelcome(); return; }
 
-  if (BA.abortCtrl) BA.abortCtrl.abort();
-  BA.abortCtrl = new AbortController();
-
+  const myId = ++_searchReqId;
   renderSearchLoading();
 
   try {
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=12&printType=books`;
-    const res = await fetch(url, { signal: BA.abortCtrl.signal });
-    if (!res.ok) throw new Error('API ' + res.status);
+    console.log('[search] fetch:', url);
+    const res = await fetch(url);
+    console.log('[search] response status:', res.status);
+    if (myId !== _searchReqId) return;  // 새 검색이 시작됨 → 이 응답은 버림
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
     const data = await res.json();
+    console.log('[search] 결과 수:', (data.items || []).length);
+    if (myId !== _searchReqId) return;
     renderSearchResults(data.items || []);
   } catch (e) {
-    if (e.name === 'AbortError') return;
-    console.error('[search]', e);
-    renderSearchError();
-  } finally {
-    BA.abortCtrl = null;
+    if (myId !== _searchReqId) return;
+    console.error('[search] 실패:', e.message || String(e), e);
+    renderSearchError(e.message || String(e));
   }
 }
 
@@ -3154,12 +3156,15 @@ function renderSearchLoading() {
       <div class="search-state-sub">검색 중…</div>
     </div>`;
 }
-function renderSearchError() {
+function renderSearchError(msg) {
   document.getElementById('searchResults').innerHTML = `
     <div class="search-state">
       <div class="search-state-emoji">⚠️</div>
       <div class="search-state-ttl">검색에 실패했어요</div>
-      <div class="search-state-sub">네트워크를 확인하거나 잠시 후 다시 시도해주세요</div>
+      <div class="search-state-sub">
+        ${msg ? `<code style="font-size:10.5px;color:var(--c-terra-700);word-break:break-all">${esc(msg)}</code><br/>` : ''}
+        네트워크를 확인하거나 브라우저 콘솔을 열어주세요 (F12)
+      </div>
     </div>`;
 }
 function renderSearchResults(items) {
