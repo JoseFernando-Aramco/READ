@@ -2258,6 +2258,347 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ═══════════════════════════════════════════════════════════
+   책 상세 페이지 · Book Detail Sheet
+   ═══════════════════════════════════════════════════════════ */
+.bd-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(28, 25, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 105;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s ease;
+}
+.bd-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.bd-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px;
+  height: 92vh;
+  background: var(--c-canvas);
+  border-radius: 24px 24px 0 0;
+  z-index: 110;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+}
+.bd-sheet.open { transform: translate(-50%, 0); }
+
+.bd-head {
+  padding: 8px 16px 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  gap: 10px;
+}
+.bd-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 32px;
+}
+
+/* Hero — 커버 + 정보 */
+.bd-hero {
+  padding: 20px 18px 22px;
+  display: flex; gap: 16px;
+  background: linear-gradient(180deg, var(--c-surface), var(--c-canvas));
+  border-bottom: 1px solid var(--c-border);
+  align-items: flex-start;
+}
+.bd-hero-cover {
+  width: 90px; height: 130px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  overflow: hidden;
+  background: var(--c-border);
+}
+.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bd-hero-info { flex: 1; min-width: 0; padding-top: 6px; }
+.bd-hero-title {
+  font-size: 19px; font-weight: 900;
+  color: var(--c-text); letter-spacing: -.5px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bd-hero-author {
+  font-size: 13px; font-weight: 700;
+  color: var(--c-text-2);
+  margin-bottom: 10px;
+}
+.bd-hero-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--c-label);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .3px;
+}
+.bd-hero-meta span:not(:last-child)::after {
+  content: '·';
+  margin-left: 10px;
+  color: var(--c-border);
+}
+
+/* Sections */
+.bd-section {
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid var(--c-border);
+}
+.bd-section:last-child { border-bottom: none; }
+.bd-section-lbl {
+  font-size: 10.5px; font-weight: 800;
+  color: var(--c-label);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.bd-section-lbl .subct {
+  text-transform: none;
+  font-size: 10px;
+  color: var(--c-muted);
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+/* 진행률 (읽는중 전용) */
+.bd-progress-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.bd-progress-input {
+  width: 72px;
+  padding: 8px 10px;
+  background: var(--c-surface-2);
+  border: 1.5px solid var(--c-border);
+  border-radius: 9px;
+  font-size: 14px; font-weight: 800;
+  text-align: center;
+  color: var(--c-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  outline: none;
+  transition: border-color .15s;
+}
+.bd-progress-input:focus { border-color: var(--brand-primary); background: var(--c-surface); }
+.bd-progress-sep { font-size: 13px; font-weight: 700; color: var(--c-label); font-family: 'Plus Jakarta Sans', sans-serif; }
+.bd-progress-total { font-size: 13px; font-weight: 700; color: var(--c-text-2); font-family: 'Plus Jakarta Sans', sans-serif; }
+.bd-progress-pct {
+  margin-left: auto;
+  font-size: 13px; font-weight: 900;
+  color: var(--c-terra-700);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.bd-progress-bar {
+  height: 6px;
+  background: var(--c-surface-2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bd-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-terra-500), var(--c-terra-700));
+  border-radius: 99px;
+  transition: width .3s ease;
+}
+
+/* 독서 기록 리스트 */
+.bd-reads {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.bd-read-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.bd-read-item.current {
+  border-color: color-mix(in srgb, var(--c-terra-500) 40%, var(--c-border));
+  background: color-mix(in srgb, var(--c-terra-500) 5%, var(--c-surface));
+}
+.bd-read-num {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.bd-read-item.current .bd-read-num { background: var(--c-terra-700); color: #fff; }
+.bd-read-dates {
+  font-size: 11.5px; font-weight: 700;
+  color: var(--c-text); letter-spacing: -.1px;
+}
+.bd-read-dates .days {
+  color: var(--c-label); font-weight: 600; font-size: 10.5px;
+  margin-left: 4px;
+}
+.bd-read-rating {
+  font-size: 11px; font-weight: 800;
+  color: var(--c-gold-900);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+}
+.bd-read-del {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: all .15s;
+}
+.bd-read-del:hover {
+  background: color-mix(in srgb, var(--c-terra-500) 12%, transparent);
+  color: var(--c-terra-700);
+}
+.bd-read-add {
+  width: 100%;
+  padding: 11px;
+  background: var(--c-surface);
+  border: 1px dashed var(--c-border);
+  border-radius: 10px;
+  font-size: 12px; font-weight: 700;
+  color: var(--c-text-2);
+  letter-spacing: -.1px;
+  transition: all .15s;
+}
+.bd-read-add:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  border-style: solid;
+}
+
+/* 재독 추가 인라인 폼 */
+.bd-read-form {
+  padding: 14px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--brand-primary);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  gap: 10px;
+}
+.bd-read-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bd-read-form-field { display: flex; flex-direction: column; gap: 4px; }
+.bd-read-form-lbl {
+  font-size: 9.5px; font-weight: 800;
+  color: var(--c-label);
+  letter-spacing: 1px; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-left: 2px;
+}
+.bd-read-form-input {
+  padding: 8px 10px;
+  background: var(--c-surface-2);
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: var(--c-text);
+  font-family: inherit;
+  outline: none;
+}
+.bd-read-form-input:focus { border-color: var(--brand-primary); }
+.bd-read-form-actions { display: flex; gap: 6px; }
+.bd-read-form-actions button {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px; font-weight: 800;
+  border-radius: 9px;
+}
+
+/* 별점 에디터 */
+.bd-stars {
+  display: flex; gap: 4px;
+  align-items: center;
+}
+.bd-star-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  font-size: 17px; font-weight: 900;
+  color: var(--c-border-2);
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.bd-star-btn.active {
+  color: var(--c-gold-500);
+  background: color-mix(in srgb, var(--c-gold-500) 10%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--c-gold-500) 35%, var(--c-border));
+}
+.bd-star-btn:active { transform: scale(.9); }
+.bd-stars-val {
+  margin-left: 10px;
+  font-size: 13.5px; font-weight: 900;
+  color: var(--c-gold-900);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -.3px;
+}
+
+/* 삭제 구역 */
+.bd-danger-zone { padding: 20px 18px 12px; }
+.bd-danger-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: var(--c-terra-700);
+  border: 1.5px solid color-mix(in srgb, var(--c-terra-500) 40%, var(--c-border));
+  border-radius: 12px;
+  font-size: 12.5px; font-weight: 800;
+  letter-spacing: -.1px;
+  transition: all .15s;
+}
+.bd-danger-btn:hover {
+  background: color-mix(in srgb, var(--c-terra-500) 8%, transparent);
+  border-color: var(--c-terra-700);
+}
+.bd-danger-confirm {
+  padding: 14px;
+  background: color-mix(in srgb, var(--c-terra-500) 10%, var(--c-surface));
+  border: 1.5px solid var(--c-terra-700);
+  border-radius: 12px;
+}
+.bd-danger-confirm-ttl {
+  font-size: 12.5px; font-weight: 800;
+  color: var(--c-terra-700);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.bd-danger-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bd-danger-actions button {
+  padding: 10px;
+  font-size: 12px; font-weight: 800;
+  border-radius: 9px;
+}
+.bd-danger-actions .btn-cancel {
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border);
+}
+.bd-danger-actions .btn-delete {
+  background: var(--c-terra-700);
+  color: #fff;
+}
+
+/* 클릭 가능한 엔트리 힌트 */
+.log-entry-card { cursor: pointer; }
+.log-entry-card:active { transform: scale(.996); }
+
+/* ═══════════════════════════════════════════════════════════
    설정 모달 (테마 선택)
    ═══════════════════════════════════════════════════════════ */
 .settings-backdrop {
@@ -3346,6 +3687,20 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 <!-- 토스트 -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- ═══════════ 책 상세 페이지 ═══════════ -->
+<div class="bd-backdrop" id="bdBackdrop"></div>
+<aside class="bd-sheet" id="bdSheet" aria-hidden="true">
+  <div class="bas-grip"></div>
+  <div class="bd-head">
+    <button class="bas-back" id="bdBack" aria-label="뒤로">←</button>
+    <div class="bas-ttl">책 상세</div>
+    <button class="bas-close" id="bdClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="bd-body" id="bdBody">
+    <!-- JS 전체 렌더 -->
+  </div>
+</aside>
+
 <!-- FAB -->
 <div class="fab">
   <button class="fab-btn" id="fabBtn">
@@ -4242,7 +4597,7 @@ function renderLogEntry(b, isFirst, isLast) {
   ].filter(Boolean).join(' ');
 
   return `
-    <div class="log-entry ${groupCls}" style="--entry-color:${color}">
+    <div class="log-entry ${groupCls}" style="--entry-color:${color}" data-book-id="${b.id}">
       <div class="log-entry-time">
         <div class="log-entry-axis"></div>
         <div class="log-entry-date">${date}</div>
@@ -4355,6 +4710,452 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
 
 // 필터 해제
 document.getElementById('logFilterClear').addEventListener('click', () => setLogFilter(null));
+
+/* ═══════════════════════════════════════════════════════════
+   책 상세 페이지 · Book Detail
+   ═══════════════════════════════════════════════════════════ */
+const BD = {
+  book: null,         // 현재 열려있는 책 (참조)
+  showRereadForm: false,
+  confirmDelete: false,
+};
+
+/* ─── 독서 세션 모음 (본 독서 + 재독 정렬) ─── */
+function getAllReads(b) {
+  const reads = [];
+  if ((b.status === 'done' || b.status === 'reading') && b.dateStart) {
+    reads.push({
+      dateStart: b.dateStart,
+      dateEnd: b.dateEnd || null,
+      rating: b.rating || null,
+      isCurrent: true,
+      index: -1,
+    });
+  }
+  (b.rereads || []).forEach((r, i) => {
+    reads.push({ ...r, isCurrent: false, index: i });
+  });
+  reads.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
+  return reads;
+}
+
+/* ─── 북 업데이트 (변경 즉시 저장 + UI 리렌더) ─── */
+function updateBook(id, partial) {
+  const idx = BOOKS.findIndex(b => b.id === id);
+  if (idx < 0) return null;
+  BOOKS[idx] = { ...BOOKS[idx], ...partial };
+  STORE.set('books', BOOKS);
+  BD.book = BOOKS[idx]; // 참조 업데이트
+  try { renderTagRadar(); } catch(e){}
+  try { renderLogList(); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+  return BOOKS[idx];
+}
+
+function deleteBookById(id) {
+  const idx = BOOKS.findIndex(b => b.id === id);
+  if (idx < 0) return;
+  BOOKS.splice(idx, 1);
+  STORE.set('books', BOOKS);
+  try { renderTagRadar(); } catch(e){}
+  try { renderLogList(); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+}
+
+/* ─── 모달 열기/닫기 ─── */
+function openBookDetail(id) {
+  const book = BOOKS.find(b => b.id === id);
+  if (!book) return;
+  BD.book = book;
+  BD.showRereadForm = false;
+  BD.confirmDelete = false;
+
+  document.getElementById('bdBackdrop').classList.add('open');
+  const sheet = document.getElementById('bdSheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  renderBookDetail();
+  document.getElementById('bdBody').scrollTo({ top: 0 });
+}
+
+function closeBookDetail() {
+  document.getElementById('bdBackdrop').classList.remove('open');
+  const sheet = document.getElementById('bdSheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  BD.book = null;
+  BD.showRereadForm = false;
+  BD.confirmDelete = false;
+}
+
+/* ─── 메인 렌더 ─── */
+function renderBookDetail() {
+  const b = BD.book;
+  if (!b) return;
+
+  const reading = b.status === 'reading';
+  const done    = b.status === 'done';
+  const wish    = b.status === 'wish';
+  const reads   = getAllReads(b);
+  const totalReads = reads.length;
+  const progPct = reading ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
+
+  // 메타
+  const metaParts = [];
+  if (b.publisher) metaParts.push(esc(b.publisher));
+  if (b.pages) metaParts.push(`${b.pages}p`);
+  if (b.isbn) metaParts.push(`ISBN ${esc(b.isbn)}`);
+  if (b.language && b.language !== 'ko') metaParts.push(`🌐 ${b.language.toUpperCase()}`);
+
+  // 커버
+  const cover = b.coverUrl
+    ? `<img src="${esc(b.coverUrl)}" alt="" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)">📖</div>`;
+
+  document.getElementById('bdBody').innerHTML = `
+
+    <!-- Hero -->
+    <div class="bd-hero">
+      <div class="bd-hero-cover">${cover}</div>
+      <div class="bd-hero-info">
+        <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+        <div class="bd-hero-author">${esc(b.author)}</div>
+        ${metaParts.length ? `<div class="bd-hero-meta">${metaParts.map(m => `<span>${m}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>
+
+    <!-- 상태 -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">상태</div>
+      <div class="status-seg" id="bdStatusSeg">
+        <button class="status-seg-btn ${wish?'active':''}" data-status="wish">💭 위시</button>
+        <button class="status-seg-btn ${reading?'active':''}" data-status="reading">📖 독서중</button>
+        <button class="status-seg-btn ${done?'active':''}" data-status="done">✅ 완독</button>
+      </div>
+    </div>
+
+    ${done || b.isLifeBook ? `
+    <!-- 인생책 -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">인생책 · LIFE BOOK</div>
+      <div class="lifebook-toggle ${b.isLifeBook?'checked':''}" id="bdLifebookToggle" role="button" tabindex="0">
+        <div class="lifebook-toggle-check"></div>
+        <div class="lifebook-toggle-body">
+          <div class="lifebook-toggle-ttl">
+            <span>⭐ 인생책 등록</span>
+            <span class="lifebook-toggle-count">${BOOKS.filter(x => x.isLifeBook).length} / 100</span>
+          </div>
+          <div class="lifebook-toggle-sub">
+            ${b.isLifeBook ? '⭐ 등록됨 · 로그·통계에서 특별 표시됨' : '두번 세번 다시 읽고 싶은 책을 체크해주세요'}
+          </div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    ${reading ? `
+    <!-- 진행률 -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">진행률<span class="subct">${daysBetween(b.dateStart, todayStr())}일째</span></div>
+      <div class="bd-progress-row">
+        <input type="number" class="bd-progress-input" id="bdProgressInput"
+               value="${b.currentPage || 0}" min="0" max="${b.pages}">
+        <span class="bd-progress-sep">/</span>
+        <span class="bd-progress-total">${b.pages}p</span>
+        <span class="bd-progress-pct" id="bdProgressPct">${progPct}%</span>
+      </div>
+      <div class="bd-progress-bar">
+        <div class="bd-progress-fill" id="bdProgressFill" style="width:${progPct}%"></div>
+      </div>
+    </div>
+    ` : ''}
+
+    ${(done || reads.length > 0) ? `
+    <!-- 독서 기록 -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">독서 기록<span class="subct">${totalReads}회 독서</span></div>
+      <div class="bd-reads">
+        ${reads.map((r, i) => {
+          const n = totalReads - i;
+          const days = r.dateEnd ? daysBetween(r.dateStart, r.dateEnd) : null;
+          return `
+            <div class="bd-read-item ${r.isCurrent ? 'current' : ''}">
+              <div class="bd-read-num">${n}</div>
+              <div class="bd-read-dates">
+                ${formatDate(r.dateStart)}${r.dateEnd ? ` – ${formatDate(r.dateEnd)}` : ' – 진행중'}
+                ${days ? `<span class="days">${days}일</span>` : ''}
+              </div>
+              <div class="bd-read-rating">${r.rating ? `★ ${r.rating.toFixed(1)}` : '—'}</div>
+              ${!r.isCurrent ? `<button class="bd-read-del" data-reread-idx="${r.index}" aria-label="삭제">×</button>` : '<span style="width:24px"></span>'}
+            </div>`;
+        }).join('')}
+      </div>
+      ${BD.showRereadForm ? `
+        <div class="bd-read-form">
+          <div class="bd-read-form-row">
+            <div class="bd-read-form-field">
+              <label class="bd-read-form-lbl">시작일</label>
+              <input type="date" class="bd-read-form-input" id="bdRrStart" value="${todayStr()}">
+            </div>
+            <div class="bd-read-form-field">
+              <label class="bd-read-form-lbl">종료일</label>
+              <input type="date" class="bd-read-form-input" id="bdRrEnd" value="${todayStr()}">
+            </div>
+          </div>
+          <div class="bd-read-form-field">
+            <label class="bd-read-form-lbl">별점</label>
+            <div class="bd-stars" id="bdRrStars">
+              ${[1,2,3,4,5].map(n => `<button type="button" class="bd-star-btn" data-rating="${n}">★</button>`).join('')}
+            </div>
+          </div>
+          <div class="bd-read-form-actions">
+            <button class="btn-secondary" id="bdRrCancel">취소</button>
+            <button class="btn-primary" id="bdRrSave">저장</button>
+          </div>
+        </div>
+      ` : `
+        <button class="bd-read-add" id="bdAddRereadBtn">+ 재독 기록 추가</button>
+      `}
+    </div>
+    ` : ''}
+
+    ${(done || reading) ? `
+    <!-- 별점 (직접 수정) -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">별점</div>
+      <div class="bd-stars" id="bdStars">
+        ${[1,2,3,4,5].map(n => `<button class="bd-star-btn ${(b.rating||0) >= n ? 'active' : ''}" data-rating="${n}">★</button>`).join('')}
+        <span class="bd-stars-val">${b.rating ? `★ ${b.rating.toFixed(1)}` : '미평가'}</span>
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- 태그 -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
+      <div class="tag-chips-all" id="bdTagChips">
+        ${Object.entries(TAGS).map(([name, tag]) => {
+          const active = (b.tags || []).includes(name) ? ' active' : '';
+          return `<button class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
+            <span class="tc-emoji">${tag.emoji}</span>
+            <span class="tc-name">${esc(name)}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- 삭제 -->
+    <div class="bd-danger-zone">
+      ${BD.confirmDelete ? `
+        <div class="bd-danger-confirm">
+          <div class="bd-danger-confirm-ttl">정말 삭제할까요? 되돌릴 수 없어요</div>
+          <div class="bd-danger-actions">
+            <button class="btn-cancel" id="bdDelCancel">취소</button>
+            <button class="btn-delete" id="bdDelConfirm">삭제하기</button>
+          </div>
+        </div>
+      ` : `
+        <button class="bd-danger-btn" id="bdDelBtn">🗑 이 책 삭제하기</button>
+      `}
+    </div>
+  `;
+
+  wireBookDetailEvents();
+}
+
+/* ─── 이벤트 와이어링 ─── */
+function wireBookDetailEvents() {
+  const b = BD.book;
+  if (!b) return;
+
+  // 상태 세그먼트
+  document.querySelectorAll('#bdStatusSeg .status-seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const newStatus = btn.dataset.status;
+      if (newStatus === b.status) return;
+      const update = { status: newStatus };
+      // 자동 날짜 보정
+      if (newStatus === 'reading') {
+        if (!b.dateStart) update.dateStart = todayStr();
+        if (b.currentPage == null) update.currentPage = 0;
+        // done → reading: 기존 완독을 rereads로 옮김
+        if (b.status === 'done' && b.dateEnd) {
+          update.rereads = [...(b.rereads || []), {
+            dateStart: b.dateStart, dateEnd: b.dateEnd, rating: b.rating
+          }];
+          update.dateStart = todayStr();
+          update.dateEnd = null;
+          update.rating = null;
+        }
+      } else if (newStatus === 'done') {
+        if (!b.dateStart) update.dateStart = todayStr();
+        update.dateEnd = todayStr();
+        if (!b.rating) update.rating = 4.0;
+      } else if (newStatus === 'wish') {
+        // reading/done → wish: 경고 느낌으로 기록은 유지 (그냥 status만 변경)
+      }
+      updateBook(b.id, update);
+      renderBookDetail();
+      showToast(`상태: ${ {wish:'위시', reading:'독서중', done:'완독'}[newStatus] } 으로 변경됨`);
+    });
+  });
+
+  // 인생책 토글
+  const lbt = document.getElementById('bdLifebookToggle');
+  if (lbt) {
+    lbt.addEventListener('click', () => {
+      const count = BOOKS.filter(x => x.isLifeBook && x.id !== b.id).length;
+      if (!b.isLifeBook && count >= 100) {
+        showToast('인생책 한도 100권이 찼어요');
+        return;
+      }
+      updateBook(b.id, { isLifeBook: !b.isLifeBook });
+      renderBookDetail();
+      showToast(b.isLifeBook ? '⭐ 인생책 등록' : '인생책 해제');
+    });
+  }
+
+  // 진행률 입력
+  const progInput = document.getElementById('bdProgressInput');
+  if (progInput) {
+    const applyProgress = () => {
+      let v = parseInt(progInput.value, 10);
+      if (isNaN(v) || v < 0) v = 0;
+      if (v > b.pages) v = b.pages;
+      updateBook(b.id, { currentPage: v });
+      const pct = Math.round(v / b.pages * 100);
+      document.getElementById('bdProgressFill').style.width = pct + '%';
+      document.getElementById('bdProgressPct').textContent = pct + '%';
+      progInput.value = v;
+    };
+    progInput.addEventListener('change', applyProgress);
+    progInput.addEventListener('blur', applyProgress);
+  }
+
+  // 별점 수정 (본 독서 별점)
+  document.querySelectorAll('#bdStars .bd-star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const r = parseFloat(btn.dataset.rating);
+      updateBook(b.id, { rating: r });
+      renderBookDetail();
+    });
+  });
+
+  // 재독 기록 추가 버튼
+  const addBtn = document.getElementById('bdAddRereadBtn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      BD.showRereadForm = true;
+      renderBookDetail();
+    });
+  }
+
+  // 재독 폼 취소
+  const rrCancel = document.getElementById('bdRrCancel');
+  if (rrCancel) {
+    rrCancel.addEventListener('click', () => {
+      BD.showRereadForm = false;
+      renderBookDetail();
+    });
+  }
+
+  // 재독 폼 · 별점 선택
+  let newRereadRating = 0;
+  document.querySelectorAll('#bdRrStars .bd-star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      newRereadRating = parseFloat(btn.dataset.rating);
+      document.querySelectorAll('#bdRrStars .bd-star-btn').forEach((b2, i) => {
+        b2.classList.toggle('active', i + 1 <= newRereadRating);
+      });
+    });
+  });
+
+  // 재독 폼 저장
+  const rrSave = document.getElementById('bdRrSave');
+  if (rrSave) {
+    rrSave.addEventListener('click', () => {
+      const start = document.getElementById('bdRrStart').value;
+      const end   = document.getElementById('bdRrEnd').value;
+      if (!start || !end) { showToast('날짜를 모두 입력해주세요'); return; }
+      if (new Date(start) > new Date(end)) { showToast('종료일이 시작일보다 빨라요'); return; }
+      const newRereads = [...(b.rereads || []), {
+        dateStart: start,
+        dateEnd: end,
+        rating: newRereadRating || b.rating || 4.0,
+      }];
+      updateBook(b.id, { rereads: newRereads });
+      BD.showRereadForm = false;
+      renderBookDetail();
+      showToast('재독 기록이 추가됐어요 ✓');
+    });
+  }
+
+  // 재독 삭제
+  document.querySelectorAll('.bd-read-del').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.rereadIdx, 10);
+      const newRereads = (b.rereads || []).filter((_, i) => i !== idx);
+      updateBook(b.id, { rereads: newRereads });
+      renderBookDetail();
+      showToast('재독 기록 삭제됨');
+    });
+  });
+
+  // 태그 칩
+  document.querySelectorAll('#bdTagChips .tag-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.dataset.tag;
+      const tags = b.tags || [];
+      const newTags = tags.includes(name) ? tags.filter(t => t !== name) : [...tags, name];
+      updateBook(b.id, { tags: newTags });
+      renderBookDetail();
+    });
+  });
+
+  // 삭제 플로우
+  const delBtn = document.getElementById('bdDelBtn');
+  if (delBtn) {
+    delBtn.addEventListener('click', () => {
+      BD.confirmDelete = true;
+      renderBookDetail();
+    });
+  }
+  const delCancel = document.getElementById('bdDelCancel');
+  if (delCancel) {
+    delCancel.addEventListener('click', () => {
+      BD.confirmDelete = false;
+      renderBookDetail();
+    });
+  }
+  const delConfirm = document.getElementById('bdDelConfirm');
+  if (delConfirm) {
+    delConfirm.addEventListener('click', () => {
+      const title = b.title;
+      deleteBookById(b.id);
+      closeBookDetail();
+      showToast(`"${title}" 삭제됨`);
+    });
+  }
+}
+
+/* ─── 모달 자체 핸들러 ─── */
+document.getElementById('bdBackdrop').addEventListener('click', closeBookDetail);
+document.getElementById('bdClose').addEventListener('click', closeBookDetail);
+document.getElementById('bdBack').addEventListener('click', closeBookDetail);
+
+/* ─── 로그 엔트리 클릭 → 상세 페이지 열기 ─── */
+document.getElementById('logList').addEventListener('click', (e) => {
+  // 태그 클릭은 필터용이므로 무시
+  if (e.target.closest('.log-tag')) return;
+  const card = e.target.closest('.log-entry-card');
+  if (!card) return;
+  const entryDiv = card.closest('.log-entry');
+  const bookId = parseInt(entryDiv?.dataset.bookId, 10);
+  if (bookId) openBookDetail(bookId);
+});
 
 /* ═══════════════════════════════════════════════════════════
    통계 렌더 · 인생책 / 요일별 / 페이스
