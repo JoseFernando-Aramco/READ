@@ -4115,13 +4115,13 @@ function openSettings() {
   settingsBackdrop.classList.add('open');
   settingsSheet.classList.add('open');
   settingsSheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 function closeSettings() {
   settingsBackdrop.classList.remove('open');
   settingsSheet.classList.remove('open');
   settingsSheet.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
 }
 settingsOpenBtn?.addEventListener('click', openSettings);
 settingsCloseBtn?.addEventListener('click', closeSettings);
@@ -4269,7 +4269,7 @@ function openBookAdd() {
   const sheet = document.getElementById('basSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   goToStage('search');
   setTimeout(() => document.getElementById('bookSearchInput').focus(), 280);
   renderSearchWelcome();
@@ -4279,7 +4279,7 @@ function closeBookAdd() {
   const sheet = document.getElementById('basSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   // reset
   BA.selected = null;
   BA.tagsSelected = [];
@@ -5498,7 +5498,7 @@ function openBookDetail(id) {
   const sheet = document.getElementById('bdSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   renderBookDetail();
   document.getElementById('bdBody').scrollTo({ top: 0 });
 }
@@ -5508,7 +5508,7 @@ function closeBookDetail() {
   const sheet = document.getElementById('bdSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   BD.book = null;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
@@ -5969,7 +5969,7 @@ function openDrillDown(title, subtitle, books, valFormatter) {
   const sheet = document.getElementById('ddSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 
 function closeDrillDown() {
@@ -5977,7 +5977,7 @@ function closeDrillDown() {
   const sheet = document.getElementById('ddSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
 }
 
 document.getElementById('ddBackdrop').addEventListener('click', closeDrillDown);
@@ -6898,7 +6898,7 @@ function openNoteAdd(prefillBookId = null) {
   const sheet = document.getElementById('naSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 
 function openNoteEdit(id) {
@@ -6917,7 +6917,7 @@ function openNoteEdit(id) {
   const sheet = document.getElementById('naSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 
 function closeNoteSheet() {
@@ -6925,7 +6925,7 @@ function closeNoteSheet() {
   const sheet = document.getElementById('naSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
 }
 
 function saveNote() {
@@ -7052,43 +7052,52 @@ renderNotesTab();
 
 
 /* ═══════════════════════════════════════════════════════════
-   ⬇️ 스와이프 다운으로 시트 닫기
+   ⬇️ 스와이프 다운으로 시트 닫기 + 바디 스크롤 완전 잠금
    ═══════════════════════════════════════════════════════════ */
+
+/* 바디 스크롤 락 — 모바일 Safari에서도 확실히 */
+function lockBodyScroll() {
+  if (document.body.dataset.lockY != null) return; // 중첩 방지
+  const y = window.scrollY || 0;
+  document.body.dataset.lockY = String(y);
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${y}px`;
+  document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
+}
+function unlockBodyScroll() {
+  if (document.body.dataset.lockY == null) return;
+  const y = parseInt(document.body.dataset.lockY, 10) || 0;
+  delete document.body.dataset.lockY;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, y);
+}
+// 전역 노출 (closeXxx 내부에서 호출)
+window.lockBodyScroll = lockBodyScroll;
+window.unlockBodyScroll = unlockBodyScroll;
+
+/* 폼 요소 위 터치 여부 — 드래그 대상 제외 (라벨은 허용) */
+function _isFormElement(target) {
+  if (!target) return false;
+  if (['INPUT','TEXTAREA','SELECT','BUTTON','A','OPTION'].includes(target.tagName)) return true;
+  return !!target.closest('input, textarea, select, button, a');
+}
+
 function attachSwipeDown(sheet, closeFn, options = {}) {
   if (!sheet) return;
   const threshold = options.threshold || 120; // px
-  // 드래그 가능한 영역 (그립 + 헤드) — 본문 스크롤과 충돌 방지
-  const grabZones = [
-    sheet.querySelector('.bas-grip, .settings-grip'),
-    sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head'),
-  ].filter(Boolean);
-  if (!grabZones.length) return;
+  const grip = sheet.querySelector('.bas-grip, .settings-grip');
+  const head = sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head, .na-head');
+  const body = sheet.querySelector('.bas-body, .bd-body, .dd-body, .tm-body, .na-body, .settings-body');
 
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
 
-  const onStart = (e) => {
-    if (!sheet.classList.contains('open')) return;
-    startY = e.touches[0].clientY;
-    currentY = 0;
-    isDragging = true;
-    sheet.style.transition = 'none';
-  };
-
-  const onMove = (e) => {
-    if (!isDragging) return;
-    const delta = e.touches[0].clientY - startY;
-    if (delta < 0) {
-      // 위로 드래그는 무시 (한계 없이 부드럽게 저항)
-      currentY = 0;
-    } else {
-      currentY = delta;
-    }
-    sheet.style.transform = `translate(-50%, ${currentY}px)`;
-  };
-
-  const onEnd = () => {
+  const finish = () => {
     if (!isDragging) return;
     isDragging = false;
 
@@ -7109,16 +7118,49 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
     }
   };
 
-  grabZones.forEach(zone => {
-    zone.style.touchAction = 'pan-x';  // 수평만 허용, 수직은 JS 처리
-    zone.addEventListener('touchstart', onStart, { passive: true });
-    zone.addEventListener('touchmove', onMove, { passive: true });
-    zone.addEventListener('touchend', onEnd);
-    zone.addEventListener('touchcancel', onEnd);
-  });
+  const attachTo = (zone, { checkScrollTop = false } = {}) => {
+    if (!zone) return;
+    zone.addEventListener('touchstart', (e) => {
+      if (!sheet.classList.contains('open')) return;
+      // 본문 영역은 스크롤 맨 위에서만 드래그 시작 + 폼 요소 제외
+      if (checkScrollTop) {
+        if (body.scrollTop > 0) return;
+        if (_isFormElement(e.target)) return;
+      }
+      startY = e.touches[0].clientY;
+      currentY = 0;
+      isDragging = true;
+      sheet.style.transition = 'none';
+    }, { passive: true });
+
+    zone.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const delta = e.touches[0].clientY - startY;
+      if (delta < 0) {
+        // 위로 드래그 → 본문 영역이면 드래그 취소 (내부 스크롤로 넘김)
+        if (checkScrollTop) {
+          isDragging = false;
+          sheet.style.transition = '';
+          sheet.style.transform = '';
+          return;
+        }
+        currentY = 0;
+      } else {
+        currentY = delta;
+      }
+      sheet.style.transform = `translate(-50%, ${currentY}px)`;
+    }, { passive: true });
+
+    zone.addEventListener('touchend', finish);
+    zone.addEventListener('touchcancel', finish);
+  };
+
+  attachTo(grip);
+  attachTo(head);
+  attachTo(body, { checkScrollTop: true });
 }
 
-// 5개 시트 모두 등록
+// 6개 시트 모두 등록
 attachSwipeDown(document.getElementById('basSheet'),      closeBookAdd);
 attachSwipeDown(document.getElementById('bdSheet'),       closeBookDetail);
 attachSwipeDown(document.getElementById('ddSheet'),       closeDrillDown);
