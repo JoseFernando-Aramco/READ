@@ -2601,6 +2601,344 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .log-entry-card:active { transform: scale(.996); }
 
 /* ═══════════════════════════════════════════════════════════
+   타이머 · Timer
+   ═══════════════════════════════════════════════════════════ */
+
+/* Now Hero 버튼의 "실행 중" 상태 */
+.now-btn.timer-running {
+  background: linear-gradient(135deg, #dc2626, #7c2d12) !important;
+  color: #fff !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .3px;
+  animation: timerPulse 2s ease-in-out infinite;
+}
+@keyframes timerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+  50%      { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+
+/* 타이머 정지 시트 */
+.tm-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(28, 25, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 115;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s ease;
+}
+.tm-backdrop.open { opacity: 1; pointer-events: auto; }
+.tm-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px;
+  background: var(--c-canvas);
+  border-radius: 24px 24px 0 0;
+  z-index: 120;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.2);
+  pointer-events: none;
+}
+.tm-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
+
+.tm-head {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--c-border);
+  text-align: center;
+}
+.tm-head-ttl {
+  font-size: 15px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -.3px;
+}
+.tm-body {
+  padding: 24px 20px 20px;
+  display: flex; flex-direction: column;
+  gap: 20px;
+}
+.tm-book-row {
+  text-align: center;
+  padding: 10px 14px;
+  background: var(--c-surface);
+  border-radius: 12px;
+  border: 1px solid var(--c-border);
+}
+.tm-book-title {
+  font-size: 14px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -.3px;
+  line-height: 1.3;
+}
+.tm-book-meta {
+  font-size: 11px; font-weight: 600;
+  color: var(--c-text-2);
+  margin-top: 3px;
+}
+
+.tm-time-display {
+  text-align: center;
+  padding: 10px 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+.tm-time-num {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 54px; font-weight: 900;
+  color: var(--c-terra-700);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.tm-time-unit {
+  font-size: 16px; font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: -.3px;
+}
+.tm-time-sub {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-muted);
+  text-align: center;
+  margin-top: -6px;
+  letter-spacing: .3px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tm-page-field { display: flex; flex-direction: column; gap: 6px; }
+.tm-page-field label {
+  font-size: 10.5px; font-weight: 800;
+  color: var(--c-label);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-left: 2px;
+}
+.tm-page-field label .subct {
+  text-transform: none;
+  font-size: 10px;
+  color: var(--c-muted);
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+.tm-page-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.tm-page-input {
+  flex: 1;
+  padding: 11px 13px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 16px; font-weight: 800;
+  color: var(--c-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-align: center;
+  outline: none;
+  transition: border-color .15s;
+}
+.tm-page-input:focus { border-color: var(--brand-primary); }
+.tm-page-sep {
+  color: var(--c-label); font-weight: 700; font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.tm-page-total {
+  font-size: 14px; font-weight: 700;
+  color: var(--c-text-2);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tm-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+}
+.tm-actions .btn-secondary,
+.tm-actions .btn-primary {
+  padding: 13px;
+  font-size: 13px; font-weight: 800;
+  border-radius: 11px;
+}
+
+/* 독서 페이스 카드 확장 — 타이머 섹션 */
+.pace-timer {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-terra-500) 5%, var(--c-surface)), var(--c-surface));
+  border: 1px solid color-mix(in srgb, var(--c-terra-500) 20%, var(--c-border));
+  border-radius: 12px;
+}
+.pace-timer-head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 800;
+  color: var(--c-terra-700);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .6px; text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--c-terra-500) 25%, var(--c-border));
+}
+.pace-timer-row {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.pace-timer-row + .pace-timer-row {
+  border-top: 1px dashed var(--c-border);
+}
+.pace-timer-k { font-weight: 600; color: var(--c-text-2); }
+.pace-timer-v {
+  font-weight: 900;
+  color: var(--c-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -.3px;
+}
+.pace-timer-empty {
+  text-align: center;
+  padding: 10px 8px;
+  font-size: 11px; font-weight: 600;
+  color: var(--c-muted);
+  line-height: 1.55;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   드릴다운 시트 · Drill-down Sheet
+   별점·월별·태그 탭 → 해당 책 목록 표시
+   ═══════════════════════════════════════════════════════════ */
+.dd-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(28, 25, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 108;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s ease;
+}
+.dd-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.dd-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px;
+  height: 75vh;
+  background: var(--c-canvas);
+  border-radius: 24px 24px 0 0;
+  z-index: 112;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+  pointer-events: none;
+}
+.dd-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
+
+.dd-head {
+  padding: 8px 16px 14px;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  position: relative;
+}
+.dd-head .bas-close {
+  position: absolute; top: 10px; right: 14px;
+}
+.dd-ttl {
+  font-size: 17px; font-weight: 900;
+  color: var(--c-text); letter-spacing: -.4px;
+  line-height: 1.2;
+  padding-right: 40px;
+}
+.dd-sub {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: .3px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.dd-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 14px 24px;
+}
+.dd-list {
+  display: flex; flex-direction: column;
+  gap: 6px;
+}
+.dd-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.dd-item:active { transform: scale(.995); background: var(--c-surface-2); }
+.dd-item-cover {
+  width: 32px; height: 46px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 3px;
+  font-size: 8px; font-weight: 900;
+  color: #fff;
+  letter-spacing: .5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-align: center;
+  line-height: 1;
+  overflow: hidden;
+}
+.dd-item-info { min-width: 0; }
+.dd-item-title {
+  font-size: 13px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -.2px;
+  line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dd-item-meta {
+  font-size: 10.5px; font-weight: 600;
+  color: var(--c-text-2);
+  margin-top: 3px;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dd-item-val {
+  font-size: 11px; font-weight: 800;
+  color: var(--c-gold-900);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.dd-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--c-muted);
+  font-size: 12px;
+}
+
+/* 드릴다운 가능한 요소 힌트 */
+.rating-row[data-dd-rating],
+.monthly-bar-col[data-dd-month],
+.legend-row[data-dd-tag],
+.legend-row[data-dd-tag-etc] {
+  cursor: pointer;
+  transition: opacity .15s, transform .15s;
+}
+.rating-row[data-dd-rating]:active,
+.legend-row[data-dd-tag]:active,
+.legend-row[data-dd-tag-etc]:active {
+  opacity: .65; transform: scale(.99);
+}
+.monthly-bar-col[data-dd-month]:active .monthly-bar-rect {
+  opacity: .7;
+}
+
+/* ═══════════════════════════════════════════════════════════
    설정 모달 (테마 선택)
    ═══════════════════════════════════════════════════════════ */
 .settings-backdrop {
@@ -2992,6 +3330,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
       </div>
       <div class="pace-grid" id="paceGrid">
+        <!-- JS 렌더 -->
+      </div>
+      <div class="pace-timer" id="paceTimer">
         <!-- JS 렌더 -->
       </div>
     </div>
@@ -3410,6 +3751,53 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </div>
   <div class="bd-body" id="bdBody">
     <!-- JS 전체 렌더 -->
+  </div>
+</aside>
+
+<!-- ═══════════ 드릴다운 시트 ═══════════ -->
+<div class="dd-backdrop" id="ddBackdrop"></div>
+<aside class="dd-sheet" id="ddSheet" aria-hidden="true">
+  <div class="bas-grip"></div>
+  <div class="dd-head">
+    <button class="bas-close" id="ddClose" aria-label="닫기">✕</button>
+    <div class="dd-ttl" id="ddTtl">—</div>
+    <div class="dd-sub" id="ddSub">—</div>
+  </div>
+  <div class="dd-body">
+    <div class="dd-list" id="ddList">
+      <!-- JS 렌더 -->
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════ 타이머 정지 시트 ═══════════ -->
+<div class="tm-backdrop" id="tmBackdrop"></div>
+<aside class="tm-sheet" id="tmSheet" aria-hidden="true">
+  <div class="bas-grip"></div>
+  <div class="tm-head">
+    <div class="tm-head-ttl">⏱️ 타이머 정지</div>
+  </div>
+  <div class="tm-body">
+    <div class="tm-book-row" id="tmBookRow"></div>
+
+    <div>
+      <div class="tm-time-display" id="tmTimeDisplay"></div>
+      <div class="tm-time-sub">READING TIME</div>
+    </div>
+
+    <div class="tm-page-field">
+      <label>현재 페이지 <span class="subct">(선택)</span></label>
+      <div class="tm-page-row">
+        <input type="number" id="tmPageInput" class="tm-page-input" min="0">
+        <span class="tm-page-sep">/</span>
+        <span class="tm-page-total" id="tmPageTotal">—</span>
+      </div>
+    </div>
+
+    <div class="tm-actions">
+      <button class="btn-secondary" id="tmCancel">계속 읽기</button>
+      <button class="btn-primary" id="tmSave">기록 저장</button>
+    </div>
   </div>
 </aside>
 
@@ -4134,9 +4522,21 @@ const TAGS = {
 const BOOKS = [
   { id:1, title:'데미안', author:'헤르만 헤세', palette:'demian',
     pages:248, status:'reading', dateStart:'2026-04-14', currentPage:162,
+    readingSessions: [
+      { date: '2026-04-14', minutes: 35, pages: 28 },
+      { date: '2026-04-15', minutes: 42, pages: 30 },
+      { date: '2026-04-17', minutes: 50, pages: 40 },
+      { date: '2026-04-19', minutes: 45, pages: 35 },
+      { date: '2026-04-20', minutes: 38, pages: 29 },
+    ],
     tags:['성장','고전','자기성찰'] },
   { id:2, title:'1984', author:'조지 오웰', palette:'1984',
     pages:326, status:'reading', dateStart:'2026-04-18', currentPage:102,
+    readingSessions: [
+      { date: '2026-04-18', minutes: 55, pages: 45 },
+      { date: '2026-04-19', minutes: 40, pages: 32 },
+      { date: '2026-04-20', minutes: 30, pages: 25 },
+    ],
     tags:['고전','디스토피아','정치'] },
   { id:3, title:'넛지', author:'리처드 탈러', palette:'nudge',
     pages:416, status:'done', dateStart:'2026-04-03', dateEnd:'2026-04-10', rating:4.0,
@@ -4189,6 +4589,27 @@ const BOOKS = [
   if (savedTags && typeof savedTags === 'object') {
     Object.assign(TAGS, savedTags);
   }
+})();
+
+/* ─── 타이머 상태 (BOOKS 선언 뒤에 위치해야 resumeTimer 가능) ─── */
+const TIMER = {
+  bookId: null,
+  startTime: null,
+  intervalId: null,
+};
+
+/* ─── 새로고침 후 타이머 복원 ─── */
+(function resumeTimer() {
+  const saved = STORE.get('timer', null);
+  if (!saved || !saved.bookId || !saved.startTime) return;
+  const book = BOOKS.find(b => b.id === saved.bookId);
+  if (!book || book.status !== 'reading') {
+    STORE.set('timer', null);
+    return;
+  }
+  TIMER.bookId = saved.bookId;
+  TIMER.startTime = saved.startTime;
+  // startTimerTick는 나중에 정의됨 — 여기서는 상태만 복원
 })();
 
 // 팔레트 → 메인 다크 컬러 룩업 (타임라인 축·진행바 색상)
@@ -4376,6 +4797,10 @@ function renderBookCard(b, idx) {
 function renderNowHero(b) {
   if (!b) return '';
   const pct = b.pages ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
+  const timerRunning = TIMER.bookId === b.id;
+  const primaryBtn = timerRunning
+    ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn">⏸ --:-- · 저장</button>`
+    : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}">⏱️ 타이머 시작</button>`;
   return `
     <div class="now-hero">
       <div class="now-tag">NOW READING</div>
@@ -4396,7 +4821,7 @@ function renderNowHero(b) {
             </div>
           </div>
           <div class="now-actions">
-            <button class="now-btn primary" data-action="open-detail" data-book-id="${b.id}">📖 기록 열기</button>
+            ${primaryBtn}
             <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
           </div>
         </div>
@@ -4504,12 +4929,14 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
   const container = document.getElementById('libCards');
   if (!container) return;
   container.addEventListener('click', (e) => {
-    // 우선순위: now-actions 버튼 → 카드/커버
-    const btn = e.target.closest('[data-action="open-detail"]');
-    if (btn) {
-      const id = parseInt(btn.dataset.bookId, 10);
-      if (id) openBookDetail(id);
-      return;
+    // 타이머 액션 우선 처리
+    const actionBtn = e.target.closest('[data-action]');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      const id = parseInt(actionBtn.dataset.bookId, 10);
+      if (action === 'start-timer' && id) { startTimer(id); return; }
+      if (action === 'stop-timer') { openTimerStop(); return; }
+      if (action === 'open-detail' && id) { openBookDetail(id); return; }
     }
     const card = e.target.closest('[data-book-id]');
     if (card) {
@@ -4666,6 +5093,135 @@ function deleteBookById(id) {
   try { renderLogList(); } catch(e){}
   try { renderAllStats(); } catch(e){}
   try { renderLibraryCards(); } catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ⏱️ 타이머 로직
+   ═══════════════════════════════════════════════════════════ */
+
+function formatTimerDisplay(seconds) {
+  const hh = Math.floor(seconds / 3600);
+  const mm = Math.floor((seconds % 3600) / 60);
+  const ss = seconds % 60;
+  return hh > 0
+    ? `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+    : `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
+function tickTimerUI() {
+  if (!TIMER.startTime) return;
+  const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
+  const display = formatTimerDisplay(elapsed);
+  const btn = document.getElementById('nowTimerBtn');
+  if (btn) btn.textContent = `⏸ ${display} · 저장`;
+}
+
+function startTimerTick() {
+  if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+  tickTimerUI();
+  TIMER.intervalId = setInterval(tickTimerUI, 1000);
+}
+
+function startTimer(bookId) {
+  if (TIMER.bookId && TIMER.bookId !== bookId) {
+    showToast('다른 책 타이머가 돌고 있어요. 먼저 정지해주세요');
+    return;
+  }
+  if (TIMER.bookId === bookId) return; // already running
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) return;
+
+  TIMER.bookId = bookId;
+  TIMER.startTime = Date.now();
+  STORE.set('timer', { bookId, startTime: TIMER.startTime });
+
+  renderLibraryCards(); // 버튼 실행중 상태로 리렌더
+  startTimerTick();
+  showToast(`"${book.title}" 타이머 시작 ⏱️`);
+}
+
+/* 타이머 정지 시트 열기 */
+function openTimerStop() {
+  if (!TIMER.bookId || !TIMER.startTime) return;
+  const book = BOOKS.find(b => b.id === TIMER.bookId);
+  if (!book) return;
+
+  const elapsedSec = Math.floor((Date.now() - TIMER.startTime) / 1000);
+  const minutes = Math.max(1, Math.round(elapsedSec / 60));
+  TIMER.pendingMinutes = minutes;
+
+  document.getElementById('tmBookRow').innerHTML = `
+    <div class="tm-book-title">${esc(book.title)}</div>
+    <div class="tm-book-meta">${esc(book.author)}</div>
+  `;
+  document.getElementById('tmTimeDisplay').innerHTML = `
+    <span class="tm-time-num">${minutes}</span>
+    <span class="tm-time-unit">분</span>
+  `;
+  const pageInput = document.getElementById('tmPageInput');
+  pageInput.value = book.currentPage || 0;
+  pageInput.max = book.pages;
+  document.getElementById('tmPageTotal').textContent = `${book.pages} p`;
+
+  document.getElementById('tmBackdrop').classList.add('open');
+  const sheet = document.getElementById('tmSheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
+function closeTimerStop() {
+  document.getElementById('tmBackdrop').classList.remove('open');
+  const sheet = document.getElementById('tmSheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+}
+
+/* 세션 저장 + 타이머 종료 */
+function saveTimerSession() {
+  const book = BOOKS.find(b => b.id === TIMER.bookId);
+  if (!book) { closeTimerStop(); return; }
+
+  const minutes = TIMER.pendingMinutes || 1;
+  const newPage = parseInt(document.getElementById('tmPageInput').value, 10);
+  const oldPage = book.currentPage || 0;
+  const validNewPage = !isNaN(newPage) && newPage >= 0 && newPage <= book.pages ? newPage : oldPage;
+  const pagesRead = Math.max(0, validNewPage - oldPage);
+
+  const sessions = [...(book.readingSessions || [])];
+  sessions.push({
+    date: new Date().toISOString().slice(0, 10),
+    minutes,
+    pages: pagesRead,
+  });
+
+  updateBook(TIMER.bookId, {
+    readingSessions: sessions,
+    currentPage: validNewPage,
+  });
+
+  // 타이머 클리어
+  if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+  TIMER.bookId = null;
+  TIMER.startTime = null;
+  TIMER.intervalId = null;
+  TIMER.pendingMinutes = null;
+  STORE.set('timer', null);
+
+  closeTimerStop();
+  renderLibraryCards();
+
+  const pageStr = pagesRead > 0 ? ` · +${pagesRead}p` : '';
+  showToast(`${minutes}분 기록 저장됨${pageStr} ✓`);
+}
+
+/* 타이머 정지 시트 이벤트 바인딩 */
+document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
+document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
+document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+
+/* 이 시점에 resumeTimer에서 복원된 TIMER.bookId가 있으면 tick 시작 */
+if (TIMER.bookId && TIMER.startTime) {
+  startTimerTick();
 }
 
 /* ─── 모달 열기/닫기 ─── */
@@ -5067,7 +5623,173 @@ document.getElementById('logList').addEventListener('click', (e) => {
    통계 렌더 · 인생책 / 요일별 / 페이스
    ═══════════════════════════════════════════════════════════ */
 
-/* ─── 공통: 완독 책 + 재독까지 포함한 "모든 독서 세션" 풀기 ─── */
+/* ═══════════════════════════════════════════════════════════
+   드릴다운 시트 · 별점·월별·태그 탭 → 해당 책 목록
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── 필터 함수들 ─── */
+function ddBooksByRating(rating) {
+  const ids = new Set();
+  BOOKS.forEach(b => {
+    if (b.status === 'done' && typeof b.rating === 'number' && Math.round(b.rating) === rating) {
+      ids.add(b.id);
+    }
+    (b.rereads || []).forEach(r => {
+      if (typeof r.rating === 'number' && Math.round(r.rating) === rating) ids.add(b.id);
+    });
+  });
+  return BOOKS.filter(b => ids.has(b.id));
+}
+function ddBooksByMonth(year, month /* 0-indexed */) {
+  const ids = new Set();
+  BOOKS.forEach(b => {
+    if (b.status === 'done' && b.dateEnd) {
+      const d = new Date(b.dateEnd);
+      if (d.getFullYear() === year && d.getMonth() === month) ids.add(b.id);
+    }
+    (b.rereads || []).forEach(r => {
+      if (r.dateEnd) {
+        const d = new Date(r.dateEnd);
+        if (d.getFullYear() === year && d.getMonth() === month) ids.add(b.id);
+      }
+    });
+  });
+  return BOOKS.filter(b => ids.has(b.id));
+}
+function ddBooksByTag(tagName) {
+  return BOOKS.filter(b => b.status !== 'wish' && (b.tags || []).includes(tagName));
+}
+function ddBooksByTagEtc() {
+  // 상위 4개 태그를 제외한 나머지 태그를 가진 책
+  const counts = {};
+  BOOKS.filter(b => b.status !== 'wish').forEach(b => {
+    (b.tags || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+  });
+  const topNames = new Set(Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([n]) => n));
+  return BOOKS.filter(b => b.status !== 'wish' && (b.tags || []).some(t => !topNames.has(t)));
+}
+
+/* ─── 드릴다운 열기·닫기 ─── */
+function openDrillDown(title, subtitle, books, valFormatter) {
+  const list = document.getElementById('ddList');
+  document.getElementById('ddTtl').textContent = title;
+  document.getElementById('ddSub').textContent = subtitle;
+
+  if (!books.length) {
+    list.innerHTML = '<div class="dd-empty">해당하는 책이 없어요</div>';
+  } else {
+    // 최신순 (dateEnd desc; wish는 뒤로)
+    const sorted = [...books].sort((a, b) => {
+      const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
+      const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
+      return bD - aD;
+    });
+    list.innerHTML = sorted.map(b => {
+      const pal = esc(b.palette || 'demian');
+      const initial = (b.title || '?').charAt(0);
+      const dateStr = b.dateEnd
+        ? `${formatDate(b.dateStart)} – ${formatDate(b.dateEnd)}`
+        : b.dateStart ? `${formatDate(b.dateStart)} – 진행중` : '미독';
+      const val = valFormatter ? valFormatter(b) : '';
+      return `
+        <div class="dd-item" data-book-id="${b.id}">
+          <div class="dd-item-cover palette-${pal}" style="background:${PALETTE_DARK[b.palette] || '#64748b'}">${esc(initial)}</div>
+          <div class="dd-item-info">
+            <div class="dd-item-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+            <div class="dd-item-meta">${esc(b.author)} · ${esc(dateStr)}</div>
+          </div>
+          <div class="dd-item-val">${val}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('ddBackdrop').classList.add('open');
+  const sheet = document.getElementById('ddSheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrillDown() {
+  document.getElementById('ddBackdrop').classList.remove('open');
+  const sheet = document.getElementById('ddSheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('ddBackdrop').addEventListener('click', closeDrillDown);
+document.getElementById('ddClose').addEventListener('click', closeDrillDown);
+
+/* ─── 목록 아이템 탭 → 책 상세로 전환 (드릴다운 닫고 책 상세 열기) ─── */
+document.getElementById('ddList').addEventListener('click', (e) => {
+  const item = e.target.closest('[data-book-id]');
+  if (!item) return;
+  const id = parseInt(item.dataset.bookId, 10);
+  if (id) {
+    closeDrillDown();
+    setTimeout(() => openBookDetail(id), 250);
+  }
+});
+
+/* ─── 통계 탭 위임 이벤트 ─── */
+document.getElementById('pane-stats').addEventListener('click', (e) => {
+  // 별점 행
+  const ratingRow = e.target.closest('[data-dd-rating]');
+  if (ratingRow) {
+    const r = parseInt(ratingRow.dataset.ddRating, 10);
+    const books = ddBooksByRating(r);
+    openDrillDown(
+      `${'★'.repeat(r)}${'☆'.repeat(5-r)} · ${r}점 · ${books.length}권`,
+      'STARS',
+      books,
+      (b) => b.rating ? `★ ${b.rating.toFixed(1)}` : ''
+    );
+    return;
+  }
+  // 월별 바
+  const monthCol = e.target.closest('[data-dd-month]');
+  if (monthCol) {
+    const year = parseInt(monthCol.dataset.ddYear, 10);
+    const month = parseInt(monthCol.dataset.ddMonth, 10);
+    const books = ddBooksByMonth(year, month);
+    openDrillDown(
+      `${year}년 ${month + 1}월 · ${books.length}권`,
+      'MONTHLY',
+      books,
+      (b) => b.pages ? `${b.pages}p` : ''
+    );
+    return;
+  }
+  // 태그 범례
+  const tagRow = e.target.closest('[data-dd-tag]');
+  if (tagRow) {
+    const tag = tagRow.dataset.ddTag;
+    const books = ddBooksByTag(tag);
+    const tagMeta = TAGS[tag];
+    openDrillDown(
+      `${tagMeta?.emoji || '🏷️'} #${tag} · ${books.length}권`,
+      'TAG',
+      books,
+      (b) => b.rating ? `★ ${b.rating.toFixed(1)}` : b.status === 'reading' ? '📖' : ''
+    );
+    return;
+  }
+  // 기타 태그 범례
+  const tagEtcRow = e.target.closest('[data-dd-tag-etc]');
+  if (tagEtcRow) {
+    const books = ddBooksByTagEtc();
+    openDrillDown(
+      `기타 태그 · ${books.length}권`,
+      'OTHER TAGS',
+      books,
+      (b) => b.rating ? `★ ${b.rating.toFixed(1)}` : ''
+    );
+    return;
+  }
+});
+
+
 function allReadSessions() {
   const out = [];
   BOOKS.forEach(b => {
@@ -5219,7 +5941,43 @@ function renderWeekdayChart() {
 /* ─── ③ 독서 페이스 ─── */
 function computePaceStats() {
   const sessions = allReadSessions();
-  if (!sessions.length) return null;
+
+  // 타이머 세션 집계 (모든 책에서)
+  const timerSessions = [];
+  BOOKS.forEach(b => {
+    (b.readingSessions || []).forEach(rs => {
+      timerSessions.push({ ...rs, book: b });
+    });
+  });
+  const totalTimerMinutes = timerSessions.reduce((a, s) => a + (s.minutes || 0), 0);
+  const totalTimerPages   = timerSessions.reduce((a, s) => a + (s.pages || 0), 0);
+  const avgMinutesPerSession = timerSessions.length ? totalTimerMinutes / timerSessions.length : 0;
+  const pagesPerMinute = (totalTimerMinutes > 0 && totalTimerPages > 0)
+    ? totalTimerPages / totalTimerMinutes
+    : 0;
+
+  // 최근 7일 평균 분 (오늘 포함)
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const recentMinutes = timerSessions
+    .filter(s => {
+      const d = new Date(s.date);
+      return d >= sevenDaysAgo && d <= today;
+    })
+    .reduce((a, s) => a + (s.minutes || 0), 0);
+  const dailyAvgRecent = recentMinutes / 7;
+
+  // 일수 기반 (기존) 지표
+  if (!sessions.length) {
+    return {
+      hasDayBased: false,
+      timerSessions, totalTimerMinutes, totalTimerPages,
+      avgMinutesPerSession, pagesPerMinute, dailyAvgRecent,
+    };
+  }
 
   const entries = sessions.map(s => ({
     book: s.book,
@@ -5236,44 +5994,93 @@ function computePaceStats() {
   const avgDays = totalDays / entries.length;
   const avgPagesPerDay = totalPages / totalDays;
 
-  return { fastest, slowest, avgDays, avgPagesPerDay, count: entries.length };
+  return {
+    hasDayBased: true,
+    fastest, slowest, avgDays, avgPagesPerDay, count: entries.length,
+    timerSessions, totalTimerMinutes, totalTimerPages,
+    avgMinutesPerSession, pagesPerMinute, dailyAvgRecent,
+  };
 }
 
 function renderPaceCard() {
   const s = computePaceStats();
   const grid = document.getElementById('paceGrid');
   const sub = document.getElementById('paceCardSub');
+  const timerBox = document.getElementById('paceTimer');
 
-  if (!s) {
+  if (!s || !s.hasDayBased) {
+    // 일수 기반 데이터 없음 → 타이머 데이터만 있을 수도
     grid.innerHTML = `
       <div class="pace-cell main" style="grid-column:1/-1">
         <div class="pace-cell-icon">📊</div>
         <div class="pace-cell-sub" style="font-size:11px">완독 책이 쌓이면 페이스가 나와요</div>
       </div>`;
     sub.textContent = '완독한 책 기준';
+  } else {
+    sub.textContent = `${s.count}회 독서 세션 기준 (재독 포함)`;
+    grid.innerHTML = `
+      <div class="pace-cell main">
+        <div class="pace-cell-icon">📈</div>
+        <div class="pace-cell-val">${s.avgDays.toFixed(1)}</div>
+        <div class="pace-cell-unit">일 / 권 평균</div>
+        <div class="pace-cell-sub">하루 ${Math.round(s.avgPagesPerDay)}p 페이스</div>
+      </div>
+      <div class="pace-cell">
+        <div class="pace-cell-icon">⚡</div>
+        <div class="pace-cell-val">${s.fastest.days}</div>
+        <div class="pace-cell-unit">일 · 최단</div>
+        <div class="pace-cell-sub">${esc(s.fastest.book.title)}</div>
+      </div>
+      <div class="pace-cell">
+        <div class="pace-cell-icon">🐢</div>
+        <div class="pace-cell-val">${s.slowest.days}</div>
+        <div class="pace-cell-unit">일 · 최장</div>
+        <div class="pace-cell-sub">${esc(s.slowest.book.title)}</div>
+      </div>`;
+  }
+
+  // ─── 타이머 섹션 ───
+  if (!timerBox) return;
+  if (!s || s.totalTimerMinutes === 0) {
+    timerBox.innerHTML = `
+      <div class="pace-timer-head">⏱️ 타이머 기반</div>
+      <div class="pace-timer-empty">
+        독서 중에 <strong style="color:var(--c-terra-700)">⏱️ 타이머 시작</strong> 을 누르면<br>
+        실제 분 단위 독서 시간이 여기 집계돼요
+      </div>
+    `;
     return;
   }
 
-  sub.textContent = `${s.count}회 독서 세션 기준 (재독 포함)`;
-  grid.innerHTML = `
-    <div class="pace-cell main">
-      <div class="pace-cell-icon">📈</div>
-      <div class="pace-cell-val">${s.avgDays.toFixed(1)}</div>
-      <div class="pace-cell-unit">일 / 권 평균</div>
-      <div class="pace-cell-sub">하루 ${Math.round(s.avgPagesPerDay)}p 페이스</div>
+  const totalMin = s.totalTimerMinutes;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  const timeStr = hours > 0 ? `${hours}시간 ${mins}분` : `${mins}분`;
+  const sessionAvg = Math.round(s.avgMinutesPerSession);
+  const ppm = s.pagesPerMinute > 0 ? s.pagesPerMinute.toFixed(1) : null;
+  const dailyAvg = Math.round(s.dailyAvgRecent);
+
+  timerBox.innerHTML = `
+    <div class="pace-timer-head">⏱️ 타이머 기반 · ${s.timerSessions.length}회 세션</div>
+    <div class="pace-timer-row">
+      <div class="pace-timer-k">총 독서 시간</div>
+      <div class="pace-timer-v">${timeStr}</div>
     </div>
-    <div class="pace-cell">
-      <div class="pace-cell-icon">⚡</div>
-      <div class="pace-cell-val">${s.fastest.days}</div>
-      <div class="pace-cell-unit">일 · 최단</div>
-      <div class="pace-cell-sub">${esc(s.fastest.book.title)}</div>
+    <div class="pace-timer-row">
+      <div class="pace-timer-k">세션 평균</div>
+      <div class="pace-timer-v">${sessionAvg}분</div>
     </div>
-    <div class="pace-cell">
-      <div class="pace-cell-icon">🐢</div>
-      <div class="pace-cell-val">${s.slowest.days}</div>
-      <div class="pace-cell-unit">일 · 최장</div>
-      <div class="pace-cell-sub">${esc(s.slowest.book.title)}</div>
-    </div>`;
+    ${dailyAvg > 0 ? `
+    <div class="pace-timer-row">
+      <div class="pace-timer-k">최근 7일 하루 평균</div>
+      <div class="pace-timer-v">${dailyAvg}분</div>
+    </div>` : ''}
+    ${ppm ? `
+    <div class="pace-timer-row">
+      <div class="pace-timer-k">분당 페이지</div>
+      <div class="pace-timer-v">${ppm}p</div>
+    </div>` : ''}
+  `;
 }
 
 /* ─── 전체 렌더 ─── */
@@ -5332,7 +6139,7 @@ function renderMonthlyStatCard() {
   const lbls  = document.getElementById('monthlyLabels');
   const max   = Math.max(1, ...counts);
   chart.innerHTML = counts.map((v, i) => `
-    <div class="monthly-bar-col${i === curMonth ? ' cur' : ''}">
+    <div class="monthly-bar-col${i === curMonth ? ' cur' : ''}" data-dd-month="${i}" data-dd-year="${year}">
       <div class="monthly-bar-val">${v || ''}</div>
       <div class="monthly-bar-rect" style="height:${v/max*100}%"></div>
     </div>`).join('');
@@ -5394,8 +6201,10 @@ function renderGenreDonut() {
     const pct = Math.round(count / total * 100);
     const tag = TAGS[name];
     const icon = tag ? `${tag.emoji} ` : '';
+    const isEtc = name === '기타';
+    const dataAttr = isEtc ? 'data-dd-tag-etc="1"' : `data-dd-tag="${esc(name)}"`;
     return `
-      <div class="legend-row">
+      <div class="legend-row" ${dataAttr}>
         <div class="legend-dot" style="background:${COLORS[i] || '#64748b'}"></div>
         <div class="legend-k">${icon}${esc(name)}</div>
         <div class="legend-v">${count}<span class="pct">${pct}%</span></div>
@@ -5541,7 +6350,7 @@ function renderRatingStatCard() {
   hist.innerHTML = [4, 3, 2, 1, 0].map(i => {
     const pct = total ? Math.round(buckets[i] / max * 100) : 0;
     return `
-      <div class="rating-row">
+      <div class="rating-row" data-dd-rating="${i + 1}">
         <div class="rating-stars">${starStr[i]}</div>
         <div class="rating-bar"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
         <div class="rating-count">${buckets[i]}</div>
