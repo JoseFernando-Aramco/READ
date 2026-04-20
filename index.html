@@ -2600,6 +2600,245 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bas-grip, .settings-grip { cursor: grab; user-select: none; -webkit-user-select: none; }
 .bas-grip:active, .settings-grip:active { cursor: grabbing; }
 
+/* ═══════════════════════════════════════════════════════════
+   노트 탭 · 즐겨찾기 버튼 + 빈 상태 + 추가/편집 시트
+   ═══════════════════════════════════════════════════════════ */
+.note-card { cursor: pointer; position: relative; }
+.note-card:active { transform: scale(.996); }
+
+.note-fav-btn {
+  background: transparent;
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--c-border-2);
+  transition: all .15s;
+  filter: grayscale(1);
+  opacity: .5;
+}
+.note-fav-btn.on {
+  color: var(--c-gold-500);
+  filter: none;
+  opacity: 1;
+}
+.note-fav-btn:hover { background: var(--c-surface-2); }
+
+.note-head-right {
+  display: flex; gap: 6px; align-items: center;
+}
+
+.notes-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--c-muted);
+}
+.notes-empty-emoji {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: .6;
+}
+.notes-empty-ttl {
+  font-weight: 700;
+  color: var(--c-text-2);
+  margin-bottom: 4px;
+  font-size: 13.5px;
+}
+.notes-empty-sub {
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.notes-empty-sub strong {
+  color: var(--c-terra-700);
+  font-weight: 800;
+}
+
+/* 노트 추가/편집 시트 */
+.na-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(28, 25, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 106;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s ease;
+}
+.na-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.na-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px;
+  height: 88vh;
+  background: var(--c-canvas);
+  border-radius: 24px 24px 0 0;
+  z-index: 111;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+  pointer-events: none;
+}
+.na-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
+
+.na-head {
+  padding: 8px 16px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+.na-head-ttl {
+  font-size: 14px; font-weight: 900;
+  color: var(--c-text);
+  letter-spacing: -.3px;
+  text-align: center;
+}
+.na-save-btn {
+  padding: 7px 14px;
+  background: var(--brand-primary);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 800;
+  letter-spacing: -.1px;
+  transition: all .15s;
+}
+.na-save-btn:disabled {
+  background: var(--c-border-2);
+  color: var(--c-muted);
+  cursor: not-allowed;
+}
+.na-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 18px 32px;
+  display: flex; flex-direction: column;
+  gap: 18px;
+}
+.na-field { display: flex; flex-direction: column; gap: 6px; }
+.na-lbl {
+  font-size: 10.5px; font-weight: 800;
+  color: var(--c-label);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-left: 2px;
+}
+.na-lbl .subct {
+  text-transform: none;
+  font-size: 10px;
+  color: var(--c-muted);
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+.na-select,
+.na-input,
+.na-textarea {
+  padding: 11px 13px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 14px; font-weight: 500;
+  color: var(--c-text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+}
+.na-select:focus,
+.na-input:focus,
+.na-textarea:focus {
+  border-color: var(--brand-primary);
+}
+.na-textarea {
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+.na-fav-toggle {
+  display: flex; align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  color: var(--c-text-2);
+  transition: all .15s;
+  justify-content: flex-start;
+  width: 100%;
+}
+.na-fav-toggle.on {
+  background: color-mix(in srgb, var(--c-gold-500) 8%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--c-gold-500) 40%, var(--c-border));
+  color: var(--c-gold-900);
+}
+.na-fav-icon {
+  font-size: 16px;
+  filter: grayscale(1);
+  opacity: .5;
+}
+.na-fav-toggle.on .na-fav-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.na-delete-zone {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--c-border);
+}
+.na-delete-btn {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  color: var(--c-terra-700);
+  border: 1.5px solid color-mix(in srgb, var(--c-terra-500) 40%, var(--c-border));
+  border-radius: 10px;
+  font-size: 12.5px; font-weight: 800;
+  letter-spacing: -.1px;
+  transition: all .15s;
+}
+.na-delete-btn:hover {
+  background: color-mix(in srgb, var(--c-terra-500) 8%, transparent);
+  border-color: var(--c-terra-700);
+}
+.na-delete-confirm {
+  padding: 14px;
+  background: color-mix(in srgb, var(--c-terra-500) 10%, var(--c-surface));
+  border: 1.5px solid var(--c-terra-700);
+  border-radius: 10px;
+}
+.na-delete-confirm-ttl {
+  font-size: 12px; font-weight: 800;
+  color: var(--c-terra-700);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.na-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.na-delete-actions button {
+  padding: 10px;
+  font-size: 12px; font-weight: 800;
+  border-radius: 9px;
+}
+.na-delete-actions .cancel {
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border);
+}
+.na-delete-actions .confirm {
+  background: var(--c-terra-700);
+  color: #fff;
+}
+
 /* 클릭 가능한 엔트리 힌트 */
 .log-entry-card { cursor: pointer; }
 .log-entry-card:active { transform: scale(.996); }
@@ -3436,84 +3675,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
     <div class="note-search">
       <span style="color:var(--c-muted);font-size:14px">🔍</span>
-      <input type="text" placeholder="하이라이트·인용구 검색…"/>
+      <input type="text" id="noteSearchInput" placeholder="하이라이트·인용구 검색…"/>
     </div>
 
-    <div class="filter-chips">
-      <button class="chip active">전체 42</button>
-      <button class="chip">✍️ 내 생각</button>
-      <button class="chip">📖 인용구</button>
-      <button class="chip">⭐ 즐겨찾기</button>
-      <button class="chip">데미안</button>
-      <button class="chip">사피엔스</button>
+    <div class="filter-chips" id="noteFilterChips">
+      <!-- JS 렌더 -->
     </div>
 
-    <div class="note-list">
-
-      <!-- 인용구 1 -->
-      <div class="note-card quote">
-        <div class="note-head">
-          <div class="note-book">
-            <div class="note-book-mini palette-demian"></div>
-            <div class="note-book-info">
-              <div class="note-book-title">데미안</div>
-              <div class="note-book-page">p. 127</div>
-            </div>
-          </div>
-          <span class="note-type quote">QUOTE</span>
-        </div>
-        <div class="note-body">"새는 알을 깨고 나온다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다."</div>
-        <div class="note-date">2일 전</div>
-      </div>
-
-      <!-- 내 생각 1 -->
-      <div class="note-card thought">
-        <div class="note-head">
-          <div class="note-book">
-            <div class="note-book-mini palette-demian"></div>
-            <div class="note-book-info">
-              <div class="note-book-title">데미안</div>
-              <div class="note-book-page">p. 98</div>
-            </div>
-          </div>
-          <span class="note-type thought">THOUGHT</span>
-        </div>
-        <div class="note-body">싱클레어가 크로머에게 거짓말을 하는 장면에서, 나 역시 비슷한 경험이 떠올랐다. 어린 시절의 작은 거짓말이 얼마나 오래 마음에 남는지.</div>
-        <div class="note-date">3일 전</div>
-      </div>
-
-      <!-- 인용구 2 -->
-      <div class="note-card quote">
-        <div class="note-head">
-          <div class="note-book">
-            <div class="note-book-mini palette-sapiens"></div>
-            <div class="note-book-info">
-              <div class="note-book-title">사피엔스</div>
-              <div class="note-book-page">p. 312</div>
-            </div>
-          </div>
-          <span class="note-type quote">QUOTE</span>
-        </div>
-        <div class="note-body">"역사는 인간이 더 행복해지는 방향으로 진보하지 않는다."</div>
-        <div class="note-date">1주 전</div>
-      </div>
-
-      <!-- 인용구 3 -->
-      <div class="note-card quote">
-        <div class="note-head">
-          <div class="note-book">
-            <div class="note-book-mini palette-cosmos"></div>
-            <div class="note-book-info">
-              <div class="note-book-title">코스모스</div>
-              <div class="note-book-page">p. 45</div>
-            </div>
-          </div>
-          <span class="note-type quote">QUOTE</span>
-        </div>
-        <div class="note-body">"우리는 별의 먼지로 만들어졌다. 우리의 원자는 옛날 옛적 별의 내부에서 만들어졌다."</div>
-        <div class="note-date">2주 전</div>
-      </div>
-
+    <div class="note-list" id="noteList">
+      <!-- JS 렌더 -->
     </div>
 
   </section>
@@ -3802,6 +3972,52 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <button class="btn-secondary" id="tmCancel">계속 읽기</button>
       <button class="btn-primary" id="tmSave">기록 저장</button>
     </div>
+  </div>
+</aside>
+
+<!-- ═══════════ 노트 추가/편집 시트 ═══════════ -->
+<div class="na-backdrop" id="naBackdrop"></div>
+<aside class="na-sheet" id="naSheet" aria-hidden="true">
+  <div class="bas-grip"></div>
+  <div class="na-head">
+    <button class="bas-close" id="naClose" aria-label="닫기">✕</button>
+    <div class="na-head-ttl" id="naHeadTtl">새 노트</div>
+    <button class="na-save-btn" id="naSave" disabled>저장</button>
+  </div>
+  <div class="na-body">
+    <div class="na-field">
+      <label class="na-lbl">책</label>
+      <select class="na-select" id="naBook">
+        <option value="">— 책 선택 —</option>
+      </select>
+    </div>
+
+    <div class="na-field">
+      <label class="na-lbl">타입</label>
+      <div class="status-seg" id="naTypeSeg">
+        <button class="status-seg-btn active" data-type="quote">📖 인용구</button>
+        <button class="status-seg-btn" data-type="thought">✍️ 내 생각</button>
+      </div>
+    </div>
+
+    <div class="na-field">
+      <label class="na-lbl">페이지 <span class="subct">(선택)</span></label>
+      <input type="number" class="na-input" id="naPage" placeholder="예: 127" min="0">
+    </div>
+
+    <div class="na-field">
+      <label class="na-lbl">내용</label>
+      <textarea class="na-textarea" id="naBody" placeholder="인용구나 떠오른 생각을 적어보세요"></textarea>
+    </div>
+
+    <div class="na-field">
+      <button class="na-fav-toggle" id="naFav">
+        <span class="na-fav-icon">⭐</span>
+        <span id="naFavLbl">즐겨찾기에 추가</span>
+      </button>
+    </div>
+
+    <div class="na-delete-zone" id="naDeleteZone" style="display:none"></div>
   </div>
 </aside>
 
@@ -4581,7 +4797,44 @@ const BOOKS = [
     tags:['자기성찰','철학'] },
 ];
 
-/* ─── 저장된 BOOKS / TAGS 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
+/* ─── 노트 데이터 (하이라이트·인용구·내 생각) ─── */
+const NOTES = [
+  { id:1, bookId:1, type:'quote', page:127, favorite:true,
+    createdAt:'2026-04-18T10:00:00.000Z',
+    body:'새는 알을 깨고 나온다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다.' },
+  { id:2, bookId:1, type:'thought', page:98, favorite:false,
+    createdAt:'2026-04-17T15:30:00.000Z',
+    body:'싱클레어가 크로머에게 거짓말하는 장면에서 나 역시 비슷한 기억이 떠올랐다. 어린 시절의 작은 거짓말이 얼마나 오래 마음에 남는지.' },
+  { id:3, bookId:4, type:'quote', page:45, favorite:true,
+    createdAt:'2026-04-06T20:00:00.000Z',
+    body:'우리는 별의 먼지로 만들어졌다. 우리의 원자는 옛날 옛적 별의 내부에서 만들어졌다.' },
+  { id:4, bookId:5, type:'quote', page:312, favorite:false,
+    createdAt:'2026-04-13T18:00:00.000Z',
+    body:'역사는 인간이 더 행복해지는 방향으로 진보하지 않는다.' },
+  { id:5, bookId:2, type:'thought', page:null, favorite:false,
+    createdAt:'2026-04-19T22:00:00.000Z',
+    body:'오세아니아의 감시 체제가 지금의 빅테크 데이터 수집과 겹쳐 보인다. 다만 우리는 자발적으로 그 속으로 걸어 들어간다는 점이 더 섬뜩하다.' },
+];
+
+/* ─── 노트 필터 상태 ─── */
+const NOTE_FILTER = {
+  search: '',
+  type: null,      // null | 'quote' | 'thought'
+  favorite: false,
+  bookId: null,
+};
+
+/* ─── 노트 추가/편집 모달 상태 ─── */
+const NA = {
+  editingId: null,
+  bookId: null,
+  type: 'quote',
+  page: null,
+  body: '',
+  favorite: false,
+};
+
+/* ─── 저장된 BOOKS / TAGS / NOTES 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
 (function hydrateData() {
   const savedBooks = STORE.get('books', null);
   // 저장된 값이 배열이면 (빈 배열이라도) 사용 → 사용자 삭제가 새로고침에도 유지됨
@@ -4592,6 +4845,11 @@ const BOOKS = [
   const savedTags = STORE.get('tags', null);
   if (savedTags && typeof savedTags === 'object') {
     Object.assign(TAGS, savedTags);
+  }
+  const savedNotes = STORE.get('notes', null);
+  if (Array.isArray(savedNotes)) {
+    NOTES.length = 0;
+    NOTES.push(...savedNotes);
   }
 })();
 
@@ -6379,6 +6637,421 @@ renderLibraryCards();
 renderAllStats();
 
 /* ═══════════════════════════════════════════════════════════
+   📓 노트 탭 · 기능 (동적 렌더·필터·CRUD)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── 시간 표시 유틸 ─── */
+function timeAgo(d) {
+  const now = new Date();
+  const dt = (d instanceof Date) ? d : new Date(d);
+  const diff = now - dt;
+  const days = Math.floor(diff / 86400000);
+  if (days <= 0) return '오늘';
+  if (days === 1) return '어제';
+  if (days < 7) return days + '일 전';
+  if (days < 30) return Math.floor(days/7) + '주 전';
+  if (days < 365) return Math.floor(days/30) + '개월 전';
+  return Math.floor(days/365) + '년 전';
+}
+
+/* ─── 필터 적용된 노트 반환 (최신순) ─── */
+function getFilteredNotes() {
+  let result = [...NOTES];
+  if (NOTE_FILTER.type) result = result.filter(n => n.type === NOTE_FILTER.type);
+  if (NOTE_FILTER.favorite) result = result.filter(n => n.favorite);
+  if (NOTE_FILTER.bookId) result = result.filter(n => n.bookId === NOTE_FILTER.bookId);
+  if (NOTE_FILTER.search) {
+    const q = NOTE_FILTER.search.toLowerCase();
+    result = result.filter(n => {
+      const book = BOOKS.find(b => b.id === n.bookId);
+      return n.body.toLowerCase().includes(q) ||
+             (book && book.title.toLowerCase().includes(q)) ||
+             (book && book.author.toLowerCase().includes(q));
+    });
+  }
+  return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+/* ─── 카드 렌더 ─── */
+function renderNoteCard(n) {
+  const book = BOOKS.find(b => b.id === n.bookId);
+  if (!book) return '';
+  const bodyText = n.type === 'quote' ? '"' + esc(n.body) + '"' : esc(n.body);
+  return `
+    <div class="note-card ${n.type}" data-note-id="${n.id}">
+      <div class="note-head">
+        <div class="note-book">
+          <div class="note-book-mini palette-${esc(book.palette || 'demian')}"></div>
+          <div class="note-book-info">
+            <div class="note-book-title">${esc(book.title)}</div>
+            <div class="note-book-page">${n.page ? 'p. ' + n.page : '&nbsp;'}</div>
+          </div>
+        </div>
+        <div class="note-head-right">
+          <button class="note-fav-btn ${n.favorite ? 'on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">⭐</button>
+          <span class="note-type ${n.type}">${n.type === 'quote' ? 'QUOTE' : 'THOUGHT'}</span>
+        </div>
+      </div>
+      <div class="note-body">${bodyText}</div>
+      <div class="note-date">${timeAgo(n.createdAt)}</div>
+    </div>`;
+}
+
+/* ─── 필터 칩 렌더 ─── */
+function renderNoteFilterChips() {
+  const chips = document.getElementById('noteFilterChips');
+  const total = NOTES.length;
+  const quoteCnt = NOTES.filter(n => n.type === 'quote').length;
+  const thoughtCnt = NOTES.filter(n => n.type === 'thought').length;
+  const favCnt = NOTES.filter(n => n.favorite).length;
+
+  // 책별 카운트
+  const bookCounts = {};
+  NOTES.forEach(n => {
+    bookCounts[n.bookId] = (bookCounts[n.bookId] || 0) + 1;
+  });
+  const bookChips = Object.entries(bookCounts)
+    .map(([bid, cnt]) => {
+      const book = BOOKS.find(b => b.id === parseInt(bid, 10));
+      if (!book) return null;
+      return { id: parseInt(bid, 10), title: book.title, cnt };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.cnt - a.cnt);
+
+  const isAll = !NOTE_FILTER.type && !NOTE_FILTER.favorite && !NOTE_FILTER.bookId;
+
+  chips.innerHTML = `
+    <button class="chip ${isAll ? 'active' : ''}" data-chip-all>전체 ${total}</button>
+    ${thoughtCnt ? `<button class="chip ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-chip-type="thought">✍️ 내 생각 ${thoughtCnt}</button>` : ''}
+    ${quoteCnt ? `<button class="chip ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-chip-type="quote">📖 인용구 ${quoteCnt}</button>` : ''}
+    ${favCnt ? `<button class="chip ${NOTE_FILTER.favorite ? 'active' : ''}" data-chip-fav>⭐ 즐겨찾기 ${favCnt}</button>` : ''}
+    ${bookChips.map(b => `<button class="chip ${NOTE_FILTER.bookId === b.id ? 'active' : ''}" data-chip-book="${b.id}">${esc(b.title)} ${b.cnt}</button>`).join('')}
+  `;
+}
+
+/* ─── 메인 렌더 ─── */
+function renderNotesTab() {
+  renderNoteFilterChips();
+  const list = document.getElementById('noteList');
+  if (!list) return;
+  const filtered = getFilteredNotes();
+
+  if (!NOTES.length) {
+    list.innerHTML = `
+      <div class="notes-empty">
+        <div class="notes-empty-emoji">📓</div>
+        <div class="notes-empty-ttl">아직 노트가 없어요</div>
+        <div class="notes-empty-sub">
+          아래 <strong>+</strong> 버튼으로 인용구나<br>
+          떠오른 생각을 기록해보세요
+        </div>
+      </div>`;
+    return;
+  }
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="notes-empty">
+        <div class="notes-empty-emoji">🔍</div>
+        <div class="notes-empty-ttl">필터에 맞는 노트가 없어요</div>
+        <div class="notes-empty-sub">검색어나 필터를 바꿔보세요</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(renderNoteCard).join('');
+}
+
+/* ─── 필터 이벤트 위임 ─── */
+document.getElementById('noteFilterChips').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-chip-all],button[data-chip-type],button[data-chip-fav],button[data-chip-book]');
+  if (!btn) return;
+  if (btn.hasAttribute('data-chip-all')) {
+    NOTE_FILTER.type = null;
+    NOTE_FILTER.favorite = false;
+    NOTE_FILTER.bookId = null;
+  } else if (btn.dataset.chipType) {
+    const t = btn.dataset.chipType;
+    NOTE_FILTER.type = NOTE_FILTER.type === t ? null : t;
+    NOTE_FILTER.favorite = false;
+    NOTE_FILTER.bookId = null;
+  } else if (btn.hasAttribute('data-chip-fav')) {
+    NOTE_FILTER.favorite = !NOTE_FILTER.favorite;
+    NOTE_FILTER.type = null;
+    NOTE_FILTER.bookId = null;
+  } else if (btn.dataset.chipBook) {
+    const bid = parseInt(btn.dataset.chipBook, 10);
+    NOTE_FILTER.bookId = NOTE_FILTER.bookId === bid ? null : bid;
+    NOTE_FILTER.type = null;
+    NOTE_FILTER.favorite = false;
+  }
+  renderNotesTab();
+});
+
+/* ─── 검색 이벤트 ─── */
+document.getElementById('noteSearchInput').addEventListener('input', (e) => {
+  NOTE_FILTER.search = e.target.value.trim();
+  renderNotesTab();
+});
+
+/* ─── 노트 카드 클릭 (편집 열기 · 즐겨찾기 토글) ─── */
+document.getElementById('noteList').addEventListener('click', (e) => {
+  const favBtn = e.target.closest('[data-action="note-fav"]');
+  if (favBtn) {
+    e.stopPropagation();
+    const id = parseInt(favBtn.dataset.noteId, 10);
+    toggleNoteFavorite(id);
+    return;
+  }
+  const card = e.target.closest('[data-note-id]');
+  if (card) {
+    const id = parseInt(card.dataset.noteId, 10);
+    openNoteEdit(id);
+  }
+});
+
+/* ─── 즐겨찾기 토글 ─── */
+function toggleNoteFavorite(id) {
+  const note = NOTES.find(n => n.id === id);
+  if (!note) return;
+  note.favorite = !note.favorite;
+  STORE.set('notes', NOTES);
+  renderNotesTab();
+  showToast(note.favorite ? '⭐ 즐겨찾기에 추가' : '즐겨찾기 해제');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📝 노트 추가/편집 시트
+   ═══════════════════════════════════════════════════════════ */
+
+function resetNA(defaults = {}) {
+  NA.editingId = defaults.editingId || null;
+  NA.bookId = defaults.bookId || null;
+  NA.type = defaults.type || 'quote';
+  NA.page = defaults.page || null;
+  NA.body = defaults.body || '';
+  NA.favorite = !!defaults.favorite;
+}
+
+function populateBookSelect() {
+  const sel = document.getElementById('naBook');
+  // 읽는중·완독 책 우선
+  const sortedBooks = [...BOOKS]
+    .filter(b => b.status !== 'wish')
+    .sort((a, b) => {
+      const order = { reading: 0, done: 1 };
+      return (order[a.status] || 2) - (order[b.status] || 2);
+    });
+  sel.innerHTML = '<option value="">— 책 선택 —</option>' + 
+    sortedBooks.map(b => {
+      const badge = b.status === 'reading' ? ' · 📖' : b.status === 'done' ? ' · ✅' : '';
+      return `<option value="${b.id}">${esc(b.title)}${badge}</option>`;
+    }).join('');
+}
+
+function renderNA() {
+  populateBookSelect();
+
+  document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
+
+  document.getElementById('naBook').value = NA.bookId ? String(NA.bookId) : '';
+
+  document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === NA.type);
+  });
+
+  document.getElementById('naPage').value = NA.page || '';
+  document.getElementById('naBody').value = NA.body || '';
+
+  const fav = document.getElementById('naFav');
+  fav.classList.toggle('on', NA.favorite);
+  document.getElementById('naFavLbl').textContent = NA.favorite ? '⭐ 즐겨찾기 설정됨' : '즐겨찾기에 추가';
+
+  // 편집 모드에서 삭제 구역 노출
+  const delZone = document.getElementById('naDeleteZone');
+  if (NA.editingId) {
+    delZone.style.display = '';
+    delZone.innerHTML = `<button class="na-delete-btn" id="naDeleteBtn">🗑 이 노트 삭제</button>`;
+  } else {
+    delZone.style.display = 'none';
+    delZone.innerHTML = '';
+  }
+
+  updateNASaveBtn();
+}
+
+function updateNASaveBtn() {
+  const saveBtn = document.getElementById('naSave');
+  const canSave = NA.bookId && NA.body.trim();
+  saveBtn.disabled = !canSave;
+}
+
+function openNoteAdd(prefillBookId = null) {
+  // 읽는중 책이 있으면 기본 선택
+  let defaultBookId = prefillBookId;
+  if (!defaultBookId) {
+    const reading = BOOKS.find(b => b.status === 'reading');
+    if (reading) defaultBookId = reading.id;
+  }
+  resetNA({ bookId: defaultBookId, type: 'quote' });
+  renderNA();
+  document.getElementById('naBackdrop').classList.add('open');
+  const sheet = document.getElementById('naSheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function openNoteEdit(id) {
+  const note = NOTES.find(n => n.id === id);
+  if (!note) return;
+  resetNA({
+    editingId: note.id,
+    bookId: note.bookId,
+    type: note.type,
+    page: note.page,
+    body: note.body,
+    favorite: note.favorite,
+  });
+  renderNA();
+  document.getElementById('naBackdrop').classList.add('open');
+  const sheet = document.getElementById('naSheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNoteSheet() {
+  document.getElementById('naBackdrop').classList.remove('open');
+  const sheet = document.getElementById('naSheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function saveNote() {
+  if (!NA.bookId || !NA.body.trim()) {
+    showToast('책과 내용을 입력해주세요');
+    return;
+  }
+  const pageVal = NA.page ? parseInt(NA.page, 10) : null;
+  if (NA.editingId) {
+    const note = NOTES.find(n => n.id === NA.editingId);
+    if (note) {
+      note.bookId = NA.bookId;
+      note.type = NA.type;
+      note.page = (pageVal && pageVal > 0) ? pageVal : null;
+      note.body = NA.body.trim();
+      note.favorite = NA.favorite;
+    }
+    showToast('노트 수정됨 ✓');
+  } else {
+    const newId = NOTES.length ? Math.max(...NOTES.map(n => n.id)) + 1 : 1;
+    NOTES.push({
+      id: newId,
+      bookId: NA.bookId,
+      type: NA.type,
+      page: (pageVal && pageVal > 0) ? pageVal : null,
+      body: NA.body.trim(),
+      favorite: NA.favorite,
+      createdAt: new Date().toISOString(),
+    });
+    showToast('노트 저장됨 ✓');
+  }
+  STORE.set('notes', NOTES);
+  closeNoteSheet();
+  renderNotesTab();
+}
+
+function deleteNote(id) {
+  const idx = NOTES.findIndex(n => n.id === id);
+  if (idx < 0) return;
+  NOTES.splice(idx, 1);
+  STORE.set('notes', NOTES);
+  showToast('노트 삭제됨');
+  closeNoteSheet();
+  renderNotesTab();
+}
+
+/* ─── NA 시트 이벤트 바인딩 ─── */
+document.getElementById('naBackdrop').addEventListener('click', closeNoteSheet);
+document.getElementById('naClose').addEventListener('click', closeNoteSheet);
+
+document.getElementById('naBook').addEventListener('change', (e) => {
+  NA.bookId = e.target.value ? parseInt(e.target.value, 10) : null;
+  updateNASaveBtn();
+});
+
+document.getElementById('naTypeSeg').addEventListener('click', (e) => {
+  const btn = e.target.closest('.status-seg-btn');
+  if (!btn) return;
+  NA.type = btn.dataset.type;
+  document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(b => {
+    b.classList.toggle('active', b === btn);
+  });
+});
+
+document.getElementById('naPage').addEventListener('input', (e) => {
+  const v = e.target.value;
+  NA.page = v ? parseInt(v, 10) : null;
+});
+
+document.getElementById('naBody').addEventListener('input', (e) => {
+  NA.body = e.target.value;
+  updateNASaveBtn();
+});
+
+document.getElementById('naFav').addEventListener('click', () => {
+  NA.favorite = !NA.favorite;
+  const fav = document.getElementById('naFav');
+  fav.classList.toggle('on', NA.favorite);
+  document.getElementById('naFavLbl').textContent = NA.favorite ? '⭐ 즐겨찾기 설정됨' : '즐겨찾기에 추가';
+});
+
+document.getElementById('naSave').addEventListener('click', saveNote);
+
+// 삭제 (위임 — 동적 생성된 버튼)
+document.getElementById('naDeleteZone').addEventListener('click', (e) => {
+  const delBtn = e.target.closest('#naDeleteBtn');
+  const delConfirm = e.target.closest('#naDeleteConfirm');
+  const delCancel = e.target.closest('#naDeleteCancel');
+
+  if (delBtn) {
+    // 확인 UI 전환
+    document.getElementById('naDeleteZone').innerHTML = `
+      <div class="na-delete-confirm">
+        <div class="na-delete-confirm-ttl">정말 삭제할까요?</div>
+        <div class="na-delete-actions">
+          <button class="cancel" id="naDeleteCancel">취소</button>
+          <button class="confirm" id="naDeleteConfirm">삭제</button>
+        </div>
+      </div>`;
+  } else if (delCancel) {
+    document.getElementById('naDeleteZone').innerHTML = `<button class="na-delete-btn" id="naDeleteBtn">🗑 이 노트 삭제</button>`;
+  } else if (delConfirm) {
+    if (NA.editingId) deleteNote(NA.editingId);
+  }
+});
+
+/* ─── FAB 컨텍스트 인식 (노트 탭에선 노트 추가) ─── */
+(function contextAwareFab() {
+  const fab = document.getElementById('fabBtn');
+  if (!fab) return;
+  // 기존 핸들러는 이미 붙어 있음 — 캡처 단계에서 가로챔
+  fab.addEventListener('click', (e) => {
+    const activePane = document.querySelector('.pane.active');
+    if (activePane?.id === 'pane-notes') {
+      e.stopImmediatePropagation();
+      openNoteAdd();
+    }
+  }, true); // capture 단계
+})();
+
+/* 초기 렌더 */
+renderNotesTab();
+
+
+
+/* ═══════════════════════════════════════════════════════════
    ⬇️ 스와이프 다운으로 시트 닫기
    ═══════════════════════════════════════════════════════════ */
 function attachSwipeDown(sheet, closeFn, options = {}) {
@@ -6451,6 +7124,7 @@ attachSwipeDown(document.getElementById('bdSheet'),       closeBookDetail);
 attachSwipeDown(document.getElementById('ddSheet'),       closeDrillDown);
 attachSwipeDown(document.getElementById('tmSheet'),       closeTimerStop);
 attachSwipeDown(document.getElementById('settingsSheet'), closeSettings);
+attachSwipeDown(document.getElementById('naSheet'),       closeNoteSheet);
 
 </script>
 
