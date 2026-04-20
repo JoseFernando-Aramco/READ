@@ -3951,19 +3951,6 @@ document.getElementById('fabBtn').addEventListener('click', () => openBookAdd())
    책 추가 시스템 (Google Books + localStorage + 수동 폴백)
    ═══════════════════════════════════════════════════════════ */
 
-/* ─── 저장된 BOOKS / TAGS 복원 (있으면) ─── */
-(function hydrateData() {
-  const savedBooks = STORE.get('books', null);
-  if (Array.isArray(savedBooks) && savedBooks.length) {
-    BOOKS.length = 0;
-    BOOKS.push(...savedBooks);
-  }
-  const savedTags = STORE.get('tags', null);
-  if (savedTags && typeof savedTags === 'object') {
-    Object.assign(TAGS, savedTags);
-  }
-})();
-
 /* ─── 모달 상태 ─── */
 const BA = {
   stage: 'search',
@@ -4505,6 +4492,19 @@ const BOOKS = [
     ],
     tags:['자기성찰','철학'] },
 ];
+
+/* ─── 저장된 BOOKS / TAGS 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
+(function hydrateData() {
+  const savedBooks = STORE.get('books', null);
+  if (Array.isArray(savedBooks) && savedBooks.length) {
+    BOOKS.length = 0;
+    BOOKS.push(...savedBooks);
+  }
+  const savedTags = STORE.get('tags', null);
+  if (savedTags && typeof savedTags === 'object') {
+    Object.assign(TAGS, savedTags);
+  }
+})();
 
 // 팔레트 → 메인 다크 컬러 룩업 (타임라인 축·진행바 색상)
 const PALETTE_DARK = {
