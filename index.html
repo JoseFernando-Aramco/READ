@@ -2596,6 +2596,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: #fff;
 }
 
+/* 그립 힌트 - 드래그 가능 표시 */
+.bas-grip, .settings-grip { cursor: grab; user-select: none; -webkit-user-select: none; }
+.bas-grip:active, .settings-grip:active { cursor: grabbing; }
+
 /* 클릭 가능한 엔트리 힌트 */
 .log-entry-card { cursor: pointer; }
 .log-entry-card:active { transform: scale(.996); }
@@ -6373,6 +6377,80 @@ renderTagRadar();
 renderLogList();
 renderLibraryCards();
 renderAllStats();
+
+/* ═══════════════════════════════════════════════════════════
+   ⬇️ 스와이프 다운으로 시트 닫기
+   ═══════════════════════════════════════════════════════════ */
+function attachSwipeDown(sheet, closeFn, options = {}) {
+  if (!sheet) return;
+  const threshold = options.threshold || 120; // px
+  // 드래그 가능한 영역 (그립 + 헤드) — 본문 스크롤과 충돌 방지
+  const grabZones = [
+    sheet.querySelector('.bas-grip, .settings-grip'),
+    sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head'),
+  ].filter(Boolean);
+  if (!grabZones.length) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isDragging = false;
+
+  const onStart = (e) => {
+    if (!sheet.classList.contains('open')) return;
+    startY = e.touches[0].clientY;
+    currentY = 0;
+    isDragging = true;
+    sheet.style.transition = 'none';
+  };
+
+  const onMove = (e) => {
+    if (!isDragging) return;
+    const delta = e.touches[0].clientY - startY;
+    if (delta < 0) {
+      // 위로 드래그는 무시 (한계 없이 부드럽게 저항)
+      currentY = 0;
+    } else {
+      currentY = delta;
+    }
+    sheet.style.transform = `translate(-50%, ${currentY}px)`;
+  };
+
+  const onEnd = () => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    if (currentY > threshold) {
+      // 닫기: 현재 위치에서 아래로 이어서 슬라이드
+      sheet.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
+      sheet.style.transform = 'translate(-50%, 100vh)';
+      setTimeout(() => {
+        sheet.style.transition = '';
+        sheet.style.transform = '';
+        closeFn();
+      }, 260);
+    } else {
+      // 원상복귀
+      sheet.style.transition = 'transform .2s cubic-bezier(.2,.8,.2,1)';
+      sheet.style.transform = '';
+      setTimeout(() => { sheet.style.transition = ''; }, 220);
+    }
+  };
+
+  grabZones.forEach(zone => {
+    zone.style.touchAction = 'pan-x';  // 수평만 허용, 수직은 JS 처리
+    zone.addEventListener('touchstart', onStart, { passive: true });
+    zone.addEventListener('touchmove', onMove, { passive: true });
+    zone.addEventListener('touchend', onEnd);
+    zone.addEventListener('touchcancel', onEnd);
+  });
+}
+
+// 5개 시트 모두 등록
+attachSwipeDown(document.getElementById('basSheet'),      closeBookAdd);
+attachSwipeDown(document.getElementById('bdSheet'),       closeBookDetail);
+attachSwipeDown(document.getElementById('ddSheet'),       closeDrillDown);
+attachSwipeDown(document.getElementById('tmSheet'),       closeTimerStop);
+attachSwipeDown(document.getElementById('settingsSheet'), closeSettings);
 
 </script>
 
