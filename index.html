@@ -1417,6 +1417,386 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ═══════════════════════════════════════════════════════════
+   인생책 · Life Book 배지 / pill / 토글
+   ═══════════════════════════════════════════════════════════ */
+
+/* 로그 엔트리 제목 옆 골드 별 */
+.lifebook-star {
+  display: inline-block;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 5px;
+  border-radius: 99px;
+  margin-left: 6px;
+  letter-spacing: .5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.35);
+  vertical-align: 2px;
+  white-space: nowrap;
+}
+.lifebook-star::before { content: '⭐'; font-size: 8px; margin-right: 2px; }
+
+/* 재독 횟수 pill */
+.reread-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 9.5px; font-weight: 800;
+  background: color-mix(in srgb, var(--c-plum-500) 18%, transparent);
+  color: var(--c-plum-900);
+  letter-spacing: .3px;
+  margin-left: 4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  vertical-align: 2px;
+  white-space: nowrap;
+}
+
+/* Confirm 시트 · 인생책 토글 */
+.lifebook-toggle {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-gold-100) 60%, transparent), color-mix(in srgb, var(--c-gold-500) 12%, transparent));
+  border: 1.5px solid color-mix(in srgb, var(--c-gold-500) 30%, var(--c-border));
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+}
+.lifebook-toggle:active { transform: scale(.99); }
+.lifebook-toggle.disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  background: var(--c-surface);
+  border-color: var(--c-border);
+}
+.lifebook-toggle-check {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--c-gold-700);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  margin-top: 1px;
+}
+.lifebook-toggle.checked .lifebook-toggle-check {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-color: #d97706;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
+}
+.lifebook-toggle-check::after {
+  content: '✓';
+  color: #fff;
+  font-size: 13px; font-weight: 900;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.lifebook-toggle.checked .lifebook-toggle-check::after { opacity: 1; }
+.lifebook-toggle-body { flex: 1; min-width: 0; }
+.lifebook-toggle-ttl {
+  font-size: 13px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -.2px;
+  margin-bottom: 3px;
+  display: flex; align-items: center; gap: 6px;
+}
+.lifebook-toggle-sub {
+  font-size: 10.5px; font-weight: 600;
+  color: var(--c-label); line-height: 1.45;
+}
+.lifebook-toggle-count {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  color: var(--c-gold-900);
+  font-size: 10px;
+  letter-spacing: .3px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   통계 확장 · 인생책 카드 / 요일별 차트 / 독서 페이스
+   ═══════════════════════════════════════════════════════════ */
+
+/* ① 인생책 Progress 카드 */
+.lifebook-card {
+  display: flex; gap: 14px;
+  align-items: flex-start;
+}
+.lifebook-ring {
+  width: 76px; height: 76px;
+  position: relative;
+  flex-shrink: 0;
+}
+.lifebook-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.lifebook-ring-bg { fill: none; stroke: var(--c-border); stroke-width: 8; }
+.lifebook-ring-fill {
+  fill: none;
+  stroke: url(#lifebookGrad);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.lifebook-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.lifebook-ring-num {
+  font-size: 18px; font-weight: 900;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--c-gold-900);
+  letter-spacing: -.5px;
+  line-height: 1;
+}
+.lifebook-ring-denom {
+  font-size: 9px; font-weight: 700;
+  color: var(--c-label);
+  margin-top: 2px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .5px;
+}
+.lifebook-meta { flex: 1; padding-top: 6px; }
+.lifebook-meta-row {
+  display: flex; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--c-border);
+  font-size: 11.5px;
+}
+.lifebook-meta-row:last-child { border-bottom: none; }
+.lifebook-meta-lbl {
+  color: var(--c-label); font-weight: 600;
+  letter-spacing: -.1px;
+}
+.lifebook-meta-val {
+  font-weight: 800; color: var(--c-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.lifebook-meta-val.star { color: var(--c-gold-900); }
+
+/* ② 요일별 독서 패턴 */
+.weekday-chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  align-items: end;
+  height: 110px;
+  padding-bottom: 4px;
+  margin-top: 8px;
+}
+.weekday-col {
+  display: flex; flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.weekday-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--c-terra-500), var(--c-terra-700));
+  transition: height .4s cubic-bezier(.2,.8,.2,1);
+  position: relative;
+}
+.weekday-bar.peak {
+  background: linear-gradient(180deg, var(--c-gold-500), var(--c-gold-700));
+  box-shadow: 0 -4px 12px color-mix(in srgb, var(--c-gold-500) 40%, transparent);
+}
+.weekday-bar-val {
+  position: absolute;
+  top: -16px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 800;
+  color: var(--c-text-2);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+}
+.weekday-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: .5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.weekday-label.weekend { color: var(--c-terra-700); }
+.weekday-insight {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--c-text-2); line-height: 1.5;
+}
+.weekday-insight strong {
+  color: var(--c-terra-700); font-weight: 800;
+}
+
+/* ③ 독서 페이스 카드 */
+.pace-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pace-cell {
+  padding: 12px 10px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  text-align: center;
+}
+.pace-cell.main {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-sage-500) 10%, var(--c-surface)), var(--c-surface));
+  border-color: color-mix(in srgb, var(--c-sage-500) 25%, var(--c-border));
+}
+.pace-cell-icon {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.pace-cell-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--c-text);
+  letter-spacing: -.3px;
+  line-height: 1.1;
+}
+.pace-cell.main .pace-cell-val { color: var(--c-sage-700); font-size: 19px; }
+.pace-cell-unit {
+  font-size: 9.5px; font-weight: 700;
+  color: var(--c-label);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .3px;
+  margin-top: 2px;
+}
+.pace-cell-sub {
+  font-size: 9.5px; font-weight: 600;
+  color: var(--c-muted);
+  margin-top: 4px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   API 키 설정 UI (설정 모달 내 섹션)
+   ═══════════════════════════════════════════════════════════ */
+.api-key-item {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.api-key-item:last-child { margin-bottom: 0; }
+.api-key-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.api-key-name {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13.5px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -.2px;
+}
+.api-key-flag {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.api-key-flag.kakao { background: #FEE500; color: #3C1E1E; font-weight: 900; font-size: 11px; }
+.api-key-flag.google { background: #4285F4; color: #fff; font-weight: 900; font-family: 'Plus Jakarta Sans',sans-serif; font-size: 13px; }
+.api-key-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 99px;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .3px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.api-key-status.ok {
+  background: color-mix(in srgb, var(--c-sage-500) 15%, transparent);
+  color: var(--c-sage-700);
+}
+.api-key-status.none {
+  background: var(--c-surface-2);
+  color: var(--c-muted);
+  border: 1px solid var(--c-border);
+}
+.api-key-status.err {
+  background: color-mix(in srgb, var(--c-terra-500) 15%, transparent);
+  color: var(--c-terra-700);
+}
+.api-key-input-row {
+  display: flex; gap: 6px;
+  margin-bottom: 8px;
+}
+.api-key-input {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 12px; font-weight: 500;
+  color: var(--c-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0;
+  outline: none;
+  transition: border-color .15s, background .15s;
+  min-width: 0;
+}
+.api-key-input:focus { border-color: var(--brand-primary); background: var(--c-surface); }
+.api-key-input::placeholder { color: var(--c-muted); font-family: 'Noto Sans KR', sans-serif; }
+.api-key-btn {
+  padding: 0 14px;
+  background: var(--c-text);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 11.5px; font-weight: 800;
+  letter-spacing: -.1px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: opacity .15s;
+}
+.api-key-btn:active { opacity: .7; }
+.api-key-btn.testing { opacity: .5; }
+.api-key-btn.clear {
+  background: transparent;
+  color: var(--c-muted);
+  border: 1px solid var(--c-border);
+}
+.api-key-help {
+  font-size: 10.5px; font-weight: 500;
+  color: var(--c-label); line-height: 1.55;
+}
+.api-key-help a {
+  color: var(--brand-primary);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+.api-key-help a:hover { opacity: .75; }
+
+/* 검색 결과 소스 배지 */
+.result-source {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 99px;
+  margin-left: 4px;
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: .4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  vertical-align: 1px;
+}
+.result-source.kakao { background: #FEE500; color: #3C1E1E; }
+.result-source.google { background: var(--c-surface-2); color: var(--c-text-2); border: 1px solid var(--c-border); }
+
+/* ═══════════════════════════════════════════════════════════
    책 추가 모달 · Book Add Sheet
    · Stage 1 (search)   — 검색 + 결과 리스트
    · Stage 1b (manual)  — 직접 입력 폴백
@@ -2364,6 +2744,28 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <!-- ═══════════ [TAB 2] 통계 ═══════════ -->
   <section class="pane" id="pane-stats">
 
+    <!-- ⭐ 인생책 (동적) -->
+    <div class="stat-card">
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <linearGradient id="lifebookGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   style="stop-color:#fbbf24"/>
+            <stop offset="100%" style="stop-color:#d97706"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="stat-card-head">
+        <div class="stat-card-lbl">LIFE BOOKS</div>
+        <div class="stat-card-ttl">
+          <span>⭐ 인생책</span>
+        </div>
+        <div class="stat-card-sub" id="lifebookCardSub">가장 소중한 100권</div>
+      </div>
+      <div class="lifebook-card" id="lifebookCard">
+        <!-- JS 렌더 -->
+      </div>
+    </div>
+
     <!-- ① 월별 읽은 권수 -->
     <div class="stat-card">
       <div class="stat-card-head">
@@ -2505,6 +2907,37 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="rating-bar"><div class="rating-bar-fill" style="width: 0%"></div></div>
           <div class="rating-count">0</div>
         </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 요일별 독서 패턴 (신규) -->
+    <div class="stat-card">
+      <div class="stat-card-head">
+        <div class="stat-card-lbl">WEEKDAY PATTERN</div>
+        <div class="stat-card-ttl">
+          <span>📅 요일별 독서 패턴</span>
+        </div>
+        <div class="stat-card-sub" id="weekdayCardSub">언제 가장 많이 읽는지</div>
+      </div>
+      <div class="weekday-chart" id="weekdayChart">
+        <!-- JS 렌더 -->
+      </div>
+      <div class="weekday-insight" id="weekdayInsight">
+        <!-- JS 렌더 -->
+      </div>
+    </div>
+
+    <!-- ⑥ 독서 페이스 (신규) -->
+    <div class="stat-card">
+      <div class="stat-card-head">
+        <div class="stat-card-lbl">READING PACE</div>
+        <div class="stat-card-ttl">
+          <span>⏱️ 독서 속도</span>
+        </div>
+        <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
+      </div>
+      <div class="pace-grid" id="paceGrid">
+        <!-- JS 렌더 -->
       </div>
     </div>
 
@@ -2709,6 +3142,34 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
     </div>
 
+    <!-- 검색 API 섹션 -->
+    <div class="settings-section">
+      <div class="settings-section-head">
+        <div class="settings-section-lbl">SEARCH API</div>
+        <div class="settings-section-ttl">책 검색 서버</div>
+        <div class="settings-section-sub">카페24 등에 배포한 PHP 프록시 URL을 입력하세요. 키는 서버 안에만 저장되므로 안전해요.</div>
+      </div>
+
+      <div class="api-key-item">
+        <div class="api-key-head">
+          <div class="api-key-name">
+            <div class="api-key-flag" style="background:linear-gradient(135deg,#7c2d12,#c2410c);color:#fff;font-weight:900;font-family:'Plus Jakarta Sans',sans-serif;">📡</div>
+            <span>프록시 서버 URL</span>
+          </div>
+          <span class="api-key-status none" id="proxyStatus">미설정</span>
+        </div>
+        <div class="api-key-input-row">
+          <input type="url" id="proxyUrlInput" class="api-key-input"
+                 placeholder="https://yourdomain.com/search.php" autocomplete="off" spellcheck="false">
+          <button class="api-key-btn" id="proxyTestBtn">저장·검증</button>
+        </div>
+        <div class="api-key-help">
+          <code style="background:var(--c-surface-2);padding:1px 6px;border-radius:4px;font-size:10px;">search.php</code>를 카페24 웹호스팅에 업로드한 후, 그 URL을 여기에 입력하세요. <br/>
+          예: <code style="background:var(--c-surface-2);padding:1px 6px;border-radius:4px;font-size:10px;">https://myid.cafe24.com/search.php</code>
+        </div>
+      </div>
+    </div>
+
     <!-- 기타 설정 (더미) -->
     <div class="settings-section">
       <div class="settings-section-head">
@@ -2843,6 +3304,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </div>
       </div>
 
+      <!-- 인생책 토글 (완독일 때만 활성) -->
+      <div class="confirm-section">
+        <div class="confirm-section-lbl">인생책 · LIFE BOOK</div>
+        <div class="lifebook-toggle disabled" id="lifebookToggle" role="button" tabindex="0">
+          <div class="lifebook-toggle-check"></div>
+          <div class="lifebook-toggle-body">
+            <div class="lifebook-toggle-ttl">
+              <span>⭐ 인생책으로 등록</span>
+              <span class="lifebook-toggle-count" id="lifebookCount">0 / 100</span>
+            </div>
+            <div class="lifebook-toggle-sub" id="lifebookSub">완독한 책만 인생책으로 등록할 수 있어요</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 태그 선택 -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">태그 (선택)</div>
@@ -2968,6 +3444,72 @@ settingsBackdrop?.addEventListener('click', closeSettings);
 
 // 테마 그리드 생성
 renderThemeGrid();
+
+/* ═══════════════════════════════════════════════════════════
+   프록시 URL 관리 (설정 내 검색 서버 섹션)
+   ═══════════════════════════════════════════════════════════ */
+function updateApiStatus(which, state, label) {
+  const el = document.getElementById(which + 'Status');
+  if (!el) return;
+  el.className = 'api-key-status ' + state;
+  el.textContent = label;
+}
+
+// 저장된 프록시 URL 복원
+(function initProxyUrl() {
+  const url = getProxyUrl();
+  if (url) {
+    document.getElementById('proxyUrlInput').placeholder = url;
+    updateApiStatus('proxy', 'ok', '사용중');
+  }
+})();
+
+// 프록시 URL 테스트 (?q=test 날려서 JSON 돌아오는지 확인)
+async function testProxyUrl(url) {
+  const testUrl = url + (url.includes('?') ? '&' : '?') + 'q=test';
+  const res = await fetch(testUrl);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data || typeof data !== 'object' || !('items' in data)) {
+    throw new Error('응답 형식이 올바르지 않아요');
+  }
+  return data;
+}
+
+async function saveProxyUrl() {
+  const input = document.getElementById('proxyUrlInput');
+  const btn = document.getElementById('proxyTestBtn');
+  let raw = input.value.trim();
+  if (!raw) { showToast('URL을 입력해주세요'); return; }
+  // http(s):// 자동 보정
+  if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+
+  btn.classList.add('testing'); btn.disabled = true; btn.textContent = '검증중…';
+  try {
+    const data = await testProxyUrl(raw);
+    STORE.set('proxyUrl', raw);
+    input.value = '';
+    input.placeholder = raw;
+    updateApiStatus('proxy', 'ok', '사용중');
+    // 에러가 있으면 경고 (키 미설정 등)
+    const errs = data.errors && Object.keys(data.errors);
+    if (errs && errs.length) {
+      showToast(`URL은 OK · 주의: ${errs.join(', ')} 오류`);
+    } else {
+      showToast('검증 성공 ✓ 이제 검색할 수 있어요');
+    }
+  } catch (e) {
+    updateApiStatus('proxy', 'err', '오류');
+    showToast('검증 실패: ' + (e.message || '서버 확인 필요'));
+  } finally {
+    btn.classList.remove('testing'); btn.disabled = false; btn.textContent = '저장·검증';
+  }
+}
+
+document.getElementById('proxyTestBtn').addEventListener('click', saveProxyUrl);
+document.getElementById('proxyUrlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveProxyUrl(); }
+});
 
 /* ═══════════ 탭 전환 ═══════════ */
 const tabBtns = document.querySelectorAll('.tab-btn');
@@ -3113,40 +3655,65 @@ function goToStage(stage) {
   document.querySelector('.bas-sheet .bas-body')?.scrollTo({ top: 0 });
 }
 
-/* ─── Stage 1: Google Books 검색 ─── */
+/* ─── Stage 1: 책 검색 (카페24 PHP 프록시 경유) ─── */
+
+// 프록시 URL 가져오기
+function getProxyUrl() {
+  return STORE.get('proxyUrl', '') || '';
+}
+
+// 메인 검색
 async function searchBooks(query) {
   const q = query.trim();
   console.log('[search] 시작:', q);
   if (!q) { renderSearchWelcome(); return; }
 
+  const proxyUrl = getProxyUrl();
+  if (!proxyUrl) {
+    renderSearchNoKey();
+    return;
+  }
+
   const myId = ++_searchReqId;
   renderSearchLoading();
 
   try {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=12&printType=books`;
+    const url = proxyUrl + (proxyUrl.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q);
     console.log('[search] fetch:', url);
     const res = await fetch(url);
-    console.log('[search] response status:', res.status);
-    if (myId !== _searchReqId) return;  // 새 검색이 시작됨 → 이 응답은 버림
+    if (myId !== _searchReqId) return;
     if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
     const data = await res.json();
-    console.log('[search] 결과 수:', (data.items || []).length);
     if (myId !== _searchReqId) return;
-    renderSearchResults(data.items || []);
+    console.log('[search] 결과:', data.counts, '오류:', data.errors);
+    renderSearchResults(data.items || [], data.errors || {});
   } catch (e) {
     if (myId !== _searchReqId) return;
-    console.error('[search] 실패:', e.message || String(e), e);
+    console.error('[search] 실패:', e.message || String(e));
     renderSearchError(e.message || String(e));
   }
 }
 
 /* ─── 검색 결과 상태별 렌더 ─── */
 function renderSearchWelcome() {
+  const proxyUrl = getProxyUrl();
+  if (!proxyUrl) { renderSearchNoKey(); return; }
   document.getElementById('searchResults').innerHTML = `
     <div class="search-state">
       <div class="search-state-emoji">📚</div>
       <div class="search-state-ttl">책 이름이나 저자를 검색해보세요</div>
-      <div class="search-state-sub">원서도 검색돼요 · ISBN 직접 입력도 가능</div>
+      <div class="search-state-sub">Kakao + Google Books 통합 검색 · 원서도 OK</div>
+    </div>`;
+}
+function renderSearchNoKey() {
+  document.getElementById('searchResults').innerHTML = `
+    <div class="search-state">
+      <div class="search-state-emoji">📡</div>
+      <div class="search-state-ttl">검색 서버를 먼저 설정해주세요</div>
+      <div class="search-state-sub">
+        설정 (헤더의 ⚙️) → <strong>책 검색 서버</strong>에서<br/>
+        카페24에 올린 <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">search.php</code> URL을 등록해주세요
+      </div>
     </div>`;
 }
 function renderSearchLoading() {
@@ -3162,15 +3729,29 @@ function renderSearchError(msg) {
       <div class="search-state-emoji">⚠️</div>
       <div class="search-state-ttl">검색에 실패했어요</div>
       <div class="search-state-sub">
-        ${msg ? `<code style="font-size:10.5px;color:var(--c-terra-700);word-break:break-all">${esc(msg)}</code><br/>` : ''}
-        네트워크를 확인하거나 브라우저 콘솔을 열어주세요 (F12)
+        ${msg ? `<code style="font-size:10.5px;color:var(--c-terra-700);word-break:break-all">${esc(msg)}</code><br/><br/>` : ''}
+        프록시 URL이 맞는지, 서버가 응답하는지 설정에서 확인해주세요
       </div>
     </div>`;
 }
-function renderSearchResults(items) {
+
+// 정규화된 결과를 렌더 (프록시가 이미 정규화·병합·dedupe까지 해줌)
+let _lastSearchItems = [];
+function renderSearchResults(items, errors) {
+  _lastSearchItems = items;
   const container = document.getElementById('searchResults');
+
+  // 에러 배너 (둘 중 하나 API가 실패했을 때)
+  let errorBanner = '';
+  if (errors && Object.keys(errors).length) {
+    const msgs = Object.entries(errors).map(([src, err]) => `${src === 'kakao' ? 'Kakao' : 'Google'}: ${err}`).join(' · ');
+    errorBanner = `<div style="padding:8px 12px;background:color-mix(in srgb, var(--c-gold-500) 12%, transparent);border:1px solid var(--c-gold-100);border-radius:10px;margin-bottom:10px;font-size:11px;color:var(--c-gold-900);font-weight:600;">
+      ⚠️ 일부 API 오류: ${esc(msgs)}
+    </div>`;
+  }
+
   if (!items.length) {
-    container.innerHTML = `
+    container.innerHTML = errorBanner + `
       <div class="search-state">
         <div class="search-state-emoji">🔎</div>
         <div class="search-state-ttl">검색 결과가 없어요</div>
@@ -3179,51 +3760,43 @@ function renderSearchResults(items) {
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => {
-    const info = item.volumeInfo || {};
-    const cover = info.imageLinks?.thumbnail?.replace('http://', 'https://') || '';
-    const title = esc(info.title || '제목 없음');
-    const authors = esc((info.authors || ['저자 미상']).join(', '));
-    const year = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
-    const pages = info.pageCount ? `${info.pageCount}p` : '';
-    const isOrig = info.language && info.language !== 'ko';
-    const lang = isOrig ? `<span class="lang">🌐 ${esc(info.language.toUpperCase())}</span>` : '';
+  const resultsHtml = items.map((b, idx) => {
+    const title = esc(b.title);
+    const authors = esc(b.author);
+    const year = b.year || '';
+    const pages = b.pages ? `${b.pages}p` : '';
+    const isOrig = b.language && b.language !== 'ko';
+    const lang = isOrig ? `<span class="lang">🌐 ${esc(b.language.toUpperCase())}</span>` : '';
     const meta = [year, pages].filter(Boolean).join(' · ');
+    const sourceBadge = b.source === 'kakao' ? '<span class="result-source kakao">K</span>' : '<span class="result-source google">G</span>';
 
     return `
       <div class="result-item" data-idx="${idx}">
-        ${cover
-          ? `<img class="result-cover" src="${cover}" alt="" loading="lazy"
+        ${b.cover
+          ? `<img class="result-cover" src="${esc(b.cover)}" alt="" loading="lazy"
                 onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;>📖</div>'">`
           : `<div class="result-cover-fallback">📖</div>`}
         <div class="result-info">
-          <div class="result-title">${title}</div>
+          <div class="result-title">${title}${sourceBadge}</div>
           <div class="result-author">${authors}</div>
           <div class="result-meta">${meta}${lang}</div>
         </div>
       </div>`;
   }).join('');
 
+  container.innerHTML = errorBanner + resultsHtml;
+
   container.querySelectorAll('.result-item').forEach(el => {
-    el.addEventListener('click', () => selectBookFromGoogle(items[+el.dataset.idx]));
+    el.addEventListener('click', () => selectBook(items[+el.dataset.idx]));
   });
 }
 
-/* ─── 책 선택 (Google 결과) → Stage 2 ─── */
-function selectBookFromGoogle(item) {
-  const info = item.volumeInfo || {};
+/* ─── 책 선택 → Stage 2 ─── */
+function selectBook(normalizedBook) {
+  // 페이지 수 없으면 기본 300
   BA.selected = {
-    title:   info.title || '제목 없음',
-    author:  (info.authors || ['저자 미상']).join(', '),
-    pages:   info.pageCount || 300,
-    year:    info.publishedDate ? info.publishedDate.slice(0, 4) : '',
-    cover:   info.imageLinks?.thumbnail?.replace('http://', 'https://') || '',
-    isbn:    info.industryIdentifiers?.find(i => i.type === 'ISBN_13')?.identifier
-          || info.industryIdentifiers?.find(i => i.type === 'ISBN_10')?.identifier
-          || '',
-    language: info.language || 'ko',
-    publisher: info.publisher || '',
-    source:  'google',
+    ...normalizedBook,
+    pages: normalizedBook.pages || 300,
   };
   BA.tagsSelected = [];
   goToStage('confirm');
@@ -3280,7 +3853,41 @@ function renderConfirm() {
     btn.classList.toggle('active', btn.dataset.status === 'wish');
   });
 
+  // 인생책 토글 초기화
+  BA.isLifeBook = false;
+  updateLifebookToggle();
+
   renderTagChips();
+}
+
+/* ─── 인생책 토글 상태 업데이트 (상태·체크 변경 시 호출) ─── */
+function updateLifebookToggle() {
+  const status = document.querySelector('#statusSeg .status-seg-btn.active')?.dataset.status || 'wish';
+  const toggle = document.getElementById('lifebookToggle');
+  const sub = document.getElementById('lifebookSub');
+  const count = document.getElementById('lifebookCount');
+
+  // 완독만 선택 가능
+  const enabled = status === 'done';
+  toggle.classList.toggle('disabled', !enabled);
+
+  if (!enabled) {
+    BA.isLifeBook = false;
+    toggle.classList.remove('checked');
+    sub.textContent = '완독한 책만 인생책으로 등록할 수 있어요';
+  } else {
+    toggle.classList.toggle('checked', !!BA.isLifeBook);
+    const currentCount = BOOKS.filter(x => x.isLifeBook).length;
+    if (currentCount >= 100) {
+      sub.textContent = '⚠️ 이미 100권이 다 찼어요. 기존 인생책을 정리해주세요';
+    } else {
+      sub.textContent = BA.isLifeBook
+        ? '⭐ 선택 완료 · 로그·통계에서 특별 표시돼요'
+        : '두번 세번 다시 읽고 싶은 책을 체크해주세요';
+    }
+  }
+  const currentCount = BOOKS.filter(x => x.isLifeBook).length;
+  count.textContent = `${currentCount} / 100`;
 }
 
 /* ─── 태그 칩 렌더 (전체 + 선택 상태) ─── */
@@ -3353,6 +3960,8 @@ function confirmAddBook() {
     language: b.language || 'ko',
     coverUrl: b.cover || '',
     publisher: b.publisher || '',
+    isLifeBook: status === 'done' ? !!BA.isLifeBook : false,
+    rereads: [],
   };
 
   if (status === 'reading') {
@@ -3368,12 +3977,14 @@ function confirmAddBook() {
   STORE.set('books', BOOKS);
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
+  const extraMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
   closeBookAdd();
-  showToast(`${statusLabel}에 추가됐어요 · "${newBook.title}"`);
+  showToast(`${statusLabel}에 추가됐어요${extraMsg} · "${newBook.title}"`);
 
   // UI 리렌더
   try { renderTagRadar(); } catch(e){}
   try { renderLogList(); } catch(e){}
+  try { renderAllStats(); } catch(e){}
 
   // reading/done이면 로그 뷰로 이동해서 새 책 보여주기
   if (status !== 'wish') {
@@ -3426,7 +4037,21 @@ document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#statusSeg .status-seg-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    updateLifebookToggle(); // 상태 바뀌면 인생책 토글 활성/비활성 재계산
   });
+});
+
+// 인생책 토글
+document.getElementById('lifebookToggle').addEventListener('click', () => {
+  const toggle = document.getElementById('lifebookToggle');
+  if (toggle.classList.contains('disabled')) return;
+  const currentCount = BOOKS.filter(x => x.isLifeBook).length;
+  if (!BA.isLifeBook && currentCount >= 100) {
+    showToast('인생책 한도 100권이 찼어요');
+    return;
+  }
+  BA.isLifeBook = !BA.isLifeBook;
+  updateLifebookToggle();
 });
 
 // 새 태그 만들기
@@ -3485,6 +4110,11 @@ const BOOKS = [
     tags:['경제','행동심리'] },
   { id:4, title:'코스모스', author:'칼 세이건', palette:'cosmos',
     pages:720, status:'done', dateStart:'2026-03-22', dateEnd:'2026-04-02', rating:5.0,
+    isLifeBook:true,
+    rereads:[
+      { dateStart:'2020-09-10', dateEnd:'2020-10-05', rating:5.0 },
+      { dateStart:'2023-07-14', dateEnd:'2023-07-28', rating:5.0 },
+    ],
     tags:['과학','우주','고전'] },
   { id:5, title:'사피엔스', author:'유발 하라리', palette:'sapiens',
     pages:648, status:'done', dateStart:'2026-03-08', dateEnd:'2026-03-20', rating:4.5,
@@ -3497,12 +4127,20 @@ const BOOKS = [
     tags:['데이터','행동심리'] },
   { id:8, title:'Atomic Habits', author:'James Clear', palette:'atomic',
     pages:320, status:'done', dateStart:'2025-12-20', dateEnd:'2026-01-05', rating:5.0,
+    isLifeBook:true,
+    rereads:[
+      { dateStart:'2022-11-02', dateEnd:'2022-11-18', rating:5.0 },
+    ],
     tags:['습관','자기계발','원서'] },
   { id:9, title:'호모 데우스', author:'유발 하라리', palette:'homo',
     pages:580, status:'done', dateStart:'2025-11-05', dateEnd:'2025-11-22', rating:4.0,
     tags:['역사','미래','과학'] },
   { id:10, title:'미움받을 용기', author:'기시미 이치로', palette:'courage',
     pages:280, status:'done', dateStart:'2025-10-10', dateEnd:'2025-10-18', rating:4.5,
+    isLifeBook:true,
+    rereads:[
+      { dateStart:'2021-05-03', dateEnd:'2021-05-12', rating:5.0 },
+    ],
     tags:['자기성찰','철학'] },
 ];
 
@@ -3581,6 +4219,11 @@ function renderLogEntry(b, isFirst, isLast) {
   if (reading)       badge = `<span class="log-entry-badge reading">진행중 ${progPct}%</span>`;
   else if (b.rating) badge = `<span class="log-entry-badge star">★ ${b.rating.toFixed(1)}</span>`;
 
+  // 인생책·재독 표시
+  const totalReads = 1 + (b.rereads?.length || 0);
+  const lifebookBadge = b.isLifeBook ? `<span class="lifebook-star">인생책</span>` : '';
+  const rereadPill = totalReads > 1 ? `<span class="reread-pill">${totalReads}번째</span>` : '';
+
   const tagHtml = b.tags.map(t => {
     const tag = TAGS[t] || { emoji:'📖', color:'#64748b' };
     return `<span class="log-tag" data-tag="${t}" style="--tag-color:${tag.color}">
@@ -3603,7 +4246,7 @@ function renderLogEntry(b, isFirst, isLast) {
       </div>
       <div class="log-entry-card">
         <div class="log-entry-head">
-          <div class="log-entry-title">${b.title}</div>
+          <div class="log-entry-title">${b.title}${lifebookBadge}${rereadPill}</div>
           ${badge}
         </div>
         <div class="log-entry-meta">${meta}</div>
@@ -3709,9 +4352,240 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
 // 필터 해제
 document.getElementById('logFilterClear').addEventListener('click', () => setLogFilter(null));
 
+/* ═══════════════════════════════════════════════════════════
+   통계 렌더 · 인생책 / 요일별 / 페이스
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── 공통: 완독 책 + 재독까지 포함한 "모든 독서 세션" 풀기 ─── */
+function allReadSessions() {
+  const out = [];
+  BOOKS.forEach(b => {
+    if (b.status === 'done' && b.dateStart && b.dateEnd) {
+      out.push({
+        book: b,
+        dateStart: b.dateStart,
+        dateEnd: b.dateEnd,
+        rating: b.rating,
+        pages: b.pages,
+      });
+    }
+    (b.rereads || []).forEach(r => {
+      if (r.dateStart && r.dateEnd) {
+        out.push({
+          book: b,
+          dateStart: r.dateStart,
+          dateEnd: r.dateEnd,
+          rating: r.rating || b.rating,
+          pages: b.pages,
+          isReread: true,
+        });
+      }
+    });
+  });
+  return out;
+}
+
+/* ─── ① 인생책 통계 ─── */
+function computeLifebookStats() {
+  const lifeBooks = BOOKS.filter(b => b.isLifeBook);
+  const count = lifeBooks.length;
+  const totalRereads = lifeBooks.reduce((s, b) => s + (b.rereads?.length || 0), 0);
+  const totalReads = lifeBooks.reduce((s, b) => s + 1 + (b.rereads?.length || 0), 0);
+  const avgRating = lifeBooks.length
+    ? lifeBooks.reduce((s, b) => s + (b.rating || 0), 0) / lifeBooks.length
+    : 0;
+  // 자주 등장하는 태그 상위 2개
+  const tagCount = {};
+  lifeBooks.forEach(b => (b.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
+  const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]);
+  return { count, totalRereads, totalReads, avgRating, topTags };
+}
+
+function renderLifebookCard() {
+  const s = computeLifebookStats();
+  const pct = Math.min(100, s.count);
+  const CIRC = 2 * Math.PI * 34; // r=34
+  const offset = CIRC * (1 - pct / 100);
+
+  const sub = s.count === 0
+    ? '완독한 책 중 두고두고 다시 읽고 싶은 책을 ⭐ 인생책으로 표시해보세요'
+    : `${s.count}권 등록 · 평균 별점과 재독 횟수를 확인해보세요`;
+  document.getElementById('lifebookCardSub').textContent = sub;
+
+  document.getElementById('lifebookCard').innerHTML = `
+    <div class="lifebook-ring">
+      <svg viewBox="0 0 80 80">
+        <circle class="lifebook-ring-bg"   cx="40" cy="40" r="34"/>
+        <circle class="lifebook-ring-fill" cx="40" cy="40" r="34"
+                stroke-dasharray="${CIRC.toFixed(2)}"
+                stroke-dashoffset="${offset.toFixed(2)}"/>
+      </svg>
+      <div class="lifebook-ring-center">
+        <div class="lifebook-ring-num">${s.count}</div>
+        <div class="lifebook-ring-denom">/ 100</div>
+      </div>
+    </div>
+    <div class="lifebook-meta">
+      <div class="lifebook-meta-row">
+        <div class="lifebook-meta-lbl">평균 별점</div>
+        <div class="lifebook-meta-val star">${s.count ? '★ ' + s.avgRating.toFixed(1) : '—'}</div>
+      </div>
+      <div class="lifebook-meta-row">
+        <div class="lifebook-meta-lbl">총 재독</div>
+        <div class="lifebook-meta-val">${s.totalRereads}회 · ${s.totalReads}독</div>
+      </div>
+      <div class="lifebook-meta-row">
+        <div class="lifebook-meta-lbl">자주 드는 태그</div>
+        <div class="lifebook-meta-val">${s.topTags.length ? s.topTags.join(' · ') : '—'}</div>
+      </div>
+    </div>`;
+}
+
+/* ─── ② 요일별 패턴 ─── */
+function computeWeekdayStats() {
+  // 일(0)~토(6) 기준. 각 독서 세션의 모든 날짜를 해당 요일 버킷에 추가
+  const daysPerWeekday = [0, 0, 0, 0, 0, 0, 0];
+  const pagesPerWeekday = [0, 0, 0, 0, 0, 0, 0];
+
+  allReadSessions().forEach(s => {
+    const start = new Date(s.dateStart);
+    const end = new Date(s.dateEnd);
+    const totalDays = Math.max(1, Math.round((end - start) / 86400000) + 1);
+    const pagesPerDay = s.pages / totalDays;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const wd = cur.getDay();
+      daysPerWeekday[wd] += 1;
+      pagesPerWeekday[wd] += pagesPerDay;
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+  return { days: daysPerWeekday, pages: pagesPerWeekday };
+}
+
+function renderWeekdayChart() {
+  const s = computeWeekdayStats();
+  const labels = ['일', '월', '화', '수', '목', '금', '토']; // getDay 순서
+  const max = Math.max(1, ...s.days);
+  const peakIdx = s.days.indexOf(max);
+
+  const chartEl = document.getElementById('weekdayChart');
+  chartEl.innerHTML = labels.map((lbl, i) => {
+    const h = Math.max(4, (s.days[i] / max) * 88);
+    const isWeekend = i === 0 || i === 6;
+    const isPeak = i === peakIdx && max > 0;
+    return `
+      <div class="weekday-col">
+        <div class="weekday-bar ${isPeak ? 'peak' : ''}" style="height:${h}px">
+          ${s.days[i] > 0 ? `<div class="weekday-bar-val">${Math.round(s.pages[i])}p</div>` : ''}
+        </div>
+        <div class="weekday-label ${isWeekend ? 'weekend' : ''}">${lbl}</div>
+      </div>`;
+  }).join('');
+
+  // 인사이트 문구
+  const weekendDays = s.days[0] + s.days[6];
+  const weekdayDays = s.days.slice(1, 6).reduce((a, b) => a + b, 0);
+  const weekendPages = s.pages[0] + s.pages[6];
+  const weekdayPages = s.pages.slice(1, 6).reduce((a, b) => a + b, 0);
+  const weekendAvg = weekendDays ? Math.round(weekendPages / weekendDays) : 0;
+  const weekdayAvg = weekdayDays ? Math.round(weekdayPages / weekdayDays) : 0;
+
+  const insightEl = document.getElementById('weekdayInsight');
+  if (max === 0) {
+    insightEl.innerHTML = '완독한 책이 쌓이면 요일별 패턴이 보여요';
+  } else {
+    const emoji = peakIdx === 0 || peakIdx === 6 ? '🌴' : peakIdx >= 1 && peakIdx <= 4 ? '💼' : '🌙';
+    const compareLine = weekendAvg && weekdayAvg
+      ? `${emoji} 주말 하루 <strong>${weekendAvg}p</strong> · 평일 <strong>${weekdayAvg}p</strong>`
+      : `${emoji} 독서 습관이 자리 잡고 있어요`;
+    insightEl.innerHTML = `
+      <div style="margin-bottom:4px">가장 많이 읽는 요일: <strong>${labels[peakIdx]}요일</strong></div>
+      <div>${compareLine}</div>`;
+  }
+}
+
+/* ─── ③ 독서 페이스 ─── */
+function computePaceStats() {
+  const sessions = allReadSessions();
+  if (!sessions.length) return null;
+
+  const entries = sessions.map(s => ({
+    book: s.book,
+    days: Math.max(1, Math.round((new Date(s.dateEnd) - new Date(s.dateStart)) / 86400000) + 1),
+    pages: s.pages,
+    isReread: !!s.isReread,
+  }));
+  entries.sort((a, b) => a.days - b.days);
+  const fastest = entries[0];
+  const slowest = entries[entries.length - 1];
+
+  const totalDays = entries.reduce((s, e) => s + e.days, 0);
+  const totalPages = entries.reduce((s, e) => s + e.pages, 0);
+  const avgDays = totalDays / entries.length;
+  const avgPagesPerDay = totalPages / totalDays;
+
+  return { fastest, slowest, avgDays, avgPagesPerDay, count: entries.length };
+}
+
+function renderPaceCard() {
+  const s = computePaceStats();
+  const grid = document.getElementById('paceGrid');
+  const sub = document.getElementById('paceCardSub');
+
+  if (!s) {
+    grid.innerHTML = `
+      <div class="pace-cell main" style="grid-column:1/-1">
+        <div class="pace-cell-icon">📊</div>
+        <div class="pace-cell-sub" style="font-size:11px">완독 책이 쌓이면 페이스가 나와요</div>
+      </div>`;
+    sub.textContent = '완독한 책 기준';
+    return;
+  }
+
+  sub.textContent = `${s.count}회 독서 세션 기준 (재독 포함)`;
+  grid.innerHTML = `
+    <div class="pace-cell main">
+      <div class="pace-cell-icon">📈</div>
+      <div class="pace-cell-val">${s.avgDays.toFixed(1)}</div>
+      <div class="pace-cell-unit">일 / 권 평균</div>
+      <div class="pace-cell-sub">하루 ${Math.round(s.avgPagesPerDay)}p 페이스</div>
+    </div>
+    <div class="pace-cell">
+      <div class="pace-cell-icon">⚡</div>
+      <div class="pace-cell-val">${s.fastest.days}</div>
+      <div class="pace-cell-unit">일 · 최단</div>
+      <div class="pace-cell-sub">${esc(s.fastest.book.title)}</div>
+    </div>
+    <div class="pace-cell">
+      <div class="pace-cell-icon">🐢</div>
+      <div class="pace-cell-val">${s.slowest.days}</div>
+      <div class="pace-cell-unit">일 · 최장</div>
+      <div class="pace-cell-sub">${esc(s.slowest.book.title)}</div>
+    </div>`;
+}
+
+/* ─── 전체 렌더 ─── */
+function renderAllStats() {
+  try { renderLifebookCard(); } catch(e) { console.error('[lifebook]', e); }
+  try { renderWeekdayChart(); } catch(e) { console.error('[weekday]', e); }
+  try { renderPaceCard();     } catch(e) { console.error('[pace]', e); }
+}
+
+/* ─── 탭 전환 시 통계 리렌더 훅 ─── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'stats') {
+      // 약간 지연 (탭 활성화 애니메이션 후)
+      setTimeout(renderAllStats, 60);
+    }
+  });
+});
+
 // 초기 렌더
 renderTagRadar();
 renderLogList();
+renderAllStats();
 
 </script>
 
