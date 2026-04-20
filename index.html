@@ -2435,6 +2435,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 </head>
 <body>
 
+<!-- SVG 그라디언트 defs (전역) -->
+<svg width="0" height="0" style="position:absolute;width:0;height:0;pointer-events:none;overflow:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="lifebookGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <div class="main-wrap">
 
   <!-- ═══════════ 헤더 ═══════════ -->
@@ -2746,14 +2756,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
     <!-- ⭐ 인생책 (동적) -->
     <div class="stat-card">
-      <svg width="0" height="0" style="position:absolute">
-        <defs>
-          <linearGradient id="lifebookGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"   style="stop-color:#fbbf24"/>
-            <stop offset="100%" style="stop-color:#d97706"/>
-          </linearGradient>
-        </defs>
-      </svg>
       <div class="stat-card-head">
         <div class="stat-card-lbl">LIFE BOOKS</div>
         <div class="stat-card-ttl">
@@ -3353,6 +3355,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 <script>
 /* ═══════════════════════════════════════════════════════════
+   공용 · localStorage 헬퍼 (스크립트 최상단에 선언 — 모든 IIFE에서 접근 가능)
+   ═══════════════════════════════════════════════════════════ */
+const STORE = {
+  get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
+  set(key, v)  { try { localStorage.setItem('read.' + key, JSON.stringify(v)); } catch {} },
+};
+
+/* ═══════════════════════════════════════════════════════════
    테마 시스템
    ═══════════════════════════════════════════════════════════ */
 const THEMES = [
@@ -3582,12 +3592,6 @@ document.getElementById('fabBtn').addEventListener('click', () => openBookAdd())
 /* ═══════════════════════════════════════════════════════════
    책 추가 시스템 (Google Books + localStorage + 수동 폴백)
    ═══════════════════════════════════════════════════════════ */
-
-/* ─── localStorage 헬퍼 ─── */
-const STORE = {
-  get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
-  set(key, v)  { try { localStorage.setItem('read.' + key, JSON.stringify(v)); } catch {} },
-};
 
 /* ─── 저장된 BOOKS / TAGS 복원 (있으면) ─── */
 (function hydrateData() {
