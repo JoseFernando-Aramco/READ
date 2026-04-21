@@ -1066,6 +1066,34 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 160px; height: 160px; border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, var(--c-sage-500) 10%, transparent), transparent 65%);
 }
+/* 목표 수정 pill (우상단) */
+.goal-hero-edit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px 6px 8px;
+  font-family: inherit;
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text-2);
+  background: var(--c-surface-2);
+  border: none;
+  border-radius: 999px;
+  letter-spacing: -0.01em;
+  transition: background .15s, transform .1s;
+  cursor: pointer;
+}
+.goal-hero-edit:active {
+  background: var(--c-border-2);
+  transform: scale(.95);
+}
+.goal-hero-edit .ic {
+  width: 13px;
+  height: 13px;
+}
 .goal-ring {
   width: 110px; height: 110px; flex-shrink: 0;
   position: relative;
@@ -4139,6 +4167,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
     <!-- 연간 목표 히어로 -->
     <div class="goal-hero">
+      <button class="goal-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
+        <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
+        <span>수정</span>
+      </button>
       <div class="goal-ring">
         <svg width="110" height="110" viewBox="0 0 110 110">
           <defs>
@@ -7114,7 +7146,123 @@ function countFinishedThisMonth() {
   return done + rereads;
 }
 
-/* 목표 탭 hero + 월간 미니 카드 렌더 */
+/* ═══════════════════════════════════════════════════════════
+   목표 달성 폭죽 🎆 — Canvas 기반 Toss 팔레트
+   ═══════════════════════════════════════════════════════════ */
+let _goalPrevAchieved = null; // null=초기 전, false/true=판정된 상태
+let _celebrationRunning = false;
+
+function celebrateGoal() {
+  if (_celebrationRunning) return;
+  _celebrationRunning = true;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'celebrate-canvas';
+  canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;';
+  document.body.appendChild(canvas);
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Toss 팔레트
+  const colors = ['#3182F6', '#00C471', '#FF9D00', '#F04452', '#7461E3', '#FFD93D', '#FF6B9D'];
+
+  const particles = [];
+
+  // 터짐 스케줄: 0, 180, 360, 540, 720, 900ms 6연발 + 추가 랜덤 몇 발
+  const bursts = [
+    { x: W * 0.50, y: H * 0.30, at: 0,    color: null, big: true },
+    { x: W * 0.25, y: H * 0.22, at: 220,  color: null, big: false },
+    { x: W * 0.78, y: H * 0.28, at: 420,  color: null, big: false },
+    { x: W * 0.40, y: H * 0.45, at: 650,  color: null, big: true  },
+    { x: W * 0.65, y: H * 0.18, at: 880,  color: null, big: false },
+    { x: W * 0.15, y: H * 0.40, at: 1100, color: null, big: false },
+    { x: W * 0.85, y: H * 0.48, at: 1320, color: null, big: false },
+    { x: W * 0.50, y: H * 0.25, at: 1560, color: null, big: true  },
+  ];
+
+  function fireBurst(b) {
+    const count = b.big ? 60 : 38;
+    const baseColor = b.color || colors[Math.floor(Math.random() * colors.length)];
+    // 2색 믹스 (기본 + 보조)
+    const subColor = colors[Math.floor(Math.random() * colors.length)];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.25;
+      const speed = (b.big ? 4 : 3) + Math.random() * 3.5;
+      particles.push({
+        x: b.x, y: b.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color: i % 3 === 0 ? subColor : baseColor,
+        size: 2 + Math.random() * 2.2,
+        life: 1,
+        decay: 0.010 + Math.random() * 0.010,
+        wobble: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  const start = performance.now();
+  let allFired = false;
+
+  function loop(now) {
+    const elapsed = now - start;
+
+    // 터짐 타이밍
+    for (const b of bursts) {
+      if (!b.fired && elapsed >= b.at) {
+        fireBurst(b);
+        b.fired = true;
+      }
+    }
+    allFired = bursts.every(b => b.fired);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // 입자 업데이트
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.09;   // 중력
+      p.vx *= 0.992;  // 공기저항
+      p.life -= p.decay;
+      p.wobble += 0.3;
+
+      if (p.life <= 0 || p.y > H + 60) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      // 살짝 흔들리는 반짝임 효과
+      const s = p.size * (0.85 + Math.sin(p.wobble) * 0.15);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (particles.length > 0 || !allFired) {
+      requestAnimationFrame(loop);
+    } else {
+      canvas.remove();
+      _celebrationRunning = false;
+    }
+  }
+
+  requestAnimationFrame(loop);
+
+  // 햅틱 (지원 기기에서)
+  if (navigator.vibrate) {
+    try { navigator.vibrate([30, 60, 30, 60, 60]); } catch(e) {}
+  }
+}
 function renderGoalsPane() {
   const pane = document.getElementById('pane-goals');
   if (!pane) return;
@@ -7181,6 +7329,19 @@ function renderGoalsPane() {
       else if (gap === 1) mSub.textContent = '한 권만 더 읽으면 목표 달성이에요';
       else mSub.textContent = `${gap}권 더 읽으면 목표 달성이에요`;
     }
+  }
+
+  // ─── 달성 transition 감지 → 폭죽 ───
+  const achievedNow = done >= target && target > 0;
+  if (_goalPrevAchieved === null) {
+    // 첫 렌더 — 기존 달성 상태면 축하하지 않고 플래그만 세움 (재진입 방지)
+    _goalPrevAchieved = achievedNow;
+  } else if (!_goalPrevAchieved && achievedNow) {
+    _goalPrevAchieved = true;
+    // 탭 전환/페인트 완료 후 터뜨리기
+    setTimeout(() => celebrateGoal(), 80);
+  } else {
+    _goalPrevAchieved = achievedNow;
   }
 }
 
