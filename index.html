@@ -2607,25 +2607,33 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 5px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: var(--c-surface-2);
-  border: 1px solid transparent;
+  /* 비활성 상태: 얇은 회색 outline + 흐린 텍스트 */
+  background: transparent;
+  border: 1.5px solid var(--c-border-2);
   font-family: inherit;
   font-size: 13px; font-weight: 600;
-  color: var(--c-text-2);
+  color: var(--c-label);
   letter-spacing: -0.01em;
   transition: background .15s, border-color .15s, color .15s, transform .1s;
   cursor: pointer;
   white-space: nowrap;
 }
-.tag-chip .tc-emoji { font-size: 14px; line-height: 1; }
+.tag-chip .tc-emoji {
+  font-size: 14px; line-height: 1;
+  opacity: 0.45;
+  transition: opacity .15s;
+}
 .tag-chip:active { transform: scale(.96); }
 .tag-chip.active {
-  background: color-mix(in srgb, var(--tag-color, var(--primary)) 14%, transparent);
-  border-color: color-mix(in srgb, var(--tag-color, var(--primary)) 30%, transparent);
+  background: color-mix(in srgb, var(--tag-color, var(--primary)) 18%, transparent);
+  border-color: color-mix(in srgb, var(--tag-color, var(--primary)) 45%, transparent);
   color: var(--tag-color, var(--primary));
 }
+.tag-chip.active .tc-emoji {
+  opacity: 1;
+}
 .tag-chip.active:active {
-  background: color-mix(in srgb, var(--tag-color, var(--primary)) 22%, transparent);
+  background: color-mix(in srgb, var(--tag-color, var(--primary)) 26%, transparent);
 }
 .tag-new-wrap {
   display: flex; gap: 6px;
@@ -5317,7 +5325,12 @@ function updateLifebookToggle() {
 /* ─── 태그 칩 렌더 (전체 + 선택 상태) ─── */
 function renderTagChips() {
   const container = document.getElementById('tagChipsAll');
-  const entries = Object.entries(TAGS);
+  // 선택된 태그를 위로, 미선택을 아래로 정렬 (각 그룹 내 원래 순서 유지)
+  const entries = Object.entries(TAGS).sort(([a], [c]) => {
+    const aSel = BA.tagsSelected.includes(a) ? 0 : 1;
+    const cSel = BA.tagsSelected.includes(c) ? 0 : 1;
+    return aSel - cSel;
+  });
   container.innerHTML = entries.map(([name, tag]) => {
     const active = BA.tagsSelected.includes(name) ? ' active' : '';
     return `<button class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
@@ -6448,7 +6461,12 @@ function renderBookDetail() {
     <div class="bd-section">
       <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
       <div class="tag-chips-all" id="bdTagChips">
-        ${Object.entries(TAGS).map(([name, tag]) => {
+        ${Object.entries(TAGS).sort(([a], [c]) => {
+          const sel = (b.tags || []);
+          const aSel = sel.includes(a) ? 0 : 1;
+          const cSel = sel.includes(c) ? 0 : 1;
+          return aSel - cSel;
+        }).map(([name, tag]) => {
           const active = (b.tags || []).includes(name) ? ' active' : '';
           return `<button class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
             <span class="tc-emoji">${tag.emoji}</span>
