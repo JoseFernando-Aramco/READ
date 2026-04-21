@@ -260,6 +260,24 @@
   background: var(--c-border-2);
 }
 
+/* ═══════════ 아이콘 utility (SVG 스프라이트용) ═══════════ */
+.ic {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.ic-lg { width: 1.25em; height: 1.25em; }
+.ic-xl { width: 2em; height: 2em; }
+.ic-2xl { width: 2.5em; height: 2.5em; }
+.ic-3xl { width: 3.5em; height: 3.5em; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { overscroll-behavior: none; overflow-x: clip; scrollbar-gutter: stable; }
 body {
@@ -3811,6 +3829,57 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </defs>
 </svg>
 
+<!-- ═══════════ 아이콘 스프라이트 (Lucide 스타일 · 24×24 · stroke currentColor) ═══════════ -->
+<svg width="0" height="0" style="position:absolute;width:0;height:0;pointer-events:none;overflow:hidden" aria-hidden="true">
+  <!-- 검색 -->
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <!-- 설정 (톱니바퀴) -->
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <!-- 닫기 -->
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <!-- 체크 -->
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <!-- 타이머 (시계 + 위에 손잡이) -->
+  <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></symbol>
+  <!-- 일시정지 -->
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <!-- 책 (닫힌) — 커버 fallback -->
+  <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <!-- 책 (펼친) -->
+  <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <!-- 책 2권 스택 -->
+  <symbol id="i-books" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v4.5a.5.5 0 0 1-.5.5h-13A2.5 2.5 0 0 1 4 19.5Z"/><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5v-10A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
+  <!-- 바차트 (통계) -->
+  <symbol id="i-bar-chart" viewBox="0 0 24 24"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></symbol>
+  <!-- 과녁 (목표) -->
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <!-- 쓰레기통 -->
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <!-- 삼각형 경고 -->
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <!-- 벨 -->
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <!-- 노트북 (펼친 노트) -->
+  <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M10 3v18"/></symbol>
+  <!-- 펜 (내 생각) -->
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+  <!-- 하트 (위시리스트) -->
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+  <!-- 라디오 시그널 (API/검색) -->
+  <symbol id="i-radio" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></symbol>
+  <!-- 체크 원형 (완독 state) -->
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <!-- 불꽃 (streak) -->
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <!-- 트로피 -->
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+  <!-- 캘린더 -->
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <!-- 업로드 / 내보내기 -->
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+</svg>
+
+
 <div class="main-wrap">
 
   <!-- ═══════════ 헤더 ═══════════ -->
@@ -3819,8 +3888,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <span class="app-name">독서</span>
     </div>
     <div class="header-actions">
-      <button class="header-btn" aria-label="검색">🔍</button>
-      <button class="header-btn" aria-label="설정">⚙️</button>
+      <button class="header-btn" aria-label="검색"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-search"/></svg></button>
+      <button class="header-btn" aria-label="설정"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-settings"/></svg></button>
     </div>
   </header>
 
@@ -3846,10 +3915,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <!-- 뷰 토글: 북카드 ⇔ 로그 -->
     <div class="view-toggle">
       <button class="vt-btn active" data-view="cards">
-        <span class="vt-btn-icon">📚</span>북카드
+        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></span>북카드
       </button>
       <button class="vt-btn" data-view="log">
-        <span class="vt-btn-icon">📖</span>로그
+        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg></span>로그
       </button>
     </div>
 
@@ -3879,7 +3948,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="log-filter-bar" id="logFilterBar" style="display:none;">
         <span class="log-filter-lbl">FILTERED BY</span>
         <span class="log-filter-chip" id="logFilterChip"></span>
-        <button class="log-filter-clear" id="logFilterClear">전체 보기 ✕</button>
+        <button class="log-filter-clear" id="logFilterClear">전체 보기 <svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
       </div>
 
       <!-- 로그 리스트 -->
@@ -4007,7 +4076,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="stat-card-head">
         <div class="stat-card-lbl">WEEKDAY PATTERN</div>
         <div class="stat-card-ttl">
-          <span>📅 요일별 독서 패턴</span>
+          <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> 요일별 독서 패턴</span>
         </div>
         <div class="stat-card-sub" id="weekdayCardSub">언제 가장 많이 읽는지</div>
       </div>
@@ -4024,7 +4093,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="stat-card-head">
         <div class="stat-card-lbl">READING PACE</div>
         <div class="stat-card-ttl">
-          <span>⏱️ 독서 속도</span>
+          <span><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 독서 속도</span>
         </div>
         <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
       </div>
@@ -4075,12 +4144,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <!-- 스트릭 -->
     <div class="streak-row">
       <div class="streak-card hot">
-        <div class="streak-icon">🔥</div>
+        <div class="streak-icon" style="color:var(--c-gold-500)"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-flame"/></svg></div>
         <div class="streak-k">CURRENT</div>
         <div class="streak-v">12<span class="unit">일 연속</span></div>
       </div>
       <div class="streak-card">
-        <div class="streak-icon">🏆</div>
+        <div class="streak-icon" style="color:var(--c-gold-500)"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-trophy"/></svg></div>
         <div class="streak-k">BEST</div>
         <div class="streak-v">34<span class="unit">일</span></div>
       </div>
@@ -4117,7 +4186,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <span class="num">3</span>
           <span class="unit">/ 4권 · 이번 달</span>
         </div>
-        <div class="stat-card-sub">한 권만 더 읽으면 목표 달성이에요 📚</div>
+        <div class="stat-card-sub">한 권만 더 읽으면 목표 달성이에요</div>
       </div>
       <div class="now-bar" style="background:color-mix(in srgb, var(--c-sage-700) 12%, transparent)">
         <div class="now-bar-fill" style="width:75%;background:var(--g-done-bar);box-shadow:0 0 8px color-mix(in srgb, var(--c-sage-500) 35%, transparent)"></div>
@@ -4130,7 +4199,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <section class="pane" id="pane-notes">
 
     <div class="note-search">
-      <span style="color:var(--c-muted);font-size:14px">🔍</span>
+      <span style="color:var(--c-muted);display:inline-flex;align-items:center"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
       <input type="text" id="noteSearchInput" placeholder="하이라이트·인용구 검색…"/>
     </div>
 
@@ -4152,7 +4221,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <div class="settings-grip"></div>
   <div class="settings-head">
     <div class="settings-ttl">설정</div>
-    <button class="settings-close" id="settingsClose" aria-label="닫기">✕</button>
+    <button class="settings-close" id="settingsClose" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div class="settings-body">
 
@@ -4179,7 +4248,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="api-key-item">
         <div class="api-key-head">
           <div class="api-key-name">
-            <div class="api-key-flag" style="background:linear-gradient(135deg,#7c2d12,#c2410c);color:#fff;font-weight:900;font-family:'Plus Jakarta Sans',sans-serif;">📡</div>
+            <div class="api-key-flag" style="background:linear-gradient(135deg,#7c2d12,#c2410c);color:#fff;display:flex;align-items:center;justify-content:center;"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-radio"/></svg></div>
             <span>프록시 서버 URL</span>
           </div>
           <span class="api-key-status none" id="proxyStatus">미설정</span>
@@ -4204,7 +4273,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
       <div class="settings-list">
         <button class="settings-row">
-          <div class="settings-row-icon">🔔</div>
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">독서 알림</div>
             <div class="settings-row-sub">매일 저녁 9시</div>
@@ -4212,7 +4281,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-right">켜짐</div>
         </button>
         <button class="settings-row">
-          <div class="settings-row-icon">🎯</div>
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-target"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">연간 목표</div>
             <div class="settings-row-sub">2026년</div>
@@ -4220,7 +4289,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-right">50권 ›</div>
         </button>
         <button class="settings-row">
-          <div class="settings-row-icon">📤</div>
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-upload"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">데이터 내보내기</div>
             <div class="settings-row-sub">PDF · JSON 백업</div>
@@ -4250,7 +4319,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <div class="bas-stage active" data-stage="search">
     <div class="bas-head">
       <div class="bas-ttl">책 추가</div>
-      <button class="bas-close" id="basClose1" aria-label="닫기">✕</button>
+      <button class="bas-close" id="basClose1" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
       <div class="search-wrap">
@@ -4264,7 +4333,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
       <div class="search-fallback">
         <button class="fallback-btn" id="btnManualInput">
-          <span>✍️</span> 검색 결과에 없는 책을 직접 입력
+          <span><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg></span> 검색 결과에 없는 책을 직접 입력
         </button>
         <div class="fallback-hint">원서·구서적·자비출판도 수동으로 등록할 수 있어요</div>
       </div>
@@ -4276,7 +4345,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <div class="bas-head">
       <button class="bas-back" data-back-to="search" aria-label="뒤로">←</button>
       <div class="bas-ttl">직접 입력</div>
-      <button class="bas-close" id="basClose2" aria-label="닫기">✕</button>
+      <button class="bas-close" id="basClose2" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
       <form class="manual-form" id="manualForm" onsubmit="return false;">
@@ -4312,7 +4381,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <div class="bas-head">
       <button class="bas-back" data-back-to="search" aria-label="뒤로">←</button>
       <div class="bas-ttl">서재에 추가</div>
-      <button class="bas-close" id="basClose3" aria-label="닫기">✕</button>
+      <button class="bas-close" id="basClose3" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
       <!-- 선택한 책 미리보기 -->
@@ -4324,9 +4393,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="confirm-section">
         <div class="confirm-section-lbl">상태</div>
         <div class="status-seg" id="statusSeg">
-          <button class="status-seg-btn active" data-status="wish">💭 위시</button>
-          <button class="status-seg-btn" data-status="reading">📖 독서중</button>
-          <button class="status-seg-btn" data-status="done">✅ 완독</button>
+          <button class="status-seg-btn active" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
+          <button class="status-seg-btn" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
+          <button class="status-seg-btn" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
         </div>
       </div>
 
@@ -4377,7 +4446,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <div class="bd-head">
     <button class="bas-back" id="bdBack" aria-label="뒤로">←</button>
     <div class="bas-ttl">책 상세</div>
-    <button class="bas-close" id="bdClose" aria-label="닫기">✕</button>
+    <button class="bas-close" id="bdClose" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div class="bd-body" id="bdBody">
     <!-- JS 전체 렌더 -->
@@ -4389,7 +4458,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 <aside class="dd-sheet" id="ddSheet" aria-hidden="true">
   <div class="bas-grip"></div>
   <div class="dd-head">
-    <button class="bas-close" id="ddClose" aria-label="닫기">✕</button>
+    <button class="bas-close" id="ddClose" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     <div class="dd-ttl" id="ddTtl">—</div>
     <div class="dd-sub" id="ddSub">—</div>
   </div>
@@ -4405,7 +4474,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 <aside class="tm-sheet" id="tmSheet" aria-hidden="true">
   <div class="bas-grip"></div>
   <div class="tm-head">
-    <div class="tm-head-ttl">⏱️ 타이머 정지</div>
+    <div class="tm-head-ttl"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 정지</div>
   </div>
   <div class="tm-body">
     <div class="tm-book-row" id="tmBookRow"></div>
@@ -4436,7 +4505,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 <aside class="na-sheet" id="naSheet" aria-hidden="true">
   <div class="bas-grip"></div>
   <div class="na-head">
-    <button class="bas-close" id="naClose" aria-label="닫기">✕</button>
+    <button class="bas-close" id="naClose" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     <div class="na-head-ttl" id="naHeadTtl">새 노트</div>
     <button class="na-save-btn" id="naSave" disabled>저장</button>
   </div>
@@ -4451,8 +4520,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <div class="na-field">
       <label class="na-lbl">타입</label>
       <div class="status-seg" id="naTypeSeg">
-        <button class="status-seg-btn active" data-type="quote">📖 인용구</button>
-        <button class="status-seg-btn" data-type="thought">✍️ 내 생각</button>
+        <button class="status-seg-btn active" data-type="quote"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 인용구</button>
+        <button class="status-seg-btn" data-type="thought"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 내 생각</button>
       </div>
     </div>
 
@@ -4721,6 +4790,12 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
+/* ─── 아이콘 헬퍼 (SVG 스프라이트) ─── */
+function icon(name, cls = '') {
+  const extra = cls ? ' ' + cls : '';
+  return `<svg class="ic${extra}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+}
+
 /* ─── 모달 열기/닫기 ─── */
 function openBookAdd() {
   document.getElementById('basBackdrop').classList.add('open');
@@ -4798,7 +4873,7 @@ function renderSearchWelcome() {
   if (!proxyUrl) { renderSearchNoKey(); return; }
   document.getElementById('searchResults').innerHTML = `
     <div class="search-state">
-      <div class="search-state-emoji">📚</div>
+      <div class="search-state-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-books"/></svg></div>
       <div class="search-state-ttl">책 이름이나 저자를 검색해보세요</div>
       <div class="search-state-sub">Kakao + Google Books 통합 검색 · 원서도 OK</div>
     </div>`;
@@ -4806,10 +4881,10 @@ function renderSearchWelcome() {
 function renderSearchNoKey() {
   document.getElementById('searchResults').innerHTML = `
     <div class="search-state">
-      <div class="search-state-emoji">📡</div>
+      <div class="search-state-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-radio"/></svg></div>
       <div class="search-state-ttl">검색 서버를 먼저 설정해주세요</div>
       <div class="search-state-sub">
-        설정 (헤더의 ⚙️) → <strong>책 검색 서버</strong>에서<br/>
+        설정 (헤더의 <svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>) → <strong>책 검색 서버</strong>에서<br/>
         카페24에 올린 <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">search.php</code> URL을 등록해주세요
       </div>
     </div>`;
@@ -4824,7 +4899,7 @@ function renderSearchLoading() {
 function renderSearchError(msg) {
   document.getElementById('searchResults').innerHTML = `
     <div class="search-state">
-      <div class="search-state-emoji">⚠️</div>
+      <div class="search-state-emoji" style="color:var(--c-gold-500)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-alert"/></svg></div>
       <div class="search-state-ttl">검색에 실패했어요</div>
       <div class="search-state-sub">
         ${msg ? `<code style="font-size:10.5px;color:var(--c-terra-700);word-break:break-all">${esc(msg)}</code><br/><br/>` : ''}
@@ -4844,14 +4919,14 @@ function renderSearchResults(items, errors) {
   if (errors && Object.keys(errors).length) {
     const msgs = Object.entries(errors).map(([src, err]) => `${src === 'kakao' ? 'Kakao' : 'Google'}: ${err}`).join(' · ');
     errorBanner = `<div style="padding:8px 12px;background:color-mix(in srgb, var(--c-gold-500) 12%, transparent);border:1px solid var(--c-gold-100);border-radius:10px;margin-bottom:10px;font-size:11px;color:var(--c-gold-900);font-weight:600;">
-      ⚠️ 일부 API 오류: ${esc(msgs)}
+      <svg class="ic" aria-hidden="true" style="color:var(--c-gold-500)"><use href="#i-alert"/></svg> 일부 API 오류: ${esc(msgs)}
     </div>`;
   }
 
   if (!items.length) {
     container.innerHTML = errorBanner + `
       <div class="search-state">
-        <div class="search-state-emoji">🔎</div>
+        <div class="search-state-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-search"/></svg></div>
         <div class="search-state-ttl">검색 결과가 없어요</div>
         <div class="search-state-sub">아래 <strong>직접 입력</strong>으로 추가할 수 있어요</div>
       </div>`;
@@ -4872,8 +4947,8 @@ function renderSearchResults(items, errors) {
       <div class="result-item" data-idx="${idx}">
         ${b.cover
           ? `<img class="result-cover" src="${esc(b.cover)}" alt="" loading="lazy"
-                onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;>📖</div>'">`
-          : `<div class="result-cover-fallback">📖</div>`}
+                onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
+          : `<div class="result-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
         <div class="result-info">
           <div class="result-title">${title}${sourceBadge}</div>
           <div class="result-author">${authors}</div>
@@ -4938,8 +5013,8 @@ function renderConfirm() {
   preview.innerHTML = `
     ${b.cover
       ? `<img class="confirm-cover" src="${esc(b.cover)}" alt=""
-            onerror="this.outerHTML='<div class=&quot;confirm-cover-fallback&quot;>📖</div>'">`
-      : `<div class="confirm-cover-fallback">📖</div>`}
+            onerror="this.outerHTML='<div class=&quot;confirm-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
+      : `<div class="confirm-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
     <div class="confirm-info">
       <div class="confirm-title">${esc(b.title)}</div>
       <div class="confirm-author">${esc(b.author)}</div>
@@ -4977,7 +5052,7 @@ function updateLifebookToggle() {
     toggle.classList.toggle('checked', !!BA.isLifeBook);
     const currentCount = BOOKS.filter(x => x.isLifeBook).length;
     if (currentCount >= 100) {
-      sub.textContent = '⚠️ 이미 100권이 다 찼어요. 기존 인생책을 정리해주세요';
+      sub.textContent = '이미 100권이 다 찼어요. 기존 인생책을 정리해주세요';
     } else {
       sub.textContent = BA.isLifeBook
         ? '⭐ 선택 완료 · 로그·통계에서 특별 표시돼요'
@@ -5519,8 +5594,8 @@ function renderNowHero(b) {
   const pct = b.pages ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
   const timerRunning = TIMER.bookId === b.id;
   const primaryBtn = timerRunning
-    ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn">⏸ --:-- · 저장</button>`
-    : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}">⏱️ 타이머 시작</button>`;
+    ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> --:-- · 저장</button>`
+    : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</button>`;
   return `
     <div class="now-hero">
       <span class="now-corner tl"></span>
@@ -5629,7 +5704,7 @@ function renderLibraryCards() {
   if (!BOOKS.length) {
     container.innerHTML = `
       <div class="log-empty" style="padding: 60px 20px; text-align: center;">
-        <div class="log-empty-emoji">📚</div>
+        <div class="log-empty-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-books"/></svg></div>
         <div style="font-weight: 700; color: var(--c-text-2); margin-bottom: 6px;">아직 책이 없어요</div>
         <div style="font-size: 12px; color: var(--c-muted);">아래 <strong>+ 책 추가</strong> 로 첫 책을 등록해보세요</div>
       </div>`;
@@ -5679,7 +5754,7 @@ function renderLogList() {
   if (!books.length) {
     list.innerHTML = `
       <div class="log-empty">
-        <div class="log-empty-emoji">🔎</div>
+        <div class="log-empty-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-search"/></svg></div>
         #${currentFilter} 태그로 분류된 책이 아직 없어요<br/>
         다른 태그를 선택해보세요
       </div>`;
@@ -5837,7 +5912,7 @@ function tickTimerUI() {
   const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
   const display = formatTimerDisplay(elapsed);
   const btn = document.getElementById('nowTimerBtn');
-  if (btn) btn.textContent = `⏸ ${display} · 저장`;
+  if (btn) btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> ${display} · 저장`;
 }
 
 function startTimerTick() {
@@ -6016,9 +6091,9 @@ function renderBookDetail() {
     <div class="bd-section">
       <div class="bd-section-lbl">상태</div>
       <div class="status-seg" id="bdStatusSeg">
-        <button class="status-seg-btn ${wish?'active':''}" data-status="wish">💭 위시</button>
-        <button class="status-seg-btn ${reading?'active':''}" data-status="reading">📖 독서중</button>
-        <button class="status-seg-btn ${done?'active':''}" data-status="done">✅ 완독</button>
+        <button class="status-seg-btn ${wish?'active':''}" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
+        <button class="status-seg-btn ${reading?'active':''}" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
+        <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
       </div>
     </div>
 
@@ -6143,7 +6218,7 @@ function renderBookDetail() {
           </div>
         </div>
       ` : `
-        <button class="bd-danger-btn" id="bdDelBtn">🗑 이 책 삭제하기</button>
+        <button class="bd-danger-btn" id="bdDelBtn"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 이 책 삭제하기</button>
       `}
     </div>
   `;
@@ -6736,7 +6811,7 @@ function renderPaceCard() {
     // 일수 기반 데이터 없음 → 타이머 데이터만 있을 수도
     grid.innerHTML = `
       <div class="pace-cell main" style="grid-column:1/-1">
-        <div class="pace-cell-icon">📊</div>
+        <div class="pace-cell-icon"><svg class="ic ic-xl" aria-hidden="true"><use href="#i-bar-chart"/></svg></div>
         <div class="pace-cell-sub" style="font-size:11px">완독 책이 쌓이면 페이스가 나와요</div>
       </div>`;
     sub.textContent = '완독한 책 기준';
@@ -6767,9 +6842,9 @@ function renderPaceCard() {
   if (!timerBox) return;
   if (!s || s.totalTimerMinutes === 0) {
     timerBox.innerHTML = `
-      <div class="pace-timer-head">⏱️ 타이머 기반</div>
+      <div class="pace-timer-head"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 기반</div>
       <div class="pace-timer-empty">
-        독서 중에 <strong style="color:var(--c-terra-700)">⏱️ 타이머 시작</strong> 을 누르면<br>
+        독서 중에 <strong style="color:var(--c-terra-700)"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</strong> 을 누르면<br>
         실제 분 단위 독서 시간이 여기 집계돼요
       </div>
     `;
@@ -6785,7 +6860,7 @@ function renderPaceCard() {
   const dailyAvg = Math.round(s.dailyAvgRecent);
 
   timerBox.innerHTML = `
-    <div class="pace-timer-head">⏱️ 타이머 기반 · ${s.timerSessions.length}회 세션</div>
+    <div class="pace-timer-head"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 기반 · ${s.timerSessions.length}회 세션</div>
     <div class="pace-timer-row">
       <div class="pace-timer-k">총 독서 시간</div>
       <div class="pace-timer-v">${timeStr}</div>
@@ -7236,8 +7311,8 @@ function renderNoteFilterChips() {
 
   chips.innerHTML = `
     <button class="chip ${isAll ? 'active' : ''}" data-chip-all>전체 ${total}</button>
-    ${thoughtCnt ? `<button class="chip ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-chip-type="thought">✍️ 내 생각 ${thoughtCnt}</button>` : ''}
-    ${quoteCnt ? `<button class="chip ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-chip-type="quote">📖 인용구 ${quoteCnt}</button>` : ''}
+    ${thoughtCnt ? `<button class="chip ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-chip-type="thought"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 내 생각 ${thoughtCnt}</button>` : ''}
+    ${quoteCnt ? `<button class="chip ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-chip-type="quote"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 인용구 ${quoteCnt}</button>` : ''}
     ${favCnt ? `<button class="chip ${NOTE_FILTER.favorite ? 'active' : ''}" data-chip-fav>⭐ 즐겨찾기 ${favCnt}</button>` : ''}
     ${bookChips.map(b => `<button class="chip ${NOTE_FILTER.bookId === b.id ? 'active' : ''}" data-chip-book="${b.id}">${esc(b.title)} ${b.cnt}</button>`).join('')}
   `;
@@ -7253,7 +7328,7 @@ function renderNotesTab() {
   if (!NOTES.length) {
     list.innerHTML = `
       <div class="notes-empty">
-        <div class="notes-empty-emoji">📓</div>
+        <div class="notes-empty-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-notebook"/></svg></div>
         <div class="notes-empty-ttl">아직 노트가 없어요</div>
         <div class="notes-empty-sub">
           아래 <strong>+</strong> 버튼으로 인용구나<br>
@@ -7265,7 +7340,7 @@ function renderNotesTab() {
   if (!filtered.length) {
     list.innerHTML = `
       <div class="notes-empty">
-        <div class="notes-empty-emoji">🔍</div>
+        <div class="notes-empty-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-search"/></svg></div>
         <div class="notes-empty-ttl">필터에 맞는 노트가 없어요</div>
         <div class="notes-empty-sub">검색어나 필터를 바꿔보세요</div>
       </div>`;
@@ -7383,7 +7458,7 @@ function renderNA() {
   const delZone = document.getElementById('naDeleteZone');
   if (NA.editingId) {
     delZone.style.display = '';
-    delZone.innerHTML = `<button class="na-delete-btn" id="naDeleteBtn">🗑 이 노트 삭제</button>`;
+    delZone.innerHTML = `<button class="na-delete-btn" id="naDeleteBtn"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 이 노트 삭제</button>`;
   } else {
     delZone.style.display = 'none';
     delZone.innerHTML = '';
@@ -7539,7 +7614,7 @@ document.getElementById('naDeleteZone').addEventListener('click', (e) => {
         </div>
       </div>`;
   } else if (delCancel) {
-    document.getElementById('naDeleteZone').innerHTML = `<button class="na-delete-btn" id="naDeleteBtn">🗑 이 노트 삭제</button>`;
+    document.getElementById('naDeleteZone').innerHTML = `<button class="na-delete-btn" id="naDeleteBtn"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 이 노트 삭제</button>`;
   } else if (delConfirm) {
     if (NA.editingId) deleteNote(NA.editingId);
   }
