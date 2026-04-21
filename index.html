@@ -321,19 +321,62 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .app-header::after { display: none; }
 .app-header.scrolled { border-bottom-color: transparent; }
 .app-brand {
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--c-text);
 }
 .app-logo { display: none; }
+.app-mark {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.app-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 .app-name {
-  font-family: inherit;
+  font-family: 'Pretendard Variable', Pretendard, inherit;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--c-text);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.05em;
   line-height: 1;
 }
-.app-name em { font-style: normal; font-weight: 800; color: var(--c-text); }
+.app-name em { font-style: normal; font-weight: 900; color: var(--c-text); }
 .app-name-sub { display: none; }
+
+/* ─── 앱 푸터 (저작권) ─── */
+.app-footer {
+  margin-top: 40px;
+  padding: 28px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--c-label);
+}
+.app-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Pretendard Variable', Pretendard, inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  opacity: 0.55;
+}
+.app-footer-mark {
+  width: 14px;
+  height: 14px;
+}
+.app-footer-copy {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
 .header-actions { display: flex; gap: 2px; }
 .header-btn {
   width: 40px; height: 40px;
@@ -3963,6 +4006,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
   <!-- 업로드 / 내보내기 -->
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+  <!-- 정보 -->
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
 </svg>
 
 
@@ -3971,7 +4016,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <!-- ═══════════ 헤더 ═══════════ -->
   <header class="app-header" id="appHeader">
     <div class="app-brand">
-      <span class="app-name">독서</span>
+      <span class="app-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 5 L22 5 A4 4 0 0 1 26 9 L26 24 A2.5 2.5 0 0 1 23.5 26.5 L9.5 26.5 A2.5 2.5 0 0 1 7 24 L7 5 Z"/>
+          <path d="M11 5 L11 12 L14 10 L17 12 L17 5"/>
+        </svg>
+      </span>
+      <span class="app-name">READ</span>
     </div>
     <div class="header-actions">
       <button class="header-btn" aria-label="검색"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-search"/></svg></button>
@@ -4310,6 +4361,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </div><!-- /.pane-track -->
   </div><!-- /.pane-viewport -->
 
+  <footer class="app-footer">
+    <div class="app-footer-brand">
+      <svg class="app-footer-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 5 L22 5 A4 4 0 0 1 26 9 L26 24 A2.5 2.5 0 0 1 23.5 26.5 L9.5 26.5 A2.5 2.5 0 0 1 7 24 L7 5 Z"/>
+        <path d="M11 5 L11 12 L14 10 L17 12 L17 5"/>
+      </svg>
+      <span>READ</span>
+    </div>
+    <div class="app-footer-copy">© 2026 Locadomingo</div>
+  </footer>
+
 </div>
 
 <!-- ═══════════ 설정 모달 ═══════════ -->
@@ -4394,10 +4456,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-right arrow">›</div>
         </button>
         <button class="settings-row">
-          <div class="settings-row-icon">ℹ️</div>
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">버전 0.1.0</div>
+            <div class="settings-row-sub">0.1.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
