@@ -388,26 +388,36 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: auto;
 }
 
-/* ═══════════ 탭 콘텐츠 ═══════════ */
-.pane { display: none; padding: 20px; animation: fadeIn .25s ease; }
-.pane.active { display: block; }
+/* ═══════════ 탭 콘텐츠 (캐러셀 트랙) ═══════════ */
+.pane-viewport {
+  overflow-x: hidden;
+  overflow-y: visible;
+  position: relative;
+}
+.pane-track {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  /* 스프링 느낌 (iOS처럼 살짝 오버슈트 없이 자연스럽게 감속) */
+  transition: transform 0.36s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+  /* 세로는 브라우저 네이티브, 가로만 JS에서 캡처 */
+  touch-action: pan-y;
+}
+.pane-track.is-dragging { transition: none; }
+.pane {
+  flex: 0 0 100%;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: fadeIn .25s ease;
+}
+/* 기존 display:none/block 방식 제거 — 이제 모든 pane이 항상 렌더됨.
+   .active 클래스는 탭 바 active 상태 표시용으로만 사용 */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-/* ─── 스와이프 전환용 방향 애니메이션 ─── */
-@keyframes paneInFromRight {
-  from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes paneInFromLeft {
-  from { opacity: 0; transform: translateX(-24px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-.pane.pane-in-from-right { animation: paneInFromRight .22s cubic-bezier(.2,.9,.2,1); }
-.pane.pane-in-from-left  { animation: paneInFromLeft  .22s cubic-bezier(.2,.9,.2,1); }
-/* 스와이프 중 시각 힌트 (옵션) */
-.main-wrap.is-swiping { cursor: grabbing; }
 
 /* 섹션 공통 */
 .section { margin-top: 8px; }
@@ -3922,6 +3932,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </button>
   </nav>
 
+  <!-- ═══════════ Pane 뷰포트 · 캐러셀 트랙 ═══════════ -->
+  <div class="pane-viewport">
+  <div class="pane-track" id="paneTrack">
+
   <!-- ═══════════ [TAB 1] 서재 ═══════════ -->
   <section class="pane active" id="pane-library">
 
@@ -4192,7 +4206,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
 
     <!-- 이번 달 목표 미니 -->
-    <div class="stat-card" style="margin-top:14px;">
+    <div class="stat-card" id="goalMonthly" style="margin-top:14px;">
       <div class="stat-card-head">
         <div class="stat-card-lbl">MONTHLY GOAL</div>
         <div class="stat-card-ttl">
@@ -4225,6 +4239,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
 
   </section>
+
+  </div><!-- /.pane-track -->
+  </div><!-- /.pane-viewport -->
 
 </div>
 
@@ -4656,6 +4673,7 @@ function openSettings() {
   settingsSheet.classList.add('open');
   settingsSheet.setAttribute('aria-hidden', 'false');
   lockBodyScroll();
+  try { renderGoalSettingsRow(); } catch(e){}
 }
 function closeSettings() {
   settingsBackdrop.classList.remove('open');
@@ -4736,62 +4754,76 @@ document.getElementById('proxyUrlInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); saveProxyUrl(); }
 });
 
-/* ═══════════ 탭 전환 (클릭 + 스와이프) ═══════════ */
+/* ═══════════ 탭 전환 — 캐러셀 (클릭 + 드래그 + 스냅) ═══════════ */
 const tabBtns = document.querySelectorAll('.tab-btn');
 const panes   = document.querySelectorAll('.pane');
 const TAB_ORDER = ['library', 'stats', 'goals', 'notes'];
+const TAB_COUNT = TAB_ORDER.length;
+const track   = document.getElementById('paneTrack');
+const viewport = track?.parentElement;
 let currentTabIdx = 0;
 
+function paneWidth() {
+  return viewport ? viewport.clientWidth : window.innerWidth;
+}
+
+function setTrackX(px, { instant = false } = {}) {
+  if (!track) return;
+  if (instant) track.classList.add('is-dragging');
+  else         track.classList.remove('is-dragging');
+  track.style.transform = `translate3d(${px}px, 0, 0)`;
+}
+
+function snapToTab(idx) {
+  setTrackX(-idx * paneWidth(), { instant: false });
+  tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+  // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
+  panes.forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
 function switchTab(nextIdx, opts = {}) {
-  if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return;
-  if (nextIdx === currentTabIdx) return;
-
-  const direction = nextIdx > currentTabIdx ? 1 : -1;  // 1 = 다음, -1 = 이전
-  const oldPane = document.getElementById('pane-' + TAB_ORDER[currentTabIdx]);
-  const newPane = document.getElementById('pane-' + TAB_ORDER[nextIdx]);
-
-  // 탭 바 active 상태 갱신
-  tabBtns.forEach((b, i) => b.classList.toggle('active', i === nextIdx));
-
-  // 이전 pane 비활성화 + 방향성 애니메이션 정리
-  oldPane.classList.remove('active', 'pane-in-from-right', 'pane-in-from-left');
-
-  // 새 pane 활성화 + 방향 슬라이드 애니메이션
-  newPane.classList.remove('pane-in-from-right', 'pane-in-from-left');
-  // 강제 reflow로 애니메이션 재시작
-  void newPane.offsetWidth;
-  newPane.classList.add('active', direction > 0 ? 'pane-in-from-right' : 'pane-in-from-left');
-
+  nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
+  if (nextIdx === currentTabIdx) {
+    // 드래그 후 제자리로 돌아가는 snap도 여기서 처리
+    snapToTab(currentTabIdx);
+    return;
+  }
   currentTabIdx = nextIdx;
+  snapToTab(currentTabIdx);
   if (opts.scrollTop !== false) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
-// 탭 바 클릭
+// 초기 위치
+snapToTab(0);
+
+// 탭 버튼 클릭
 tabBtns.forEach((btn, i) => {
   btn.addEventListener('click', () => switchTab(i));
 });
 
-/* ─── 스와이프 제스처로 탭 전환 ─── */
-(function setupTabSwipe() {
-  const wrap = document.querySelector('.main-wrap');
-  if (!wrap) return;
+// 뷰포트 리사이즈 시 트랙 위치 재계산
+window.addEventListener('resize', () => { snapToTab(currentTabIdx); }, { passive: true });
+
+/* ─── 드래그 제스처 (follow-finger + 스프링 스냅) ─── */
+(function setupDrag() {
+  if (!track || !viewport) return;
 
   let startX = 0, startY = 0, startT = 0;
-  let axis = null;  // null | 'x' | 'y' — 첫 의미있는 move에서 결정
+  let lastX = 0, lastT = 0;     // 속도 계산용
+  let velocity = 0;              // px/ms
+  let axis = null;               // null | 'x' | 'y'
   let active = false;
+  let baseX = 0;                 // 드래그 시작 시점의 트랙 위치
 
   function shouldIgnore(target) {
-    // 시트/백드롭이 열려있으면 무시
     if (document.querySelector('.sheet.open, .backdrop.open')) return true;
-    // input·textarea·편집 가능 요소
     if (target.closest('input, textarea, [contenteditable="true"]')) return true;
-    // 명시적으로 스와이프 무시한 영역 (예: 가로 스크롤 캐러셀)
     if (target.closest('[data-no-swipe]')) return true;
-    // 가로 스크롤 가능한 조상 — 내부 스크롤이 있으면 그쪽 우선
+    // 내부 가로 스크롤 요소 우선
     let el = target;
-    while (el && el !== wrap) {
+    while (el && el !== viewport) {
       if (el.scrollWidth > el.clientWidth + 2) {
         const style = getComputedStyle(el);
         if (/(auto|scroll)/.test(style.overflowX)) return true;
@@ -4801,52 +4833,90 @@ tabBtns.forEach((btn, i) => {
     return false;
   }
 
-  wrap.addEventListener('touchstart', (e) => {
+  // 경계에서 고무줄 저항 (rubber-band)
+  function applyResistance(offset, atLeftEdge, atRightEdge) {
+    if (atLeftEdge && offset > 0)  return offset * 0.32;
+    if (atRightEdge && offset < 0) return offset * 0.32;
+    return offset;
+  }
+
+  viewport.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) { active = false; return; }
     if (shouldIgnore(e.target)) { active = false; return; }
     const t = e.touches[0];
-    startX = t.clientX;
+    startX = lastX = t.clientX;
     startY = t.clientY;
-    startT = Date.now();
+    startT = lastT = Date.now();
     axis = null;
+    velocity = 0;
+    baseX = -currentTabIdx * paneWidth();
     active = true;
+    // 진행 중 애니메이션 즉시 중단
+    track.classList.add('is-dragging');
   }, { passive: true });
 
-  wrap.addEventListener('touchmove', (e) => {
+  viewport.addEventListener('touchmove', (e) => {
     if (!active) return;
     const t = e.touches[0];
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
+
     if (axis === null) {
-      // 움직임이 너무 작으면 아직 판단 보류
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      // 수평 우세(1.3배)면 x축, 아니면 y축(세로 스크롤 우선)
-      axis = Math.abs(dx) > Math.abs(dy) * 1.3 ? 'x' : 'y';
-      if (axis === 'x') wrap.classList.add('is-swiping');
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
     }
+
+    if (axis === 'y') {
+      // 세로 제스처로 확정되면 드래그 중단 (스냅 복귀)
+      track.classList.remove('is-dragging');
+      active = false;
+      return;
+    }
+
+    // 수평 드래그 — 트랙 위치 업데이트
+    const w = paneWidth();
+    const atLeftEdge  = currentTabIdx === 0;
+    const atRightEdge = currentTabIdx === TAB_COUNT - 1;
+    const offset = applyResistance(dx, atLeftEdge, atRightEdge);
+    setTrackX(baseX + offset, { instant: true });
+
+    // 속도 추정 (마지막 움직임 간 속도)
+    const now = Date.now();
+    const dt = Math.max(1, now - lastT);
+    velocity = (t.clientX - lastX) / dt;
+    lastX = t.clientX;
+    lastT = now;
   }, { passive: true });
 
-  wrap.addEventListener('touchend', (e) => {
-    wrap.classList.remove('is-swiping');
-    if (!active || axis !== 'x') { active = false; return; }
-    const t = e.changedTouches[0];
-    const dx = t.clientX - startX;
-    const dt = Math.max(1, Date.now() - startT);
-    const speed = Math.abs(dx) / dt;  // px/ms
-    // 조건: 거리 60px 이상, 또는 flick (속도 0.35 + 거리 30px)
-    const distanceOK = Math.abs(dx) > 60;
-    const flickOK    = speed > 0.35 && Math.abs(dx) > 30;
+  function finish() {
+    if (!active) { track.classList.remove('is-dragging'); return; }
+    const w = paneWidth();
+    // 현재 드래그된 상대 위치
+    const dx = lastX - startX;
+    const absDx = Math.abs(dx);
+
+    // 결정 조건: (a) 화면 25% 이상 끌었거나, (b) flick 속도 임계치 통과
+    const distanceOK = absDx > w * 0.25;
+    const flickOK    = Math.abs(velocity) > 0.5 && absDx > 20;  // 0.5px/ms
+
+    let nextIdx = currentTabIdx;
     if (distanceOK || flickOK) {
-      if (dx < 0) switchTab(currentTabIdx + 1, { scrollTop: false });  // 왼쪽으로 스와이프 → 다음
-      else        switchTab(currentTabIdx - 1, { scrollTop: false });  // 오른쪽으로 스와이프 → 이전
+      nextIdx = currentTabIdx + (dx < 0 ? 1 : -1);
+      nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
+    }
+
+    // 스냅 (트랜지션이 다시 붙음)
+    if (nextIdx === currentTabIdx) {
+      // 제자리 복귀
+      snapToTab(currentTabIdx);
+    } else {
+      switchTab(nextIdx, { scrollTop: false });
     }
     active = false;
-  }, { passive: true });
+  }
 
-  wrap.addEventListener('touchcancel', () => {
-    wrap.classList.remove('is-swiping');
-    active = false;
-  }, { passive: true });
+  viewport.addEventListener('touchend', finish, { passive: true });
+  viewport.addEventListener('touchcancel', () => { active = false; track.classList.remove('is-dragging'); snapToTab(currentTabIdx); }, { passive: true });
 })();
 
 /* ═══════════ 헤더 스크롤 그림자 ═══════════ */
@@ -6996,6 +7066,158 @@ function renderPaceCard() {
   `;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   목표 (연간/월간) — localStorage + 렌더 + 편집
+   ═══════════════════════════════════════════════════════════ */
+const GOALS_KEY = 'goals';
+const DEFAULT_GOAL_ANNUAL = 30;
+
+function getGoals() {
+  try {
+    const raw = localStorage.getItem(GOALS_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return { annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL };
+  } catch (e) {
+    return { annual: DEFAULT_GOAL_ANNUAL };
+  }
+}
+function saveGoals(partial) {
+  const cur = getGoals();
+  const merged = { ...cur, ...partial };
+  localStorage.setItem(GOALS_KEY, JSON.stringify(merged));
+  return merged;
+}
+
+/* 올해/이번달 완독 수 계산 (renderAnnualLedger 패턴 재사용) */
+function countFinishedThisYear() {
+  if (!Array.isArray(BOOKS)) return 0;
+  const year = new Date().getFullYear();
+  const done = BOOKS.filter(b => b.status === 'done' && b.dateEnd &&
+    new Date(b.dateEnd).getFullYear() === year).length;
+  const rereads = BOOKS.reduce((s, b) =>
+    s + ((b.rereads || []).filter(r => r.dateEnd &&
+      new Date(r.dateEnd).getFullYear() === year).length), 0);
+  return done + rereads;
+}
+function countFinishedThisMonth() {
+  if (!Array.isArray(BOOKS)) return 0;
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const match = (dstr) => {
+    if (!dstr) return false;
+    const d = new Date(dstr);
+    return d.getFullYear() === y && d.getMonth() === m;
+  };
+  const done = BOOKS.filter(b => b.status === 'done' && match(b.dateEnd)).length;
+  const rereads = BOOKS.reduce((s, b) =>
+    s + ((b.rereads || []).filter(r => match(r.dateEnd)).length), 0);
+  return done + rereads;
+}
+
+/* 목표 탭 hero + 월간 미니 카드 렌더 */
+function renderGoalsPane() {
+  const pane = document.getElementById('pane-goals');
+  if (!pane) return;
+  const goals = getGoals();
+  const target = goals.annual;
+  const done = countFinishedThisYear();
+  const pct = target > 0 ? Math.min(100, Math.round(done / target * 100)) : 0;
+  const remaining = Math.max(0, target - done);
+  const year = new Date().getFullYear();
+  const monthNow = new Date().getMonth();
+
+  // 링
+  const numEl = pane.querySelector('.goal-ring-num');
+  const denomEl = pane.querySelector('.goal-ring-denom');
+  const fillEl = pane.querySelector('.goal-ring-fill');
+  if (numEl) numEl.textContent = done;
+  if (denomEl) denomEl.textContent = `/ ${target}권`;
+  if (fillEl) {
+    const C = 2 * Math.PI * 48; // 약 301.59
+    const offset = C * (1 - pct / 100);
+    fillEl.setAttribute('stroke-dashoffset', offset.toFixed(1));
+    fillEl.setAttribute('stroke-dasharray', C.toFixed(1));
+  }
+
+  // 라벨·텍스트
+  const lblEl = pane.querySelector('.goal-info-lbl');
+  const ttlEl = pane.querySelector('.goal-info-ttl');
+  const descEl = pane.querySelector('.goal-info-desc');
+  if (lblEl) lblEl.textContent = `${year} GOAL`;
+  if (ttlEl) {
+    ttlEl.textContent = done >= target
+      ? '올해 목표 달성!'
+      : `올해 목표 ${pct}% 달성`;
+  }
+  if (descEl) {
+    if (done >= target) {
+      descEl.innerHTML = `이미 <strong>${done}권</strong>을 완독했어요. 멋져요.`;
+    } else {
+      const monthsLeft = 12 - monthNow; // 이번 달 포함
+      const pace = remaining / Math.max(1, monthsLeft);
+      const paceStr = pace < 1
+        ? `월 1권만 읽어도 충분해요`
+        : `월 ${pace.toFixed(1)}권 페이스면 충분해요`;
+      descEl.innerHTML = `목표까지 <strong>${remaining}권</strong> 남았어요.<br/><span class="pace">${paceStr}</span>`;
+    }
+  }
+
+  // 월간 미니 카드 (annual에서 ceil 파생)
+  const monthly = document.getElementById('goalMonthly');
+  if (monthly) {
+    const mTarget = Math.max(1, Math.ceil(target / 12));
+    const mDone = countFinishedThisMonth();
+    const mPct = Math.min(100, Math.round(mDone / mTarget * 100));
+    const mNum = monthly.querySelector('.num');
+    const mUnit = monthly.querySelector('.unit');
+    const mSub = monthly.querySelector('.stat-card-sub');
+    const mBar = monthly.querySelector('.now-bar-fill');
+    if (mNum) mNum.textContent = mDone;
+    if (mUnit) mUnit.textContent = `/ ${mTarget}권 · 이번 달`;
+    if (mBar) mBar.style.width = `${mPct}%`;
+    if (mSub) {
+      const gap = mTarget - mDone;
+      if (gap <= 0) mSub.textContent = '이번 달 목표 달성! 축하해요';
+      else if (gap === 1) mSub.textContent = '한 권만 더 읽으면 목표 달성이에요';
+      else mSub.textContent = `${gap}권 더 읽으면 목표 달성이에요`;
+    }
+  }
+}
+
+/* 설정 시트의 "연간 목표" 행 렌더 + 클릭 바인딩 (idempotent) */
+function renderGoalSettingsRow() {
+  const rows = document.querySelectorAll('.settings-row');
+  for (const row of rows) {
+    const ttl = row.querySelector('.settings-row-ttl');
+    if (!ttl || ttl.textContent !== '연간 목표') continue;
+    const goals = getGoals();
+    const right = row.querySelector('.settings-row-right');
+    const sub = row.querySelector('.settings-row-sub');
+    if (right) right.textContent = `${goals.annual}권 ›`;
+    if (sub) sub.textContent = `${new Date().getFullYear()}년`;
+    if (!row.dataset.goalHandlerWired) {
+      row.dataset.goalHandlerWired = '1';
+      row.addEventListener('click', openGoalEditor);
+    }
+  }
+}
+
+/* 목표 편집 — 모바일에선 숫자 키패드가 자동으로 뜨는 prompt 사용 */
+function openGoalEditor() {
+  const goals = getGoals();
+  const input = window.prompt('올해 목표 권수를 입력하세요 (1–999)', String(goals.annual));
+  if (input == null) return; // 취소
+  const n = parseInt(String(input).trim(), 10);
+  if (!Number.isFinite(n) || n < 1 || n > 999) {
+    try { showToast('1부터 999 사이의 숫자로 입력해주세요'); } catch(e){}
+    return;
+  }
+  saveGoals({ annual: n });
+  try { renderGoalsPane(); } catch(e){}
+  try { renderGoalSettingsRow(); } catch(e){}
+  try { showToast(`올해 목표 ${n}권으로 저장됨`); } catch(e){}
+}
+
 /* ─── 전체 렌더 ─── */
 function renderAllStats() {
   try { renderAnnualLedger();  } catch(e) { console.error('[annual]', e); }
@@ -7007,6 +7229,8 @@ function renderAllStats() {
   try { renderGenreDonut();       } catch(e) { console.error('[genre]', e); }
   try { renderCumulativeStatCard(); } catch(e) { console.error('[cumu]', e); }
   try { renderRatingStatCard();   } catch(e) { console.error('[rating]', e); }
+  // 목표 탭
+  try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
 
 /* ─── Annual Ledger (다크 히어로) ─── */
