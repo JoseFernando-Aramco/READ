@@ -752,25 +752,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label); margin-left: 2px;
 }
 
-/* 책 그리드 (3열) — B 시안: 카드 85% + 여백 여유 */
+/* 책 그리드 (4열) */
 .book-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px 10px;
-  padding: 4px 12px 8px;
-  max-width: 88%;
-  margin: 0 auto;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 8px;
+  padding: 4px 4px 8px;
 }
 .book-row::-webkit-scrollbar { display: none; }
 
 /* 명예의 전당 그리드 — book-row와 동일 레이아웃 */
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px 10px;
-  padding: 4px 12px 8px;
-  max-width: 88%;
-  margin: 0 auto;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 8px;
+  padding: 4px 4px 8px;
 }
 
 .book-card {
@@ -820,10 +816,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bc-cat {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 7px; font-weight: 800;
-  letter-spacing: 1.6px; text-transform: uppercase;
+  font-size: 5.5px; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase;
   opacity: .6;
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; gap: 4px;
 }
 .bc-cat::after {
   content: ''; flex: 1; height: 1px;
@@ -831,33 +827,33 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bc-title {
   font-family: 'Noto Serif KR', serif;
-  font-size: 18px; font-weight: 900;
-  letter-spacing: -.6px; line-height: .95;
+  font-size: 14px; font-weight: 900;
+  letter-spacing: -.4px; line-height: .95;
   margin-top: auto;
 }
-.bc-title.lg { font-size: 22px; }
+.bc-title.lg { font-size: 16px; }
 .bc-foot {
   flex: 1;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 6px 8px;
+  padding: 4px 6px;
   color: var(--dark);
   position: relative;
 }
 .bc-foot::before {
   content: '';
-  position: absolute; top: 0; left: 8px;
-  width: 14px; height: 2px;
+  position: absolute; top: 0; left: 6px;
+  width: 10px; height: 1.5px;
   background: var(--accent);
 }
 .bc-author {
-  font-size: 8.5px; font-weight: 800;
+  font-size: 7px; font-weight: 800;
   letter-spacing: -.1px;
   margin-bottom: 1px;
 }
 .bc-meta {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 6.5px; font-weight: 700;
-  letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 5px; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
   opacity: .55;
 }
 
@@ -873,18 +869,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .now-cover .bc-meta { font-size: 6.5px; letter-spacing: .8px; }
 .book-card-title {
   font-family: inherit;
-  font-size: 14px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   color: var(--c-text); letter-spacing: -0.015em;
-  margin-top: 10px; line-height: 1.3;
+  margin-top: 7px; line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .book-card-meta {
   font-family: inherit;
   font-style: normal;
-  font-size: 12px; font-weight: 500;
-  color: var(--c-label); margin-top: 3px;
-  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 500;
+  color: var(--c-label); margin-top: 2px;
+  display: flex; align-items: center; gap: 3px;
 }
 .book-card-star {
   font-family: inherit;
@@ -894,6 +890,231 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ═══════════ [TAB 2] 통계 ═══════════ */
+/* ═══════════ Annual Ledger V1 Hero (blue gradient) ═══════════ */
+.annual-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #1a5fcc 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 22px 22px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(49,130,246,0.18);
+  position: relative;
+  overflow: hidden;
+}
+.annual-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 65%);
+  pointer-events: none;
+}
+.annual-hero-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px;
+  opacity: 0.78;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  position: relative;
+}
+.annual-hero-line {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 30px; font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: #fff;
+  margin-bottom: 4px;
+  position: relative;
+}
+.annual-hero-line strong {
+  font-weight: 900;
+  font-size: 38px;
+  letter-spacing: -0.03em;
+}
+.annual-hero-sub {
+  font-size: 13px;
+  opacity: 0.82;
+  margin-bottom: 14px;
+  position: relative;
+  line-height: 1.5;
+}
+.annual-hero-sub strong {
+  color: #fff;
+  font-weight: 700;
+}
+.annual-hero-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+  margin: 12px 0 14px;
+  position: relative;
+}
+.annual-hero-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  position: relative;
+}
+.ah-m { text-align: left; }
+.ah-m-v {
+  font-size: 18px; font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.ah-m-v .unit {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-left: 1px;
+}
+.ah-m-l {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px;
+  opacity: 0.78;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* ═══════════ 접히는 패널 (stats-fold) ═══════════ */
+.stats-fold {
+  background: var(--c-surface);
+  border: none;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  display: block;
+  font-family: inherit;
+}
+.stats-fold.stats-link {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+.stats-fold .fold-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  cursor: pointer;
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  color: var(--c-text);
+}
+.stats-fold .fold-head:active {
+  background: var(--c-surface-2);
+}
+.fold-head-l {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.fold-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--c-surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  color: var(--c-text-2);
+  flex-shrink: 0;
+}
+.fold-icon.blue { background: var(--primary-bg); color: var(--primary); }
+.fold-icon.green { background: color-mix(in srgb, var(--c-sage-500) 18%, transparent); color: var(--c-sage-700); }
+.fold-icon.gold { background: color-mix(in srgb, var(--c-gold-500) 18%, transparent); color: var(--c-gold-500); }
+.fold-icon.amber { background: color-mix(in srgb, #d97706 18%, transparent); color: #d97706; }
+.fold-icon .ic { width: 16px; height: 16px; }
+.fold-head-text {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.fold-t {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--c-text);
+}
+.fold-s {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-top: 2px;
+  font-weight: 500;
+}
+.fold-arrow {
+  color: var(--c-label);
+  font-size: 14px;
+  transition: transform .18s;
+  flex-shrink: 0;
+}
+.stats-fold.open .fold-arrow:not(.arrow-right) {
+  transform: rotate(180deg);
+}
+.fold-body {
+  padding: 0 18px 16px;
+  display: none;
+  border-top: 1px solid var(--c-border);
+  padding-top: 16px;
+}
+.stats-fold.open .fold-body {
+  display: block;
+}
+
+/* fold 내부 개별 차트 블록 */
+.stat-sub {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--c-border);
+}
+.stat-sub:first-child { padding-top: 0; }
+.stat-sub:last-child { border-bottom: none; padding-bottom: 0; }
+.stat-sub-head {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-border);
+  position: relative;
+}
+.stat-sub-head .stat-card-lbl {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--c-label);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-sub-head .stat-card-ttl {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+  margin-top: 2px;
+}
+.stat-sub-head .stat-card-ttl .num {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.stat-sub-head .stat-card-ttl .unit {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-label);
+}
+.stat-sub-head .stat-card-sub {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-top: 3px;
+}
+
 .stat-card {
   background: var(--c-surface);
   border: none;
@@ -4350,145 +4571,179 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <!-- ═══════════ [TAB 2] 통계 ═══════════ -->
   <section class="pane" id="pane-stats">
 
-    <!-- 0. Annual Ledger (DARK HERO · v1) -->
-    <div class="stat-card dark hero" id="annualLedger">
-      <span class="annual-corner tl"></span>
-      <span class="annual-corner tr"></span>
-      <span class="annual-corner bl"></span>
-      <span class="annual-corner br"></span>
-      <div class="stat-card-head">
-        <div class="stat-card-lbl">The Annual Ledger</div>
-        <span class="stat-card-head-meta" id="annualYear">2026</span>
-      </div>
-      <div class="annual-big-wrap">
-        <span class="annual-big-num" id="annualBigNum">—</span>
-        <span class="annual-big-deco">volumes</span>
-      </div>
-      <div class="annual-divider"></div>
-      <p class="annual-desc" id="annualDesc">
-        this year's reading — compiling…
-      </p>
-    </div>
-
-    <!-- ⭐ 인생책 (동적) -->
-    <div class="stat-card">
-      <div class="stat-card-head">
-        <div class="stat-card-lbl">LIFE BOOKS</div>
-        <span class="stat-card-head-meta" id="lifebookMeta">starred</span>
-      </div>
-      <div class="stat-card-ttl">⭐ <em>Life</em> Books</div>
-      <div class="stat-card-sub" id="lifebookCardSub">가장 소중한 100권</div>
-      <div class="lifebook-card" id="lifebookCard">
-        <!-- JS 렌더 -->
-      </div>
-    </div>
-
-    <!-- ① 월별 읽은 권수 -->
-    <div class="stat-card">
-      <div class="stat-card-head" id="monthlyHead">
-        <div class="stat-card-lbl">MONTHLY BOOKS</div>
-        <div class="stat-card-ttl">
-          <span class="num">—</span>
-          <span class="unit">권 · 올해 누적</span>
+    <!-- ═══ V1 · Annual Ledger Hero (blue gradient) ═══ -->
+    <div class="annual-hero" id="annualHero">
+      <div class="annual-hero-label">ANNUAL LEDGER · <span id="annualYear">2026</span></div>
+      <div class="annual-hero-line"><strong id="annualBigNum">—</strong>권<br/>읽었습니다.</div>
+      <div class="annual-hero-sub" id="annualHeroSub">—</div>
+      <div class="annual-hero-divider"></div>
+      <div class="annual-hero-mini">
+        <div class="ah-m">
+          <div class="ah-m-v"><span id="annualPagesNum">—</span><span class="unit">p</span></div>
+          <div class="ah-m-l">누적 페이지</div>
         </div>
-        <div class="stat-card-sub">—</div>
-      </div>
-      <div class="monthly-chart" id="monthlyChart">
-        <!-- JS로 생성 -->
-      </div>
-      <div class="monthly-labels" id="monthlyLabels">
-        <!-- JS로 생성 -->
+        <div class="ah-m">
+          <div class="ah-m-v"><span id="annualAvgStar">★—</span></div>
+          <div class="ah-m-l">평균 별점</div>
+        </div>
+        <div class="ah-m">
+          <div class="ah-m-v"><span id="annualReadDays">—</span><span class="unit">일</span></div>
+          <div class="ah-m-l">독서일</div>
+        </div>
       </div>
     </div>
 
-    <!-- ② 장르 비중 도넛 -->
-    <div class="stat-card">
-      <div class="stat-card-head" id="genreHead">
-        <div class="stat-card-lbl">GENRE DISTRIBUTION</div>
-        <div class="stat-card-ttl">
-          <span>태그 비중</span>
+    <!-- ═══ 명예의 전당 링크 ═══ -->
+    <button class="stats-fold stats-link" id="statsHallLink" type="button">
+      <div class="fold-head-l">
+        <div class="fold-icon gold">★</div>
+        <div class="fold-head-text">
+          <div class="fold-t">명예의 전당</div>
+          <div class="fold-s" id="statsHallSub">인생책을 모아둔 공간</div>
         </div>
-        <div class="stat-card-sub">읽는중 + 완독 책의 태그 기준</div>
       </div>
-      <div class="donut-wrap">
-        <div class="donut" id="genreDonut">
-          <div class="donut-center">
-            <div class="donut-center-num" id="genreDonutNum">—</div>
-            <div class="donut-center-lbl">books</div>
+      <span class="fold-arrow arrow-right">›</span>
+    </button>
+
+    <!-- ═══ 시간의 흔적 (펼친 상태 기본) ═══ -->
+    <div class="stats-fold open" data-fold="time">
+      <button class="fold-head" type="button">
+        <div class="fold-head-l">
+          <div class="fold-icon blue"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg></div>
+          <div class="fold-head-text">
+            <div class="fold-t">시간의 흔적</div>
+            <div class="fold-s">월별 · 요일별 · 누적</div>
           </div>
         </div>
-        <div class="donut-legend" id="genreLegend">
-          <!-- JS 렌더 -->
+        <span class="fold-arrow">⌄</span>
+      </button>
+      <div class="fold-body">
+
+        <!-- 월별 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head" id="monthlyHead">
+            <div class="stat-card-lbl">MONTHLY BOOKS</div>
+            <div class="stat-card-ttl">
+              <span class="num">—</span>
+              <span class="unit">권 · 올해 누적</span>
+            </div>
+            <div class="stat-card-sub">—</div>
+          </div>
+          <div class="monthly-chart" id="monthlyChart"></div>
+          <div class="monthly-labels" id="monthlyLabels"></div>
         </div>
+
+        <!-- 요일별 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head">
+            <div class="stat-card-lbl">WEEKDAY PATTERN</div>
+            <div class="stat-card-ttl">
+              <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> 요일별 독서 패턴</span>
+            </div>
+            <div class="stat-card-sub" id="weekdayCardSub">언제 가장 많이 읽는지</div>
+          </div>
+          <div class="weekday-chart" id="weekdayChart"></div>
+          <div class="weekday-insight" id="weekdayInsight"></div>
+        </div>
+
+        <!-- 누적 페이지 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head" id="cumuHead">
+            <div class="stat-card-lbl">CUMULATIVE PAGES</div>
+            <div class="stat-card-ttl">
+              <span class="num">—</span>
+              <span class="unit">p · 올해 누적</span>
+            </div>
+            <div class="stat-card-sub">—</div>
+          </div>
+          <div class="page-line-wrap">
+            <svg class="page-line-svg" id="cumuLineSvg" viewBox="0 0 300 130" preserveAspectRatio="none"></svg>
+            <div class="page-line-foot">
+              <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>현재</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- ③ 페이지 누적 라인 -->
-    <div class="stat-card">
-      <div class="stat-card-head" id="cumuHead">
-        <div class="stat-card-lbl">CUMULATIVE PAGES</div>
-        <div class="stat-card-ttl">
-          <span class="num">—</span>
-          <span class="unit">p · 올해 누적</span>
+    <!-- ═══ 무엇을 읽었나 ═══ -->
+    <div class="stats-fold" data-fold="what">
+      <button class="fold-head" type="button">
+        <div class="fold-head-l">
+          <div class="fold-icon green"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></div>
+          <div class="fold-head-text">
+            <div class="fold-t">무엇을 읽었나</div>
+            <div class="fold-s">장르 비중 · 별점 분포</div>
+          </div>
         </div>
-        <div class="stat-card-sub">—</div>
-      </div>
-      <div class="page-line-wrap">
-        <svg class="page-line-svg" id="cumuLineSvg" viewBox="0 0 300 130" preserveAspectRatio="none">
-          <!-- JS 렌더 -->
-        </svg>
-        <div class="page-line-foot">
-          <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>현재</span>
+        <span class="fold-arrow">⌄</span>
+      </button>
+      <div class="fold-body">
+
+        <!-- 장르 도넛 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head" id="genreHead">
+            <div class="stat-card-lbl">GENRE DISTRIBUTION</div>
+            <div class="stat-card-ttl">
+              <span>태그 비중</span>
+            </div>
+            <div class="stat-card-sub">읽는중 + 완독 책의 태그 기준</div>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut" id="genreDonut">
+              <div class="donut-center">
+                <div class="donut-center-num" id="genreDonutNum">—</div>
+                <div class="donut-center-lbl">books</div>
+              </div>
+            </div>
+            <div class="donut-legend" id="genreLegend"></div>
+          </div>
         </div>
+
+        <!-- 별점 히스토그램 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head" id="ratingHead">
+            <div class="stat-card-lbl">RATING DISTRIBUTION</div>
+            <div class="stat-card-ttl">
+              <span class="num">—</span>
+              <span class="unit">평균 별점</span>
+            </div>
+            <div class="stat-card-sub">—</div>
+          </div>
+          <div class="rating-hist" id="ratingHist"></div>
+        </div>
+
       </div>
     </div>
 
-    <!-- ④ 별점 히스토그램 -->
-    <div class="stat-card dark">
-      <div class="stat-card-head" id="ratingHead">
-        <div class="stat-card-lbl">RATING DISTRIBUTION</div>
-        <div class="stat-card-ttl">
-          <span class="num">—</span>
-          <span class="unit">평균 별점</span>
+    <!-- ═══ 독서 습관 ═══ -->
+    <div class="stats-fold" data-fold="habit">
+      <button class="fold-head" type="button">
+        <div class="fold-head-l">
+          <div class="fold-icon amber"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg></div>
+          <div class="fold-head-text">
+            <div class="fold-t">독서 습관</div>
+            <div class="fold-s">속도 · 집중 · 분당 페이지</div>
+          </div>
         </div>
-        <div class="stat-card-sub">—</div>
-      </div>
-      <div class="rating-hist" id="ratingHist">
-        <!-- JS 렌더 -->
-      </div>
-    </div>
+        <span class="fold-arrow">⌄</span>
+      </button>
+      <div class="fold-body">
 
-    <!-- ⑤ 요일별 독서 패턴 (신규) -->
-    <div class="stat-card">
-      <div class="stat-card-head">
-        <div class="stat-card-lbl">WEEKDAY PATTERN</div>
-        <div class="stat-card-ttl">
-          <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> 요일별 독서 패턴</span>
+        <!-- 독서 페이스 -->
+        <div class="stat-sub">
+          <div class="stat-sub-head">
+            <div class="stat-card-lbl">READING PACE</div>
+            <div class="stat-card-ttl">
+              <span><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 독서 속도</span>
+            </div>
+            <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
+          </div>
+          <div class="pace-grid" id="paceGrid"></div>
+          <div class="pace-timer" id="paceTimer"></div>
         </div>
-        <div class="stat-card-sub" id="weekdayCardSub">언제 가장 많이 읽는지</div>
-      </div>
-      <div class="weekday-chart" id="weekdayChart">
-        <!-- JS 렌더 -->
-      </div>
-      <div class="weekday-insight" id="weekdayInsight">
-        <!-- JS 렌더 -->
-      </div>
-    </div>
 
-    <!-- ⑥ 독서 페이스 (신규) -->
-    <div class="stat-card dark">
-      <div class="stat-card-head">
-        <div class="stat-card-lbl">READING PACE</div>
-        <div class="stat-card-ttl">
-          <span><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 독서 속도</span>
-        </div>
-        <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
-      </div>
-      <div class="pace-grid" id="paceGrid">
-        <!-- JS 렌더 -->
-      </div>
-      <div class="pace-timer" id="paceTimer">
-        <!-- JS 렌더 -->
       </div>
     </div>
 
@@ -6282,7 +6537,7 @@ function renderLibraryCards() {
     ${reading.length ? renderNowHero(reading[0]) : ''}
     ${renderMonthStrip()}
     ${renderBookSection('독서중',      '', reading)}
-    ${renderBookSection('최근 완독',   '', done)}
+    ${renderBookSection('완독',        done.length >= 10 ? '최근 10권' : '', done)}
     ${renderBookSection('위시리스트',  '', wish)}
   `;
 }
@@ -7149,6 +7404,28 @@ document.getElementById('ddList').addEventListener('click', (e) => {
 
 /* ─── 통계 탭 위임 이벤트 ─── */
 document.getElementById('pane-stats').addEventListener('click', (e) => {
+  // 명예의 전당 링크 → library 탭의 hall 뷰로 이동
+  const hallLink = e.target.closest('#statsHallLink');
+  if (hallLink) {
+    // library 탭으로 전환
+    const libTab = [...document.querySelectorAll('.tab-btn')].find(t => t.dataset.tab === 'library');
+    if (libTab) libTab.click();
+    // hall 뷰 활성화
+    setTimeout(() => {
+      const hallBtn = [...document.querySelectorAll('.vt-btn')].find(b => b.dataset.view === 'hall');
+      if (hallBtn) hallBtn.click();
+    }, 50);
+    return;
+  }
+  // fold 헤드 토글
+  const foldHead = e.target.closest('.stats-fold .fold-head');
+  if (foldHead) {
+    const fold = foldHead.closest('.stats-fold');
+    if (fold && !fold.classList.contains('stats-link')) {
+      fold.classList.toggle('open');
+    }
+    return;
+  }
   // 별점 행
   const ratingRow = e.target.closest('[data-dd-rating]');
   if (ratingRow) {
@@ -7250,43 +7527,22 @@ function computeLifebookStats() {
 }
 
 function renderLifebookCard() {
+  // 구 lifebookCard 대체: 통계 탭 상단의 명예의 전당 링크 서브 텍스트만 업데이트
+  const subEl = document.getElementById('statsHallSub');
+  if (!subEl) return;
   const s = computeLifebookStats();
-  const pct = Math.min(100, s.count);
-  const CIRC = 2 * Math.PI * 34; // r=34
-  const offset = CIRC * (1 - pct / 100);
-
-  const sub = s.count === 0
-    ? '완독한 책 중 두고두고 다시 읽고 싶은 책을 ⭐ 인생책으로 표시해보세요'
-    : `${s.count}권 등록 · 평균 별점과 재독 횟수를 확인해보세요`;
-  document.getElementById('lifebookCardSub').textContent = sub;
-
-  document.getElementById('lifebookCard').innerHTML = `
-    <div class="lifebook-ring">
-      <svg viewBox="0 0 80 80">
-        <circle class="lifebook-ring-bg"   cx="40" cy="40" r="34"/>
-        <circle class="lifebook-ring-fill" cx="40" cy="40" r="34"
-                stroke-dasharray="${CIRC.toFixed(2)}"
-                stroke-dashoffset="${offset.toFixed(2)}"/>
-      </svg>
-      <div class="lifebook-ring-center">
-        <div class="lifebook-ring-num">${s.count}</div>
-        <div class="lifebook-ring-denom">/ 100</div>
-      </div>
-    </div>
-    <div class="lifebook-meta">
-      <div class="lifebook-meta-row">
-        <div class="lifebook-meta-lbl">평균 별점</div>
-        <div class="lifebook-meta-val star">${s.count ? '★ ' + s.avgRating.toFixed(1) : '—'}</div>
-      </div>
-      <div class="lifebook-meta-row">
-        <div class="lifebook-meta-lbl">총 재독</div>
-        <div class="lifebook-meta-val">${s.totalRereads}회 · ${s.totalReads}독</div>
-      </div>
-      <div class="lifebook-meta-row">
-        <div class="lifebook-meta-lbl">자주 드는 태그</div>
-        <div class="lifebook-meta-val">${s.topTags.length ? s.topTags.join(' · ') : '—'}</div>
-      </div>
-    </div>`;
+  if (s.count === 0) {
+    subEl.textContent = '완독한 책을 ⭐ 인생책으로 표시해보세요';
+    return;
+  }
+  const parts = [`인생책 ${s.count}권`];
+  if (s.count && typeof s.avgRating === 'number' && s.avgRating > 0) {
+    parts.push(`평균 ★${s.avgRating.toFixed(1)}`);
+  }
+  if (s.topTags && s.topTags.length) {
+    parts.push(s.topTags.slice(0, 2).join(' · '));
+  }
+  subEl.textContent = parts.join(' · ');
 }
 
 /* ─── ② 요일별 패턴 ─── */
@@ -7798,7 +8054,10 @@ function renderAllStats() {
 function renderAnnualLedger() {
   const yearEl = document.getElementById('annualYear');
   const numEl  = document.getElementById('annualBigNum');
-  const descEl = document.getElementById('annualDesc');
+  const subEl  = document.getElementById('annualHeroSub');
+  const pagesEl = document.getElementById('annualPagesNum');
+  const starEl  = document.getElementById('annualAvgStar');
+  const daysEl  = document.getElementById('annualReadDays');
   if (!numEl) return;
 
   const year = new Date().getFullYear();
@@ -7824,23 +8083,57 @@ function renderAnnualLedger() {
     (b.rereads || []).forEach(r => {
       if (r.dateEnd && new Date(r.dateEnd).getFullYear() === year) p += (b.pages || 0);
     });
-    // 읽는중 책의 현재 진행 페이지
     if (b.status === 'reading' && b.dateStart && new Date(b.dateStart).getFullYear() === year) {
       p += (b.currentPage || 0);
     }
-    return p;
+    return sum + p;
   }, 0);
+  if (pagesEl) pagesEl.textContent = pagesYTD.toLocaleString();
 
-  if (descEl) {
+  // 평균 별점 (올해 완독 기준)
+  const ratedThisYear = BOOKS.filter(b =>
+    b.status === 'done' && b.dateEnd &&
+    new Date(b.dateEnd).getFullYear() === year &&
+    typeof b.rating === 'number' && b.rating > 0
+  );
+  if (starEl) {
+    if (ratedThisYear.length) {
+      const avg = ratedThisYear.reduce((s, b) => s + b.rating, 0) / ratedThisYear.length;
+      starEl.textContent = '★' + avg.toFixed(1);
+    } else {
+      starEl.textContent = '★—';
+    }
+  }
+
+  // 독서일 (올해 unique dates)
+  const readDates = new Set();
+  BOOKS.forEach(b => {
+    (b.readingSessions || []).forEach(s => {
+      if (s.date && new Date(s.date).getFullYear() === year) readDates.add(s.date);
+    });
+  });
+  if (daysEl) daysEl.textContent = readDates.size;
+
+  // 서브 메시지 (목표 있으면 목표 기준, 없으면 독서중 권수)
+  if (subEl) {
+    const goals = (typeof getGoals === 'function') ? getGoals() : null;
+    const annualGoal = goals && goals.annual;
     let msg;
     if (total === 0 && reading === 0) {
-      msg = `<em>reading log empty</em> — 첫 책을 추가해보세요.`;
-    } else if (total === 0 && reading > 0) {
-      msg = `Currently turning pages in <strong>${reading}</strong> volume${reading>1?'s':''}. Logged <strong>${pagesYTD.toLocaleString()}</strong> pages so far.`;
+      msg = '첫 책을 추가해 올해의 기록을 시작해보세요.';
+    } else if (annualGoal) {
+      const remain = Math.max(0, annualGoal - total);
+      if (remain === 0) {
+        msg = `목표 <strong>${annualGoal}권</strong> 달성 🎉`;
+      } else {
+        msg = `목표까지 <strong>${remain}권</strong> 남았어요.`;
+      }
+    } else if (reading > 0) {
+      msg = `지금 <strong>${reading}권</strong> 읽는 중.`;
     } else {
-      msg = `Finished <strong>${total}</strong> volume${total>1?'s':''} this year, with <strong>${pagesYTD.toLocaleString()}</strong> pages turned. ${reading>0 ? `Currently in <strong>${reading}</strong> open volume${reading>1?'s':''}.` : ''}`;
+      msg = '올해 꾸준히 읽고 있어요.';
     }
-    descEl.innerHTML = msg;
+    subEl.innerHTML = msg;
   }
 }
 
