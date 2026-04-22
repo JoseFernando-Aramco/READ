@@ -3154,6 +3154,57 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding-left: 2px;
 }
 
+/* 독서 기간 입력 */
+.dates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dates-grid.single { grid-template-columns: 1fr; }
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+.date-field-lbl {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: 0.3px;
+  padding-left: 2px;
+}
+.date-input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1.5px solid var(--c-border-2);
+  background: var(--c-surface);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .15s;
+}
+.date-input:focus {
+  border-color: var(--primary);
+}
+.date-input::-webkit-calendar-picker-indicator {
+  filter: opacity(0.55);
+  cursor: pointer;
+}
+.dates-hint {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-top: 6px;
+  padding-left: 2px;
+  line-height: 1.4;
+}
+.dates-hint.error { color: #C1272D; }
+
 /* 상태 세그먼트 */
 .status-seg {
   display: grid;
@@ -5802,6 +5853,22 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </div>
       </div>
 
+      <!-- 독서 기간 (완독/독서중일 때 노출) -->
+      <div class="confirm-section" id="datesSection" style="display:none">
+        <div class="confirm-section-lbl" id="datesLbl">독서 기간</div>
+        <div class="dates-grid">
+          <label class="date-field">
+            <span class="date-field-lbl">시작</span>
+            <input type="date" id="dateStart" class="date-input">
+          </label>
+          <label class="date-field" id="dateEndWrap">
+            <span class="date-field-lbl">완독</span>
+            <input type="date" id="dateEnd" class="date-input">
+          </label>
+        </div>
+        <div class="dates-hint" id="datesHint"></div>
+      </div>
+
       <!-- 인생책 토글 (완독일 때만 활성) -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">인생책 · LIFE BOOK</div>
@@ -6880,11 +6947,69 @@ function renderConfirm() {
     btn.classList.toggle('active', btn.dataset.status === 'wish');
   });
 
+  // 날짜 기본값 세팅 (오늘)
+  const today = new Date().toISOString().slice(0, 10);
+  const dateStartEl = document.getElementById('dateStart');
+  const dateEndEl = document.getElementById('dateEnd');
+  if (dateStartEl) dateStartEl.value = today;
+  if (dateEndEl) dateEndEl.value = today;
+  updateDatesSection();
+
   // 인생책 토글 초기화
   BA.isLifeBook = false;
   updateLifebookToggle();
 
   renderTagChips();
+}
+
+/* ─── 독서 기간 섹션 표시/숨김 + 기간 hint 갱신 ─── */
+function updateDatesSection() {
+  const status = document.querySelector('#statusSeg .status-seg-btn.active')?.dataset.status || 'wish';
+  const section = document.getElementById('datesSection');
+  const lbl = document.getElementById('datesLbl');
+  const grid = section?.querySelector('.dates-grid');
+  const endWrap = document.getElementById('dateEndWrap');
+  const hint = document.getElementById('datesHint');
+  const dateStartEl = document.getElementById('dateStart');
+  const dateEndEl = document.getElementById('dateEnd');
+  if (!section || !lbl || !grid) return;
+
+  if (status === 'wish') {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = '';
+  if (status === 'reading') {
+    lbl.textContent = '독서 시작일';
+    grid.classList.add('single');
+    if (endWrap) endWrap.style.display = 'none';
+  } else if (status === 'done') {
+    lbl.textContent = '독서 기간';
+    grid.classList.remove('single');
+    if (endWrap) endWrap.style.display = '';
+  }
+
+  // 기간 hint 갱신
+  const start = dateStartEl?.value;
+  const end = dateEndEl?.value;
+  if (hint) {
+    if (status === 'done' && start && end) {
+      if (start > end) {
+        hint.className = 'dates-hint error';
+        hint.textContent = '⚠️ 시작일이 완독일보다 늦어요';
+      } else {
+        const d1 = new Date(start);
+        const d2 = new Date(end);
+        const days = Math.round((d2 - d1) / (24 * 3600 * 1000)) + 1;
+        hint.className = 'dates-hint';
+        hint.textContent = `${days}일 동안 읽었어요`;
+      }
+    } else {
+      hint.className = 'dates-hint';
+      hint.textContent = '';
+    }
+  }
 }
 
 /* ─── 인생책 토글 상태 업데이트 (상태·체크 변경 시 호출) ─── */
@@ -6980,6 +7105,16 @@ function confirmAddBook() {
   const today = new Date().toISOString().slice(0, 10);
   const palette = pickPalette(b.title + b.author);
 
+  // 사용자가 입력한 날짜 (없으면 오늘)
+  const inputStart = document.getElementById('dateStart')?.value || today;
+  const inputEnd = document.getElementById('dateEnd')?.value || today;
+
+  // 검증: 완독일 때 시작일이 종료일보다 늦으면 막기
+  if (status === 'done' && inputStart > inputEnd) {
+    showToast('시작일이 완독일보다 늦을 수 없어요');
+    return;
+  }
+
   const newBook = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: b.title,
@@ -6997,11 +7132,11 @@ function confirmAddBook() {
   };
 
   if (status === 'reading') {
-    newBook.dateStart = today;
+    newBook.dateStart = inputStart;
     newBook.currentPage = 0;
   } else if (status === 'done') {
-    newBook.dateStart = today;
-    newBook.dateEnd = today;
+    newBook.dateStart = inputStart;
+    newBook.dateEnd = inputEnd;
     newBook.rating = 4.0;
   }
 
@@ -7073,7 +7208,13 @@ document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
     document.querySelectorAll('#statusSeg .status-seg-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     updateLifebookToggle(); // 상태 바뀌면 인생책 토글 활성/비활성 재계산
+    updateDatesSection();   // 상태 바뀌면 날짜 섹션 노출 여부 재계산
   });
+});
+
+// 날짜 입력 변경 → hint 갱신
+['dateStart', 'dateEnd'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', updateDatesSection);
 });
 
 // 인생책 토글
