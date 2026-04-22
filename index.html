@@ -4182,7 +4182,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-radius: 14px;
   color: var(--primary);
 }
-.ob-art svg { width: 64px; height: 64px; }
+.ob-art > svg { width: 64px; height: 64px; }
 
 /* Step 2: FAB 힌트 */
 .ob-fab-hint {
@@ -4210,7 +4210,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* Step 3: 탭 미리보기 */
 .ob-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
   padding: 0 8px;
@@ -5754,7 +5754,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">0.1.0 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.0.1 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -6150,7 +6150,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 0.1.0</div>
+      <div class="ab-ver">version 1.0.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -10489,7 +10489,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: '0.1.0',
+        version: '1.0.1',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
