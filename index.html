@@ -7,7 +7,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="READ">
-<meta name="theme-color" content="#7c2d12">
+<meta name="theme-color" content="#5A7A3C">
+
+<!-- PWA: 아이콘 + Manifest -->
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="manifest" href="manifest.json">
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -115,6 +121,10 @@
 
   --g-main-bar: linear-gradient(95deg, #6D4C41, #4E342E);
   --g-gold:     linear-gradient(95deg, #6D4C41, #4E342E);
+
+  --c-gold-warm: #8D6E63;
+  --c-gold-deep: #6D4C41;
+  --c-gold-glow: #A1887F;
 }
 
 /* ═══════════ 테마 4 · 숲속 오후 [모스 그린 + 베이지] ═══════════ */
@@ -144,6 +154,11 @@
 
   --g-main-bar: linear-gradient(95deg, #5A7A3C, #3F5B25);
   --g-gold:     linear-gradient(95deg, #5A7A3C, #3F5B25);
+
+  /* weekday chart 등에서 쓰는 "gold" 변수 — 테마 색으로 오버라이드 */
+  --c-gold-warm: #7B9A5C;
+  --c-gold-deep: #5A7A3C;
+  --c-gold-glow: #A4BE84;
 }
 
 /* ═══════════ 테마 5 · 장미 정원 [더스티 로즈 + 크림] ═══════════ */
@@ -173,6 +188,10 @@
 
   --g-main-bar: linear-gradient(95deg, #A03B54, #7D2A40);
   --g-gold:     linear-gradient(95deg, #A03B54, #7D2A40);
+
+  --c-gold-warm: #C46B84;
+  --c-gold-deep: #A03B54;
+  --c-gold-glow: #D08BA0;
 }
 
 /* ═══════════ 테마 6 · 미드나잇 [다크모드 · 딥 네이비 + 앰버] ═══════════ */
@@ -207,6 +226,10 @@
   --g-reading: #191D26;
   --g-done:    #191D26;
   --g-wish:    #191D26;
+
+  --c-gold-warm: #A3BEFF;
+  --c-gold-deep: #7AA2FF;
+  --c-gold-glow: #C9D7FF;
 }
 
 /* ═══════════ 테마 8 · 모노 에디션 [순수 그레이 · 뉴트럴] ═══════════ */
@@ -236,6 +259,10 @@
 
   --g-main-bar: linear-gradient(95deg, #1C1C1E, #000000);
   --g-gold:     linear-gradient(95deg, #1C1C1E, #000000);
+
+  --c-gold-warm: #48484A;
+  --c-gold-deep: #1C1C1E;
+  --c-gold-glow: #8E8E93;
 }
 
 /* ═══════════ 미드나잇 다크모드 · 컴포넌트 대비 보정 ═══════════ */
@@ -3330,9 +3357,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(25,31,40,0.12);
   overflow: hidden;
-  background: var(--c-border);
+  background: var(--brand-primary);
+  position: relative;
+  isolation: isolate;
 }
-.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.55) brightness(0.95); }
+/* V3 톤 통일 — 이미지 있을 때만 */
+.bd-hero-cover:has(img)::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--brand-primary);
+  opacity: 0.25;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
 .bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
 .bd-hero-title {
   font-family: inherit;
@@ -3637,6 +3674,240 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   /* 독서 메모는 조금 더 넓게 — 인물 여러 명 적을 수 있게 */
   min-height: 110px;
 }
+
+/* ═══════════ 데이터 내보내기 안내 모달 ═══════════ */
+.ex-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.ex-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.ex-modal {
+  position: fixed; inset: 0;
+  z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.ex-modal.open { opacity: 1; pointer-events: auto; }
+
+.ex-card {
+  background: var(--c-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 28px 24px 20px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.ex-modal.open .ex-card { transform: scale(1); }
+
+.ex-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: none;
+  color: var(--c-label);
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+.ex-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.ex-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--c-surface-2);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.ex-ttl {
+  font-size: 20px; font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.ex-desc {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.5;
+}
+
+/* 탭 */
+.ex-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  padding: 3px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.ex-tab {
+  padding: 9px 4px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--c-text-2);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ex-tab.active {
+  background: var(--c-surface);
+  font-weight: 700;
+  color: var(--c-text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* 가이드 */
+.ex-guide {
+  display: none;
+  padding: 4px 0;
+}
+.ex-guide.active { display: block; }
+
+.ex-step {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 13px;
+  color: var(--c-text);
+  line-height: 1.5;
+  align-items: flex-start;
+}
+.ex-step-n {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.ex-step strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
+.ex-step code {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 11px;
+  background: var(--c-surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ex-tip {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--c-label);
+  line-height: 1.5;
+}
+
+/* 형식 선택 */
+.ex-formats {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.ex-format-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ex-format-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ex-format-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  border-radius: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.ex-format-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-bg, var(--c-surface-2));
+}
+.ex-format-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.ex-format-text { flex: 1; min-width: 0; }
+.ex-format-ttl {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+}
+.ex-format-sub {
+  font-size: 10.5px;
+  color: var(--c-label);
+  margin-top: 1px;
+}
+
+/* 액션 */
+.ex-actions {
+  display: flex; gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.ex-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.ex-btn.ghost {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  flex: 0 0 auto;
+  padding: 12px 18px;
+}
+.ex-btn.ghost.small {
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.ex-btn.primary {
+  background: var(--primary);
+  color: #fff;
+}
+.ex-btn.primary:active { background: var(--brand-primary-dk); }
 
 /* ═══════════ 온보딩 가이드 ═══════════ */
 .ob-backdrop {
@@ -5256,21 +5527,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <div class="settings-section-ttl">일반</div>
       </div>
       <div class="settings-list">
-        <button class="settings-row">
+        <button class="settings-row" id="notifRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">독서 알림</div>
-            <div class="settings-row-sub">매일 저녁 9시</div>
+            <div class="settings-row-sub" id="notifSub">매일 저녁 9시</div>
           </div>
-          <div class="settings-row-right">켜짐</div>
-        </button>
-        <button class="settings-row">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-target"/></svg></div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">연간 목표</div>
-            <div class="settings-row-sub">2026년</div>
-          </div>
-          <div class="settings-row-right">50권 ›</div>
+          <div class="settings-row-right" id="notifState">꺼짐</div>
         </button>
         <button class="settings-row">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-upload"/></svg></div>
@@ -5647,6 +5910,83 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <button class="ob-btn primary" id="obNext">다음 ›</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ 데이터 내보내기 안내 모달 ═══════════ -->
+<div class="ex-backdrop" id="exBackdrop"></div>
+<div class="ex-modal" id="exModal" aria-hidden="true">
+  <div class="ex-card">
+    <button class="ex-close" id="exClose" aria-label="닫기">✕</button>
+
+    <div class="ex-head">
+      <div class="ex-icon"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-upload"/></svg></div>
+      <div class="ex-ttl">데이터 내보내기</div>
+      <div class="ex-desc">내 독서 기록을 JSON 파일로 저장해요.<br/>다른 기기에서 가져오거나 백업할 때 써요.</div>
+    </div>
+
+    <!-- 탭: iPhone · Android · PC -->
+    <div class="ex-tabs" id="exTabs">
+      <button class="ex-tab active" data-plat="ios">🍎 iPhone</button>
+      <button class="ex-tab" data-plat="android">🤖 Android</button>
+      <button class="ex-tab" data-plat="pc">💻 PC</button>
+    </div>
+
+    <!-- 각 플랫폼별 안내 -->
+    <div class="ex-guide active" data-plat="ios">
+      <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
+      <div class="ex-step"><span class="ex-step-n">2</span><div>상단에 <strong>다운로드</strong> 알림이 뜨면 눌러서 열기</div></div>
+      <div class="ex-step"><span class="ex-step-n">3</span><div>공유 시트에서 <strong>"파일에 저장"</strong> → iCloud Drive 같은 곳에 저장</div></div>
+      <div class="ex-tip">💡 iCloud Drive에 저장하면 다른 Apple 기기에서도 접근 가능해요</div>
+    </div>
+
+    <div class="ex-guide" data-plat="android">
+      <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
+      <div class="ex-step"><span class="ex-step-n">2</span><div><strong>파일 앱</strong>(My Files) → <strong>Download</strong> 폴더에서 확인</div></div>
+      <div class="ex-step"><span class="ex-step-n">3</span><div>파일을 길게 눌러 <strong>공유</strong> → Google Drive · Gmail 등으로 저장</div></div>
+      <div class="ex-tip">💡 Google Drive에 올려두면 다른 기기에서 내려받을 수 있어요</div>
+    </div>
+
+    <div class="ex-guide" data-plat="pc">
+      <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
+      <div class="ex-step"><span class="ex-step-n">2</span><div>다운로드 폴더에서 저장된 파일 확인</div></div>
+      <div class="ex-step"><span class="ex-step-n">3</span><div>USB, 클라우드(Drive · Dropbox · iCloud), 이메일 등 원하는 곳으로 이동</div></div>
+      <div class="ex-tip">💡 JSON 파일은 복원/백업용, PDF는 공유/보기용이에요</div>
+    </div>
+
+    <!-- 형식 선택 -->
+    <div class="ex-formats">
+      <div class="ex-format-lbl">내보낼 형식</div>
+      <div class="ex-format-grid">
+        <button class="ex-format-btn active" data-format="json">
+          <div class="ex-format-icon">💾</div>
+          <div class="ex-format-text">
+            <div class="ex-format-ttl">JSON</div>
+            <div class="ex-format-sub">백업 · 복원용</div>
+          </div>
+        </button>
+        <button class="ex-format-btn" data-format="pdf">
+          <div class="ex-format-icon">📄</div>
+          <div class="ex-format-text">
+            <div class="ex-format-ttl">PDF</div>
+            <div class="ex-format-sub">읽기 · 공유용</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="ex-actions">
+      <button class="ex-btn ghost small" id="exCancelBtn">취소</button>
+      <button class="ex-btn ghost small" id="exImportBtn" title="JSON 백업 파일 복원">
+        가져오기
+      </button>
+      <button class="ex-btn primary" id="exExportBtn">
+        <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> <span id="exExportLbl">JSON 내보내기</span>
+      </button>
+    </div>
+
+    <!-- 숨긴 파일 input (가져오기용) -->
+    <input type="file" id="exFileInput" accept=".json,application/json" style="display:none">
   </div>
 </div>
 
@@ -6703,6 +7043,45 @@ const NA = {
     NOTES.push(...savedNotes);
   }
 })();
+
+/* ─── 표지 없는 책은 Kakao에서 자동 보강 (로드 후 백그라운드) ─── */
+async function _enrichMissingCovers() {
+  const targets = BOOKS.filter(b => !b.coverUrl && b.title);
+  if (targets.length === 0) return;
+
+  // API rate limit 고려해 순차 호출 (150ms 간격)
+  let enriched = 0;
+  for (const b of targets) {
+    try {
+      const q = `${b.title} ${b.author || ''}`.trim();
+      const url = 'https://dapi.kakao.com/v3/search/book?' +
+        'query=' + encodeURIComponent(q) + '&size=1&sort=accuracy';
+      const res = await fetch(url, {
+        headers: { 'Authorization': 'KakaoAK ' + _kakaoKey() }
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const doc = (data.documents || [])[0];
+      if (doc && doc.thumbnail) {
+        b.coverUrl = doc.thumbnail;
+        enriched++;
+      }
+    } catch (e) {
+      // 조용히 실패 — 오프라인이거나 rate limit일 수 있음
+    }
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  if (enriched > 0) {
+    STORE.set('books', BOOKS);
+    // 서재 카드 재렌더
+    try { renderLibraryCards(); } catch(e){}
+    console.log(`[cover] ${enriched}권 표지 자동 보강됨`);
+  }
+}
+
+// 앱 시작 후 1초 뒤 백그라운드 실행 (UI 렌더 먼저)
+setTimeout(_enrichMissingCovers, 1000);
 
 /* ─── 타이머 상태 (BOOKS 선언 뒤에 위치해야 resumeTimer 가능) ─── */
 const TIMER = {
@@ -9561,6 +9940,453 @@ attachSwipeDown(document.getElementById('settingsSheet'), closeSettings);
 attachSwipeDown(document.getElementById('naSheet'),       closeNoteSheet);
 
 /* ═══════════════════════════════════════════════════════════
+   독서 알림 — 매일 저녁 9시
+   ═══════════════════════════════════════════════════════════ */
+const NOTIF_KEY = 'read.notif';
+const NOTIF_HOUR = 21; // 저녁 9시
+const NOTIF_MSGS = [
+  { title: '오늘의 책 한 장 📖', body: '단 한 페이지라도 오늘의 기록을 남겨보세요' },
+  { title: '잠시 읽어볼까요 🌙', body: '지금 읽는 책의 다음 장이 기다리고 있어요' },
+  { title: '독서의 시간 ✨', body: '10분이면 충분해요. 한 챕터 어떠세요?' },
+  { title: '오늘 뭐 읽었어요? 📚', body: '읽은 페이지를 기록하면 더 자주 읽게 돼요' },
+];
+
+function getNotifSettings() {
+  try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '{}'); } catch(e){ return {}; }
+}
+function saveNotifSettings(patch) {
+  const cur = getNotifSettings();
+  const next = { ...cur, ...patch };
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(next));
+  return next;
+}
+
+/* 설정 UI 상태 업데이트 */
+function updateNotifUI() {
+  const state = document.getElementById('notifState');
+  const settings = getNotifSettings();
+  if (!state) return;
+  const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
+  if (perm === 'unsupported') {
+    state.textContent = '지원 안 함';
+    state.style.color = 'var(--c-label)';
+  } else if (settings.enabled && perm === 'granted') {
+    state.textContent = '켜짐';
+    state.style.color = 'var(--primary)';
+  } else {
+    state.textContent = '꺼짐';
+    state.style.color = 'var(--c-label)';
+  }
+}
+
+/* 토글 핸들러 */
+async function toggleReadingNotif() {
+  if (typeof Notification === 'undefined') {
+    showToast('이 브라우저는 알림을 지원하지 않아요');
+    return;
+  }
+  const settings = getNotifSettings();
+  
+  // 이미 켜져있으면 끄기
+  if (settings.enabled && Notification.permission === 'granted') {
+    saveNotifSettings({ enabled: false });
+    if (_notifTimer) { clearTimeout(_notifTimer); _notifTimer = null; }
+    updateNotifUI();
+    showToast('독서 알림을 껐어요');
+    return;
+  }
+  
+  // 권한 요청
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    perm = await Notification.requestPermission();
+  }
+  
+  if (perm === 'granted') {
+    saveNotifSettings({ enabled: true });
+    scheduleNextNotif();
+    updateNotifUI();
+    // 테스트 알림 한 번 (3초 후)
+    setTimeout(() => {
+      try {
+        new Notification('READ · 알림 설정 완료 ✨', {
+          body: '매일 저녁 9시에 읽기 알림을 보낼게요',
+          icon: '/favicon.ico',
+        });
+      } catch(e){}
+    }, 400);
+    showToast('독서 알림을 켰어요 · 매일 저녁 9시');
+  } else if (perm === 'denied') {
+    showToast('브라우저 설정에서 알림을 허용해주세요');
+  }
+}
+
+/* 다음 9시까지 타이머 */
+let _notifTimer = null;
+function scheduleNextNotif() {
+  if (_notifTimer) { clearTimeout(_notifTimer); _notifTimer = null; }
+  const settings = getNotifSettings();
+  if (!settings.enabled) return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+
+  const now = new Date();
+  const next = new Date();
+  next.setHours(NOTIF_HOUR, 0, 0, 0);
+  if (next <= now) {
+    // 이미 9시 지났으면 다음날
+    next.setDate(next.getDate() + 1);
+  }
+  const delay = next - now;
+  _notifTimer = setTimeout(() => {
+    try {
+      const msg = NOTIF_MSGS[Math.floor(Math.random() * NOTIF_MSGS.length)];
+      new Notification(msg.title, {
+        body: msg.body,
+        icon: '/favicon.ico',
+        tag: 'read-daily-' + next.toISOString().slice(0,10),
+      });
+    } catch(e){}
+    // 재예약 (다음 9시)
+    scheduleNextNotif();
+  }, delay);
+}
+
+/* 설정 행 클릭 바인딩 */
+(function wireNotifToggle() {
+  const row = document.getElementById('notifRow');
+  if (!row || row.dataset.notifWired) return;
+  row.dataset.notifWired = '1';
+  row.addEventListener('click', toggleReadingNotif);
+})();
+
+/* 앱 로드 시 UI 동기화 + 스케줄 재시작 */
+updateNotifUI();
+scheduleNextNotif();
+
+/* ═══════════════════════════════════════════════════════════
+   데이터 내보내기
+   ═══════════════════════════════════════════════════════════ */
+
+/* 플랫폼 자동 감지 */
+function _detectPlatform() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'pc';
+}
+
+function openExportModal() {
+  // 플랫폼 자동 선택
+  const plat = _detectPlatform();
+  document.querySelectorAll('#exTabs .ex-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.plat === plat);
+  });
+  document.querySelectorAll('.ex-guide').forEach(g => {
+    g.classList.toggle('active', g.dataset.plat === plat);
+  });
+  document.getElementById('exBackdrop').classList.add('open');
+  document.getElementById('exModal').classList.add('open');
+  document.getElementById('exModal').setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+
+function closeExportModal() {
+  document.getElementById('exBackdrop').classList.remove('open');
+  document.getElementById('exModal').classList.remove('open');
+  document.getElementById('exModal').setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+
+/* 실제 JSON 내보내기 */
+function exportDataAsJson() {
+  try {
+    const goals = getGoals ? getGoals() : { annual: 50 };
+    const data = {
+      meta: {
+        app: 'READ',
+        version: '0.1.0',
+        exportedAt: new Date().toISOString(),
+      },
+      books: BOOKS,
+      notes: NOTES,
+      tags: TAGS,
+      goals,
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const today = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `read-backup-${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 200);
+    const count = BOOKS.length;
+    showToast(`백업 완료 · ${count}권의 기록을 내보냈어요`);
+    closeExportModal();
+  } catch (e) {
+    console.error('[export]', e);
+    showToast('내보내기 실패 · 다시 시도해주세요');
+  }
+}
+
+/* PDF 내보내기 — 브라우저 인쇄 다이얼로그 활용 (사용자가 "PDF로 저장" 선택) */
+function exportDataAsPdf() {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const reading = BOOKS.filter(b => b.status === 'reading');
+    const done = BOOKS.filter(b => b.status === 'done');
+    const wish = BOOKS.filter(b => b.status === 'wish');
+    const lifebooks = BOOKS.filter(b => b.isLifeBook);
+
+    const fmtDate = (s) => s ? s.replace(/-/g, '.') : '';
+    const escHtml = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+    const bookRows = (list) => list.map(b => {
+      const rating = b.rating ? ` · ★${b.rating.toFixed(1)}` : '';
+      const life = b.isLifeBook ? ' ⭐' : '';
+      const dates = b.dateEnd ? `${fmtDate(b.dateStart)} – ${fmtDate(b.dateEnd)}` : (b.dateStart ? fmtDate(b.dateStart) + ' –' : '');
+      const prog = (b.status === 'reading' && b.pages) ? ` · ${Math.round((b.currentPage||0)/b.pages*100)}%` : '';
+      return `
+        <tr>
+          <td class="t">${escHtml(b.title)}${life}</td>
+          <td class="a">${escHtml(b.author)}</td>
+          <td class="p">${b.pages || '-'}p</td>
+          <td class="d">${dates}${prog}${rating}</td>
+        </tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>READ 독서 기록 · ${today}</title>
+<style>
+  @page { margin: 18mm; size: A4; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: #111; padding: 0; margin: 0; line-height: 1.5; }
+  h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px; }
+  .summary-item { text-align: center; }
+  .summary-n { font-size: 24px; font-weight: 900; color: #111; letter-spacing: -0.02em; }
+  .summary-l { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  h2 { font-size: 16px; font-weight: 800; margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 2px solid #111; }
+  h2 .cnt { float: right; font-weight: 500; font-size: 13px; color: #666; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #eee; }
+  th { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; background: #fafafa; }
+  td.t { font-weight: 700; }
+  td.a { color: #555; }
+  td.p, td.d { font-size: 11px; color: #666; white-space: nowrap; }
+  td.p { text-align: right; }
+  .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 10px; color: #999; text-align: center; }
+  .empty { padding: 12px; color: #999; font-style: italic; font-size: 12px; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head>
+<body>
+  <h1>READ · 독서 기록</h1>
+  <div class="sub">내보낸 날짜: ${today}</div>
+  
+  <div class="summary">
+    <div class="summary-item"><div class="summary-n">${BOOKS.length}</div><div class="summary-l">총 권수</div></div>
+    <div class="summary-item"><div class="summary-n">${done.length}</div><div class="summary-l">완독</div></div>
+    <div class="summary-item"><div class="summary-n">${reading.length}</div><div class="summary-l">독서중</div></div>
+    <div class="summary-item"><div class="summary-n">${lifebooks.length}</div><div class="summary-l">인생책</div></div>
+  </div>
+
+  ${reading.length ? `
+  <h2>독서중 <span class="cnt">${reading.length}권</span></h2>
+  <table>
+    <thead><tr><th>제목</th><th>저자</th><th>쪽수</th><th>진행</th></tr></thead>
+    <tbody>${bookRows(reading)}</tbody>
+  </table>` : ''}
+
+  ${done.length ? `
+  <h2>완독 <span class="cnt">${done.length}권</span></h2>
+  <table>
+    <thead><tr><th>제목</th><th>저자</th><th>쪽수</th><th>기간 · 평점</th></tr></thead>
+    <tbody>${bookRows(done)}</tbody>
+  </table>` : ''}
+
+  ${wish.length ? `
+  <h2>위시리스트 <span class="cnt">${wish.length}권</span></h2>
+  <table>
+    <thead><tr><th>제목</th><th>저자</th><th>쪽수</th><th>메모</th></tr></thead>
+    <tbody>${wish.map(b => `<tr><td class="t">${escHtml(b.title)}</td><td class="a">${escHtml(b.author)}</td><td class="p">${b.pages || '-'}p</td><td class="d">${escHtml(b.wishNote || '')}</td></tr>`).join('')}</tbody>
+  </table>` : ''}
+
+  <div class="footer">READ · Made by Locadomingo · ${today}</div>
+
+  <script>
+    // 자동으로 인쇄 다이얼로그 열기 (사용자가 "PDF로 저장" 선택)
+    window.addEventListener('load', () => {
+      setTimeout(() => window.print(), 200);
+    });
+  <\/script>
+</body></html>`;
+
+    // 새 창에서 열기 (모바일은 같은 탭, PC는 새 창)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      // 모바일: Blob → 같은 탭 이동 (뒤로 가기로 복귀)
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } else {
+      const w = window.open('', '_blank');
+      if (!w) {
+        showToast('팝업 차단을 해제해주세요');
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+    closeExportModal();
+    showToast('인쇄 화면에서 "PDF로 저장"을 선택하세요');
+  } catch (e) {
+    console.error('[pdf]', e);
+    showToast('PDF 생성 실패 · 다시 시도해주세요');
+  }
+}
+
+/* 현재 선택된 포맷 */
+let _currentExportFormat = 'json';
+
+function handleExport() {
+  if (_currentExportFormat === 'pdf') {
+    exportDataAsPdf();
+  } else {
+    exportDataAsJson();
+  }
+}
+
+/* ═══════════ 가져오기 (Import) ═══════════ */
+function triggerImport() {
+  document.getElementById('exFileInput')?.click();
+}
+
+async function handleImportFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    // 검증
+    if (!data || typeof data !== 'object') {
+      showToast('올바르지 않은 백업 파일이에요');
+      return;
+    }
+    if (!Array.isArray(data.books)) {
+      showToast('책 데이터가 없는 파일이에요');
+      return;
+    }
+
+    const bookCount = data.books.length;
+    const noteCount = Array.isArray(data.notes) ? data.notes.length : 0;
+    const exportedAt = data.meta?.exportedAt ? new Date(data.meta.exportedAt).toLocaleDateString('ko-KR') : '알 수 없음';
+
+    const ok = window.confirm(
+      `복원할까요?\n\n` +
+      `📚 책 ${bookCount}권 · 📝 노트 ${noteCount}개\n` +
+      `백업 날짜: ${exportedAt}\n\n` +
+      `⚠️ 현재 데이터는 모두 대체됩니다.\n계속하시겠어요?`
+    );
+    if (!ok) return;
+
+    // 데이터 교체
+    BOOKS.length = 0;
+    BOOKS.push(...data.books);
+    STORE.set('books', BOOKS);
+
+    if (Array.isArray(data.notes)) {
+      NOTES.length = 0;
+      NOTES.push(...data.notes);
+      STORE.set('notes', NOTES);
+    }
+
+    if (data.tags && typeof data.tags === 'object') {
+      Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
+      Object.assign(TAGS, data.tags);
+      STORE.set('tags', TAGS);
+    }
+
+    if (data.goals) {
+      try { saveGoals(data.goals); } catch(e){}
+    }
+
+    closeExportModal();
+    showToast(`복원 완료 · ${bookCount}권·${noteCount}개 노트 불러옴`);
+
+    // UI 전체 재렌더
+    try { renderLibraryCards(); } catch(e){}
+    try { renderLogList(); } catch(e){}
+    try { renderAllStats(); } catch(e){}
+    try { renderNotesTab(); } catch(e){}
+    try { renderTagRadar(); } catch(e){}
+  } catch (e) {
+    console.error('[import]', e);
+    showToast('파일을 읽을 수 없어요 · JSON 형식을 확인해주세요');
+  }
+}
+
+/* 이벤트 바인딩 */
+document.getElementById('exClose')?.addEventListener('click', closeExportModal);
+document.getElementById('exCancelBtn')?.addEventListener('click', closeExportModal);
+document.getElementById('exBackdrop')?.addEventListener('click', closeExportModal);
+document.getElementById('exExportBtn')?.addEventListener('click', handleExport);
+document.getElementById('exImportBtn')?.addEventListener('click', triggerImport);
+document.getElementById('exFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files?.[0];
+  if (file) handleImportFile(file);
+  e.target.value = ''; // 같은 파일 재선택 가능하게
+});
+
+// 포맷 전환
+document.querySelectorAll('.ex-format-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const fmt = btn.dataset.format;
+    _currentExportFormat = fmt;
+    document.querySelectorAll('.ex-format-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const lbl = document.getElementById('exExportLbl');
+    if (lbl) lbl.textContent = fmt === 'pdf' ? 'PDF 내보내기' : 'JSON 내보내기';
+  });
+});
+
+// 탭 전환
+document.querySelectorAll('#exTabs .ex-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const plat = tab.dataset.plat;
+    document.querySelectorAll('#exTabs .ex-tab').forEach(t => t.classList.toggle('active', t === tab));
+    document.querySelectorAll('.ex-guide').forEach(g => g.classList.toggle('active', g.dataset.plat === plat));
+  });
+});
+
+// ESC 키
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('exModal')?.classList.contains('open')) {
+    closeExportModal();
+  }
+});
+
+/* 설정에서 "데이터 내보내기" 행 클릭 → 모달 */
+(function wireExportInSettings() {
+  const rows = document.querySelectorAll('.settings-row');
+  for (const row of rows) {
+    const ttl = row.querySelector('.settings-row-ttl');
+    if (!ttl || ttl.textContent !== '데이터 내보내기') continue;
+    if (row.dataset.exportWired) continue;
+    row.dataset.exportWired = '1';
+    row.addEventListener('click', () => {
+      closeSettings();
+      setTimeout(openExportModal, 280);
+    });
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════
    온보딩 가이드
    ═══════════════════════════════════════════════════════════ */
 const ONBOARDING_KEY = 'read.onboarded';
@@ -9715,6 +10541,18 @@ document.addEventListener('keydown', (e) => {
 })();
 
 </script>
+
+<!-- ═══════════ Cloudflare Web Analytics ═══════════
+     활성화 방법:
+     1. https://dash.cloudflare.com/?to=/:account/web-analytics 접속
+     2. "Add a site" → 사이트 도메인 입력 → 토큰 발급
+     3. 아래 YOUR_TOKEN_HERE 부분을 발급받은 토큰으로 교체
+     4. 다시 업로드
+     
+     토큰 발급 전까진 스크립트가 무해하게 동작 (404로 실패)
+-->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
 
 </body>
 </html>
