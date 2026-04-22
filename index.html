@@ -40,20 +40,20 @@
   --c-dark-2:     #333D4B;
   --c-cream:      #FFFFFF;
   --c-cream-2:    #F9FAFB;
-  --c-gold-glow:  #3182F6;
-  --c-gold-warm:  #3182F6;
-  --c-gold-mid:   #2872E0;
-  --c-gold-deep:  #2872E0;
+  --c-gold-glow:  #1E3A8A;
+  --c-gold-warm:  #1E3A8A;
+  --c-gold-mid:   #15285F;
+  --c-gold-deep:  #15285F;
   --c-oxblood:    #F04452;
   --c-rule:       #E5E8EB;
 
-  /* ─── MAIN (현재 읽는 책) → Toss Blue ─── */
-  --c-terra-900: #1B3F8A;
-  --c-terra-700: #2872E0;
-  --c-terra-500: #3182F6;
-  --c-terra-400: #6AA4F9;
-  --c-terra-100: #E8F3FF;
-  --c-terra-50:  #F5F9FF;
+  /* ─── MAIN (현재 읽는 책) → Ink Navy ─── */
+  --c-terra-900: #0F1F4F;
+  --c-terra-700: #15285F;
+  --c-terra-500: #1E3A8A;
+  --c-terra-400: #4A5FAB;
+  --c-terra-100: #E8ECF7;
+  --c-terra-50:  #F4F6FB;
 
   /* ─── DONE (완독) → Toss Green ─── */
   --c-sage-900:  #0E5632;
@@ -79,19 +79,19 @@
   --c-plum-50:   #F3F1FB;
 
   /* 시맨틱 */
-  --brand-primary:    #3182F6;
-  --brand-primary-dk: #2872E0;
-  --primary:          #3182F6;
-  --primary-bg:       #E8F3FF;
+  --brand-primary:    #1E3A8A;
+  --brand-primary-dk: #15285F;
+  --primary:          #1E3A8A;
+  --primary-bg:       #E8ECF7;
 
   /* 그라데이션 제거 — flat 톤 */
   --g-hero:    #FFFFFF;
   --g-reading: #FFFFFF;
   --g-done:    #FFFFFF;
   --g-wish:    #FFFFFF;
-  --g-gold:    linear-gradient(95deg, #3182F6, #2872E0);
+  --g-gold:    linear-gradient(95deg, #1E3A8A, #15285F);
   --g-done-bar:linear-gradient(95deg, #00C471, #00A659);
-  --g-main-bar:linear-gradient(95deg, #3182F6, #2872E0);
+  --g-main-bar:linear-gradient(95deg, #1E3A8A, #15285F);
 }
 
 /* ═══════════ 테마 2 · 카페 라떼 [웜 브라운 + 크림] ═══════════ */
@@ -1513,134 +1513,266 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* ═══════════ [TAB 3] 목표 ═══════════ */
 
-/* 연간 목표 원형 프로그레스 */
-.goal-hero {
-  background: var(--c-surface);
-  border: 1px solid color-mix(in srgb, var(--c-rule) 30%, transparent);
-  border-radius: 3px;
-  padding: 24px 22px;
-  display: flex; align-items: center; gap: 22px;
-  position: relative; overflow: hidden;
-  box-shadow:
-    0 1px 2px rgba(60,50,30,0.05),
-    0 6px 14px rgba(60,50,30,0.05);
+/* ── 연간 목표 히어로 (Toss 블루 그라디언트 · 재설계) ── */
+.annual-hero {
+  position: relative;
+  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%);
+  border-radius: 20px;
+  padding: 26px 22px 22px;
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 30%, transparent);
 }
-.goal-hero::before {
-  content: ''; position: absolute;
-  top: -50px; left: -50px;
-  width: 160px; height: 160px; border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--c-sage-500) 10%, transparent), transparent 65%);
-}
-/* 목표 수정 pill (우상단) */
-.goal-hero-edit {
+.annual-hero::before {
+  content: '';
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: -80px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+.annual-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: -30px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+.annual-hero.achieved {
+  background: linear-gradient(135deg, #16B364 0%, #089146 100%);
+  box-shadow: 0 6px 20px rgba(22, 179, 100, 0.25);
+}
+.annual-hero-edit {
+  position: absolute;
+  top: 14px; right: 14px;
   z-index: 2;
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex; align-items: center;
   gap: 4px;
-  padding: 6px 10px 6px 8px;
+  padding: 6px 11px 6px 9px;
   font-family: inherit;
   font-size: 12px; font-weight: 600;
-  color: var(--c-text-2);
-  background: var(--c-surface-2);
+  color: #fff;
+  background: rgba(255,255,255,0.18);
   border: none;
   border-radius: 999px;
   letter-spacing: -0.01em;
   transition: background .15s, transform .1s;
   cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.goal-hero-edit:active {
-  background: var(--c-border-2);
+.annual-hero-edit:active {
+  background: rgba(255,255,255,0.28);
   transform: scale(.95);
 }
-.goal-hero-edit .ic {
-  width: 13px;
-  height: 13px;
+.annual-hero-edit .ic {
+  width: 13px; height: 13px;
+  stroke-width: 2.2;
 }
-.goal-ring {
-  width: 110px; height: 110px; flex-shrink: 0;
+.annual-hero-lbl {
   position: relative;
-}
-.goal-ring svg { transform: rotate(-90deg); }
-.goal-ring-bg { fill: none; stroke: color-mix(in srgb, var(--c-rule) 20%, transparent); stroke-width: 8; }
-.goal-ring-fill {
-  fill: none; stroke: url(#goalGrad); stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset .8s ease;
-}
-.goal-ring-center {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-.goal-ring-num {
-  font-family: inherit;
-  font-size: 28px; font-weight: 800;
-  color: var(--c-text); letter-spacing: -0.03em; line-height: 1;
-}
-.goal-ring-denom {
-  font-family: inherit;
-  font-style: normal;
-  font-size: 13px; font-weight: 500;
-  color: var(--c-label); margin-top: 3px;
-}
-.goal-info { flex: 1; min-width: 0; position: relative; }
-.goal-info-lbl {
-  font-family: inherit;
-  font-size: 13px; font-weight: 500;
-  color: var(--c-label);
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.85);
   letter-spacing: -0.01em;
-  text-transform: none;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.goal-info-ttl {
-  font-family: inherit;
-  font-size: 18px; font-weight: 700;
-  color: var(--c-text); letter-spacing: -0.02em;
-  margin-bottom: 8px; line-height: 1.3;
+.annual-hero-main {
+  position: relative;
+  display: flex; align-items: baseline;
+  gap: 4px;
+  margin-bottom: 10px;
+  line-height: 1;
 }
-.goal-info-desc {
-  font-family: inherit;
-  font-size: 13px; font-weight: 500;
-  color: var(--c-text-2); line-height: 1.55;
+.annual-hero-num {
+  font-size: 52px; font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
-.goal-info-desc .pace {
-  color: var(--c-sage-700); font-weight: 700;
-  font-style: normal;
+.annual-hero-unit {
+  font-size: 22px; font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: -0.02em;
+}
+.annual-hero-sub {
+  position: relative;
+  font-size: 13.5px; font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.annual-hero-sub strong {
+  color: #fff;
+  font-weight: 700;
+}
+.annual-hero-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.annual-hero-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+  transition: width .8s cubic-bezier(.2,.8,.2,1);
+  box-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+.annual-hero-pace {
+  position: relative;
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: -0.01em;
+  line-height: 1.45;
 }
 
-/* 히트맵 캘린더 (365일) */
+/* ── 이번 달 목표 카드 ── */
+.monthly-card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  margin-top: 10px;
+  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+}
+.monthly-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.monthly-lbl {
+  font-size: 13px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+}
+.monthly-main {
+  display: flex; align-items: baseline;
+  gap: 3px;
+  line-height: 1;
+}
+.monthly-main .num {
+  font-size: 24px; font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.03em;
+}
+.monthly-main .unit {
+  font-size: 14px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  margin-left: 2px;
+}
+.monthly-track {
+  height: 6px;
+  background: var(--c-border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.monthly-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width .6s cubic-bezier(.2,.8,.2,1), background .3s;
+}
+.monthly-card.done .monthly-fill {
+  background: #16B364;
+}
+.monthly-sub {
+  font-size: 13px; font-weight: 500;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+/* ── 스트릭 통합 카드 ── */
+.streak-unified {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: center;
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 18px 8px;
+  margin-top: 10px;
+  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+}
+.streak-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  min-width: 0;
+}
+.streak-lbl {
+  font-size: 12.5px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+}
+.streak-val {
+  display: flex; align-items: baseline;
+  line-height: 1;
+}
+.streak-val > span:first-child {
+  font-size: 26px; font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.03em;
+}
+.streak-val .unit {
+  font-size: 14px; font-weight: 600;
+  color: var(--c-label);
+  margin-left: 2px;
+}
+.streak-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--c-border);
+}
+
+/* ── 독서 캘린더 (히트맵 · 월 라벨 포함) ── */
 .heatmap-card {
   background: var(--c-surface);
   border: none;
   border-radius: 16px;
   padding: 20px 18px 18px;
-  margin-top: 12px;
+  margin-top: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
 }
 .heatmap-head {
   display: flex; justify-content: space-between; align-items: baseline;
   margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--c-border);
 }
 .heatmap-ttl {
-  font-family: inherit;
-  font-size: 17px; font-weight: 700;
-  color: var(--c-text); letter-spacing: -0.02em;
+  font-size: 15.5px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
 }
 .heatmap-sub {
-  font-family: inherit;
-  font-size: 13px; font-weight: 500;
+  font-size: 12.5px; font-weight: 500;
   color: var(--c-label);
   letter-spacing: -0.01em;
-  text-transform: none;
 }
-.heatmap-sub .hot {
-  color: var(--primary); font-weight: 700;
+.heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(26, 1fr);
+  gap: 3px;
+  margin-bottom: 6px;
+  height: 14px;
+  position: relative;
+}
+.heatmap-month-label {
+  font-size: 10.5px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  line-height: 14px;
+  white-space: nowrap;
+  /* grid-column은 JS에서 동적 설정 */
 }
 .heatmap-grid {
   display: grid;
@@ -1652,71 +1784,24 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .hm-cell {
   border-radius: 3px;
   background: var(--c-border);
-  position: relative;
 }
-.hm-cell.lv1 { background: #CFE3FF; }
-.hm-cell.lv2 { background: #92BEFB; }
+/* 테마 연동: 모든 단계가 --primary 기반으로 파생 */
+.hm-cell.lv1 { background: color-mix(in srgb, var(--primary) 22%, var(--c-surface)); }
+.hm-cell.lv2 { background: color-mix(in srgb, var(--primary) 52%, var(--c-surface)); }
 .hm-cell.lv3 { background: var(--primary); }
-.hm-cell.lv4 { background: #1B3F8A; }
+.hm-cell.lv4 { background: color-mix(in srgb, var(--primary) 70%, var(--c-text)); }
 .heatmap-foot {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: flex-start; align-items: center;
   margin-top: 14px; padding-top: 12px;
   border-top: 1px solid var(--c-border);
-  font-family: inherit;
-  font-style: normal;
-  font-size: 13px; font-weight: 500;
+  font-size: 12.5px; font-weight: 500;
   color: var(--c-label);
+  letter-spacing: -0.01em;
 }
-.heatmap-scale {
-  display: flex; align-items: center; gap: 4px;
+.heatmap-foot-txt strong {
+  color: var(--c-text);
+  font-weight: 700;
 }
-.heatmap-scale-cell {
-  width: 10px; height: 10px; border-radius: 3px;
-}
-
-/* 스트릭 카드 */
-.streak-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px; margin-top: 12px;
-}
-.streak-card {
-  background: var(--c-surface);
-  border: none;
-  border-radius: 14px;
-  padding: 16px 14px;
-  position: relative; overflow: hidden;
-  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
-}
-.streak-card.hot {
-  background: var(--primary);
-  border: none;
-}
-.streak-icon {
-  font-size: 22px; margin-bottom: 8px;
-  display: inline-block;
-}
-.streak-k {
-  font-family: inherit;
-  font-size: 12px; font-weight: 500;
-  color: var(--c-label); letter-spacing: -0.01em;
-  margin-bottom: 6px; text-transform: none;
-}
-.streak-v {
-  font-family: inherit;
-  font-size: 24px; font-weight: 800;
-  color: var(--c-text); letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-.streak-v .unit {
-  font-family: inherit;
-  font-style: normal;
-  font-size: 14px; font-weight: 600;
-  color: var(--c-label); margin-left: 3px;
-}
-.streak-card.hot .streak-k { color: rgba(255,255,255,0.85); }
-.streak-card.hot .streak-v { color: #fff; }
-.streak-card.hot .streak-v .unit { color: rgba(255,255,255,0.85); }
 
 /* ═══════════ [TAB 4] 노트 ═══════════ */
 .note-search {
@@ -5578,90 +5663,66 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
   <section class="pane" id="pane-goals">
 
-    <!-- 연간 목표 히어로 -->
-    <div class="goal-hero">
-      <button class="goal-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
+    <!-- 연간 목표 히어로 (재설계) -->
+    <div class="annual-hero">
+      <button class="annual-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
         <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
         <span>수정</span>
       </button>
-      <div class="goal-ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <defs>
-            <linearGradient id="goalGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%"   style="stop-color: var(--c-sage-500)"/>
-              <stop offset="100%" style="stop-color: var(--c-sage-700)"/>
-            </linearGradient>
-          </defs>
-          <circle class="goal-ring-bg"   cx="55" cy="55" r="48"/>
-          <circle class="goal-ring-fill" cx="55" cy="55" r="48"
-                  stroke-dasharray="301.6"
-                  stroke-dashoffset="132.7"/>
-          <!-- 56% → 301.6 * (1-0.56) = 132.7 -->
-        </svg>
-        <div class="goal-ring-center">
-          <div class="goal-ring-num">28</div>
-          <div class="goal-ring-denom">/ 50권</div>
+      <div class="annual-hero-lbl">올해 읽은 책</div>
+      <div class="annual-hero-main">
+        <span class="annual-hero-num">6</span><span class="annual-hero-unit">권</span>
+      </div>
+      <div class="annual-hero-sub">
+        목표 <span class="annual-hero-target">30권</span> · <span class="annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
+      </div>
+      <div class="annual-hero-track">
+        <div class="annual-hero-fill" style="width:20%"></div>
+      </div>
+      <div class="annual-hero-pace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
+    </div>
+
+    <!-- 이번 달 목표 -->
+    <div class="monthly-card" id="goalMonthly">
+      <div class="monthly-head">
+        <div class="monthly-lbl">이번 달</div>
+        <div class="monthly-main">
+          <span class="num">2</span><span class="unit">/ 3권</span>
         </div>
       </div>
-      <div class="goal-info">
-        <div class="goal-info-lbl">2026 GOAL</div>
-        <div class="goal-info-ttl">올해 목표 56% 달성</div>
-        <div class="goal-info-desc">
-          목표까지 <strong>22권</strong> 남았어요.<br/>
-          <span class="pace">월 3.1권 페이스면 충분해요 🌱</span>
-        </div>
+      <div class="monthly-track">
+        <div class="monthly-fill" style="width:66.7%"></div>
+      </div>
+      <div class="monthly-sub">한 권만 더 읽으면 완료예요</div>
+    </div>
+
+    <!-- 스트릭 통합 카드 -->
+    <div class="streak-unified">
+      <div class="streak-item">
+        <div class="streak-lbl">연속 독서</div>
+        <div class="streak-val"><span class="streak-current-num">12</span><span class="unit">일</span></div>
+      </div>
+      <div class="streak-divider" aria-hidden="true"></div>
+      <div class="streak-item">
+        <div class="streak-lbl">최고 기록</div>
+        <div class="streak-val"><span class="streak-best-num">34</span><span class="unit">일</span></div>
       </div>
     </div>
 
-    <!-- 스트릭 -->
-    <div class="streak-row">
-      <div class="streak-card hot">
-        <div class="streak-icon" style="color:var(--c-gold-500)"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-flame"/></svg></div>
-        <div class="streak-k">CURRENT</div>
-        <div class="streak-v">12<span class="unit">일 연속</span></div>
-      </div>
-      <div class="streak-card">
-        <div class="streak-icon" style="color:var(--c-gold-500)"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-trophy"/></svg></div>
-        <div class="streak-k">BEST</div>
-        <div class="streak-v">34<span class="unit">일</span></div>
-      </div>
-    </div>
-
-    <!-- 히트맵 캘린더 -->
+    <!-- 독서 캘린더 (히트맵) -->
     <div class="heatmap-card">
       <div class="heatmap-head">
-        <div class="heatmap-ttl">독서 히트맵</div>
-        <div class="heatmap-sub">지난 <span class="hot">26주</span></div>
+        <div class="heatmap-ttl">독서 캘린더</div>
+        <div class="heatmap-sub">최근 26주</div>
+      </div>
+      <div class="heatmap-months" id="heatmapMonths" aria-hidden="true">
+        <!-- JS로 월 라벨 생성 -->
       </div>
       <div class="heatmap-grid" id="heatmapGrid">
         <!-- JS로 생성 -->
       </div>
       <div class="heatmap-foot">
-        <span>총 118일 독서</span>
-        <div class="heatmap-scale">
-          <span>적음</span>
-          <div class="heatmap-scale-cell"></div>
-          <div class="heatmap-scale-cell lv1"></div>
-          <div class="heatmap-scale-cell lv2"></div>
-          <div class="heatmap-scale-cell lv3"></div>
-          <div class="heatmap-scale-cell lv4"></div>
-          <span>많음</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 이번 달 목표 미니 -->
-    <div class="stat-card" id="goalMonthly" style="margin-top:14px;">
-      <div class="stat-card-head">
-        <div class="stat-card-lbl">MONTHLY GOAL</div>
-        <div class="stat-card-ttl">
-          <span class="num">3</span>
-          <span class="unit">/ 4권 · 이번 달</span>
-        </div>
-        <div class="stat-card-sub">한 권만 더 읽으면 목표 달성이에요</div>
-      </div>
-      <div class="now-bar" style="background:color-mix(in srgb, var(--c-sage-700) 12%, transparent)">
-        <div class="now-bar-fill" style="width:75%;background:var(--g-done-bar);box-shadow:0 0 8px color-mix(in srgb, var(--c-sage-500) 35%, transparent)"></div>
+        <span class="heatmap-foot-txt">총 <strong class="heatmap-total">118일</strong> 독서</span>
       </div>
     </div>
 
@@ -6566,6 +6627,7 @@ window.addEventListener('scroll', () => {
 (function renderHeatmap(){
   const grid = document.getElementById('heatmapGrid');
   const cells = 26 * 7;
+  let readDays = 0;
   // 시뮬레이션: 0~4 레벨 랜덤 분포 (실제로는 날짜별 페이지수에 따라 결정)
   for (let i = 0; i < cells; i++) {
     const cell = document.createElement('div');
@@ -6577,8 +6639,49 @@ window.addEventListener('scroll', () => {
     else if (r > 0.87) lv = 3;
     else if (r > 0.75) lv = 2;
     else if (r > 0.6)  lv = 1;
-    if (lv) cell.classList.add('lv' + lv);
+    if (lv) { cell.classList.add('lv' + lv); readDays++; }
     grid.appendChild(cell);
+  }
+
+  // 총 독서일 반영
+  const totalEl = document.querySelector('.heatmap-total');
+  if (totalEl) totalEl.textContent = `${readDays}일`;
+
+  // 월 라벨 생성: 오늘을 26번째 주(index 25)로 배치, 각 주의 일요일 기준으로 월 파악
+  const monthsEl = document.getElementById('heatmapMonths');
+  if (monthsEl) {
+    monthsEl.innerHTML = '';
+    const today = new Date();
+    const thisWeekSunday = new Date(today);
+    thisWeekSunday.setDate(today.getDate() - today.getDay());
+    thisWeekSunday.setHours(0, 0, 0, 0);
+
+    // 각 주(0..25)의 시작 일요일
+    const weekStarts = [];
+    for (let i = 0; i < 26; i++) {
+      const d = new Date(thisWeekSunday);
+      d.setDate(thisWeekSunday.getDate() - (25 - i) * 7);
+      weekStarts.push(d);
+    }
+
+    // 월이 새로 시작되는 주를 찾아 라벨 배치
+    let lastMonth = -1;
+    weekStarts.forEach((d, idx) => {
+      const m = d.getMonth();
+      if (m === lastMonth) return;
+      lastMonth = m;
+      // 다음 월 시작 주와의 간격이 2주 미만이면 생략
+      const nextMonthAt = weekStarts.findIndex((w, j) => j > idx && w.getMonth() !== m);
+      const gap = (nextMonthAt === -1 ? 26 : nextMonthAt) - idx;
+      if (gap < 2) return;
+
+      const label = document.createElement('div');
+      label.className = 'heatmap-month-label';
+      const span = Math.min(3, 26 - idx);
+      label.style.gridColumn = `${idx + 1} / span ${span}`;
+      label.textContent = `${m + 1}월`;
+      monthsEl.appendChild(label);
+    });
   }
 })();
 
@@ -9272,42 +9375,45 @@ function renderGoalsPane() {
   const done = countFinishedThisYear();
   const pct = target > 0 ? Math.min(100, Math.round(done / target * 100)) : 0;
   const remaining = Math.max(0, target - done);
-  const year = new Date().getFullYear();
   const monthNow = new Date().getMonth();
 
-  // 링
-  const numEl = pane.querySelector('.goal-ring-num');
-  const denomEl = pane.querySelector('.goal-ring-denom');
-  const fillEl = pane.querySelector('.goal-ring-fill');
+  const hero = pane.querySelector('.annual-hero');
+  const numEl = pane.querySelector('.annual-hero-num');
+  const subEl = pane.querySelector('.annual-hero-sub');
+  const fillEl = pane.querySelector('.annual-hero-fill');
+  const paceEl = pane.querySelector('.annual-hero-pace');
+
   if (numEl) numEl.textContent = done;
-  if (denomEl) denomEl.textContent = `/ ${target}권`;
-  if (fillEl) {
-    const C = 2 * Math.PI * 48; // 약 301.59
-    const offset = C * (1 - pct / 100);
-    fillEl.setAttribute('stroke-dashoffset', offset.toFixed(1));
-    fillEl.setAttribute('stroke-dasharray', C.toFixed(1));
+  if (fillEl) fillEl.style.width = `${pct}%`;
+
+  const achieved = done >= target && target > 0;
+  if (hero) hero.classList.toggle('achieved', achieved);
+
+  if (subEl) {
+    if (achieved) {
+      subEl.innerHTML = `목표 <strong>${target}권</strong> 달성 완료`;
+    } else {
+      subEl.innerHTML = `목표 ${target}권 · 남은 <strong>${remaining}권</strong>`;
+    }
   }
 
-  // 라벨·텍스트
-  const lblEl = pane.querySelector('.goal-info-lbl');
-  const ttlEl = pane.querySelector('.goal-info-ttl');
-  const descEl = pane.querySelector('.goal-info-desc');
-  if (lblEl) lblEl.textContent = `${year} GOAL`;
-  if (ttlEl) {
-    ttlEl.textContent = done >= target
-      ? '올해 목표 달성!'
-      : `올해 목표 ${pct}% 달성`;
-  }
-  if (descEl) {
-    if (done >= target) {
-      descEl.innerHTML = `이미 <strong>${done}권</strong>을 완독했어요. 멋져요.`;
+  if (paceEl) {
+    if (achieved) {
+      paceEl.textContent = '올해 목표를 넘어섰어요. 축하해요';
+    } else if (remaining === 0) {
+      paceEl.textContent = '목표에 도달했어요';
     } else {
       const monthsLeft = 12 - monthNow; // 이번 달 포함
       const pace = remaining / Math.max(1, monthsLeft);
-      const paceStr = pace < 1
-        ? `월 1권만 읽어도 충분해요`
-        : `월 ${pace.toFixed(1)}권 페이스면 충분해요`;
-      descEl.innerHTML = `목표까지 <strong>${remaining}권</strong> 남았어요.<br/><span class="pace">${paceStr}</span>`;
+      if (pace <= 1) {
+        paceEl.textContent = '월 1권씩만 읽어도 연말에 닿아요';
+      } else if (pace <= 2) {
+        paceEl.textContent = `월 ${pace.toFixed(1)}권씩만 읽으면 충분해요`;
+      } else if (pace <= 4) {
+        paceEl.textContent = `앞으로 월 ${pace.toFixed(1)}권 페이스로 가면 돼요`;
+      } else {
+        paceEl.textContent = `남은 달 기준 월 ${pace.toFixed(1)}권이 필요해요`;
+      }
     }
   }
 
@@ -9319,16 +9425,17 @@ function renderGoalsPane() {
     const mPct = Math.min(100, Math.round(mDone / mTarget * 100));
     const mNum = monthly.querySelector('.num');
     const mUnit = monthly.querySelector('.unit');
-    const mSub = monthly.querySelector('.stat-card-sub');
-    const mBar = monthly.querySelector('.now-bar-fill');
+    const mSub = monthly.querySelector('.monthly-sub');
+    const mBar = monthly.querySelector('.monthly-fill');
     if (mNum) mNum.textContent = mDone;
-    if (mUnit) mUnit.textContent = `/ ${mTarget}권 · 이번 달`;
+    if (mUnit) mUnit.textContent = `/ ${mTarget}권`;
     if (mBar) mBar.style.width = `${mPct}%`;
+    monthly.classList.toggle('done', mDone >= mTarget);
     if (mSub) {
       const gap = mTarget - mDone;
-      if (gap <= 0) mSub.textContent = '이번 달 목표 달성! 축하해요';
-      else if (gap === 1) mSub.textContent = '한 권만 더 읽으면 목표 달성이에요';
-      else mSub.textContent = `${gap}권 더 읽으면 목표 달성이에요`;
+      if (gap <= 0) mSub.textContent = '이번 달 목표 완료! 축하해요';
+      else if (gap === 1) mSub.textContent = '한 권만 더 읽으면 완료예요';
+      else mSub.textContent = `${gap}권 더 읽으면 완료예요`;
     }
   }
 
