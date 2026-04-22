@@ -780,11 +780,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.05);
   overflow: hidden;
   position: relative;
+  background: var(--brand-primary);
 }
 .book-card-cover::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(160deg, rgba(255,255,255,.15), transparent 40%);
   pointer-events: none; z-index: 10;
+}
+/* V3 톤 통일 — 실제 표지 이미지가 있을 때만 테마색 25% 덮기 */
+.book-card-cover:has(.bc-img)::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--brand-primary);
+  opacity: 0.25;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 5;
 }
 /* 책별 팔레트 (테마와 독립적 · 각 책 고유 아이덴티티) */
 .palette-demian     { --dark: #7c2d12; --pale: #fef0e4; --accent: #d4a574; }
@@ -814,6 +824,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   object-fit: cover;
   display: block;
   background: var(--c-border);
+  filter: saturate(0.55) brightness(0.95);
 }
 .bc-fallback {
   width: 100%;
@@ -6455,10 +6466,12 @@ function confirmAddBook() {
   try { renderAllStats(); } catch(e){}
   try { renderLibraryCards(); } catch(e){}
 
-  // reading/done이면 로그 뷰로 이동해서 새 책 보여주기
+  // reading/done이면 서재(북카드) 뷰로 이동해서 새 책 보여주기
   if (status !== 'wish') {
     setTimeout(() => {
-      document.querySelector('.vt-btn[data-view="log"]')?.click();
+      // 서재 탭이 활성화 안 되어 있으면 활성화
+      document.querySelector('.tab-btn[data-tab="library"]')?.click();
+      document.querySelector('.vt-btn[data-view="cards"]')?.click();
       document.querySelector('.main-wrap')?.scrollTo({ top: 0, behavior: 'smooth' });
     }, 400);
   }
