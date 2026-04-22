@@ -9448,6 +9448,82 @@ function renderGoalsPane() {
   const remaining = Math.max(0, target - done);
   const monthNow = new Date().getMonth();
 
+  // ─── 독서 스트릭 (히트맵과 동일한 "독서한 날" 기준) ───
+  const streak = (function computeReadingStreaks() {
+    const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+    if (books.length === 0) return { current: 0, best: 0 };
+
+    const keyOf = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const readDays = new Set();
+    const markRange = (startStr, endStr) => {
+      if (!startStr) return;
+      const s = new Date(startStr);
+      const e = endStr ? new Date(endStr) : new Date();
+      if (isNaN(s) || isNaN(e)) return;
+      s.setHours(0, 0, 0, 0);
+      e.setHours(0, 0, 0, 0);
+      for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+        readDays.add(keyOf(d));
+      }
+    };
+
+    for (const b of books) {
+      const sessions = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+      for (const s of sessions) {
+        if (s && s.date) readDays.add(String(s.date).slice(0, 10));
+      }
+      markRange(b.dateStart, b.dateEnd);
+      const rr = Array.isArray(b.rereads) ? b.rereads : [];
+      for (const r of rr) markRange(r.dateStart, r.dateEnd);
+    }
+
+    if (readDays.size === 0) return { current: 0, best: 0 };
+
+    // 최고 기록 — 정렬된 날짜 배열에서 연속 길이 찾기
+    const sortedDays = Array.from(readDays).sort();
+    let best = 1, run = 1;
+    for (let i = 1; i < sortedDays.length; i++) {
+      const prev = new Date(sortedDays[i - 1]);
+      const curr = new Date(sortedDays[i]);
+      const diff = Math.round((curr - prev) / 86400000);
+      if (diff === 1) run++;
+      else { if (run > best) best = run; run = 1; }
+    }
+    if (run > best) best = run;
+
+    // 현재 연속 — 오늘 or 어제부터 역으로 count
+    // (오늘 아직 안 읽어도 어제까지 연속이면 유지 · 관대한 Duolingo 스타일)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    let cursor = null;
+    if (readDays.has(keyOf(today))) cursor = new Date(today);
+    else if (readDays.has(keyOf(yesterday))) cursor = new Date(yesterday);
+
+    let current = 0;
+    while (cursor && readDays.has(keyOf(cursor))) {
+      current++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    // 현재 기록이 과거 최고를 넘어서면 최고도 갱신
+    if (current > best) best = current;
+
+    return { current, best };
+  })();
+
+  const curEl = pane.querySelector('.streak-current-num');
+  const bestEl = pane.querySelector('.streak-best-num');
+  if (curEl) curEl.textContent = streak.current;
+  if (bestEl) bestEl.textContent = streak.best;
+
   const hero = pane.querySelector('.annual-hero');
   const numEl = pane.querySelector('.annual-hero-num');
   const subEl = pane.querySelector('.annual-hero-sub');
