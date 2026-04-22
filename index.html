@@ -511,6 +511,106 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .now-hero::after { display: none; }
 .now-hero .now-corner { display: none; }
 
+/* ─── 슬림 타이머 카드 (B+C 합성) ─── */
+.now-hero-slim {
+  padding: 16px 18px 14px;
+  padding-bottom: 17px;  /* 하단 3px 프로그레스 라인 공간 */
+  position: relative;
+  overflow: hidden;
+}
+.now-slim-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.now-slim-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+}
+.now-slim-tag::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: nowPulse 2s ease-in-out infinite;
+}
+.now-slim-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.now-slim-title-col {
+  flex: 1;
+  min-width: 0;
+}
+.now-slim-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.025em;
+  margin: 0 0 2px;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-slim-meta {
+  font-size: 12px;
+  color: var(--c-label);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-slim-pct {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.now-slim-pct .unit {
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 1px;
+  opacity: 0.8;
+}
+.now-slim-actions {
+  display: flex;
+  gap: 8px;
+}
+.now-slim-actions .now-btn.primary {
+  flex: 1;
+}
+.now-slim-actions .now-btn.ghost {
+  padding: 11px 18px;
+}
+.now-slim-progress {
+  position: absolute;
+  left: 0; bottom: 0; right: 0;
+  height: 3px;
+  background: var(--c-border);
+  overflow: hidden;
+}
+.now-slim-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width .4s cubic-bezier(.2,.9,.2,1);
+}
+@keyframes nowPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
 .now-tag {
   display: inline-flex;
   align-items: center;
@@ -652,24 +752,36 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label); margin-left: 2px;
 }
 
-/* 책 가로 스크롤 */
+/* 책 그리드 (3열) — B 시안: 카드 85% + 여백 여유 */
 .book-row {
-  display: flex; gap: 12px;
-  overflow-x: auto; overflow-y: hidden;
-  padding: 4px 2px 8px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 10px;
+  padding: 4px 12px 8px;
+  max-width: 88%;
+  margin: 0 auto;
 }
 .book-row::-webkit-scrollbar { display: none; }
+
+/* 명예의 전당 그리드 — book-row와 동일 레이아웃 */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 10px;
+  padding: 4px 12px 8px;
+  max-width: 88%;
+  margin: 0 auto;
+}
+
 .book-card {
-  flex-shrink: 0;
-  width: 108px;
-  scroll-snap-align: start;
+  width: 100%;
+  cursor: pointer;
 }
 .book-card-cover {
-  width: 108px; height: 156px;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
+  width: 100%;
+  aspect-ratio: 108 / 156;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.05);
   overflow: hidden;
   position: relative;
 }
@@ -708,10 +820,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bc-cat {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 7.5px; font-weight: 800;
-  letter-spacing: 2px; text-transform: uppercase;
+  font-size: 7px; font-weight: 800;
+  letter-spacing: 1.6px; text-transform: uppercase;
   opacity: .6;
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 5px;
 }
 .bc-cat::after {
   content: ''; flex: 1; height: 1px;
@@ -719,33 +831,33 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bc-title {
   font-family: 'Noto Serif KR', serif;
-  font-size: 22px; font-weight: 900;
-  letter-spacing: -.8px; line-height: .95;
+  font-size: 18px; font-weight: 900;
+  letter-spacing: -.6px; line-height: .95;
   margin-top: auto;
 }
-.bc-title.lg { font-size: 28px; }
+.bc-title.lg { font-size: 22px; }
 .bc-foot {
   flex: 1;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 8px 10px;
+  padding: 6px 8px;
   color: var(--dark);
   position: relative;
 }
 .bc-foot::before {
   content: '';
-  position: absolute; top: 0; left: 10px;
-  width: 16px; height: 2px;
+  position: absolute; top: 0; left: 8px;
+  width: 14px; height: 2px;
   background: var(--accent);
 }
 .bc-author {
-  font-size: 9.5px; font-weight: 800;
+  font-size: 8.5px; font-weight: 800;
   letter-spacing: -.1px;
   margin-bottom: 1px;
 }
 .bc-meta {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 7.5px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase;
+  font-size: 6.5px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
   opacity: .55;
 }
 
@@ -1491,6 +1603,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 3px;
   margin: 4px 0 16px;
 }
+/* 3개 세그먼트 버전 — 모바일 화면에 맞춰 full-width grid로 */
+.view-toggle.view-toggle-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100%;
+  gap: 0;
+}
+.view-toggle.view-toggle-3 .vt-btn {
+  padding: 8px 6px;
+  justify-content: center;
+  font-size: 13px;
+}
 .vt-btn {
   padding: 8px 16px;
   border-radius: 8px;
@@ -1510,6 +1634,120 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   box-shadow: 0 1px 2px rgba(25,31,40,0.08);
 }
 .vt-btn-icon { font-size: 14px; }
+
+/* ═══════════ 명예의 전당 ═══════════ */
+.library-hall {
+  /* pane의 padding이 상위에서 들어가므로 별도 여백 없음 */
+}
+
+/* 빈 상태 */
+.hall-empty {
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--c-surface);
+  border-radius: 16px;
+  margin-top: 8px;
+}
+.hall-empty-icon {
+  color: var(--c-label);
+  margin-bottom: 14px;
+  opacity: 0.5;
+}
+.hall-empty-ttl {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.015em;
+}
+.hall-empty-sub {
+  font-size: 13px;
+  color: var(--c-label);
+  line-height: 1.55;
+}
+.hall-empty-sub strong {
+  color: var(--c-text-2);
+  font-weight: 700;
+}
+
+/* 히어로 카드 */
+.hall-hero {
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 22px 20px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+}
+.hall-hero::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c-gold-500) 14%, transparent), transparent 65%);
+  pointer-events: none;
+}
+.hall-hero-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+}
+.hall-hero-lbl {
+  font-family: 'Plus Jakarta Sans', inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--c-label);
+}
+.hall-hero-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+.hall-hero-title {
+  font-family: 'Noto Serif KR', 'Pretendard Variable', inherit;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+  position: relative;
+}
+.hall-hero-sub {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.5;
+  position: relative;
+}
+.hall-hero-sub strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
+
+/* 별점별 섹션 */
+.hall-section {
+  margin-bottom: 26px;
+}
+.hall-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 12px;
+}
+.hall-stars {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-gold-500);
+  letter-spacing: 2px;
+}
+.hall-section-count {
+  font-size: 12px;
+  color: var(--c-label);
+  font-weight: 600;
+}
 
 /* 관심사 레이더 카드 */
 .tag-radar {
@@ -4053,13 +4291,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <!-- ═══════════ [TAB 1] 서재 ═══════════ -->
   <section class="pane active" id="pane-library">
 
-    <!-- 뷰 토글: 북카드 ⇔ 로그 -->
-    <div class="view-toggle">
+    <!-- 뷰 토글: 북카드 ⇔ 로그 ⇔ 명예의 전당 -->
+    <div class="view-toggle view-toggle-3">
       <button class="vt-btn active" data-view="cards">
         <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></span>북카드
       </button>
       <button class="vt-btn" data-view="log">
         <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg></span>로그
+      </button>
+      <button class="vt-btn" data-view="hall">
+        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg></span>명예의 전당
       </button>
     </div>
 
@@ -4098,6 +4339,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
 
     </div><!-- /.library-log -->
+
+    <!-- 명예의 전당 뷰 (인생책 모음) -->
+    <div class="library-hall" id="libHall" style="display:none;">
+      <!-- JS 렌더 · renderHallOfFame() -->
+    </div><!-- /.library-hall -->
 
   </section>
 
@@ -5502,6 +5748,7 @@ const TAGS = {
   '성장':      { emoji: '🌱', color: '#4d7c0f' },
   '고전':      { emoji: '📜', color: '#7c2d12' },
   '자기성찰':  { emoji: '🪞', color: '#be185d' },
+  '육아':      { emoji: '👶', color: '#ec4899' },
   '과학':      { emoji: '🔬', color: '#1e3a8a' },
   '우주':      { emoji: '🌌', color: '#6b21a8' },
   '디스토피아':{ emoji: '🏚️', color: '#334155' },
@@ -5624,7 +5871,16 @@ const NA = {
   }
   const savedTags = STORE.get('tags', null);
   if (savedTags && typeof savedTags === 'object') {
-    Object.assign(TAGS, savedTags);
+    // 저장된 태그 먼저 복사 (사용자가 바꾼 이모지·색 유지)
+    const merged = { ...TAGS, ...savedTags };
+    // 단, 기본 태그 중 저장본에 빠진 게 있으면 기본값으로 채움 (앱 업데이트로 새 태그 추가 대응)
+    // e.g. 기존 사용자에게도 "육아" 태그 자동 노출
+    Object.keys(TAGS).forEach(k => {
+      if (!(k in savedTags)) merged[k] = TAGS[k];
+    });
+    Object.keys(merged).forEach(k => { TAGS[k] = merged[k]; });
+    // 새로 추가된 기본 태그가 있으면 저장본도 업데이트
+    STORE.set('tags', TAGS);
   }
   const savedNotes = STORE.get('notes', null);
   if (Array.isArray(savedNotes)) {
@@ -5844,33 +6100,24 @@ function renderNowHero(b) {
     ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> --:-- · 저장</button>`
     : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</button>`;
   return `
-    <div class="now-hero">
-      <span class="now-corner tl"></span>
-      <span class="now-corner tr"></span>
-      <span class="now-corner bl"></span>
-      <span class="now-corner br"></span>
-      <div class="now-tag">지금 읽는 중</div>
-      <div class="now-body">
-        <div class="now-cover palette-${esc(b.palette || 'demian')}" data-book-id="${b.id}">
-          ${renderBookCoverInner(b, 1)}
+    <div class="now-hero now-hero-slim">
+      <div class="now-slim-head">
+        <span class="now-slim-tag">지금 읽는 중</span>
+        ${b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : ''}
+      </div>
+      <div class="now-slim-row">
+        <div class="now-slim-title-col">
+          <div class="now-slim-title">${esc(b.title)}</div>
+          <div class="now-slim-meta">${esc(b.author)}${b.pages ? ` · ${b.currentPage || 0} / ${b.pages} p` : ''}</div>
         </div>
-        <div class="now-info">
-          <div class="now-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
-          <div class="now-author">${esc(b.author)}${b.publisher ? ' · ' + esc(b.publisher) : ''}</div>
-          <div class="now-progress-wrap">
-            <div class="now-progress-head">
-              <span class="now-progress-lbl">${b.currentPage || 0} / ${b.pages} p</span>
-              <span class="now-progress-val">${pct}<span class="unit">%</span></span>
-            </div>
-            <div class="now-bar">
-              <div class="now-bar-fill" style="width: ${pct}%"></div>
-            </div>
-          </div>
-          <div class="now-actions">
-            ${primaryBtn}
-            <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
-          </div>
-        </div>
+        <div class="now-slim-pct">${pct}<span class="unit">%</span></div>
+      </div>
+      <div class="now-slim-actions">
+        ${primaryBtn}
+        <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
+      </div>
+      <div class="now-slim-progress">
+        <div class="now-slim-progress-fill" style="width: ${pct}%"></div>
       </div>
     </div>`;
 }
@@ -5934,6 +6181,81 @@ function renderBookSection(title, subLabel, books) {
 }
 
 /* 메인 렌더 — library-cards 전체 생성 */
+/* ═══════════════════════════════════════════════════════════
+   명예의 전당 — 인생책 전용 뷰
+   ═══════════════════════════════════════════════════════════ */
+function renderHallOfFame() {
+  const container = document.getElementById('libHall');
+  if (!container) return;
+
+  const lifeBooks = BOOKS.filter(b => b.isLifeBook)
+                    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+  if (!lifeBooks.length) {
+    container.innerHTML = `
+      <div class="hall-empty">
+        <div class="hall-empty-icon"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-trophy"/></svg></div>
+        <div class="hall-empty-ttl">아직 인생책이 없어요</div>
+        <div class="hall-empty-sub">
+          완독한 책 상세 화면에서 <strong>인생책으로 등록</strong>을 눌러보세요.<br/>
+          가장 소중한 100권을 이곳에 모읍니다.
+        </div>
+      </div>`;
+    return;
+  }
+
+  // 별점별 그룹
+  const byRating = {};
+  lifeBooks.forEach(b => {
+    const r = b.rating || 0;
+    if (!byRating[r]) byRating[r] = [];
+    byRating[r].push(b);
+  });
+  const ratingKeys = Object.keys(byRating).sort((a, b) => Number(b) - Number(a));
+
+  const avgRating = lifeBooks.reduce((s, b) => s + (b.rating || 0), 0) / lifeBooks.length;
+
+  container.innerHTML = `
+    <!-- 헤더 히어로 -->
+    <div class="hall-hero">
+      <div class="hall-hero-head">
+        <div class="hall-hero-lbl">HALL OF FAME</div>
+        <div class="hall-hero-meta">${lifeBooks.length} / 100권</div>
+      </div>
+      <div class="hall-hero-title">명예의 전당</div>
+      <div class="hall-hero-sub">
+        지금까지 모은 인생책 <strong>${lifeBooks.length}권</strong>
+        ${avgRating > 0 ? ` · 평균 별점 <strong>${avgRating.toFixed(1)}</strong>` : ''}
+      </div>
+    </div>
+
+    <!-- 별점별 섹션 -->
+    ${ratingKeys.map(rating => {
+      const books = byRating[rating];
+      const r = Number(rating);
+      const stars = r > 0 ? '★'.repeat(Math.round(r)) : '미평가';
+      return `
+        <div class="hall-section">
+          <div class="hall-section-head">
+            <div class="hall-stars">${stars}</div>
+            <div class="hall-section-count">${books.length}권</div>
+          </div>
+          <div class="book-grid">
+            ${books.map(b => renderBookCard(b)).join('')}
+          </div>
+        </div>`;
+    }).join('')}
+  `;
+
+  // 책 상세 클릭 위임 (기존 libCards와 동일하게)
+  container.querySelectorAll('.book-card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = parseInt(el.dataset.bookId, 10);
+      if (id) openBookDetail(id);
+    });
+  });
+}
+
 function renderLibraryCards() {
   const container = document.getElementById('libCards');
   if (!container) return;
@@ -5944,8 +6266,6 @@ function renderLibraryCards() {
                     .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0))
                     .slice(0, 10);
   const wish = BOOKS.filter(b => b.status === 'wish');
-  const lifeBooks = BOOKS.filter(b => b.isLifeBook)
-                    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
   // 빈 상태 처리
   if (!BOOKS.length) {
@@ -5962,9 +6282,8 @@ function renderLibraryCards() {
     ${reading.length ? renderNowHero(reading[0]) : ''}
     ${renderMonthStrip()}
     ${renderBookSection('독서중',      '', reading)}
-    ${renderBookSection('⭐ 인생책',   'TOP ' + lifeBooks.length, lifeBooks)}
     ${renderBookSection('최근 완독',   '', done)}
-    ${renderBookSection('읽고 싶은 책', '', wish)}
+    ${renderBookSection('위시리스트',  '', wish)}
   `;
 }
 
@@ -6082,6 +6401,8 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
     document.querySelectorAll('.vt-btn').forEach(b => b.classList.toggle('active', b === btn));
     document.getElementById('libCards').style.display = view === 'cards' ? ''      : 'none';
     document.getElementById('libLog').style.display   = view === 'log'   ? 'block' : 'none';
+    document.getElementById('libHall').style.display  = view === 'hall'  ? 'block' : 'none';
+    if (view === 'hall') { try { renderHallOfFame(); } catch(e) { console.error('[hall]', e); } }
   });
 });
 
@@ -6457,6 +6778,10 @@ function renderBookDetail() {
           </button>`;
         }).join('')}
       </div>
+      <div class="tag-new-wrap">
+        <input class="tag-new-input" id="bdTagNewInput" type="text" placeholder="새 태그 만들기…" maxlength="12" autocomplete="off">
+        <button class="tag-new-btn" id="bdTagNewBtn">+ 추가</button>
+      </div>
     </div>
 
     <!-- 삭제 -->
@@ -6627,6 +6952,45 @@ function wireBookDetailEvents() {
       renderBookDetail();
     });
   });
+
+  // 새 태그 만들기 (책 상세)
+  const bdNewInput = document.getElementById('bdTagNewInput');
+  const bdNewBtn = document.getElementById('bdTagNewBtn');
+  if (bdNewInput && bdNewBtn) {
+    const addTagFromBD = () => {
+      const name = bdNewInput.value.trim();
+      if (!name) return;
+      if (TAGS[name]) {
+        // 이미 있으면 그냥 이 책에 토글만
+        const tags = b.tags || [];
+        if (!tags.includes(name)) {
+          updateBook(b.id, { tags: [...tags, name] });
+          showToast(`'${name}' 태그가 이미 있어서 선택했어요`);
+        } else {
+          showToast(`이미 '${name}' 태그가 달려있어요`);
+        }
+        bdNewInput.value = '';
+        renderBookDetail();
+        return;
+      }
+      // 새 태그 생성 + 이 책에 자동 적용
+      const idx = Object.keys(TAGS).length;
+      TAGS[name] = {
+        emoji: NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
+        color: NEW_TAG_COLORS[idx % NEW_TAG_COLORS.length],
+      };
+      STORE.set('tags', TAGS);
+      const tags = b.tags || [];
+      updateBook(b.id, { tags: [...tags, name] });
+      bdNewInput.value = '';
+      renderBookDetail();
+      showToast(`'${name}' 태그 생성 ✓`);
+    };
+    bdNewBtn.addEventListener('click', addTagFromBD);
+    bdNewInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addTagFromBD(); }
+    });
+  }
 
   // 삭제 플로우
   const delBtn = document.getElementById('bdDelBtn');
