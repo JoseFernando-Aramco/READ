@@ -807,6 +807,24 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
    ═══════════════════════════════════════════════════════════ */
 .bc { display: flex; flex-direction: column; width: 100%; height: 100%;
   background: var(--pale); }
+/* 실제 표지 이미지 */
+.bc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: var(--c-border);
+}
+.bc-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-border-2);
+  color: var(--c-muted);
+  font-size: 28px;
+}
 .bc-hero {
   flex: 0 0 68%;
   background: var(--dark);
@@ -6837,6 +6855,14 @@ function bookCoverMeta(b) {
 
 /* Variation C 커버 내부 HTML (.bc 부분만) */
 function renderBookCoverInner(b, number) {
+  // 표지 이미지가 있으면 실제 이미지로 렌더
+  if (b.coverUrl) {
+    return `
+      <img class="bc-img" src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+           referrerpolicy="no-referrer"
+           onerror="this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
+  }
+  // 표지 없으면 기존 팔레트 에디토리얼 디자인
   const { cat, year } = bookCoverMeta(b);
   const titleLen = (b.title || '').length;
   const titleCls = titleLen <= 4 ? 'lg' : '';
@@ -7430,7 +7456,7 @@ function renderBookDetail() {
 
   // 커버
   const cover = b.coverUrl
-    ? `<img src="${esc(b.coverUrl)}" alt="" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
+    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)">📖</div>`;
 
   document.getElementById('bdBody').innerHTML = `
