@@ -374,15 +374,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .app-name em { font-style: normal; font-weight: 900; color: var(--c-text); }
 .app-name-sub { display: none; }
 
-/* ─── 앱 푸터 (저작권) ─── */
+/* ─── 앱 푸터 (저작권 · V1 엠보싱 스타일) ─── */
 .app-footer {
-  margin-top: 40px;
-  padding: 28px 20px 16px;
+  margin-top: 56px;
+  padding: 36px 20px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   color: var(--c-label);
+  text-align: center;
 }
 .app-footer-brand {
   display: inline-flex;
@@ -393,23 +394,47 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 800;
   letter-spacing: -0.04em;
   opacity: 0.55;
+  margin-bottom: 18px;
 }
 .app-footer-mark {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
-.app-footer-copy {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  opacity: 0.6;
+.app-footer-by {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--c-label);
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+.app-footer-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+.app-footer-rights {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--c-label);
+  opacity: 0.75;
+}
+.app-footer-sep {
+  width: 44px;
+  height: 1px;
+  background: var(--c-border);
+  margin: 14px 0;
 }
 .app-footer-credit {
   font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.3px;
-  opacity: 0.4;
-  margin-top: 2px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--c-label);
+  opacity: 0.6;
 }
 .header-actions { display: flex; gap: 2px; }
 .header-btn {
@@ -1449,14 +1474,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .rating-hist { display: flex; flex-direction: column; gap: 8px; padding: 2px 0; }
 .rating-row {
   display: grid;
-  grid-template-columns: 48px 1fr 36px;
-  align-items: center; gap: 10px;
+  grid-template-columns: 78px 1fr 36px;
+  align-items: center; gap: 12px;
   font-size: 12px;
 }
 .rating-stars {
   color: var(--c-gold-500);
   font-size: 13px; letter-spacing: 1px;
   font-weight: 700;
+  white-space: nowrap;
 }
 .rating-bar {
   height: 3px; border-radius: 2px;
@@ -5619,7 +5645,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </svg>
       <span>READ</span>
     </div>
-    <div class="app-footer-copy">© 2026 Locadomingo</div>
+    <div class="app-footer-by">DESIGNED &amp; DEVELOPED BY</div>
+    <div class="app-footer-name">Locadomingo</div>
+    <div class="app-footer-rights">© 2026 · ALL RIGHTS RESERVED</div>
+    <div class="app-footer-sep"></div>
     <div class="app-footer-credit">Book data · Kakao Books · Google Books</div>
   </footer>
 
