@@ -3278,17 +3278,24 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 0 0 32px;
 }
 
-/* Hero — 커버 + 정보 */
+/* Hero — 커버 + 정보 (기본 구조) */
 .bd-hero {
-  padding: 22px 20px 20px;
-  display: flex; gap: 16px;
+  padding: 20px 20px 18px;
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border);
-  align-items: flex-start;
   position: relative;
 }
+/* 통합형 (A 시안) — 내부에 상단 row + 상태 + 진행률 합침 */
+.bd-hero.bd-hero-unified {
+  display: block;
+}
+.bd-hero-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
 .bd-hero-cover {
-  width: 88px; height: 124px;
+  width: 76px; height: 108px;
   border-radius: 8px;
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(25,31,40,0.12);
@@ -3299,10 +3306,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
 .bd-hero-title {
   font-family: inherit;
-  font-size: 22px; font-weight: 800;
+  font-size: 20px; font-weight: 800;
   color: var(--c-text); letter-spacing: -0.025em;
   line-height: 1.25;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -3311,14 +3318,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-hero-author {
   font-family: inherit;
   font-style: normal;
-  font-size: 14px; font-weight: 500;
+  font-size: 13px; font-weight: 500;
   color: var(--c-text-2);
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 .bd-hero-meta {
   display: flex; flex-wrap: wrap; gap: 4px 10px;
   font-family: inherit;
-  font-size: 13px; font-weight: 500;
+  font-size: 12px; font-weight: 500;
   color: var(--c-label);
   letter-spacing: -0.01em;
   text-transform: none;
@@ -3329,16 +3336,39 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label);
   opacity: 0.5;
 }
+/* 상태 세그먼트 · 진행률을 히어로 내부로 포함 */
+.bd-hero-status {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.bd-hero-prog {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.bd-hero-prog-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.bd-hero-prog-sub {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--c-label);
+  font-weight: 500;
+}
 
-/* Sections */
+/* Sections — 슬림 */
 .bd-section {
-  padding: 20px 20px 18px;
+  padding: 14px 20px 14px;
   border-bottom: 1px solid var(--c-border);
 }
 .bd-section:last-child { border-bottom: none; }
 .bd-section-lbl {
   font-family: inherit;
-  font-size: 13px; font-weight: 500;
+  font-size: 12px; font-weight: 600;
   color: var(--c-label);
   letter-spacing: -0.01em;
   text-transform: none;
@@ -3349,7 +3379,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-family: inherit;
   font-style: normal;
   text-transform: none;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--c-label);
   letter-spacing: -0.01em;
   font-weight: 500;
@@ -6900,24 +6930,40 @@ function renderBookDetail() {
 
   document.getElementById('bdBody').innerHTML = `
 
-    <!-- Hero -->
-    <div class="bd-hero">
-      <div class="bd-hero-cover">${cover}</div>
-      <div class="bd-hero-info">
-        <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
-        <div class="bd-hero-author">${esc(b.author)}</div>
-        ${metaParts.length ? `<div class="bd-hero-meta">${metaParts.map(m => `<span>${m}</span>`).join('')}</div>` : ''}
+    <!-- Hero 통합: 커버 + 타이틀 + 메타 + 상태 + (reading시 진행률) -->
+    <div class="bd-hero bd-hero-unified">
+      <div class="bd-hero-top">
+        <div class="bd-hero-cover">${cover}</div>
+        <div class="bd-hero-info">
+          <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+          <div class="bd-hero-author">${esc(b.author)}</div>
+          ${metaParts.length ? `<div class="bd-hero-meta">${metaParts.map(m => `<span>${m}</span>`).join('')}</div>` : ''}
+        </div>
       </div>
-    </div>
-
-    <!-- 상태 -->
-    <div class="bd-section">
-      <div class="bd-section-lbl">상태</div>
-      <div class="status-seg" id="bdStatusSeg">
-        <button class="status-seg-btn ${wish?'active':''}" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
-        <button class="status-seg-btn ${reading?'active':''}" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
-        <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
+      <!-- 상태 세그먼트 (히어로 내부) -->
+      <div class="bd-hero-status">
+        <div class="status-seg" id="bdStatusSeg">
+          <button class="status-seg-btn ${wish?'active':''}" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
+          <button class="status-seg-btn ${reading?'active':''}" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
+          <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
+        </div>
       </div>
+      ${reading ? `
+      <!-- 진행률 (히어로 내부) -->
+      <div class="bd-hero-prog">
+        <div class="bd-hero-prog-row">
+          <input type="number" class="bd-progress-input" id="bdProgressInput"
+                 value="${b.currentPage || 0}" min="0" max="${b.pages}">
+          <span class="bd-progress-sep">/</span>
+          <span class="bd-progress-total">${b.pages}p</span>
+          <span class="bd-progress-pct" id="bdProgressPct">${progPct}%</span>
+        </div>
+        <div class="bd-progress-bar">
+          <div class="bd-progress-fill" id="bdProgressFill" style="width:${progPct}%"></div>
+        </div>
+        <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
+      </div>
+      ` : ''}
     </div>
 
     ${done || b.isLifeBook ? `
@@ -6935,23 +6981,6 @@ function renderBookDetail() {
             ${b.isLifeBook ? '⭐ 등록됨 · 로그·통계에서 특별 표시됨' : '두번 세번 다시 읽고 싶은 책을 체크해주세요'}
           </div>
         </div>
-      </div>
-    </div>
-    ` : ''}
-
-    ${reading ? `
-    <!-- 진행률 -->
-    <div class="bd-section">
-      <div class="bd-section-lbl">진행률<span class="subct">${daysBetween(b.dateStart, todayStr())}일째</span></div>
-      <div class="bd-progress-row">
-        <input type="number" class="bd-progress-input" id="bdProgressInput"
-               value="${b.currentPage || 0}" min="0" max="${b.pages}">
-        <span class="bd-progress-sep">/</span>
-        <span class="bd-progress-total">${b.pages}p</span>
-        <span class="bd-progress-pct" id="bdProgressPct">${progPct}%</span>
-      </div>
-      <div class="bd-progress-bar">
-        <div class="bd-progress-fill" id="bdProgressFill" style="width:${progPct}%"></div>
       </div>
     </div>
     ` : ''}
