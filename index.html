@@ -3290,6 +3290,46 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .dates-hint.error { color: #C1272D; }
 
+/* 페이지 수 입력 (확인 화면) */
+.pages-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pages-input {
+  flex: 1;
+  padding: 11px 12px;
+  border: 1.5px solid var(--c-border-2);
+  background: var(--c-surface);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .15s;
+  letter-spacing: -0.01em;
+}
+.pages-input::-webkit-outer-spin-button,
+.pages-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pages-input:focus { border-color: var(--primary); }
+.pages-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+}
+.pages-hint {
+  font-size: 11.5px;
+  color: var(--c-label);
+  margin-top: 6px;
+  padding-left: 2px;
+  line-height: 1.4;
+}
+.pages-hint.warn { color: #C97A00; font-weight: 600; }
+
 /* 상태 세그먼트 */
 .status-seg {
   display: grid;
@@ -3641,8 +3681,33 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   letter-spacing: -0.02em;
 }
 .bd-progress-input:focus { border-color: var(--primary); background: var(--c-surface); }
+.bd-progress-input::-webkit-outer-spin-button,
+.bd-progress-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .bd-progress-sep { font-size: 15px; font-weight: 600; color: var(--c-label); font-family: inherit; }
-.bd-progress-total { font-size: 15px; font-weight: 600; color: var(--c-text-2); font-family: inherit; letter-spacing: -0.01em; }
+.bd-progress-total {
+  /* 총 페이지도 이제 input이라 bd-progress-input 스타일을 상속받음 */
+}
+.bd-progress-unit {
+  font-size: 14px; font-weight: 600; color: var(--c-label);
+  font-family: inherit; letter-spacing: -0.01em;
+  margin-left: -4px;
+}
+/* 위시/완독 상태: 페이지 수 편집 한 줄 */
+.bd-hero-pages {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.bd-hero-pages-lbl {
+  font-size: 13px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  margin-right: 4px;
+}
+.bd-hero-pages-input {
+  width: 90px;
+}
 .bd-progress-pct {
   margin-left: auto;
   font-size: 16px; font-weight: 800;
@@ -5904,6 +5969,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <!-- JS 렌더 -->
       </div>
 
+      <!-- 페이지 수 (API 부정확 시 수정 가능) -->
+      <div class="confirm-section">
+        <div class="confirm-section-lbl">페이지 수</div>
+        <div class="pages-field">
+          <input type="number" id="confirmPages" class="pages-input" min="1" max="99999" inputmode="numeric">
+          <span class="pages-unit">p</span>
+        </div>
+        <div class="pages-hint" id="pagesHint"></div>
+      </div>
+
       <!-- 상태 선택 -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">상태</div>
@@ -7061,11 +7136,12 @@ function renderSearchResults(items, errors) {
 
 /* ─── 책 선택 → Stage 2 ─── */
 function selectBook(normalizedBook) {
-  // 페이지 수 없으면 기본 300
+  // 페이지 수 없으면 기본 300 · 확인 화면에서 사용자가 수정 가능
   BA.selected = {
     ...normalizedBook,
     pages: normalizedBook.pages || 300,
   };
+  BA.pagesFromApi = !!normalizedBook.pages;  // API/검색결과에서 실제로 받은 값인지
   BA.tagsSelected = [];
   goToStage('confirm');
   renderConfirm();
@@ -7091,6 +7167,7 @@ function submitManual() {
     language: 'ko',
     source: 'manual',
   };
+  BA.pagesFromApi = true;  // 사용자가 직접 입력했으므로 신뢰
   BA.tagsSelected = [];
   goToStage('confirm');
   renderConfirm();
@@ -7115,6 +7192,35 @@ function renderConfirm() {
       <div class="confirm-author">${esc(b.author)}</div>
       <div class="confirm-meta">${esc(metaParts)}</div>
     </div>`;
+
+  // 페이지 수 input · 검색결과에서 못 받았으면 경고 hint
+  const pagesInput = document.getElementById('confirmPages');
+  const pagesHint = document.getElementById('pagesHint');
+  if (pagesInput) {
+    pagesInput.value = b.pages || '';
+    // 확정 시 BA.selected.pages 동기화를 위한 input 이벤트
+    pagesInput.oninput = (e) => {
+      const v = parseInt(e.target.value, 10);
+      if (!isNaN(v) && v > 0) BA.selected.pages = v;
+      // 미리보기 meta도 실시간 갱신
+      const metaEl = preview.querySelector('.confirm-meta');
+      if (metaEl) {
+        const parts = [b.year, `${v || b.pages}p`,
+          b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
+          .filter(Boolean).join(' · ');
+        metaEl.textContent = parts;
+      }
+    };
+  }
+  if (pagesHint) {
+    if (!BA.pagesFromApi) {
+      pagesHint.className = 'pages-hint warn';
+      pagesHint.textContent = '⚠ 페이지 정보를 자동으로 찾지 못했어요. 실제 페이지 수를 입력해주세요';
+    } else {
+      pagesHint.className = 'pages-hint';
+      pagesHint.textContent = '검색 결과에서 가져온 값이에요. 실제와 다르면 수정하세요';
+    }
+  }
 
   // 상태 기본값 = 위시
   document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
@@ -7279,6 +7385,20 @@ function confirmAddBook() {
   const today = new Date().toISOString().slice(0, 10);
   const palette = pickPalette(b.title + b.author);
 
+  // 페이지 수 최종 검증 (사용자가 input에서 수정 가능)
+  const pagesInputEl = document.getElementById('confirmPages');
+  const inputPages = pagesInputEl ? parseInt(pagesInputEl.value, 10) : NaN;
+  if (isNaN(inputPages) || inputPages < 1) {
+    showToast('페이지 수를 올바르게 입력해주세요');
+    pagesInputEl?.focus();
+    return;
+  }
+  if (inputPages > 20000) {
+    showToast('페이지 수가 너무 커요. 다시 확인해주세요');
+    pagesInputEl?.focus();
+    return;
+  }
+
   // 사용자가 입력한 날짜 (없으면 오늘)
   const inputStart = document.getElementById('dateStart')?.value || today;
   const inputEnd = document.getElementById('dateEnd')?.value || today;
@@ -7293,7 +7413,7 @@ function confirmAddBook() {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: b.title,
     author: b.author,
-    pages: b.pages,
+    pages: inputPages,
     palette,
     status,
     tags: BA.tagsSelected.slice(),
@@ -8406,7 +8526,9 @@ function renderBookDetail() {
           <input type="number" class="bd-progress-input" id="bdProgressInput"
                  value="${b.currentPage || 0}" min="0" max="${b.pages}">
           <span class="bd-progress-sep">/</span>
-          <span class="bd-progress-total">${b.pages}p</span>
+          <input type="number" class="bd-progress-input bd-progress-total" id="bdTotalPagesInput"
+                 value="${b.pages}" min="1" max="20000" aria-label="총 페이지 수">
+          <span class="bd-progress-unit">p</span>
           <span class="bd-progress-pct" id="bdProgressPct">${progPct}%</span>
         </div>
         <div class="bd-progress-bar">
@@ -8414,7 +8536,15 @@ function renderBookDetail() {
         </div>
         <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
       </div>
-      ` : ''}
+      ` : `
+      <!-- 페이지 수 편집 (위시/완독) -->
+      <div class="bd-hero-pages">
+        <span class="bd-hero-pages-lbl">페이지 수</span>
+        <input type="number" class="bd-progress-input bd-hero-pages-input" id="bdTotalPagesInput"
+               value="${b.pages}" min="1" max="20000" aria-label="총 페이지 수">
+        <span class="bd-progress-unit">p</span>
+      </div>
+      `}
     </div>
 
     ${reading ? `
@@ -8622,6 +8752,32 @@ function wireBookDetailEvents() {
     };
     progInput.addEventListener('change', applyProgress);
     progInput.addEventListener('blur', applyProgress);
+  }
+
+  // 총 페이지 입력 (모든 상태에서 노출 · 독서중이면 진행률 행, 그 외엔 페이지 수 행)
+  const totalInput = document.getElementById('bdTotalPagesInput');
+  if (totalInput) {
+    const applyTotal = () => {
+      let v = parseInt(totalInput.value, 10);
+      if (isNaN(v) || v < 1) {
+        showToast('페이지 수가 잘못됐어요');
+        totalInput.value = b.pages;
+        return;
+      }
+      if (v > 20000) {
+        showToast('페이지 수가 너무 커요');
+        totalInput.value = b.pages;
+        return;
+      }
+      // currentPage가 새 총 페이지를 넘으면 clamp
+      const patch = { pages: v };
+      if ((b.currentPage || 0) > v) patch.currentPage = v;
+      updateBook(b.id, patch);
+      // 상세 다시 렌더 (진행률, meta, currentPage max 등 한번에 동기화)
+      renderBookDetail();
+      showToast(`${v}p로 수정됐어요`);
+    };
+    totalInput.addEventListener('change', applyTotal);
   }
 
   // 별점 수정 (본 독서 별점)
