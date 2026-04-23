@@ -11769,6 +11769,77 @@ function _renderBarcode(year, month) {
   ).join('');
 }
 
+/* ─── 이미지 URL → base64 dataURL 변환 (CORS 우회) ─── */
+async function _imageToDataUrl(url) {
+  if (!url) return null;
+
+  // Worker 프록시 경유 URL 생성 (CORS 우회)
+  const proxyUrl = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL)
+    ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(url)}`
+    : url;
+
+  // 1차 시도: 프록시 경유
+  try {
+    const res = await fetch(proxyUrl, { mode: 'cors', cache: 'force-cache' });
+    if (res.ok) {
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (e) {
+    console.warn('[capture] proxy fetch failed, trying direct:', e.message);
+  }
+
+  // 2차 시도: 원본 직접 (서버가 CORS 허용하는 극소수 케이스)
+  try {
+    const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+    if (!res.ok) throw new Error('fetch failed');
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+/* ─── 티켓 내 표지 이미지들을 모두 base64로 치환 ─── */
+async function _inlineCoverImages(clone) {
+  const imgs = clone.querySelectorAll('.dd-grid-cover img');
+  const tasks = Array.from(imgs).map(async (img) => {
+    const src = img.src;
+    if (!src || src.startsWith('data:')) return;  // 이미 dataURL이면 스킵
+
+    const dataUrl = await _imageToDataUrl(src);
+    if (dataUrl) {
+      img.src = dataUrl;
+    } else {
+      // 변환 실패 → palette fallback으로 교체
+      const wrap = img.parentElement;
+      if (!wrap) return;
+      const title = img.alt || '책';
+      // 원본 책 데이터에서 팔레트 색상 찾기 (부모 data-book-id 통해)
+      const item = wrap.closest('[data-book-id]');
+      const bookId = item ? parseInt(item.dataset.bookId, 10) : null;
+      const book = bookId ? BOOKS.find(b => b.id === bookId) : null;
+      const palColor = (book && PALETTE_DARK[book.palette]) || '#64748b';
+      const fallback = document.createElement('div');
+      fallback.className = 'dd-grid-cover-fallback';
+      fallback.style.background = palColor;
+      fallback.textContent = title;
+      img.replaceWith(fallback);
+    }
+  });
+  await Promise.all(tasks);
+}
+
 /* ─── 티켓 이미지 캡처 (html2canvas) ─── */
 async function _captureTicketImage() {
   if (typeof html2canvas === 'undefined') {
@@ -11792,12 +11863,16 @@ async function _captureTicketImage() {
   document.body.appendChild(wrapper);
 
   try {
+    // 외부 URL 표지들을 base64로 치환 (CORS 우회)
+    await _inlineCoverImages(clone);
+
     const canvas = await html2canvas(wrapper, {
       backgroundColor: '#F5F5F7',
       scale: 2.5,
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false,   // base64로 바꿨으니 taint 필요 없음
       logging: false,
+      imageTimeout: 0,
     });
     return canvas;
   } finally {
