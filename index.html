@@ -5200,6 +5200,226 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ═══════════════════════════════════════════════════════════
+   서재 검색 모달
+   ═══════════════════════════════════════════════════════════ */
+.lib-search-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(28, 25, 23, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 90;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+.lib-search-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.lib-search-sheet {
+  position: fixed;
+  left: 50%; bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px;
+  height: 90vh;
+  background: var(--c-surface);
+  z-index: 91;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+  transition: transform .3s cubic-bezier(.2, 0, 0, 1);
+  pointer-events: none;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.lib-search-sheet.open {
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.lib-search-grip {
+  width: 40px; height: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin: 8px auto 4px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.lib-search-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.lib-search-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex; align-items: center;
+  background: color-mix(in srgb, var(--c-text) 5%, var(--c-surface));
+  border: 1.5px solid var(--c-border-2);
+  border-radius: 12px;
+  padding: 0 10px 0 12px;
+  transition: border-color .15s, background .15s;
+}
+.lib-search-input-wrap:focus-within {
+  border-color: var(--primary);
+  background: var(--c-surface);
+}
+.lib-search-icon {
+  width: 18px; height: 18px;
+  color: var(--c-label);
+  flex-shrink: 0;
+}
+.lib-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  padding: 11px 10px;
+  letter-spacing: -0.01em;
+}
+.lib-search-input::placeholder { color: var(--c-muted); }
+.lib-search-clear {
+  background: var(--c-border-2);
+  border: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--c-text-2);
+  padding: 0;
+  flex-shrink: 0;
+}
+.lib-search-clear .ic { width: 12px; height: 12px; }
+.lib-search-cancel {
+  background: none; border: none;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 15px; font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+
+.lib-search-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.lib-search-section-ttl {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 14px 20px 8px;
+}
+.lib-search-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--c-muted);
+}
+.lib-search-empty-icon {
+  font-size: 40px;
+  opacity: 0.4;
+  margin-bottom: 12px;
+}
+.lib-search-empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-label);
+  line-height: 1.5;
+}
+.lib-search-empty-hint {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  margin-top: 6px;
+}
+
+.lib-search-result {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.lib-search-result:active {
+  background: var(--c-surface);
+}
+.lib-search-result-cover {
+  width: 44px; height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--c-border-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-muted);
+}
+.lib-search-result-cover img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: saturate(0.55) brightness(0.95);
+}
+.lib-search-result-info {
+  flex: 1; min-width: 0;
+}
+.lib-search-result-title {
+  font-size: 14.5px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+.lib-search-result-title mark,
+.lib-search-result-author mark {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  color: var(--c-text);
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 800;
+}
+.lib-search-result-author {
+  font-size: 12.5px;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.lib-search-result-meta {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  color: var(--c-muted);
+}
+.lib-search-result-status {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.lib-search-result-status.wish {
+  background: color-mix(in srgb, var(--c-rose-500, #E11D48) 12%, transparent);
+  color: var(--c-rose-500, #E11D48);
+}
+.lib-search-result-status.reading {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
+}
+.lib-search-result-status.done {
+  background: color-mix(in srgb, var(--c-sage-500, #16A34A) 14%, transparent);
+  color: var(--c-sage-500, #16A34A);
+}
+.lib-search-result-tags {
+  font-size: 11px;
+  color: var(--c-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
    설정 모달 (테마 선택)
    ═══════════════════════════════════════════════════════════ */
 .settings-backdrop {
@@ -5832,6 +6052,26 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </footer>
 
 </div>
+
+<!-- ═══════════ 서재 검색 모달 ═══════════ -->
+<div class="lib-search-backdrop" id="libSearchBackdrop"></div>
+<aside class="lib-search-sheet" id="libSearchSheet" aria-hidden="true" role="dialog" aria-label="서재 검색">
+  <div class="lib-search-grip"></div>
+  <div class="lib-search-head">
+    <div class="lib-search-input-wrap">
+      <svg class="ic lib-search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+      <input type="text" class="lib-search-input" id="libSearchInput"
+             placeholder="제목·저자·태그로 검색" autocomplete="off" spellcheck="false">
+      <button class="lib-search-clear" id="libSearchClear" aria-label="지우기" style="display:none">
+        <svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </div>
+    <button class="lib-search-cancel" id="libSearchCancel">취소</button>
+  </div>
+  <div class="lib-search-body" id="libSearchBody">
+    <!-- 초기 상태: 최근 추가된 책 / 입력 중: 필터된 결과 -->
+  </div>
+</aside>
 
 <!-- ═══════════ 설정 모달 ═══════════ -->
 <div class="settings-backdrop" id="settingsBackdrop"></div>
@@ -6520,6 +6760,182 @@ settingsBackdrop?.addEventListener('click', closeSettings);
 
 // 테마 그리드 생성
 renderThemeGrid();
+
+/* ═══════════ 서재 검색 모달 ═══════════ */
+const libSearchBackdrop = document.getElementById('libSearchBackdrop');
+const libSearchSheet    = document.getElementById('libSearchSheet');
+const libSearchOpenBtn  = document.querySelector('.header-btn[aria-label="검색"]');
+const libSearchInput    = document.getElementById('libSearchInput');
+const libSearchClear    = document.getElementById('libSearchClear');
+const libSearchCancel   = document.getElementById('libSearchCancel');
+const libSearchBody     = document.getElementById('libSearchBody');
+
+function openLibSearch() {
+  if (!libSearchSheet) return;
+  libSearchBackdrop.classList.add('open');
+  libSearchSheet.classList.add('open');
+  libSearchSheet.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+  // 초기 화면 렌더
+  libSearchInput.value = '';
+  libSearchClear.style.display = 'none';
+  renderLibSearchResults('');
+  // 약간 지연 후 포커스 (transition 중 포커스하면 튐)
+  setTimeout(() => libSearchInput?.focus(), 300);
+}
+
+function closeLibSearch() {
+  if (!libSearchSheet) return;
+  libSearchBackdrop.classList.remove('open');
+  libSearchSheet.classList.remove('open');
+  libSearchSheet.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+  libSearchInput?.blur();
+}
+
+/* 검색 실행 — 제목·저자·태그 매칭 (부분일치, 대소문자 무시) */
+function filterBooksForSearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+
+  if (!q) {
+    // 빈 쿼리: 최근 추가된 책 상위 10권
+    return books.slice(0, 10).map(b => ({ book: b, matched: 'recent' }));
+  }
+
+  const results = [];
+  for (const b of books) {
+    const title = String(b.title || '').toLowerCase();
+    const author = String(b.author || '').toLowerCase();
+    const tags = Array.isArray(b.tags) ? b.tags.join(' ').toLowerCase() : '';
+
+    let matched = null;
+    // 가중치: 제목 > 저자 > 태그 (제목 매칭이 최우선)
+    if (title.includes(q)) matched = 'title';
+    else if (author.includes(q)) matched = 'author';
+    else if (tags.includes(q)) matched = 'tag';
+
+    if (matched) results.push({ book: b, matched });
+  }
+
+  // 정렬: 제목 매칭 먼저, 그 안에서는 제목 시작위치 앞쪽 우선
+  const order = { title: 0, author: 1, tag: 2 };
+  results.sort((a, b) => {
+    const ao = order[a.matched], bo = order[b.matched];
+    if (ao !== bo) return ao - bo;
+    const at = String(a.book.title || '').toLowerCase();
+    const bt = String(b.book.title || '').toLowerCase();
+    return at.indexOf(q) - bt.indexOf(q);
+  });
+
+  return results;
+}
+
+/* 쿼리로 하이라이트된 제목 HTML 반환 */
+function highlightMatch(text, query) {
+  if (!query) return esc(text);
+  const t = String(text || '');
+  const q = query.trim();
+  if (!q) return esc(t);
+  const lower = t.toLowerCase();
+  const qLower = q.toLowerCase();
+  const idx = lower.indexOf(qLower);
+  if (idx === -1) return esc(t);
+  return esc(t.slice(0, idx))
+    + '<mark>' + esc(t.slice(idx, idx + q.length)) + '</mark>'
+    + esc(t.slice(idx + q.length));
+}
+
+function renderLibSearchResults(query) {
+  if (!libSearchBody) return;
+  const q = (query || '').trim();
+  const results = filterBooksForSearch(q);
+
+  if (results.length === 0) {
+    if (q) {
+      libSearchBody.innerHTML = `
+        <div class="lib-search-empty">
+          <div class="lib-search-empty-icon">📭</div>
+          <div class="lib-search-empty-text">"${esc(q)}" 검색 결과가 없어요</div>
+          <div class="lib-search-empty-hint">제목·저자·태그로 찾을 수 있어요</div>
+        </div>`;
+    } else {
+      libSearchBody.innerHTML = `
+        <div class="lib-search-empty">
+          <div class="lib-search-empty-icon">📚</div>
+          <div class="lib-search-empty-text">아직 등록된 책이 없어요</div>
+          <div class="lib-search-empty-hint">책을 추가하면 여기서 빠르게 찾을 수 있어요</div>
+        </div>`;
+    }
+    return;
+  }
+
+  const statusLabel = { wish: '위시', reading: '독서중', done: '완독' };
+  const sectionTitle = q ? `검색 결과 · ${results.length}권` : '최근 추가';
+  const items = results.map(r => {
+    const b = r.book;
+    const cover = b.coverUrl
+      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<span style=&quot;font-size:20px&quot;>📖</span>'">`
+      : `<span style="font-size:20px">📖</span>`;
+    const tagsStr = Array.isArray(b.tags) && b.tags.length
+      ? ' · ' + b.tags.slice(0, 3).map(t => '#' + t).join(' ')
+      : '';
+    return `
+      <div class="lib-search-result" data-id="${b.id}">
+        <div class="lib-search-result-cover">${cover}</div>
+        <div class="lib-search-result-info">
+          <div class="lib-search-result-title">${highlightMatch(b.title, q)}</div>
+          <div class="lib-search-result-author">${highlightMatch(b.author, q)}</div>
+          <div class="lib-search-result-meta">
+            <span class="lib-search-result-status ${b.status || 'wish'}">${statusLabel[b.status] || '위시'}</span>
+            <span class="lib-search-result-tags">${esc(b.pages ? b.pages + 'p' : '')}${esc(tagsStr)}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  libSearchBody.innerHTML = `
+    <div class="lib-search-section-ttl">${sectionTitle}</div>
+    ${items}
+  `;
+
+  // 클릭 이벤트 → 책 상세 열기
+  libSearchBody.querySelectorAll('.lib-search-result').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = parseInt(el.dataset.id, 10);
+      if (!isNaN(id)) {
+        closeLibSearch();
+        // 시트 닫는 애니메이션 후 상세 열기
+        setTimeout(() => openBookDetail(id), 250);
+      }
+    });
+  });
+}
+
+/* 이벤트 바인딩 */
+libSearchOpenBtn?.addEventListener('click', openLibSearch);
+libSearchCancel?.addEventListener('click', closeLibSearch);
+libSearchBackdrop?.addEventListener('click', closeLibSearch);
+
+libSearchInput?.addEventListener('input', (e) => {
+  const v = e.target.value;
+  libSearchClear.style.display = v ? 'flex' : 'none';
+  renderLibSearchResults(v);
+});
+
+libSearchClear?.addEventListener('click', () => {
+  libSearchInput.value = '';
+  libSearchClear.style.display = 'none';
+  renderLibSearchResults('');
+  libSearchInput.focus();
+});
+
+// ESC 키로 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && libSearchSheet?.classList.contains('open')) {
+    closeLibSearch();
+  }
+});
 
 /* ═══════════ 탭 전환 — 캐러셀 (클릭 + 드래그 + 스냅) ═══════════ */
 const tabBtns = document.querySelectorAll('.tab-btn');
