@@ -5707,42 +5707,41 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
    월별 드릴다운 · 시네마 티켓 스타일 (G2)
    ═══════════════════════════════════════════ */
 
-/* 시트 본문 크림 배경 (티켓이 얹히는 느낌) */
-#ddSheet.dd-month-variant .dd-body {
-  background: #F4EFE0;
-  padding: 14px 16px 20px;
-}
-/* 월별일 땐 헤더도 크림색으로 융합 · 제목·서브는 숨기고 닫기 버튼만 */
+/* 월별일 땐 시트를 거의 풀스크린으로 확장 · X 버튼 숨기고 그립만 */
 #ddSheet.dd-month-variant {
   background: #F4EFE0;
+  height: 94vh;
 }
 #ddSheet.dd-month-variant .dd-head {
   background: #F4EFE0;
   border-bottom: none;
   padding: 0;
-  min-height: 24px;
+  min-height: 20px;
   position: relative;
 }
 #ddSheet.dd-month-variant .dd-ttl,
 #ddSheet.dd-month-variant .dd-sub {
   display: none;
 }
-#ddSheet.dd-month-variant .bas-grip {
-  background: #C9BE9E;
-  opacity: 0.6;
-  margin-top: 8px;
-  margin-bottom: 4px;
-}
+/* X 버튼 숨김 — 스와이프 다운으로만 닫기 */
 #ddSheet.dd-month-variant .bas-close {
-  background: rgba(44, 24, 16, 0.08);
-  top: 6px;
-  right: 14px;
+  display: none;
 }
-#ddSheet.dd-month-variant .bas-close:active {
-  background: rgba(44, 24, 16, 0.16);
+/* 그립 강조 · 탭 영역 충분히 */
+#ddSheet.dd-month-variant .bas-grip {
+  width: 48px;
+  height: 5px;
+  background: #8B7355;
+  opacity: 0.45;
+  border-radius: 3px;
+  margin: 10px auto 6px;
+  cursor: grab;
 }
-#ddSheet.dd-month-variant .bas-close svg {
-  color: #6B5B47;
+
+/* 시트 본문 크림 배경 (티켓이 얹히는 느낌) */
+#ddSheet.dd-month-variant .dd-body {
+  background: #F4EFE0;
+  padding: 6px 16px 20px;
 }
 
 /* 티켓 본체 — 흰 카드, 테두리 절취선 효과 */
@@ -5756,7 +5755,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border: 0.5px solid #D4C9B3;
   display: flex;
   align-items: stretch;
-  margin: 4px 0 10px;
+  margin: 2px 0 8px;
 }
 
 /* 좌측 세로 스텁 — 테마 색 연동 */
