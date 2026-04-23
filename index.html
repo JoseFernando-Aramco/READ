@@ -6086,6 +6086,23 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-top: 2px;
 }
 
+/* 캡처 워터마크 — 평소엔 숨김, capturing 클래스 있을 때만 표시 */
+.dd-tk-watermark {
+  display: none;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #1D1D1F;
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 0.5px dashed #D2D2D7;
+}
+.dd-ticket.capturing .dd-tk-watermark {
+  display: block;
+}
+
 /* 그리드 타이틀 제거 시 fallback */
 .dd-grid-item .dd-grid-title {
   display: none;   /* G2에서는 표지만 보여줌 */
@@ -7385,6 +7402,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
             <!-- JS 렌더 -->
           </div>
           <div class="dd-tk-bc-code" id="ddBcCode">—</div>
+          <!-- 캡처 이미지 워터마크 (평소엔 숨김, 캡처 직전에만 보임) -->
+          <div class="dd-tk-watermark" id="ddWatermark">MADE WITH READ</div>
         </div>
       </div>
     </div>
@@ -11768,70 +11787,22 @@ async function _captureTicketImage() {
   `;
   const clone = ticketEl.cloneNode(true);
   clone.style.margin = '0';
+  clone.classList.add('capturing');  // 캡처 시 워터마크 노출
   wrapper.appendChild(clone);
   document.body.appendChild(wrapper);
 
   try {
-    // 🔑 복제본의 모든 표지 이미지를 data URL로 미리 변환 (CORS/lazy 우회)
-    const imgs = [...clone.querySelectorAll('.dd-grid-cover img')];
-    await Promise.all(imgs.map(img => _inlineImageForCapture(img)));
-
     const canvas = await html2canvas(wrapper, {
       backgroundColor: '#F5F5F7',
       scale: 2.5,
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       logging: false,
     });
     return canvas;
   } finally {
     document.body.removeChild(wrapper);
   }
-}
-
-/* 이미지를 data URL로 변환해서 img.src 교체 (캡처용 CORS 우회) */
-async function _inlineImageForCapture(img) {
-  const originalSrc = img.src;
-  if (!originalSrc || originalSrc.startsWith('data:')) return;
-
-  img.removeAttribute('loading'); // lazy 해제
-
-  // 후보 URL: (1) 원본 직접 (2) Worker 프록시 경유
-  const candidates = [originalSrc];
-  if (ALADIN_PROXY_URL && !originalSrc.startsWith(ALADIN_PROXY_URL)) {
-    candidates.push(`${ALADIN_PROXY_URL}/cover?url=${encodeURIComponent(originalSrc)}`);
-  }
-
-  for (const url of candidates) {
-    try {
-      const dataUrl = await _loadAsDataUrl(url);
-      img.src = dataUrl;
-      if (img.decode) await img.decode().catch(() => {});
-      return; // 성공
-    } catch (e) {
-      // 다음 후보 시도
-    }
-  }
-  console.warn('[capture] cover inline failed (all candidates):', originalSrc);
-}
-
-/* <img crossOrigin> 으로 로드 후 canvas → data URL */
-function _loadAsDataUrl(url) {
-  return new Promise((resolve, reject) => {
-    const probe = new Image();
-    probe.crossOrigin = 'anonymous';
-    probe.onload = () => {
-      try {
-        const c = document.createElement('canvas');
-        c.width = probe.naturalWidth;
-        c.height = probe.naturalHeight;
-        c.getContext('2d').drawImage(probe, 0, 0);
-        resolve(c.toDataURL('image/jpeg', 0.9));
-      } catch (e) { reject(e); }
-    };
-    probe.onerror = () => reject(new Error('image load failed'));
-    probe.src = url;
-  });
 }
 
 /* ─── 공유하기 (Web Share API) ─── */
