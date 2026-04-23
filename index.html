@@ -2896,6 +2896,99 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
    · Stage 1b (manual)  — 직접 입력 폴백
    · Stage 2 (confirm)  — 상태 + 태그 + 추가
    ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   재사용 가능한 확인 다이얼로그 (showConfirm)
+   ═══════════════════════════════════════════════════════════ */
+.cd-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20, 16, 12, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .18s ease;
+}
+.cd-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cd-dialog {
+  position: fixed;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -48%) scale(0.94);
+  width: calc(100% - 40px);
+  max-width: 360px;
+  z-index: 201;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .22s cubic-bezier(.2, 0, 0, 1);
+}
+.cd-dialog.open {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.cd-inner {
+  background: var(--c-surface);
+  border-radius: 18px;
+  padding: 22px 22px 16px;
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--c-border);
+}
+.cd-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.cd-message {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.cd-actions {
+  display: flex;
+  gap: 8px;
+}
+.cd-btn {
+  flex: 1;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: opacity .15s, background .15s;
+}
+.cd-btn-cancel {
+  background: var(--c-border-2);
+  color: var(--c-text-2);
+}
+.cd-btn-cancel:active {
+  background: var(--c-border);
+}
+.cd-btn-confirm {
+  background: var(--primary);
+  color: #fff;
+}
+.cd-btn-confirm:active {
+  opacity: 0.85;
+}
+.cd-btn-confirm.destructive {
+  background: #C1272D;
+}
+.cd-btn-confirm.destructive:active {
+  opacity: 0.85;
+}
+
 .bas-backdrop {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.5);
@@ -10542,6 +10635,167 @@ function renderBookDetail() {
   wireBookDetailEvents();
 }
 
+/* ─── 상태 변경 ─ 확인 팝업 로직 ─── */
+
+/* 확인 팝업이 필요한 전환인가? */
+function _statusChangeNeedsConfirm(oldStatus, newStatus) {
+  // 완독 관련 전환은 모두 확인 (기록이 만들어지거나 리셋되는 큰 변화)
+  if (newStatus === 'done') return true;   // 완독 처리
+  if (oldStatus === 'done') return true;   // 완독 취소 · 변경
+  // 나머지는 가벼운 변경: wish ↔ reading 자유롭게
+  return false;
+}
+
+function _statusChangeTitle(oldStatus, newStatus) {
+  if (newStatus === 'done') return '완독으로 변경할까요?';
+  if (oldStatus === 'done' && newStatus === 'reading') return '다시 독서중으로 변경할까요?';
+  if (oldStatus === 'done' && newStatus === 'wish') return '위시로 되돌릴까요?';
+  return '상태를 변경할까요?';
+}
+
+function _statusChangeMessage(oldStatus, newStatus, book) {
+  if (newStatus === 'done') {
+    return '오늘 날짜로 완독 처리됩니다. 별점은 상세 화면에서 매길 수 있어요.';
+  }
+  if (oldStatus === 'done' && newStatus === 'reading') {
+    const hasRecord = book.dateEnd;
+    if (hasRecord) {
+      return '기존 완독 기록은 "다시 읽기" 이력으로 남겨지고,\n새 독서 세션이 오늘부터 시작됩니다.';
+    }
+    return '독서중 상태로 변경됩니다.';
+  }
+  if (oldStatus === 'done' && newStatus === 'wish') {
+    return '완독 날짜와 별점이 "다시 읽기" 이력으로 이동하고,\n위시 상태로 돌아갑니다.';
+  }
+  return '계속하시겠어요?';
+}
+
+function _statusChangeConfirmLabel(newStatus) {
+  const labels = { wish: '위시로', reading: '독서중으로', done: '완독으로' };
+  return (labels[newStatus] || '변경') + ' 변경';
+}
+
+/* 실제 상태 변경 로직 — 확인 후 호출 */
+function _applyStatusChange(b, newStatus) {
+  const update = { status: newStatus };
+  const today = todayStr();
+
+  if (newStatus === 'reading') {
+    if (b.status === 'done' && b.dateEnd) {
+      // 기존 완독 기록을 rereads로 이동
+      const existing = Array.isArray(b.rereads) ? b.rereads : [];
+      const dup = existing.some(r => r.dateEnd === b.dateEnd && r.dateStart === b.dateStart);
+      if (!dup) {
+        update.rereads = [...existing, {
+          dateStart: b.dateStart || b.dateEnd,
+          dateEnd: b.dateEnd,
+          rating: b.rating || null,
+        }];
+      }
+      // 새 독서 세션 시작
+      update.dateStart = today;
+      update.dateEnd = null;
+      update.rating = null;
+      update.currentPage = 0;
+    } else {
+      // wish → reading
+      if (!b.dateStart) update.dateStart = today;
+      if (b.currentPage == null) update.currentPage = 0;
+    }
+  } else if (newStatus === 'done') {
+    // wish/reading → done
+    if (!b.dateStart) update.dateStart = today;
+    update.dateEnd = today;
+    if (b.rating == null) update.rating = 0;  // 미평가 · 상세에서 매김
+  } else if (newStatus === 'wish') {
+    if (b.status === 'done' && b.dateEnd) {
+      // 완독 기록을 rereads로 이동 후 위시로
+      const existing = Array.isArray(b.rereads) ? b.rereads : [];
+      const dup = existing.some(r => r.dateEnd === b.dateEnd && r.dateStart === b.dateStart);
+      if (!dup) {
+        update.rereads = [...existing, {
+          dateStart: b.dateStart || b.dateEnd,
+          dateEnd: b.dateEnd,
+          rating: b.rating || null,
+        }];
+      }
+      update.dateStart = null;
+      update.dateEnd = null;
+      update.rating = null;
+      update.currentPage = 0;
+    }
+  }
+
+  updateBook(b.id, update);
+  renderBookDetail();
+  const statusLabel = { wish: '위시', reading: '독서중', done: '완독' }[newStatus];
+  showToast(`${statusLabel}(으)로 변경됐어요`);
+}
+
+/* ─── 재사용 가능한 확인 다이얼로그 ─── */
+function showConfirm({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel, destructive }) {
+  // 기존 dialog 있으면 제거
+  document.querySelectorAll('.cd-backdrop, .cd-dialog').forEach(el => el.remove());
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'cd-backdrop';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'cd-dialog';
+  dialog.setAttribute('role', 'alertdialog');
+  dialog.innerHTML = `
+    <div class="cd-inner">
+      <div class="cd-title">${esc(title || '확인')}</div>
+      <div class="cd-message">${(message || '').split('\n').map(l => esc(l)).join('<br>')}</div>
+      <div class="cd-actions">
+        <button class="cd-btn cd-btn-cancel" type="button">${esc(cancelLabel || '취소')}</button>
+        <button class="cd-btn cd-btn-confirm${destructive ? ' destructive' : ''}" type="button">${esc(confirmLabel || '확인')}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(dialog);
+
+  // 열림 애니메이션 (다음 프레임)
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    dialog.classList.add('open');
+  });
+
+  const close = () => {
+    backdrop.classList.remove('open');
+    dialog.classList.remove('open');
+    setTimeout(() => {
+      backdrop.remove();
+      dialog.remove();
+    }, 200);
+  };
+
+  dialog.querySelector('.cd-btn-cancel').addEventListener('click', () => {
+    close();
+    if (typeof onCancel === 'function') onCancel();
+  });
+  dialog.querySelector('.cd-btn-confirm').addEventListener('click', () => {
+    close();
+    if (typeof onConfirm === 'function') onConfirm();
+  });
+  backdrop.addEventListener('click', () => {
+    close();
+    if (typeof onCancel === 'function') onCancel();
+  });
+
+  // ESC 키
+  const onEsc = (e) => {
+    if (e.key === 'Escape') {
+      close();
+      document.removeEventListener('keydown', onEsc);
+      if (typeof onCancel === 'function') onCancel();
+    }
+  };
+  document.addEventListener('keydown', onEsc);
+}
+
 /* ─── 이벤트 와이어링 ─── */
 function wireBookDetailEvents() {
   const b = BD.book;
@@ -10552,30 +10806,21 @@ function wireBookDetailEvents() {
     btn.addEventListener('click', () => {
       const newStatus = btn.dataset.status;
       if (newStatus === b.status) return;
-      const update = { status: newStatus };
-      // 자동 날짜 보정
-      if (newStatus === 'reading') {
-        if (!b.dateStart) update.dateStart = todayStr();
-        if (b.currentPage == null) update.currentPage = 0;
-        // done → reading: 기존 완독을 rereads로 옮김
-        if (b.status === 'done' && b.dateEnd) {
-          update.rereads = [...(b.rereads || []), {
-            dateStart: b.dateStart, dateEnd: b.dateEnd, rating: b.rating
-          }];
-          update.dateStart = todayStr();
-          update.dateEnd = null;
-          update.rating = null;
-        }
-      } else if (newStatus === 'done') {
-        if (!b.dateStart) update.dateStart = todayStr();
-        update.dateEnd = todayStr();
-        if (!b.rating) update.rating = 4.0;
-      } else if (newStatus === 'wish') {
-        // reading/done → wish: 경고 느낌으로 기록은 유지 (그냥 status만 변경)
+
+      // 중요 전환은 확인 팝업 — 실수 클릭으로 기록 변형되지 않게
+      const oldStatus = b.status;
+      const needsConfirm = _statusChangeNeedsConfirm(oldStatus, newStatus);
+
+      if (needsConfirm) {
+        showConfirm({
+          title: _statusChangeTitle(oldStatus, newStatus),
+          message: _statusChangeMessage(oldStatus, newStatus, b),
+          confirmLabel: _statusChangeConfirmLabel(newStatus),
+          onConfirm: () => _applyStatusChange(b, newStatus),
+        });
+      } else {
+        _applyStatusChange(b, newStatus);
       }
-      updateBook(b.id, update);
-      renderBookDetail();
-      showToast(`상태: ${ {wish:'위시', reading:'독서중', done:'완독'}[newStatus] } 으로 변경됨`);
     });
   });
 
