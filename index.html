@@ -7705,23 +7705,51 @@ const SCAN = {
   processing: false,   // 책 정보 조회 중 (중복 인식 방지)
 };
 
-// 라이브러리 lazy 로드
+// 라이브러리 lazy 로드 (여러 CDN URL 순차 시도)
 async function _loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) { resolve(); return; }
+    if (existing) {
+      // 이미 로드 완료된 경우
+      if (existing.dataset.loaded === '1') { resolve(); return; }
+      // 로드 중인 경우 기존 핸들러에 태워서
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Load failed: ' + src)));
+      return;
+    }
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
-    s.onload = () => resolve();
+    s.onload = () => { s.dataset.loaded = '1'; resolve(); };
     s.onerror = () => reject(new Error('Load failed: ' + src));
     document.head.appendChild(s);
   });
 }
 
+/* 여러 URL 순차 시도 · 하나라도 성공하면 OK */
+async function _loadScriptFirst(urls) {
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      await _loadScript(url);
+      console.log('[scan] loaded:', url);
+      return url;
+    } catch (e) {
+      console.warn('[scan] load failed:', url, e && e.message);
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('All CDN sources failed');
+}
+
 async function _loadZxing() {
   if (SCAN.libsLoaded.zxing) return;
-  await _loadScript('https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js');
+  // @zxing/library가 더 안정적이고 CDN 호환성도 좋음
+  await _loadScriptFirst([
+    'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js',
+    'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js',
+    'https://cdn.jsdelivr.net/npm/@zxing/library@latest/umd/index.min.js',
+  ]);
   SCAN.libsLoaded.zxing = true;
 }
 
@@ -7743,7 +7771,9 @@ async function openScanStage() {
   try {
     await _loadZxing();
   } catch (e) {
-    _setScanError('스캐너 로드 실패', '인터넷 연결을 확인해주세요');
+    console.error('[scan] ZXing load failed', e);
+    _setScanError('스캐너 로드 실패',
+      'CDN 연결에 문제가 있을 수 있어요. 네트워크를 확인하고 잠시 후 다시 시도해주세요.');
     return;
   }
 
@@ -7788,29 +7818,58 @@ async function startScanCamera() {
 }
 
 function _startBarcodeScan() {
-  const Z = window.ZXingBrowser || window.ZXing;
+  // @zxing/library 또는 @zxing/browser 둘 다 호환
+  const Z = window.ZXing || window.ZXingBrowser;
   if (!Z || !Z.BrowserMultiFormatReader) {
-    console.warn('[scan] ZXing not available');
+    console.warn('[scan] ZXing not available', Object.keys(window).filter(k => k.startsWith('ZXing')));
+    _setScanError('스캐너 초기화 실패', '페이지를 새로고침해주세요');
     return;
   }
   const video = document.getElementById('scanVideo');
   if (!video) return;
 
-  SCAN.zxingReader = new Z.BrowserMultiFormatReader();
+  // ISBN 바코드는 EAN-13만 인식하면 충분 → 속도·배터리 최적화
+  try {
+    const hints = new Map();
+    if (Z.DecodeHintType && Z.BarcodeFormat) {
+      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [
+        Z.BarcodeFormat.EAN_13,
+        Z.BarcodeFormat.EAN_8,
+        Z.BarcodeFormat.CODE_128,
+      ]);
+      hints.set(Z.DecodeHintType.TRY_HARDER, true);
+    }
+    SCAN.zxingReader = new Z.BrowserMultiFormatReader(hints);
+  } catch (e) {
+    SCAN.zxingReader = new Z.BrowserMultiFormatReader();
+  }
   SCAN.zxingActive = true;
 
-  SCAN.zxingReader.decodeFromVideoElement(video, (result, err) => {
+  // @zxing/library의 decodeFromVideoElementContinuously
+  const callback = (result, err) => {
     if (!SCAN.zxingActive || SCAN.processing) return;
     if (result) {
-      const text = result.getText ? result.getText() : (result.text || '');
+      const text = (result.getText && result.getText()) || result.text || '';
       const isbn = _normalizeIsbn(text);
       if (isbn && isbn !== SCAN.lastIsbn) {
         SCAN.lastIsbn = isbn;
         _onBarcodeDetected(isbn);
       }
     }
-    // err는 프레임마다 "NotFound" 로 쏟아지므로 무시
-  });
+    // err는 프레임마다 NotFound로 쏟아지므로 무시
+  };
+
+  // API 호환성: 두 라이브러리에서 메서드 이름이 다름
+  if (typeof SCAN.zxingReader.decodeFromVideoElementContinuously === 'function') {
+    SCAN.zxingReader.decodeFromVideoElementContinuously(video, callback);
+  } else if (typeof SCAN.zxingReader.decodeFromVideoElement === 'function') {
+    SCAN.zxingReader.decodeFromVideoElement(video, callback);
+  } else if (typeof SCAN.zxingReader.decodeContinuously === 'function') {
+    SCAN.zxingReader.decodeContinuously(video, callback);
+  } else {
+    console.error('[scan] no compatible decode method');
+    _setScanError('스캐너 호환성 문제', '다른 브라우저로 시도해주세요');
+  }
 }
 
 function stopScanCamera() {
