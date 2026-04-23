@@ -1009,6 +1009,84 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 10px;
   position: relative;
 }
+
+/* 연도 네비게이터 */
+.annual-year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  position: relative;
+}
+.annual-year-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px;
+  opacity: 0.85;
+  text-transform: uppercase;
+  color: #fff;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.annual-year-prefix {
+  opacity: 0.72;
+}
+.annual-year-value {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  opacity: 1;
+}
+.annual-year-btn {
+  width: 30px; height: 30px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, opacity .15s, transform .1s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.annual-year-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+.annual-year-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.annual-year-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+}
+.annual-year-today {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding: 5px 11px 5px 9px;
+  cursor: pointer;
+  transition: background .15s;
+  z-index: 1;
+}
+.annual-year-today::before {
+  content: '↺ ';
+  margin-right: 2px;
+}
+.annual-year-today:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
 .annual-hero-line {
   font-family: 'Noto Serif KR', serif;
   font-size: 30px; font-weight: 700;
@@ -3290,29 +3368,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   }
 }
 
-.scan-ocr-btn {
-  width: 100%;
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--c-surface);
-  color: var(--primary);
-  border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--c-border-2));
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 14px; font-weight: 600;
-  cursor: pointer;
-  letter-spacing: -0.01em;
-  transition: opacity .15s, background .15s;
-}
-.scan-ocr-btn:active {
-  background: color-mix(in srgb, var(--primary) 6%, var(--c-surface));
-}
-.scan-ocr-btn[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.scan-ocr-btn svg { width: 18px; height: 18px; }
 .scan-hint {
   margin-top: 10px;
   font-size: 11.5px;
@@ -3356,29 +3411,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .scan-recent-item-check {
   font-size: 10px;
   color: color-mix(in srgb, var(--primary) 70%, #000);
-}
-
-/* OCR 추출 텍스트 표시 */
-.ocr-extracted {
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  background: color-mix(in srgb, var(--primary) 6%, var(--c-surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--c-border-2));
-  border-radius: 12px;
-}
-.ocr-extracted-lbl {
-  font-size: 11px; font-weight: 700;
-  color: var(--c-label);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.ocr-extracted-text {
-  font-size: 14px; font-weight: 600;
-  color: var(--c-text);
-  letter-spacing: -0.01em;
-  line-height: 1.5;
-  word-break: break-all;
 }
 
 /* ─── Stage 1: 검색 ─── */
@@ -4144,8 +4176,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bd-read-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 10px;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 8px;
   align-items: center;
   padding: 12px 14px;
   background: var(--c-surface);
@@ -4194,6 +4226,91 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-read-del:hover {
   background: color-mix(in srgb, var(--c-terra-500) 12%, transparent);
   color: var(--c-terra-700);
+}
+
+/* 편집 버튼 (연필) · 삭제와 같은 크기·정렬 */
+.bd-read-edit {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-muted);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+  cursor: pointer;
+  padding: 0;
+}
+.bd-read-edit:hover,
+.bd-read-edit.active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.bd-read-edit svg {
+  width: 14px; height: 14px;
+}
+
+/* 편집 모드일 때 독서기록 item 강조 */
+.bd-read-item.editing {
+  background: color-mix(in srgb, var(--primary) 5%, var(--c-surface));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--primary) 25%, transparent);
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+.bd-read-item.editing .bd-read-num {
+  margin-top: 4px;
+}
+/* 편집 폼 내부 — 기존 bd-read-form 스타일 일부 재활용 */
+.bd-read-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bd-read-edit-form .bd-read-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.bd-read-edit-form .bd-read-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bd-read-edit-form .bd-read-form-input {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.bd-read-edit-form .bd-read-form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.bd-read-edit-form .bd-read-form-actions .btn-secondary,
+.bd-read-edit-form .bd-read-form-actions .btn-primary {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bd-read-edit-form .bd-read-form-actions .btn-secondary {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border);
+}
+.bd-read-edit-form .bd-read-form-actions .btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
+.bd-read-edit-form .bd-stars {
+  margin-top: 2px;
+}
+.bd-read-edit-form .bd-star-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  border-radius: 8px;
 }
 .bd-read-add {
   width: 100%;
@@ -6175,7 +6292,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
     <!-- ═══ V1 · Annual Ledger Hero (blue gradient) ═══ -->
     <div class="annual-hero" id="annualHero">
-      <div class="annual-hero-label">ANNUAL LEDGER · <span id="annualYear">2026</span></div>
+      <div class="annual-year-nav">
+        <button class="annual-year-btn" id="annualYearPrev" aria-label="이전 연도">‹</button>
+        <div class="annual-year-label">
+          <span class="annual-year-prefix">ANNUAL LEDGER ·</span>
+          <span class="annual-year-value" id="annualYear">2026</span>
+        </div>
+        <button class="annual-year-btn" id="annualYearNext" aria-label="다음 연도">›</button>
+      </div>
+      <button class="annual-year-today" id="annualYearToday" style="display:none">올해로 돌아가기</button>
       <div class="annual-hero-line"><strong id="annualBigNum">—</strong>권<br/>읽었습니다.</div>
       <div class="annual-hero-sub" id="annualHeroSub">—</div>
       <div class="annual-hero-divider"></div>
@@ -6548,15 +6673,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <button class="bas-close" id="basClose1" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
-      <!-- 사진으로 추가 (비블리 스타일 · 바코드 + OCR) -->
+      <!-- 사진으로 추가 (바코드 스캔) -->
       <button class="scan-launch-btn" id="scanLaunchBtn" type="button">
         <svg class="scan-launch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
+          <rect x="3" y="6" width="18" height="12" rx="1"/>
+          <path d="M7 6v12M11 6v12M15 6v12M19 6v12"/>
         </svg>
         <div class="scan-launch-text">
-          <div class="scan-launch-ttl">사진으로 추가</div>
-          <div class="scan-launch-sub">바코드·표지를 찍어서 빠르게 등록</div>
+          <div class="scan-launch-ttl">바코드로 추가</div>
+          <div class="scan-launch-sub">책 뒷면 바코드를 찍어서 빠르게 등록</div>
         </div>
         <svg class="scan-launch-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="m9 18 6-6-6-6"/>
@@ -6617,18 +6742,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
   </div>
 
-  <!-- ─── Stage 1c: 사진으로 추가 (바코드 스캔 + OCR) ─── -->
+  <!-- ─── Stage 1c: 바코드로 추가 ─── -->
   <div class="bas-stage" data-stage="scan">
     <div class="bas-head">
       <button class="bas-back" data-back-to="search" aria-label="뒤로">←</button>
-      <div class="bas-ttl">사진으로 추가</div>
+      <div class="bas-ttl">바코드로 추가</div>
       <button class="bas-close" id="basCloseScan" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body scan-body">
       <div class="scan-viewport" id="scanViewport">
         <!-- html5-qrcode가 이 div 안에 video 엘리먼트 자동 생성 -->
         <div class="scan-reader" id="scanReader"></div>
-        <canvas class="scan-canvas" id="scanCanvas" style="display:none"></canvas>
 
         <div class="scan-overlay" id="scanOverlay">
           <div class="scan-frame">
@@ -6663,7 +6787,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
 
       <div class="scan-controls">
-        <!-- iOS의 실시간 인식이 불안정할 때 대체 동선 · 사진 한 장 찍기 -->
+        <!-- 실시간 스캔이 잘 안 될 때 대체 동선 · 사진 한 장 찍기 -->
         <label class="scan-photo-btn" id="scanPhotoBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -6673,17 +6797,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <input type="file" accept="image/*" capture="environment" id="scanPhotoInput" style="display:none">
         </label>
 
-        <button class="scan-ocr-btn" id="scanOcrBtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3"/>
-            <rect x="8" y="8" width="8" height="8"/>
-          </svg>
-          <span id="scanOcrBtnLabel">표지 글자로 검색</span>
-        </button>
-
         <div class="scan-hint" id="scanHint">
-          <strong>잘 안 인식될 때</strong>는 <strong>"📸 사진 찍어서 인식"</strong>을 눌러주세요.<br>
-          책 뒷면 바코드나 표지 제목이 또렷하게 보이게 찍으면 돼요.
+          바코드를 비추면 자동으로 인식돼요.<br>
+          <strong>여러 권을 한 번에 등록</strong>할 수 있어요.
         </div>
       </div>
 
@@ -6694,23 +6810,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
   </div>
 
-  <!-- ─── Stage 1d: OCR 검색 결과 (표지에서 추출한 키워드로 카카오 검색) ─── -->
-  <div class="bas-stage" data-stage="ocrResults">
-    <div class="bas-head">
-      <button class="bas-back" data-back-to="scan" aria-label="뒤로">←</button>
-      <div class="bas-ttl">표지에서 찾은 책</div>
-      <button class="bas-close" id="basCloseOcr" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
-    </div>
-    <div class="bas-body">
-      <div class="ocr-extracted" id="ocrExtracted">
-        <div class="ocr-extracted-lbl">표지에서 읽은 텍스트</div>
-        <div class="ocr-extracted-text" id="ocrExtractedText">-</div>
-      </div>
-      <div class="search-results" id="ocrSearchResults"></div>
-      <div class="search-fallback">
-        <button class="fallback-btn" id="btnOcrRetry">
-          <span><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span> 다시 찍거나 직접 검색하기
-        </button>
+      <div class="scan-recent" id="scanRecent" style="display:none">
+        <div class="scan-recent-ttl">이번에 추가한 책</div>
+        <div class="scan-recent-list" id="scanRecentList"></div>
       </div>
     </div>
   </div>
@@ -7847,16 +7949,16 @@ function goToStage(stage) {
   });
   document.querySelector('.bas-sheet .bas-body')?.scrollTo({ top: 0 });
 
-  // scan 스테이지가 아닌 경우 카메라 정지 (OCR 결과 포함)
+  // scan 스테이지가 아닌 경우 카메라 정지 (자원 반납)
   if (stage !== 'scan') {
     try { stopScanCamera(); } catch (e) {}
   }
 }
 
 /* ═════════════════════════════════════════════
-   사진으로 추가 (바코드 스캔 + 표지 OCR)
-   - ZXing-js: 바코드(EAN-13 = ISBN-13) 실시간 인식
-   - Tesseract.js: 한국어 OCR fallback
+   바코드로 추가 (실시간 스캔 + 사진 한 장 fallback)
+   - html5-qrcode: ISBN-13 (EAN-13) 바코드 인식
+   - iOS Safari/Android Chrome 호환
    ═════════════════════════════════════════════ */
 
 // 스캔 상태 관리
@@ -7869,8 +7971,7 @@ const SCAN = {
   hintTimer: null,
   lastIsbn: null,
   addedBooks: [],
-  libsLoaded: { zxing: false, tesseract: false },
-  tesseractWorker: null,
+  libsLoaded: { zxing: false },
   processing: false,
 };
 
@@ -7921,12 +8022,6 @@ async function _loadZxing() {
     'https://cdn.jsdelivr.net/npm/html5-qrcode/html5-qrcode.min.js',
   ]);
   SCAN.libsLoaded.zxing = true;
-}
-
-async function _loadTesseract() {
-  if (SCAN.libsLoaded.tesseract) return;
-  await _loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
-  SCAN.libsLoaded.tesseract = true;
 }
 
 /* 스캔 스테이지 진입 */
@@ -8032,7 +8127,7 @@ function _startBarcodeScan() {
       if (SCAN.hintTimer) clearTimeout(SCAN.hintTimer);
       SCAN.hintTimer = setTimeout(() => {
         if (SCAN.zxingActive && !SCAN.lastIsbn && !SCAN.processing) {
-          _setScanStatus('📸 사진 찍어서 인식을 써보세요', 'warn');
+          _setScanStatus('바코드를 더 가까이·밝게 비춰주세요', 'warn');
           // 사진 버튼 강조 애니메이션
           const photoBtn = document.getElementById('scanPhotoBtn');
           if (photoBtn) photoBtn.classList.add('pulse');
@@ -8338,247 +8433,63 @@ function _setScanError(title, msg) {
   el.style.display = '';
 }
 
-/* ─── 사진 한 장으로 바코드+OCR 시도 (핵심 fallback) ─── */
+/* ─── 사진 한 장으로 바코드 인식 시도 ─── */
 async function processPhotoFile(file) {
   if (!file) return;
   _setScanLoading(true, '사진에서 바코드 찾는 중…');
   SCAN.processing = true;
 
-  // 1단계: html5-qrcode로 파일 직접 디코드 (ISBN 바코드 체크)
   try {
     if (!SCAN.libsLoaded.zxing) {
       await _loadZxing();
     }
     const Html5QrcodeLib = window.Html5Qrcode;
-    if (Html5QrcodeLib) {
-      // 임시 인스턴스 생성 — 파일 디코딩 전용
-      const tmpDiv = document.createElement('div');
-      tmpDiv.id = '__tmpScanFile_' + Date.now();
-      tmpDiv.style.display = 'none';
-      document.body.appendChild(tmpDiv);
+    if (!Html5QrcodeLib) {
+      throw new Error('스캐너 라이브러리 로드 실패');
+    }
 
-      try {
-        const tmpInst = new Html5QrcodeLib(tmpDiv.id);
-        const decodedText = await tmpInst.scanFile(file, false);
-        tmpDiv.remove();
+    // 임시 인스턴스 생성 — 파일 디코딩 전용
+    const tmpDiv = document.createElement('div');
+    tmpDiv.id = '__tmpScanFile_' + Date.now();
+    tmpDiv.style.display = 'none';
+    document.body.appendChild(tmpDiv);
 
-        console.log('[scan] file decoded:', decodedText);
-        const isbn = _normalizeIsbn(decodedText);
-        if (isbn) {
-          SCAN.lastIsbn = isbn;
-          await _onBarcodeDetected(isbn);
-          return;
-        }
-        // 바코드긴 한데 ISBN 형식 아님 → OCR로
-        console.log('[scan] decoded but not ISBN, trying OCR');
-      } catch (e) {
-        // 파일에서 바코드 못 찾음 → OCR로
-        tmpDiv.remove();
-        console.log('[scan] no barcode in photo, trying OCR');
+    let decodedText = null;
+    try {
+      const tmpInst = new Html5QrcodeLib(tmpDiv.id);
+      decodedText = await tmpInst.scanFile(file, false);
+      tmpDiv.remove();
+      console.log('[scan] file decoded:', decodedText);
+    } catch (e) {
+      tmpDiv.remove();
+      console.log('[scan] no barcode in photo', e);
+    }
+
+    if (decodedText) {
+      const isbn = _normalizeIsbn(decodedText);
+      if (isbn) {
+        SCAN.lastIsbn = isbn;
+        await _onBarcodeDetected(isbn);
+        return;
       }
     }
-  } catch (e) {
-    console.warn('[scan] file barcode decode fail', e);
-  }
 
-  // 2단계: OCR로 텍스트 추출 → 제목 검색
-  try {
-    await _runOcrOnFile(file);
-  } catch (e) {
-    console.error('[scan] ocr fail', e);
+    // 바코드 못 찾음 · 사용자에게 안내
     _setScanLoading(false);
     SCAN.processing = false;
-    _setScanStatus('사진에서 아무것도 못 찾았어요', 'warn');
+    _setScanStatus('사진에서 바코드를 찾지 못했어요', 'warn');
     setTimeout(() => {
-      _setScanStatus('다시 시도해주세요', 'default');
+      _setScanStatus('바코드가 또렷하게 보이게 다시 찍어주세요', 'default');
+    }, 2200);
+  } catch (e) {
+    console.error('[scan] photo process fail', e);
+    _setScanLoading(false);
+    SCAN.processing = false;
+    _setScanStatus('사진 처리 실패 · 다시 시도해주세요', 'warn');
+    setTimeout(() => {
+      _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
     }, 2000);
   }
-}
-
-/* 파일 이미지에 OCR 실행 → 키워드 추출 → 카카오 검색 */
-async function _runOcrOnFile(file) {
-  _setScanLoading(true, '표지에서 글자 인식 중…');
-
-  // 이미지를 canvas로 그려서 OCR
-  const img = new Image();
-  const fileUrl = URL.createObjectURL(file);
-  await new Promise((resolve, reject) => {
-    img.onload = resolve;
-    img.onerror = reject;
-    img.src = fileUrl;
-  });
-
-  // 너무 큰 이미지는 축소 (Tesseract 속도 개선)
-  const MAX = 1600;
-  let targetW = img.width, targetH = img.height;
-  if (targetW > MAX || targetH > MAX) {
-    const ratio = Math.min(MAX / targetW, MAX / targetH);
-    targetW = Math.floor(targetW * ratio);
-    targetH = Math.floor(targetH * ratio);
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = targetW;
-  canvas.height = targetH;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, targetW, targetH);
-  URL.revokeObjectURL(fileUrl);
-
-  try {
-    await _loadTesseract();
-    if (!SCAN.tesseractWorker) {
-      _setScanLoading(true, '한국어 엔진 준비 중…\n(첫 실행만 20초 정도)');
-      const worker = await Tesseract.createWorker('kor', 1, {
-        logger: (m) => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round((m.progress || 0) * 100);
-            _setScanLoading(true, `글자 인식 중… ${pct}%`);
-          }
-        },
-      });
-      SCAN.tesseractWorker = worker;
-    }
-    _setScanLoading(true, '글자 인식 중…');
-    const { data } = await SCAN.tesseractWorker.recognize(canvas);
-    const rawText = (data && data.text) || '';
-    console.log('[ocr] raw:', rawText.slice(0, 200));
-    const keywords = _extractOcrKeywords(rawText);
-
-    _setScanLoading(false);
-    SCAN.processing = false;
-
-    if (!keywords) {
-      _setScanStatus('글자를 읽지 못했어요 · 또렷하게 다시 찍어주세요', 'warn');
-      setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2200);
-      return;
-    }
-
-    await _runOcrSearch(rawText, keywords);
-  } catch (e) {
-    _setScanLoading(false);
-    SCAN.processing = false;
-    throw e;
-  }
-}
-
-/* 기존 captureAndRunOCR — 실시간 비디오 OCR (fallback, html5-qrcode의 video 사용) */
-async function captureAndRunOCR() {
-  const readerDiv = document.getElementById('scanReader');
-  const video = readerDiv && readerDiv.querySelector('video');
-  if (!video || video.videoWidth === 0) {
-    _setScanStatus('카메라가 준비되지 않았어요', 'warn');
-    return;
-  }
-  // video 현재 프레임 → Blob → processPhotoFile 재사용
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.9));
-  if (blob) await processPhotoFile(blob);
-}
-
-/* OCR 결과 텍스트에서 검색에 쓸 키워드 추출 */
-function _extractOcrKeywords(text) {
-  if (!text) return null;
-
-  // 한글 이모지·공백 제외 글자가 최소 2자 이상인 줄만 통과
-  const lines = String(text)
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => {
-      if (l.length < 2 || l.length > 40) return false;
-      // 숫자·하이픈·특수문자만 있는 줄 (바코드 번호 등) 제외
-      const koreanOrEnglish = l.match(/[\uAC00-\uD7AF\u3131-\u318E A-Za-z]/g);
-      if (!koreanOrEnglish || koreanOrEnglish.length < 2) return false;
-      return true;
-    });
-  if (!lines.length) return null;
-
-  // 한글 비율이 높은 줄을 우선 (한국 책이 대부분이니)
-  const score = (line) => {
-    const korean = (line.match(/[\uAC00-\uD7AF]/g) || []).length;
-    const total = line.replace(/\s/g, '').length;
-    const koreanRatio = total ? korean / total : 0;
-    // 긴 한글 줄이 제목일 확률 높음
-    return koreanRatio * 10 + Math.min(line.length, 20) * 0.3;
-  };
-  lines.sort((a, b) => score(b) - score(a));
-
-  const top = lines.slice(0, 2);
-
-  // 특수문자 제거, 깔끔하게
-  const cleaned = top.map(l =>
-    l.replace(/[^\uAC00-\uD7AF\u3131-\u318E\w\s]/g, ' ')
-     .replace(/\s+/g, ' ')
-     .trim()
-  ).filter(l => l.length >= 2);
-
-  if (!cleaned.length) return null;
-  return cleaned.join(' ');
-}
-
-async function _runOcrSearch(rawText, keywords) {
-  // 검색어 짧게 자르기 (API 성공률↑)
-  const query = keywords.split(' ').slice(0, 4).join(' ');
-
-  goToStage('ocrResults');
-  const textEl = document.getElementById('ocrExtractedText');
-  if (textEl) textEl.textContent = rawText.slice(0, 200).trim() || '-';
-
-  const resultsEl = document.getElementById('ocrSearchResults');
-  if (resultsEl) resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-muted);font-size:13px">검색 중…</div>';
-
-  try {
-    // 기존 통합 검색 함수 호출 (Kakao + Google)
-    const results = await (typeof searchBooks === 'function' ? searchBooks(query) : Promise.resolve([]));
-    _renderOcrResults(results, query);
-  } catch (e) {
-    console.error('[ocr-search] fail', e);
-    if (resultsEl) {
-      resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-muted);font-size:13px">검색에 실패했어요</div>';
-    }
-  }
-}
-
-function _renderOcrResults(items, query) {
-  const container = document.getElementById('ocrSearchResults');
-  if (!container) return;
-  if (!items || !items.length) {
-    container.innerHTML = `
-      <div style="padding:30px 20px;text-align:center;color:var(--c-muted);font-size:13px;line-height:1.6">
-        <div style="font-size:30px;margin-bottom:8px">🔍</div>
-        "${esc(query)}"로 책을 찾지 못했어요<br/>
-        <span style="font-size:12px">다시 찍거나 직접 입력해보세요</span>
-      </div>`;
-    return;
-  }
-  const html = items.map((b, idx) => {
-    const sourceBadge = b.source === 'google'
-      ? '<span class="result-src-badge">Google</span>'
-      : '<span class="result-src-badge kakao">Kakao</span>';
-    const meta = [b.year, b.pages ? `${b.pages}p` : '', b.publisher].filter(Boolean).join(' · ');
-    return `
-      <div class="result-item" data-idx="${idx}">
-        ${b.cover
-          ? `<img class="result-cover" src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
-          : `<div class="result-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
-        <div class="result-info">
-          <div class="result-title">${esc(b.title)}${sourceBadge}</div>
-          <div class="result-author">${esc(b.author)}</div>
-          <div class="result-meta">${esc(meta)}</div>
-        </div>
-      </div>`;
-  }).join('');
-
-  container.innerHTML = html;
-  container.querySelectorAll('.result-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const b = items[+el.dataset.idx];
-      if (typeof selectBook === 'function') selectBook(b);
-    });
-  });
 }
 
 /* ─── 이벤트 바인딩 ─── */
@@ -8586,34 +8497,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const launchBtn = document.getElementById('scanLaunchBtn');
   if (launchBtn) launchBtn.addEventListener('click', openScanStage);
 
-  // 사진 찍기 input (iOS 네이티브 카메라 앱 호출 → 사진 한 장 처리)
+  // 사진 찍기 input (iOS 네이티브 카메라 앱 호출 → 바코드 인식)
   const photoInput = document.getElementById('scanPhotoInput');
   if (photoInput) {
     photoInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      e.target.value = ''; // 같은 파일 다시 선택할 수 있게 초기화
+      e.target.value = '';
       // 사진 찍으면 실시간 스캔 중단
       try { stopScanCamera(); } catch(e){}
       await processPhotoFile(file);
     });
   }
 
-  // 표지 글자 검색 (실시간 스캔 중 OCR)
-  const ocrBtn = document.getElementById('scanOcrBtn');
-  if (ocrBtn) ocrBtn.addEventListener('click', () => {
-    if (SCAN.processing) return;
-    SCAN.processing = true;
-    captureAndRunOCR().finally(() => {
-      SCAN.processing = false;
-    });
-  });
-
-  const ocrRetryBtn = document.getElementById('btnOcrRetry');
-  if (ocrRetryBtn) ocrRetryBtn.addEventListener('click', () => openScanStage());
-
   const closeScanBtn = document.getElementById('basCloseScan');
-  const closeOcrBtn = document.getElementById('basCloseOcr');
   const closeSheetFn = () => {
     stopScanCamera();
     const sheet = document.getElementById('basSheet');
@@ -8623,7 +8520,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try { unlockBodyScroll && unlockBodyScroll(); } catch(e){}
   };
   if (closeScanBtn) closeScanBtn.addEventListener('click', closeSheetFn);
-  if (closeOcrBtn) closeOcrBtn.addEventListener('click', closeSheetFn);
 });
 
 /* ─── Stage 1: 책 검색 (Google Books 직접 호출) ─── */
@@ -10216,6 +10112,7 @@ const BD = {
   book: null,         // 현재 열려있는 책 (참조)
   showRereadForm: false,
   confirmDelete: false,
+  editingReadIdx: null,  // 편집 중인 독서 기록 인덱스 (-1: 현재 세션, 0+: rereads 인덱스, null: 편집 안 함)
 };
 
 /* ─── 독서 세션 모음 (본 독서 + 재독 정렬) ─── */
@@ -10531,6 +10428,46 @@ function renderBookDetail() {
         ${reads.map((r, i) => {
           const n = totalReads - i;
           const days = r.dateEnd ? daysBetween(r.dateStart, r.dateEnd) : null;
+          const isEditing = BD.editingReadIdx === r.index;
+          const canEditEnd = !!r.dateEnd;  // 완독 기록만 종료일 편집 가능
+          if (isEditing) {
+            return `
+              <div class="bd-read-item editing">
+                <div class="bd-read-num">${n}</div>
+                <div class="bd-read-edit-form" style="grid-column: 2 / -1">
+                  <div class="bd-read-form-row">
+                    <div class="bd-read-form-field">
+                      <label class="bd-read-form-lbl">시작일</label>
+                      <input type="date" class="bd-read-form-input" id="bdReadEditStart" value="${r.dateStart || ''}">
+                    </div>
+                    ${canEditEnd ? `
+                    <div class="bd-read-form-field">
+                      <label class="bd-read-form-lbl">종료일</label>
+                      <input type="date" class="bd-read-form-input" id="bdReadEditEnd" value="${r.dateEnd || ''}">
+                    </div>
+                    ` : `
+                    <div class="bd-read-form-field">
+                      <label class="bd-read-form-lbl">진행중</label>
+                      <div style="padding: 9px 12px; font-size: 13px; color: var(--c-muted); font-weight: 600;">완독 전</div>
+                    </div>
+                    `}
+                  </div>
+                  ${canEditEnd ? `
+                  <div class="bd-read-form-field">
+                    <label class="bd-read-form-lbl">별점</label>
+                    <div class="bd-stars" id="bdReadEditStars">
+                      ${[1,2,3,4,5].map(k => `<button type="button" class="bd-star-btn${r.rating && k <= Math.round(r.rating) ? ' active' : ''}" data-rating="${k}">★</button>`).join('')}
+                      <span class="bd-stars-val">${r.rating ? r.rating.toFixed(1) : ''}</span>
+                    </div>
+                  </div>
+                  ` : ''}
+                  <div class="bd-read-form-actions">
+                    <button class="btn-secondary" id="bdReadEditCancel">취소</button>
+                    <button class="btn-primary" id="bdReadEditSave">저장</button>
+                  </div>
+                </div>
+              </div>`;
+          }
           return `
             <div class="bd-read-item ${r.isCurrent ? 'current' : ''}">
               <div class="bd-read-num">${n}</div>
@@ -10539,6 +10476,11 @@ function renderBookDetail() {
                 ${days ? `<span class="days">${days}일</span>` : ''}
               </div>
               <div class="bd-read-rating">${r.rating ? `★ ${r.rating.toFixed(1)}` : '—'}</div>
+              <button class="bd-read-edit" data-edit-idx="${r.index}" aria-label="수정" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                </svg>
+              </button>
               ${!r.isCurrent ? `<button class="bd-read-del" data-reread-idx="${r.index}" aria-label="삭제">×</button>` : '<span style="width:24px"></span>'}
             </div>`;
         }).join('')}
@@ -10951,6 +10893,99 @@ function wireBookDetailEvents() {
       showToast('재독 기록 삭제됨');
     });
   });
+
+  // 독서 기록 편집 시작
+  document.querySelectorAll('.bd-read-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.editIdx, 10);
+      // 이미 같은 항목 편집 중이면 토글로 닫음
+      BD.editingReadIdx = (BD.editingReadIdx === idx) ? null : idx;
+      BD.showRereadForm = false;  // 편집 시작하면 재독 추가 폼은 닫기
+      renderBookDetail();
+    });
+  });
+
+  // 편집 폼 — 별점 버튼
+  document.querySelectorAll('#bdReadEditStars .bd-star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rating = parseInt(btn.dataset.rating, 10);
+      // 같은 별 다시 누르면 해제
+      const current = BD._editRating;
+      if (current === undefined) {
+        // 초기값을 읽어와야 함
+        const reads = getAllReads(b);
+        const target = reads.find(r => r.index === BD.editingReadIdx);
+        BD._editRating = target && target.rating ? Math.round(target.rating) : 0;
+      }
+      BD._editRating = (BD._editRating === rating) ? 0 : rating;
+      // 별 UI 갱신
+      document.querySelectorAll('#bdReadEditStars .bd-star-btn').forEach(b2 => {
+        const n = parseInt(b2.dataset.rating, 10);
+        b2.classList.toggle('active', n <= BD._editRating);
+      });
+      const valEl = document.querySelector('#bdReadEditStars .bd-stars-val');
+      if (valEl) valEl.textContent = BD._editRating > 0 ? BD._editRating.toFixed(1) : '';
+    });
+  });
+
+  // 편집 폼 — 취소
+  const editCancelBtn = document.getElementById('bdReadEditCancel');
+  if (editCancelBtn) {
+    editCancelBtn.addEventListener('click', () => {
+      BD.editingReadIdx = null;
+      BD._editRating = undefined;
+      renderBookDetail();
+    });
+  }
+
+  // 편집 폼 — 저장
+  const editSaveBtn = document.getElementById('bdReadEditSave');
+  if (editSaveBtn) {
+    editSaveBtn.addEventListener('click', () => {
+      const startEl = document.getElementById('bdReadEditStart');
+      const endEl   = document.getElementById('bdReadEditEnd');
+      const newStart = startEl ? startEl.value : '';
+      const newEnd   = endEl ? endEl.value : null;
+      if (!newStart) {
+        showToast('시작일을 입력해주세요');
+        return;
+      }
+      if (newEnd && newStart > newEnd) {
+        showToast('시작일이 종료일보다 늦을 수 없어요');
+        return;
+      }
+      // 별점은 편집 중 변경되었으면 그 값, 아니면 기존 유지
+      const reads = getAllReads(b);
+      const target = reads.find(r => r.index === BD.editingReadIdx);
+      let newRating = (BD._editRating !== undefined)
+        ? BD._editRating
+        : (target && target.rating) || 0;
+      // 종료일 없으면(독서중) 별점도 null
+      if (!newEnd) newRating = null;
+
+      if (BD.editingReadIdx === -1) {
+        // 현재 세션 수정
+        const patch = { dateStart: newStart };
+        if (b.dateEnd) {
+          patch.dateEnd = newEnd;
+          patch.rating = newRating > 0 ? newRating : 0;
+        }
+        updateBook(b.id, patch);
+      } else {
+        // rereads 배열의 해당 인덱스 수정
+        const newRereads = (b.rereads || []).map((r, i) => {
+          if (i !== BD.editingReadIdx) return r;
+          return { ...r, dateStart: newStart, dateEnd: newEnd, rating: newRating };
+        });
+        updateBook(b.id, { rereads: newRereads });
+      }
+      BD.editingReadIdx = null;
+      BD._editRating = undefined;
+      renderBookDetail();
+      showToast('독서 기록이 수정됐어요');
+    });
+  }
 
   // 위시 메모 저장 (blur 시)
   const wishNote = document.getElementById('bdWishNote');
@@ -11897,6 +11932,7 @@ function openGoalEditor() {
 
 /* ─── 전체 렌더 ─── */
 function renderAllStats() {
+  try { _bindYearNav(); } catch(e) {}
   try { renderAnnualLedger();  } catch(e) { console.error('[annual]', e); }
   try { renderLifebookCard(); } catch(e) { console.error('[lifebook]', e); }
   try { renderWeekdayChart(); } catch(e) { console.error('[weekday]', e); }
@@ -11910,6 +11946,52 @@ function renderAllStats() {
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
 
+/* ─── 통계 연도 선택 상태 ─── */
+const STATS_YEAR = {
+  current: null,  // null = 올해, 숫자 = 특정 연도
+};
+function getStatsYear() {
+  return STATS_YEAR.current != null ? STATS_YEAR.current : new Date().getFullYear();
+}
+function isStatsCurrentYear() {
+  return STATS_YEAR.current == null || STATS_YEAR.current === new Date().getFullYear();
+}
+/* 기록이 있는 연도 목록 반환 (오름차순) */
+function getAvailableStatsYears() {
+  const years = new Set();
+  const thisYear = new Date().getFullYear();
+  years.add(thisYear); // 올해는 항상 포함 (빈 상태 보여주기)
+  BOOKS.forEach(b => {
+    if (b.status === 'done' && b.dateEnd) {
+      const y = new Date(b.dateEnd).getFullYear();
+      if (!isNaN(y)) years.add(y);
+    }
+    if (b.status === 'reading' && b.dateStart) {
+      const y = new Date(b.dateStart).getFullYear();
+      if (!isNaN(y)) years.add(y);
+    }
+    (b.rereads || []).forEach(r => {
+      if (r.dateEnd) {
+        const y = new Date(r.dateEnd).getFullYear();
+        if (!isNaN(y)) years.add(y);
+      }
+    });
+    (b.readingSessions || []).forEach(s => {
+      if (s.date) {
+        const y = new Date(s.date).getFullYear();
+        if (!isNaN(y)) years.add(y);
+      }
+    });
+  });
+  return Array.from(years).sort((a, b) => a - b);
+}
+/* 연도 변경 → 통계 전체 리렌더 */
+function setStatsYear(year) {
+  const thisYear = new Date().getFullYear();
+  STATS_YEAR.current = (year === thisYear) ? null : year;
+  renderAllStats();
+}
+
 /* ─── Annual Ledger (다크 히어로) ─── */
 function renderAnnualLedger() {
   const yearEl = document.getElementById('annualYear');
@@ -11920,7 +12002,8 @@ function renderAnnualLedger() {
   const daysEl  = document.getElementById('annualReadDays');
   if (!numEl) return;
 
-  const year = new Date().getFullYear();
+  const year = getStatsYear();
+  const isCurrent = isStatsCurrentYear();
   const done = BOOKS.filter(b => {
     if (b.status !== 'done' || !b.dateEnd) return false;
     return new Date(b.dateEnd).getFullYear() === year;
@@ -11974,40 +12057,101 @@ function renderAnnualLedger() {
   });
   if (daysEl) daysEl.textContent = readDates.size;
 
-  // 서브 메시지 (목표 있으면 목표 기준, 없으면 독서중 권수)
+  // 서브 메시지 (올해: 목표/독서중 중심 · 과거: 회고 중심)
   if (subEl) {
-    const goals = (typeof getGoals === 'function') ? getGoals() : null;
-    const annualGoal = goals && goals.annual;
     let msg;
-    if (total === 0 && reading === 0) {
-      msg = '첫 책을 추가해 올해의 기록을 시작해보세요.';
-    } else if (annualGoal) {
-      const remain = Math.max(0, annualGoal - total);
-      if (remain === 0) {
-        msg = `목표 <strong>${annualGoal}권</strong> 달성 🎉`;
+    if (!isCurrent) {
+      // 과거 연도 — 회고성 메시지
+      if (total === 0) {
+        msg = `${year}년에는 기록이 없어요.`;
       } else {
-        msg = `목표까지 <strong>${remain}권</strong> 남았어요.`;
+        const pagesLabel = readDates.size > 0 ? ` · ${readDates.size}일 독서` : '';
+        msg = `${year}년엔 <strong>${total}권</strong> 완독하셨어요${pagesLabel}.`;
       }
-    } else if (reading > 0) {
-      msg = `지금 <strong>${reading}권</strong> 읽는 중.`;
     } else {
-      msg = '올해 꾸준히 읽고 있어요.';
+      const goals = (typeof getGoals === 'function') ? getGoals() : null;
+      const annualGoal = goals && goals.annual;
+      if (total === 0 && reading === 0) {
+        msg = '첫 책을 추가해 올해의 기록을 시작해보세요.';
+      } else if (annualGoal) {
+        const remain = Math.max(0, annualGoal - total);
+        if (remain === 0) {
+          msg = `목표 <strong>${annualGoal}권</strong> 달성 🎉`;
+        } else {
+          msg = `목표까지 <strong>${remain}권</strong> 남았어요.`;
+        }
+      } else if (reading > 0) {
+        msg = `지금 <strong>${reading}권</strong> 읽는 중.`;
+      } else {
+        msg = '올해 꾸준히 읽고 있어요.';
+      }
     }
     subEl.innerHTML = msg;
+  }
+
+  // 연도 네비게이터 상태 업데이트
+  _updateYearNavState();
+}
+
+/* 연도 네비게이터 prev/next 버튼 활성화 + "올해로" 버튼 표시 */
+function _updateYearNavState() {
+  const year = getStatsYear();
+  const years = getAvailableStatsYears();
+  const minYear = years[0] || year;
+  const maxYear = years[years.length - 1] || year;
+
+  const prevBtn = document.getElementById('annualYearPrev');
+  const nextBtn = document.getElementById('annualYearNext');
+  const todayBtn = document.getElementById('annualYearToday');
+
+  if (prevBtn) prevBtn.disabled = year <= minYear;
+  if (nextBtn) nextBtn.disabled = year >= maxYear;
+  if (todayBtn) todayBtn.style.display = isStatsCurrentYear() ? 'none' : '';
+}
+
+/* 연도 네비게이터 이벤트 바인딩 (DOM 로드 후 한 번만) */
+function _bindYearNav() {
+  const prevBtn = document.getElementById('annualYearPrev');
+  const nextBtn = document.getElementById('annualYearNext');
+  const todayBtn = document.getElementById('annualYearToday');
+  if (prevBtn && !prevBtn._bound) {
+    prevBtn._bound = true;
+    prevBtn.addEventListener('click', () => {
+      const years = getAvailableStatsYears();
+      const cur = getStatsYear();
+      const idx = years.indexOf(cur);
+      if (idx > 0) setStatsYear(years[idx - 1]);
+    });
+  }
+  if (nextBtn && !nextBtn._bound) {
+    nextBtn._bound = true;
+    nextBtn.addEventListener('click', () => {
+      const years = getAvailableStatsYears();
+      const cur = getStatsYear();
+      const idx = years.indexOf(cur);
+      if (idx >= 0 && idx < years.length - 1) setStatsYear(years[idx + 1]);
+    });
+  }
+  if (todayBtn && !todayBtn._bound) {
+    todayBtn._bound = true;
+    todayBtn.addEventListener('click', () => {
+      setStatsYear(new Date().getFullYear());
+    });
   }
 }
 
 /* ─── ④ 월별 권수 (Monthly Books) ─── */
 function renderMonthlyStatCard() {
-  const year = new Date().getFullYear();
-  const curMonth = new Date().getMonth();
+  const year = getStatsYear();
+  const isCurrent = isStatsCurrentYear();
+  const curMonth = isCurrent ? new Date().getMonth() : 11; // 과거는 전체 12개월 표시
   const counts = Array(12).fill(0);
   BOOKS.forEach(b => {
     if (b.status === 'done' && b.dateEnd) {
       const d = new Date(b.dateEnd);
       if (d.getFullYear() === year) counts[d.getMonth()]++;
     }
-    // 재독도 이번 해에 해당하면 카운트
+    // 재독도 해당 해에 해당하면 카운트
     (b.rereads || []).forEach(r => {
       if (r.dateEnd) {
         const d = new Date(r.dateEnd);
@@ -12027,7 +12171,11 @@ function renderMonthlyStatCard() {
   head.querySelector('.unit').textContent = `권 · ${year} 누적`;
   const sub = head.querySelector('.stat-card-sub');
   if (totalYear === 0) {
-    sub.textContent = '올해 완독한 책이 아직 없어요';
+    sub.textContent = isCurrent ? '올해 완독한 책이 아직 없어요' : `${year}년 완독 기록이 없어요`;
+  } else if (!isCurrent) {
+    // 과거 연도 — 월별 최고 찾기
+    const maxMonth = counts.indexOf(Math.max(...counts));
+    sub.innerHTML = `가장 많이 읽은 달 <strong>${maxMonth + 1}월 · ${counts[maxMonth]}권</strong>`;
   } else if (diff > 0) {
     sub.innerHTML = `이번달 <strong style="color:var(--c-terra-700)">${thisMonth}권</strong> · 지난달보다 <strong style="color:var(--c-terra-700)">+${diff}권</strong>`;
   } else if (diff < 0) {
@@ -12041,12 +12189,12 @@ function renderMonthlyStatCard() {
   const lbls  = document.getElementById('monthlyLabels');
   const max   = Math.max(1, ...counts);
   chart.innerHTML = counts.map((v, i) => `
-    <div class="monthly-bar-col${i === curMonth ? ' cur' : ''}" data-dd-month="${i}" data-dd-year="${year}">
+    <div class="monthly-bar-col${isCurrent && i === curMonth ? ' cur' : ''}" data-dd-month="${i}" data-dd-year="${year}">
       <div class="monthly-bar-val">${v || ''}</div>
       <div class="monthly-bar-rect" style="height:${v/max*100}%"></div>
     </div>`).join('');
   lbls.innerHTML = counts.map((_, i) =>
-    `<div class="monthly-lbl${i === curMonth ? ' cur' : ''}">${i + 1}</div>`
+    `<div class="monthly-lbl${isCurrent && i === curMonth ? ' cur' : ''}">${i + 1}</div>`
   ).join('');
 }
 
@@ -12116,8 +12264,9 @@ function renderGenreDonut() {
 
 /* ─── ⑥ 누적 페이지 라인 ─── */
 function renderCumulativeStatCard() {
-  const year = new Date().getFullYear();
-  const curMonth = new Date().getMonth();
+  const year = getStatsYear();
+  const isCurrent = isStatsCurrentYear();
+  const curMonth = isCurrent ? new Date().getMonth() : 11; // 과거는 전체 12개월
   const monthlyPages = Array(12).fill(0);
 
   BOOKS.forEach(b => {
@@ -12133,15 +12282,17 @@ function renderCumulativeStatCard() {
     });
   });
 
-  // 읽는중 책의 현재 진행 페이지는 currentMonth에 기여
-  BOOKS.forEach(b => {
-    if (b.status === 'reading' && b.currentPage && b.dateStart) {
-      const d = new Date(b.dateStart);
-      if (d.getFullYear() === year) {
-        monthlyPages[curMonth] += (b.currentPage || 0);
+  // 읽는중 책의 현재 진행 페이지 (올해만 반영, 과거 연도엔 의미 없음)
+  if (isCurrent) {
+    BOOKS.forEach(b => {
+      if (b.status === 'reading' && b.currentPage && b.dateStart) {
+        const d = new Date(b.dateStart);
+        if (d.getFullYear() === year) {
+          monthlyPages[curMonth] += (b.currentPage || 0);
+        }
       }
-    }
-  });
+    });
+  }
 
   // 누적
   const cumulative = [];
@@ -12158,7 +12309,11 @@ function renderCumulativeStatCard() {
   head.querySelector('.unit').textContent = `p · ${year} 누적`;
   const sub = head.querySelector('.stat-card-sub');
   if (totalPages === 0) {
-    sub.textContent = '올해 페이지 데이터가 쌓이면 추이가 보여요';
+    sub.textContent = isCurrent ? '올해 페이지 데이터가 쌓이면 추이가 보여요' : `${year}년 페이지 기록이 없어요`;
+  } else if (!isCurrent) {
+    // 과거 연도 — 연간 평균
+    const pacePerWeek = Math.round(totalPages / 52);
+    sub.textContent = `연간 총 ${totalPages.toLocaleString()}p · 주 평균 ${pacePerWeek.toLocaleString()}p`;
   } else {
     // 올해 경과 일수
     const daysElapsed = Math.max(1, Math.floor((new Date() - new Date(year, 0, 1)) / 86400000) + 1);
