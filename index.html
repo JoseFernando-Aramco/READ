@@ -3038,6 +3038,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   object-fit: cover;
   display: block;
 }
+.scan-reader {
+  width: 100%; height: 100%;
+  position: relative;
+}
+/* html5-qrcode가 자체 생성하는 video를 스타일링 */
+.scan-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.scan-reader > div {
+  border: none !important;
+}
 .scan-overlay {
   position: absolute; inset: 0;
   pointer-events: none;
@@ -3154,11 +3167,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-surface);
   border-top: 1px solid var(--c-border);
 }
-.scan-ocr-btn {
+.scan-photo-btn {
   width: 100%;
   display: flex; align-items: center; justify-content: center;
   gap: 8px;
-  padding: 12px;
+  padding: 14px;
   background: var(--primary);
   color: #fff;
   border: none;
@@ -3168,8 +3181,40 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   cursor: pointer;
   letter-spacing: -0.01em;
   transition: opacity .15s;
+  margin-bottom: 8px;
 }
-.scan-ocr-btn:active { opacity: 0.85; }
+.scan-photo-btn:active { opacity: 0.85; }
+.scan-photo-btn svg { width: 18px; height: 18px; }
+.scan-photo-btn.pulse {
+  animation: scanBtnPulse 1.5s ease-in-out infinite;
+}
+@keyframes scanBtnPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 50%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+.scan-ocr-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--c-surface);
+  color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--c-border-2));
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: opacity .15s, background .15s;
+}
+.scan-ocr-btn:active {
+  background: color-mix(in srgb, var(--primary) 6%, var(--c-surface));
+}
 .scan-ocr-btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
@@ -6488,7 +6533,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
     <div class="bas-body scan-body">
       <div class="scan-viewport" id="scanViewport">
-        <video class="scan-video" id="scanVideo" playsinline muted autoplay></video>
+        <!-- html5-qrcode가 이 div 안에 video 엘리먼트 자동 생성 -->
+        <div class="scan-reader" id="scanReader"></div>
         <canvas class="scan-canvas" id="scanCanvas" style="display:none"></canvas>
 
         <div class="scan-overlay" id="scanOverlay">
@@ -6524,16 +6570,27 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       </div>
 
       <div class="scan-controls">
+        <!-- iOS의 실시간 인식이 불안정할 때 대체 동선 · 사진 한 장 찍기 -->
+        <label class="scan-photo-btn" id="scanPhotoBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span>📸 사진 찍어서 인식</span>
+          <input type="file" accept="image/*" capture="environment" id="scanPhotoInput" style="display:none">
+        </label>
+
         <button class="scan-ocr-btn" id="scanOcrBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3"/>
+            <rect x="8" y="8" width="8" height="8"/>
           </svg>
-          <span id="scanOcrBtnLabel">표지 찍기</span>
+          <span id="scanOcrBtnLabel">표지 글자로 검색</span>
         </button>
+
         <div class="scan-hint" id="scanHint">
-          바코드를 비추면 자동으로 인식돼요.<br>
-          뒷면이 없으면 "표지 찍기"를 눌러 제목으로 검색하세요.
+          <strong>잘 안 인식될 때</strong>는 <strong>"📸 사진 찍어서 인식"</strong>을 눌러주세요.<br>
+          책 뒷면 바코드나 표지 제목이 또렷하게 보이게 찍으면 돼요.
         </div>
       </div>
 
@@ -7711,16 +7768,17 @@ function goToStage(stage) {
 
 // 스캔 상태 관리
 const SCAN = {
-  stream: null,        // MediaStream
-  zxingReader: null,   // ZXing BrowserMultiFormatReader
-  zxingControls: null, // ZXing 최신 API가 반환하는 제어 객체
+  stream: null,        // MediaStream (구 ZXing 잔재)
+  html5qr: null,       // html5-qrcode 인스턴스 (실시간 스캔)
+  zxingReader: null,   // 구 ZXing 참조 (호환성)
+  zxingControls: null,
   zxingActive: false,
-  hintTimer: null,     // 장시간 미인식 시 힌트 변경 타이머
-  lastIsbn: null,      // 중복 스캔 방지
-  addedBooks: [],      // 이번 세션에 추가한 책 리스트
+  hintTimer: null,
+  lastIsbn: null,
+  addedBooks: [],
   libsLoaded: { zxing: false, tesseract: false },
   tesseractWorker: null,
-  processing: false,   // 책 정보 조회 중 (중복 인식 방지)
+  processing: false,
 };
 
 // 라이브러리 lazy 로드 (여러 CDN URL 순차 시도)
@@ -7762,11 +7820,12 @@ async function _loadScriptFirst(urls) {
 
 async function _loadZxing() {
   if (SCAN.libsLoaded.zxing) return;
-  // @zxing/library가 더 안정적이고 CDN 호환성도 좋음
+  // html5-qrcode로 교체 — ZXing을 내부적으로 쓰면서 iOS Safari 호환성 훨씬 좋음
+  // 네이티브 BarcodeDetector API도 자동 사용 (Android 지원)
   await _loadScriptFirst([
-    'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js',
-    'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js',
-    'https://cdn.jsdelivr.net/npm/@zxing/library@latest/umd/index.min.js',
+    'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js',
+    'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
+    'https://cdn.jsdelivr.net/npm/html5-qrcode/html5-qrcode.min.js',
   ]);
   SCAN.libsLoaded.zxing = true;
 }
@@ -7804,141 +7863,141 @@ async function openScanStage() {
 }
 
 async function startScanCamera() {
-  const video = document.getElementById('scanVideo');
-  if (!video) return;
-
-  // ZXing에게 카메라 제어권을 전부 위임 (iOS Safari 호환성 ↑)
+  // html5-qrcode 인스턴스 생성 및 시작
   _setScanStatus('카메라 여는 중…', 'default');
-  _startBarcodeScan(video);
+  _startBarcodeScan();
 }
 
-function _startBarcodeScan(video) {
-  const Z = window.ZXing || window.ZXingBrowser;
-  if (!Z || !Z.BrowserMultiFormatReader) {
-    console.warn('[scan] ZXing not available', Object.keys(window).filter(k => k.startsWith('ZXing')));
+function _startBarcodeScan() {
+  const Html5QrcodeLib = window.Html5Qrcode;
+  if (!Html5QrcodeLib) {
+    console.warn('[scan] html5-qrcode not available');
     _setScanError('스캐너 초기화 실패', '페이지를 새로고침해주세요');
     return;
   }
 
-  // ISBN 바코드는 EAN-13만 인식하면 충분 → 속도·배터리 최적화
-  let hints = null;
-  try {
-    if (Z.DecodeHintType && Z.BarcodeFormat) {
-      hints = new Map();
-      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [
-        Z.BarcodeFormat.EAN_13,
-        Z.BarcodeFormat.EAN_8,
-      ]);
-      hints.set(Z.DecodeHintType.TRY_HARDER, true);
-    }
-  } catch(e) {}
-
-  try {
-    SCAN.zxingReader = new Z.BrowserMultiFormatReader(hints);
-  } catch(e) {
-    SCAN.zxingReader = new Z.BrowserMultiFormatReader();
+  // 이전 인스턴스 정리
+  if (SCAN.html5qr) {
+    try { SCAN.html5qr.stop().catch(() => {}); } catch(e){}
+    SCAN.html5qr = null;
   }
-  SCAN.zxingActive = true;
 
-  const callback = (result, err) => {
-    if (!SCAN.zxingActive || SCAN.processing) return;
-    if (result) {
-      const text = (result.getText && result.getText()) || result.text || '';
-      console.log('[scan] detected:', text);
-      const isbn = _normalizeIsbn(text);
+  // ISBN용 formats만 제한 (속도·정확도 ↑)
+  const formats = window.Html5QrcodeSupportedFormats ? [
+    window.Html5QrcodeSupportedFormats.EAN_13,
+    window.Html5QrcodeSupportedFormats.EAN_8,
+    window.Html5QrcodeSupportedFormats.UPC_A,
+  ] : undefined;
+
+  try {
+    SCAN.html5qr = new Html5QrcodeLib('scanReader', {
+      formatsToSupport: formats,
+      experimentalFeatures: {
+        // 네이티브 BarcodeDetector API 있으면 사용 (Android Chrome)
+        useBarCodeDetectorIfSupported: true,
+      },
+      verbose: false,
+    });
+    SCAN.zxingActive = true;
+
+    const config = {
+      fps: 10,
+      // 스캔 영역 = 뷰포트의 70% (프레임 안쪽 위주)
+      qrbox: (vw, vh) => {
+        const minEdge = Math.min(vw, vh);
+        const width = Math.floor(minEdge * 0.85);
+        const height = Math.floor(width * 0.45); // 바코드는 가로로 길쭉
+        return { width, height };
+      },
+      aspectRatio: 1.333,
+      disableFlip: false,
+    };
+
+    const onSuccess = (decodedText) => {
+      if (!SCAN.zxingActive || SCAN.processing) return;
+      console.log('[scan] detected:', decodedText);
+      const isbn = _normalizeIsbn(decodedText);
       if (isbn && isbn !== SCAN.lastIsbn) {
         SCAN.lastIsbn = isbn;
         _onBarcodeDetected(isbn);
       } else if (!isbn) {
-        console.log('[scan] not a valid ISBN:', text);
+        console.log('[scan] not a valid ISBN:', decodedText);
       }
-    }
-  };
+    };
+    const onError = () => { /* 매 프레임 실패는 무시 */ };
 
-  // 후면 카메라 + 높은 해상도 지정 (ZXing이 getUserMedia 처리)
-  const constraints = {
-    audio: false,
-    video: {
-      facingMode: { ideal: 'environment' },
-      width:  { ideal: 1280 },
-      height: { ideal: 720 },
-    },
-  };
+    SCAN.html5qr.start(
+      { facingMode: 'environment' },
+      config,
+      onSuccess,
+      onError,
+    ).then(() => {
+      _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
+      console.log('[scan] html5-qrcode started');
 
-  // decodeFromConstraints는 내부적으로 getUserMedia + video 연결 + 루프 돌려줌
-  if (typeof SCAN.zxingReader.decodeFromConstraints === 'function') {
-    SCAN.zxingReader.decodeFromConstraints(constraints, video, callback)
-      .then((controls) => {
-        SCAN.zxingControls = controls;
-        try { SCAN.stream = video.srcObject; } catch(e){}
-        _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
-        console.log('[scan] decoding started');
-
-        // 10초 동안 인식 안 되면 힌트 바꾸기
-        if (SCAN.hintTimer) clearTimeout(SCAN.hintTimer);
-        SCAN.hintTimer = setTimeout(() => {
-          if (SCAN.zxingActive && !SCAN.lastIsbn && !SCAN.processing) {
-            _setScanStatus('바코드를 더 가까이·밝게 비춰주세요', 'warn');
-          }
-        }, 10000);
-      })
-      .catch((err) => {
-        console.error('[scan] decodeFromConstraints fail', err);
-        _handleCameraError(err);
-      });
-  } else if (typeof SCAN.zxingReader.decodeFromVideoDevice === 'function') {
-    // 구버전 fallback
-    SCAN.zxingReader.decodeFromVideoDevice(null, video, callback)
-      .then(() => {
-        try { SCAN.stream = video.srcObject; } catch(e){}
-        _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
-      })
-      .catch((err) => {
-        console.error('[scan] decodeFromVideoDevice fail', err);
-        _handleCameraError(err);
-      });
-  } else {
-    _setScanError('스캐너 호환성 문제', '다른 브라우저로 시도해주세요');
+      // 10초 후 힌트 강화
+      if (SCAN.hintTimer) clearTimeout(SCAN.hintTimer);
+      SCAN.hintTimer = setTimeout(() => {
+        if (SCAN.zxingActive && !SCAN.lastIsbn && !SCAN.processing) {
+          _setScanStatus('📸 사진 찍어서 인식을 써보세요', 'warn');
+          // 사진 버튼 강조 애니메이션
+          const photoBtn = document.getElementById('scanPhotoBtn');
+          if (photoBtn) photoBtn.classList.add('pulse');
+        }
+      }, 10000);
+    }).catch((err) => {
+      console.error('[scan] html5-qrcode start fail', err);
+      _handleCameraError(err);
+    });
+  } catch(e) {
+    console.error('[scan] init fail', e);
+    _handleCameraError(e);
   }
 }
 
 function _handleCameraError(err) {
   const name = err && err.name;
-  if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+  const msg = String((err && err.message) || err || '');
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || /permission/i.test(msg)) {
     _setScanError('카메라 권한이 필요해요',
       'Safari 설정 > 카메라에서 허용해주세요');
-  } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+  } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || /not found/i.test(msg)) {
     _setScanError('카메라를 찾을 수 없어요', '기기 카메라를 확인해주세요');
   } else if (!window.isSecureContext) {
     _setScanError('HTTPS 연결이 필요해요', '카메라는 보안 연결에서만 작동해요');
   } else {
-    _setScanError('카메라를 열 수 없어요', String((err && err.message) || err));
+    _setScanError('카메라를 열 수 없어요', msg.slice(0, 80) || '잠시 후 다시 시도해주세요');
   }
 }
 
 function stopScanCamera() {
   SCAN.zxingActive = false;
-  // 힌트 타이머 정리
   if (SCAN.hintTimer) { clearTimeout(SCAN.hintTimer); SCAN.hintTimer = null; }
-  // decodeFromConstraints가 반환한 controls (최신 API)
+  // html5-qrcode 인스턴스 정지
+  if (SCAN.html5qr) {
+    try {
+      SCAN.html5qr.stop()
+        .then(() => { try { SCAN.html5qr.clear(); } catch(e){} })
+        .catch(() => {});
+    } catch(e){}
+    SCAN.html5qr = null;
+  }
+  // 구 ZXing 정리 (혹시 남아있으면)
   try {
     if (SCAN.zxingControls && typeof SCAN.zxingControls.stop === 'function') {
       SCAN.zxingControls.stop();
     }
   } catch(e){}
   SCAN.zxingControls = null;
-  // reset() 호출 (구 API)
   try { SCAN.zxingReader && SCAN.zxingReader.reset && SCAN.zxingReader.reset(); } catch(e){}
   SCAN.zxingReader = null;
   if (SCAN.stream) {
     try { SCAN.stream.getTracks().forEach(t => t.stop()); } catch(e){}
     SCAN.stream = null;
   }
-  const video = document.getElementById('scanVideo');
-  if (video) {
-    try { video.srcObject = null; } catch(e){}
-    try { video.pause(); } catch(e){}
-  }
+  // 사진 버튼 애니메이션 해제
+  const photoBtn = document.getElementById('scanPhotoBtn');
+  if (photoBtn) photoBtn.classList.remove('pulse');
 }
 
 /* ISBN 정규화 및 검증 */
@@ -8186,26 +8245,96 @@ function _setScanError(title, msg) {
   el.style.display = '';
 }
 
-/* ─── 표지 OCR ─── */
-async function captureAndRunOCR() {
-  if (!SCAN.stream) return;
-  const video = document.getElementById('scanVideo');
-  const canvas = document.getElementById('scanCanvas');
-  if (!video || !canvas || video.videoWidth === 0) return;
+/* ─── 사진 한 장으로 바코드+OCR 시도 (핵심 fallback) ─── */
+async function processPhotoFile(file) {
+  if (!file) return;
+  _setScanLoading(true, '사진에서 바코드 찾는 중…');
+  SCAN.processing = true;
 
-  // 현재 프레임 캡처
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // 1단계: html5-qrcode로 파일 직접 디코드 (ISBN 바코드 체크)
+  try {
+    if (!SCAN.libsLoaded.zxing) {
+      await _loadZxing();
+    }
+    const Html5QrcodeLib = window.Html5Qrcode;
+    if (Html5QrcodeLib) {
+      // 임시 인스턴스 생성 — 파일 디코딩 전용
+      const tmpDiv = document.createElement('div');
+      tmpDiv.id = '__tmpScanFile_' + Date.now();
+      tmpDiv.style.display = 'none';
+      document.body.appendChild(tmpDiv);
 
+      try {
+        const tmpInst = new Html5QrcodeLib(tmpDiv.id);
+        const decodedText = await tmpInst.scanFile(file, false);
+        tmpDiv.remove();
+
+        console.log('[scan] file decoded:', decodedText);
+        const isbn = _normalizeIsbn(decodedText);
+        if (isbn) {
+          SCAN.lastIsbn = isbn;
+          await _onBarcodeDetected(isbn);
+          return;
+        }
+        // 바코드긴 한데 ISBN 형식 아님 → OCR로
+        console.log('[scan] decoded but not ISBN, trying OCR');
+      } catch (e) {
+        // 파일에서 바코드 못 찾음 → OCR로
+        tmpDiv.remove();
+        console.log('[scan] no barcode in photo, trying OCR');
+      }
+    }
+  } catch (e) {
+    console.warn('[scan] file barcode decode fail', e);
+  }
+
+  // 2단계: OCR로 텍스트 추출 → 제목 검색
+  try {
+    await _runOcrOnFile(file);
+  } catch (e) {
+    console.error('[scan] ocr fail', e);
+    _setScanLoading(false);
+    SCAN.processing = false;
+    _setScanStatus('사진에서 아무것도 못 찾았어요', 'warn');
+    setTimeout(() => {
+      _setScanStatus('다시 시도해주세요', 'default');
+    }, 2000);
+  }
+}
+
+/* 파일 이미지에 OCR 실행 → 키워드 추출 → 카카오 검색 */
+async function _runOcrOnFile(file) {
   _setScanLoading(true, '표지에서 글자 인식 중…');
+
+  // 이미지를 canvas로 그려서 OCR
+  const img = new Image();
+  const fileUrl = URL.createObjectURL(file);
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = fileUrl;
+  });
+
+  // 너무 큰 이미지는 축소 (Tesseract 속도 개선)
+  const MAX = 1600;
+  let targetW = img.width, targetH = img.height;
+  if (targetW > MAX || targetH > MAX) {
+    const ratio = Math.min(MAX / targetW, MAX / targetH);
+    targetW = Math.floor(targetW * ratio);
+    targetH = Math.floor(targetH * ratio);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, targetW, targetH);
+  URL.revokeObjectURL(fileUrl);
 
   try {
     await _loadTesseract();
     if (!SCAN.tesseractWorker) {
-      _setScanLoading(true, '한국어 엔진 다운로드 중…\n(첫 실행만 20초 정도)');
-      const worker = await Tesseract.createWorker(['kor', 'eng'], 1, {
+      _setScanLoading(true, '한국어 엔진 준비 중…\n(첫 실행만 20초 정도)');
+      const worker = await Tesseract.createWorker('kor', 1, {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             const pct = Math.round((m.progress || 0) * 100);
@@ -8218,41 +8347,75 @@ async function captureAndRunOCR() {
     _setScanLoading(true, '글자 인식 중…');
     const { data } = await SCAN.tesseractWorker.recognize(canvas);
     const rawText = (data && data.text) || '';
+    console.log('[ocr] raw:', rawText.slice(0, 200));
     const keywords = _extractOcrKeywords(rawText);
 
     _setScanLoading(false);
+    SCAN.processing = false;
 
     if (!keywords) {
-      _setScanStatus('글자를 읽지 못했어요 · 더 가까이·또렷하게', 'warn');
-      setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2000);
+      _setScanStatus('글자를 읽지 못했어요 · 또렷하게 다시 찍어주세요', 'warn');
+      setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2200);
       return;
     }
 
-    // 추출 키워드로 카카오 검색 → OCR 결과 스테이지로
     await _runOcrSearch(rawText, keywords);
   } catch (e) {
-    console.error('[ocr] fail', e);
     _setScanLoading(false);
-    _setScanStatus('글자 인식 실패 · 다시 시도', 'warn');
-    setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2000);
+    SCAN.processing = false;
+    throw e;
   }
+}
+
+/* 기존 captureAndRunOCR — 실시간 비디오 OCR (fallback, html5-qrcode의 video 사용) */
+async function captureAndRunOCR() {
+  const readerDiv = document.getElementById('scanReader');
+  const video = readerDiv && readerDiv.querySelector('video');
+  if (!video || video.videoWidth === 0) {
+    _setScanStatus('카메라가 준비되지 않았어요', 'warn');
+    return;
+  }
+  // video 현재 프레임 → Blob → processPhotoFile 재사용
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.9));
+  if (blob) await processPhotoFile(blob);
 }
 
 /* OCR 결과 텍스트에서 검색에 쓸 키워드 추출 */
 function _extractOcrKeywords(text) {
   if (!text) return null;
-  // 줄 단위로 나눠서 의미있는 줄 고르기
+
+  // 한글 이모지·공백 제외 글자가 최소 2자 이상인 줄만 통과
   const lines = String(text)
     .split(/\r?\n/)
     .map(l => l.trim())
-    .filter(l => l.length >= 2 && l.length <= 40);
+    .filter(l => {
+      if (l.length < 2 || l.length > 40) return false;
+      // 숫자·하이픈·특수문자만 있는 줄 (바코드 번호 등) 제외
+      const koreanOrEnglish = l.match(/[\uAC00-\uD7AF\u3131-\u318E A-Za-z]/g);
+      if (!koreanOrEnglish || koreanOrEnglish.length < 2) return false;
+      return true;
+    });
   if (!lines.length) return null;
 
-  // 긴 줄 우선 (제목일 가능성 높음)
-  lines.sort((a, b) => b.length - a.length);
-  const top = lines.slice(0, 3);
+  // 한글 비율이 높은 줄을 우선 (한국 책이 대부분이니)
+  const score = (line) => {
+    const korean = (line.match(/[\uAC00-\uD7AF]/g) || []).length;
+    const total = line.replace(/\s/g, '').length;
+    const koreanRatio = total ? korean / total : 0;
+    // 긴 한글 줄이 제목일 확률 높음
+    return koreanRatio * 10 + Math.min(line.length, 20) * 0.3;
+  };
+  lines.sort((a, b) => score(b) - score(a));
 
-  // 특수문자 과다인 줄 제거, 한글·영문·숫자만 남기기
+  const top = lines.slice(0, 2);
+
+  // 특수문자 제거, 깔끔하게
   const cleaned = top.map(l =>
     l.replace(/[^\uAC00-\uD7AF\u3131-\u318E\w\s]/g, ' ')
      .replace(/\s+/g, ' ')
@@ -8330,9 +8493,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const launchBtn = document.getElementById('scanLaunchBtn');
   if (launchBtn) launchBtn.addEventListener('click', openScanStage);
 
+  // 사진 찍기 input (iOS 네이티브 카메라 앱 호출 → 사진 한 장 처리)
+  const photoInput = document.getElementById('scanPhotoInput');
+  if (photoInput) {
+    photoInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      e.target.value = ''; // 같은 파일 다시 선택할 수 있게 초기화
+      // 사진 찍으면 실시간 스캔 중단
+      try { stopScanCamera(); } catch(e){}
+      await processPhotoFile(file);
+    });
+  }
+
+  // 표지 글자 검색 (실시간 스캔 중 OCR)
   const ocrBtn = document.getElementById('scanOcrBtn');
   if (ocrBtn) ocrBtn.addEventListener('click', () => {
-    if (!SCAN.stream) return;
     if (SCAN.processing) return;
     SCAN.processing = true;
     captureAndRunOCR().finally(() => {
