@@ -2978,6 +2978,271 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bas-stage { display: none; flex-direction: column; height: 100%; }
 .bas-stage.active { display: flex; }
 
+/* ─── 사진으로 추가 · 런처 버튼 (검색 스테이지 상단) ─── */
+.scan-launch-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 14px;
+  margin-bottom: 14px;
+  border: 1.5px solid var(--c-border-2);
+  background: color-mix(in srgb, var(--primary) 4%, var(--c-surface));
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform .12s, background .15s, border-color .15s;
+  font-family: inherit;
+}
+.scan-launch-btn:hover {
+  background: color-mix(in srgb, var(--primary) 7%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--c-border-2));
+}
+.scan-launch-btn:active { transform: scale(0.99); }
+.scan-launch-icon {
+  width: 24px; height: 24px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.scan-launch-text { flex: 1; min-width: 0; }
+.scan-launch-ttl {
+  font-size: 14.5px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+}
+.scan-launch-sub {
+  font-size: 12px;
+  color: var(--c-text-2);
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+.scan-launch-arrow {
+  width: 16px; height: 16px;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+
+/* ─── 스캔 스테이지 · 레이아웃 ─── */
+.bas-body.scan-body {
+  padding: 0;
+  display: flex; flex-direction: column;
+}
+.scan-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: #000;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.scan-video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.scan-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 스캔 프레임 (바코드 포커스 영역) */
+.scan-frame {
+  position: relative;
+  width: 72%;
+  height: 38%;
+  max-width: 320px;
+}
+.scan-frame-corner {
+  position: absolute;
+  width: 32px; height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+}
+.scan-frame-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 10px; }
+.scan-frame-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 10px; }
+.scan-frame-corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-bottom-left-radius: 10px; }
+.scan-frame-corner.br { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: 10px; }
+.scan-laser {
+  position: absolute;
+  left: 6%; right: 6%;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(90, 180, 255, 0.9), transparent);
+  box-shadow: 0 0 8px rgba(90, 180, 255, 0.6);
+  animation: scanLaserMove 2s ease-in-out infinite;
+}
+@keyframes scanLaserMove {
+  0%, 100% { transform: translateY(-40px); opacity: 0.4; }
+  50% { transform: translateY(40px); opacity: 1; }
+}
+
+/* 상태 메시지 (상단) */
+.scan-status {
+  position: absolute;
+  top: 16px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  z-index: 2;
+  transition: background .2s;
+}
+.scan-status.success { background: rgba(16, 122, 58, 0.85); }
+.scan-status.warn { background: rgba(194, 120, 0, 0.85); }
+.scan-status-ico svg {
+  width: 16px; height: 16px;
+  display: block;
+}
+
+/* 로딩 오버레이 */
+.scan-loading {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  color: #fff;
+  z-index: 3;
+}
+.scan-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: scanSpin .8s linear infinite;
+}
+@keyframes scanSpin {
+  to { transform: rotate(360deg); }
+}
+.scan-loading-text {
+  font-size: 14px; font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* 에러 화면 */
+.scan-error {
+  position: absolute; inset: 0;
+  background: #1a1a1a;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: #fff;
+  z-index: 4;
+}
+.scan-error-ico { font-size: 48px; margin-bottom: 12px; }
+.scan-error-ttl {
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.scan-error-msg {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* 컨트롤 영역 */
+.scan-controls {
+  padding: 16px;
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-border);
+}
+.scan-ocr-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14.5px; font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: opacity .15s;
+}
+.scan-ocr-btn:active { opacity: 0.85; }
+.scan-ocr-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.scan-ocr-btn svg { width: 18px; height: 18px; }
+.scan-hint {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--c-muted);
+  text-align: center;
+  line-height: 1.55;
+}
+
+/* 최근 추가 리스트 */
+.scan-recent {
+  padding: 14px 16px 20px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.scan-recent-ttl {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.scan-recent-list {
+  display: flex; flex-wrap: wrap;
+  gap: 8px;
+}
+.scan-recent-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+  max-width: 100%;
+}
+.scan-recent-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+.scan-recent-item-check {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--primary) 70%, #000);
+}
+
+/* OCR 추출 텍스트 표시 */
+.ocr-extracted {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: color-mix(in srgb, var(--primary) 6%, var(--c-surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--c-border-2));
+  border-radius: 12px;
+}
+.ocr-extracted-lbl {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ocr-extracted-text {
+  font-size: 14px; font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
 /* ─── Stage 1: 검색 ─── */
 .search-wrap {
   display: flex; gap: 8px;
@@ -6144,6 +6409,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <button class="bas-close" id="basClose1" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
+      <!-- 사진으로 추가 (비블리 스타일 · 바코드 + OCR) -->
+      <button class="scan-launch-btn" id="scanLaunchBtn" type="button">
+        <svg class="scan-launch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <div class="scan-launch-text">
+          <div class="scan-launch-ttl">사진으로 추가</div>
+          <div class="scan-launch-sub">바코드·표지를 찍어서 빠르게 등록</div>
+        </div>
+        <svg class="scan-launch-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
+
       <div class="search-wrap">
         <input class="search-input" id="bookSearchInput" type="text"
                placeholder="제목, 저자, 또는 ISBN"
@@ -6195,6 +6475,92 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </div>
         <button class="form-submit" id="btnManualSubmit">다음 ›</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ─── Stage 1c: 사진으로 추가 (바코드 스캔 + OCR) ─── -->
+  <div class="bas-stage" data-stage="scan">
+    <div class="bas-head">
+      <button class="bas-back" data-back-to="search" aria-label="뒤로">←</button>
+      <div class="bas-ttl">사진으로 추가</div>
+      <button class="bas-close" id="basCloseScan" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="bas-body scan-body">
+      <div class="scan-viewport" id="scanViewport">
+        <video class="scan-video" id="scanVideo" playsinline muted autoplay></video>
+        <canvas class="scan-canvas" id="scanCanvas" style="display:none"></canvas>
+
+        <div class="scan-overlay" id="scanOverlay">
+          <div class="scan-frame">
+            <div class="scan-frame-corner tl"></div>
+            <div class="scan-frame-corner tr"></div>
+            <div class="scan-frame-corner bl"></div>
+            <div class="scan-frame-corner br"></div>
+            <div class="scan-laser"></div>
+          </div>
+        </div>
+
+        <div class="scan-status" id="scanStatus">
+          <div class="scan-status-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="6" width="18" height="12" rx="1"/>
+              <path d="M7 6v12M11 6v12M15 6v12M19 6v12"/>
+            </svg>
+          </div>
+          <span class="scan-status-text" id="scanStatusText">책 뒷면 바코드를 비춰주세요</span>
+        </div>
+
+        <div class="scan-loading" id="scanLoading" style="display:none">
+          <div class="scan-spinner"></div>
+          <div class="scan-loading-text" id="scanLoadingText">책 정보를 불러오는 중…</div>
+        </div>
+
+        <div class="scan-error" id="scanError" style="display:none">
+          <div class="scan-error-ico">📷</div>
+          <div class="scan-error-ttl" id="scanErrorTtl">카메라 권한이 필요해요</div>
+          <div class="scan-error-msg" id="scanErrorMsg">브라우저 설정에서 카메라를 허용해주세요</div>
+        </div>
+      </div>
+
+      <div class="scan-controls">
+        <button class="scan-ocr-btn" id="scanOcrBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <span id="scanOcrBtnLabel">표지 찍기</span>
+        </button>
+        <div class="scan-hint" id="scanHint">
+          바코드를 비추면 자동으로 인식돼요.<br>
+          뒷면이 없으면 "표지 찍기"를 눌러 제목으로 검색하세요.
+        </div>
+      </div>
+
+      <div class="scan-recent" id="scanRecent" style="display:none">
+        <div class="scan-recent-ttl">이번에 추가한 책</div>
+        <div class="scan-recent-list" id="scanRecentList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Stage 1d: OCR 검색 결과 (표지에서 추출한 키워드로 카카오 검색) ─── -->
+  <div class="bas-stage" data-stage="ocrResults">
+    <div class="bas-head">
+      <button class="bas-back" data-back-to="scan" aria-label="뒤로">←</button>
+      <div class="bas-ttl">표지에서 찾은 책</div>
+      <button class="bas-close" id="basCloseOcr" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="bas-body">
+      <div class="ocr-extracted" id="ocrExtracted">
+        <div class="ocr-extracted-lbl">표지에서 읽은 텍스트</div>
+        <div class="ocr-extracted-text" id="ocrExtractedText">-</div>
+      </div>
+      <div class="search-results" id="ocrSearchResults"></div>
+      <div class="search-fallback">
+        <button class="fallback-btn" id="btnOcrRetry">
+          <span><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span> 다시 찍거나 직접 검색하기
+        </button>
+      </div>
     </div>
   </div>
 
@@ -7314,7 +7680,566 @@ function goToStage(stage) {
     s.classList.toggle('active', s.dataset.stage === stage);
   });
   document.querySelector('.bas-sheet .bas-body')?.scrollTo({ top: 0 });
+
+  // scan 스테이지 이탈 시 카메라 정지 (자원 반납)
+  if (stage !== 'scan' && stage !== 'ocrResults') {
+    try { stopScanCamera(); } catch (e) {}
+  }
 }
+
+/* ═════════════════════════════════════════════
+   사진으로 추가 (바코드 스캔 + 표지 OCR)
+   - ZXing-js: 바코드(EAN-13 = ISBN-13) 실시간 인식
+   - Tesseract.js: 한국어 OCR fallback
+   ═════════════════════════════════════════════ */
+
+// 스캔 상태 관리
+const SCAN = {
+  stream: null,        // MediaStream
+  zxingReader: null,   // ZXing BrowserMultiFormatReader
+  zxingActive: false,
+  lastIsbn: null,      // 중복 스캔 방지
+  addedBooks: [],      // 이번 세션에 추가한 책 리스트
+  libsLoaded: { zxing: false, tesseract: false },
+  tesseractWorker: null,
+  processing: false,   // 책 정보 조회 중 (중복 인식 방지)
+};
+
+// 라이브러리 lazy 로드
+async function _loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Load failed: ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+async function _loadZxing() {
+  if (SCAN.libsLoaded.zxing) return;
+  await _loadScript('https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js');
+  SCAN.libsLoaded.zxing = true;
+}
+
+async function _loadTesseract() {
+  if (SCAN.libsLoaded.tesseract) return;
+  await _loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+  SCAN.libsLoaded.tesseract = true;
+}
+
+/* 스캔 스테이지 진입 */
+async function openScanStage() {
+  goToStage('scan');
+  SCAN.lastIsbn = null;
+  SCAN.processing = false;
+  _setScanStatus('바코드를 준비 중…', 'default');
+  _setScanLoading(false);
+  _setScanError(null);
+
+  try {
+    await _loadZxing();
+  } catch (e) {
+    _setScanError('스캐너 로드 실패', '인터넷 연결을 확인해주세요');
+    return;
+  }
+
+  try {
+    await startScanCamera();
+  } catch (err) {
+    const name = err && err.name;
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+      _setScanError('카메라 권한이 필요해요', '브라우저 설정에서 카메라를 허용해주세요');
+    } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+      _setScanError('카메라를 찾을 수 없어요', '기기에 카메라가 있는지 확인해주세요');
+    } else if (!window.isSecureContext) {
+      _setScanError('HTTPS가 필요해요', '카메라는 보안 연결에서만 작동해요');
+    } else {
+      _setScanError('카메라를 열 수 없어요', String((err && err.message) || err));
+    }
+  }
+}
+
+async function startScanCamera() {
+  const video = document.getElementById('scanVideo');
+  if (!video) return;
+
+  // 후면 카메라 우선
+  const constraints = {
+    audio: false,
+    video: {
+      facingMode: { ideal: 'environment' },
+      width:  { ideal: 1280 },
+      height: { ideal: 720 },
+    },
+  };
+
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  SCAN.stream = stream;
+  video.srcObject = stream;
+  await video.play().catch(() => {});
+
+  // ZXing 바코드 스캔 시작
+  _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
+  _startBarcodeScan();
+}
+
+function _startBarcodeScan() {
+  const Z = window.ZXingBrowser || window.ZXing;
+  if (!Z || !Z.BrowserMultiFormatReader) {
+    console.warn('[scan] ZXing not available');
+    return;
+  }
+  const video = document.getElementById('scanVideo');
+  if (!video) return;
+
+  SCAN.zxingReader = new Z.BrowserMultiFormatReader();
+  SCAN.zxingActive = true;
+
+  SCAN.zxingReader.decodeFromVideoElement(video, (result, err) => {
+    if (!SCAN.zxingActive || SCAN.processing) return;
+    if (result) {
+      const text = result.getText ? result.getText() : (result.text || '');
+      const isbn = _normalizeIsbn(text);
+      if (isbn && isbn !== SCAN.lastIsbn) {
+        SCAN.lastIsbn = isbn;
+        _onBarcodeDetected(isbn);
+      }
+    }
+    // err는 프레임마다 "NotFound" 로 쏟아지므로 무시
+  });
+}
+
+function stopScanCamera() {
+  SCAN.zxingActive = false;
+  try { SCAN.zxingReader && SCAN.zxingReader.reset && SCAN.zxingReader.reset(); } catch(e){}
+  SCAN.zxingReader = null;
+  if (SCAN.stream) {
+    try { SCAN.stream.getTracks().forEach(t => t.stop()); } catch(e){}
+    SCAN.stream = null;
+  }
+  const video = document.getElementById('scanVideo');
+  if (video) video.srcObject = null;
+}
+
+/* ISBN 정규화 및 검증 */
+function _normalizeIsbn(text) {
+  if (!text) return null;
+  const clean = String(text).replace(/[-\s]/g, '');
+  // ISBN-13: 13자리 숫자, 978·979로 시작
+  if (/^97[89]\d{10}$/.test(clean)) {
+    if (_isValidIsbn13(clean)) return clean;
+  }
+  // ISBN-10 → ISBN-13 변환
+  if (/^\d{9}[\dXx]$/.test(clean)) {
+    if (_isValidIsbn10(clean)) return _isbn10To13(clean);
+  }
+  return null;
+}
+function _isValidIsbn13(s) {
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(s[i], 10) * (i % 2 === 0 ? 1 : 3);
+  }
+  const check = (10 - (sum % 10)) % 10;
+  return check === parseInt(s[12], 10);
+}
+function _isValidIsbn10(s) {
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(s[i], 10) * (10 - i);
+  }
+  const last = s[9].toUpperCase();
+  sum += (last === 'X') ? 10 : parseInt(last, 10);
+  return sum % 11 === 0;
+}
+function _isbn10To13(s10) {
+  const body = '978' + s10.slice(0, 9);
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(body[i], 10) * (i % 2 === 0 ? 1 : 3);
+  }
+  const check = (10 - (sum % 10)) % 10;
+  return body + check;
+}
+
+/* 바코드 감지 → 책 정보 조회 → 확정 or 실패 안내 */
+async function _onBarcodeDetected(isbn) {
+  SCAN.processing = true;
+  _setScanStatus('바코드 인식 완료', 'success');
+  _setScanLoading(true, '책 정보를 불러오는 중…');
+
+  try {
+    // 알라딘 프록시로 ISBN 조회 → 책 메타 가져오기
+    const book = await _fetchBookByIsbnForScan(isbn);
+    if (!book) {
+      _setScanLoading(false);
+      _setScanStatus('책을 찾지 못했어요 · 다시 시도', 'warn');
+      setTimeout(() => {
+        SCAN.lastIsbn = null;
+        SCAN.processing = false;
+        _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
+      }, 1800);
+      return;
+    }
+
+    // 현재 서재에 이미 있는지 확인
+    const exists = Array.isArray(BOOKS) && BOOKS.some(b =>
+      b.isbn && b.isbn.replace(/[-\s]/g, '') === isbn);
+    if (exists) {
+      _setScanLoading(false);
+      _setScanStatus('이미 서재에 있는 책이에요', 'warn');
+      setTimeout(() => {
+        SCAN.lastIsbn = null;
+        SCAN.processing = false;
+        _setScanStatus('다음 책 바코드를 비춰주세요', 'default');
+      }, 1800);
+      return;
+    }
+
+    // 책 자동 추가 — 위시 상태로 빠르게 등록
+    await _autoAddBookFromScan(book);
+
+    _setScanLoading(false);
+    _setScanStatus(`"${book.title}" 추가됨 ✓`, 'success');
+    _appendRecentBook(book);
+
+    // 3초 후 다음 스캔 대기 상태로
+    setTimeout(() => {
+      SCAN.lastIsbn = null;
+      SCAN.processing = false;
+      _setScanStatus('다음 책 바코드를 비춰주세요', 'default');
+    }, 2200);
+  } catch (e) {
+    console.error('[scan] 처리 실패', e);
+    _setScanLoading(false);
+    _setScanStatus('조회 실패 · 다시 시도', 'warn');
+    setTimeout(() => {
+      SCAN.lastIsbn = null;
+      SCAN.processing = false;
+      _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default');
+    }, 1800);
+  }
+}
+
+/* 알라딘(프록시)으로 ISBN 조회 → normalizedBook 형태로 반환 */
+async function _fetchBookByIsbnForScan(isbn) {
+  // 1차: Kakao에서 ISBN으로 검색 (표지·출판사 등 한국어 메타 가장 풍부)
+  try {
+    const url = 'https://dapi.kakao.com/v3/search/book?' +
+      'query=' + encodeURIComponent(isbn) + '&target=isbn&size=1';
+    const res = await fetch(url, {
+      headers: { 'Authorization': 'KakaoAK ' + _kakaoKey() }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const doc = (data.documents && data.documents[0]) || null;
+      if (doc) {
+        const year = (doc.datetime || '').slice(0, 4);
+        let pages = null;
+        try {
+          if (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL) {
+            pages = await _fetchPagesFromAladin({ isbn, title: doc.title });
+          }
+        } catch(e){}
+        return {
+          title: doc.title || '',
+          author: Array.isArray(doc.authors) ? doc.authors.join(' · ') : '',
+          year,
+          pages: pages || null,
+          publisher: doc.publisher || '',
+          cover: doc.thumbnail || '',
+          language: 'ko',
+          isbn,
+          contents: doc.contents || '',
+          source: 'kakao',
+        };
+      }
+    }
+  } catch (e) { console.warn('[scan] kakao isbn fail', e); }
+
+  // 2차: Google Books ISBN 조회 (원서 대응)
+  try {
+    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}&maxResults=1`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      const item = (data.items && data.items[0]) || null;
+      if (item) {
+        const info = item.volumeInfo || {};
+        return {
+          title: info.title || '',
+          author: Array.isArray(info.authors) ? info.authors.join(' · ') : '',
+          year: info.publishedDate ? info.publishedDate.slice(0, 4) : '',
+          pages: (typeof info.pageCount === 'number' && info.pageCount > 0) ? info.pageCount : null,
+          publisher: info.publisher || '',
+          cover: (info.imageLinks && info.imageLinks.thumbnail)
+            ? info.imageLinks.thumbnail.replace(/^http:\/\//, 'https://') : '',
+          language: info.language || 'en',
+          isbn,
+          contents: info.description || '',
+          source: 'google',
+        };
+      }
+    }
+  } catch (e) { console.warn('[scan] google isbn fail', e); }
+
+  return null;
+}
+
+/* 스캔으로 찾은 책을 위시 상태로 서재에 자동 등록 */
+async function _autoAddBookFromScan(normalizedBook) {
+  const palette = (typeof pickPalette === 'function')
+    ? pickPalette(normalizedBook.title + normalizedBook.author)
+    : 'ink';
+
+  const newBook = {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    title: normalizedBook.title,
+    author: normalizedBook.author,
+    pages: normalizedBook.pages || 0,  // 0이면 책 상세에서 나중에 수정
+    palette,
+    status: 'wish',
+    tags: [],
+    isbn: normalizedBook.isbn || '',
+    language: normalizedBook.language || 'ko',
+    coverUrl: normalizedBook.cover || '',
+    publisher: normalizedBook.publisher || '',
+    isLifeBook: false,
+    rereads: [],
+  };
+
+  BOOKS.unshift(newBook);
+  try { STORE.set('books', BOOKS); } catch(e){}
+  try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+
+  SCAN.addedBooks.push(newBook);
+}
+
+/* 최근 스캔한 책 UI 갱신 */
+function _appendRecentBook(book) {
+  const panel = document.getElementById('scanRecent');
+  const list = document.getElementById('scanRecentList');
+  if (!panel || !list) return;
+  panel.style.display = '';
+
+  const item = document.createElement('div');
+  item.className = 'scan-recent-item';
+  const title = (book.title || '').length > 18
+    ? book.title.slice(0, 18) + '…'
+    : book.title;
+  item.innerHTML = `
+    <span class="scan-recent-item-check">✓</span>
+    <span class="scan-recent-item-title">${esc(title)}</span>
+  `;
+  list.appendChild(item);
+}
+
+/* 상태 UI 헬퍼 */
+function _setScanStatus(text, mood) {
+  const el = document.getElementById('scanStatus');
+  const txt = document.getElementById('scanStatusText');
+  if (!el || !txt) return;
+  txt.textContent = text;
+  el.classList.remove('success', 'warn');
+  if (mood === 'success') el.classList.add('success');
+  else if (mood === 'warn') el.classList.add('warn');
+}
+function _setScanLoading(show, text) {
+  const el = document.getElementById('scanLoading');
+  const t = document.getElementById('scanLoadingText');
+  if (!el) return;
+  if (show) {
+    if (t && text) t.textContent = text;
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
+}
+function _setScanError(title, msg) {
+  const el = document.getElementById('scanError');
+  const t = document.getElementById('scanErrorTtl');
+  const m = document.getElementById('scanErrorMsg');
+  if (!el) return;
+  if (!title) { el.style.display = 'none'; return; }
+  if (t) t.textContent = title;
+  if (m) m.textContent = msg || '';
+  el.style.display = '';
+}
+
+/* ─── 표지 OCR ─── */
+async function captureAndRunOCR() {
+  if (!SCAN.stream) return;
+  const video = document.getElementById('scanVideo');
+  const canvas = document.getElementById('scanCanvas');
+  if (!video || !canvas || video.videoWidth === 0) return;
+
+  // 현재 프레임 캡처
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  _setScanLoading(true, '표지에서 글자 인식 중…');
+
+  try {
+    await _loadTesseract();
+    if (!SCAN.tesseractWorker) {
+      _setScanLoading(true, '한국어 엔진 다운로드 중…\n(첫 실행만 20초 정도)');
+      const worker = await Tesseract.createWorker(['kor', 'eng'], 1, {
+        logger: (m) => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round((m.progress || 0) * 100);
+            _setScanLoading(true, `글자 인식 중… ${pct}%`);
+          }
+        },
+      });
+      SCAN.tesseractWorker = worker;
+    }
+    _setScanLoading(true, '글자 인식 중…');
+    const { data } = await SCAN.tesseractWorker.recognize(canvas);
+    const rawText = (data && data.text) || '';
+    const keywords = _extractOcrKeywords(rawText);
+
+    _setScanLoading(false);
+
+    if (!keywords) {
+      _setScanStatus('글자를 읽지 못했어요 · 더 가까이·또렷하게', 'warn');
+      setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2000);
+      return;
+    }
+
+    // 추출 키워드로 카카오 검색 → OCR 결과 스테이지로
+    await _runOcrSearch(rawText, keywords);
+  } catch (e) {
+    console.error('[ocr] fail', e);
+    _setScanLoading(false);
+    _setScanStatus('글자 인식 실패 · 다시 시도', 'warn');
+    setTimeout(() => _setScanStatus('책 뒷면 바코드를 비춰주세요', 'default'), 2000);
+  }
+}
+
+/* OCR 결과 텍스트에서 검색에 쓸 키워드 추출 */
+function _extractOcrKeywords(text) {
+  if (!text) return null;
+  // 줄 단위로 나눠서 의미있는 줄 고르기
+  const lines = String(text)
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.length >= 2 && l.length <= 40);
+  if (!lines.length) return null;
+
+  // 긴 줄 우선 (제목일 가능성 높음)
+  lines.sort((a, b) => b.length - a.length);
+  const top = lines.slice(0, 3);
+
+  // 특수문자 과다인 줄 제거, 한글·영문·숫자만 남기기
+  const cleaned = top.map(l =>
+    l.replace(/[^\uAC00-\uD7AF\u3131-\u318E\w\s]/g, ' ')
+     .replace(/\s+/g, ' ')
+     .trim()
+  ).filter(l => l.length >= 2);
+
+  if (!cleaned.length) return null;
+  return cleaned.join(' ');
+}
+
+async function _runOcrSearch(rawText, keywords) {
+  // 검색어 짧게 자르기 (API 성공률↑)
+  const query = keywords.split(' ').slice(0, 4).join(' ');
+
+  goToStage('ocrResults');
+  const textEl = document.getElementById('ocrExtractedText');
+  if (textEl) textEl.textContent = rawText.slice(0, 200).trim() || '-';
+
+  const resultsEl = document.getElementById('ocrSearchResults');
+  if (resultsEl) resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-muted);font-size:13px">검색 중…</div>';
+
+  try {
+    // 기존 통합 검색 함수 호출 (Kakao + Google)
+    const results = await (typeof searchBooks === 'function' ? searchBooks(query) : Promise.resolve([]));
+    _renderOcrResults(results, query);
+  } catch (e) {
+    console.error('[ocr-search] fail', e);
+    if (resultsEl) {
+      resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-muted);font-size:13px">검색에 실패했어요</div>';
+    }
+  }
+}
+
+function _renderOcrResults(items, query) {
+  const container = document.getElementById('ocrSearchResults');
+  if (!container) return;
+  if (!items || !items.length) {
+    container.innerHTML = `
+      <div style="padding:30px 20px;text-align:center;color:var(--c-muted);font-size:13px;line-height:1.6">
+        <div style="font-size:30px;margin-bottom:8px">🔍</div>
+        "${esc(query)}"로 책을 찾지 못했어요<br/>
+        <span style="font-size:12px">다시 찍거나 직접 입력해보세요</span>
+      </div>`;
+    return;
+  }
+  const html = items.map((b, idx) => {
+    const sourceBadge = b.source === 'google'
+      ? '<span class="result-src-badge">Google</span>'
+      : '<span class="result-src-badge kakao">Kakao</span>';
+    const meta = [b.year, b.pages ? `${b.pages}p` : '', b.publisher].filter(Boolean).join(' · ');
+    return `
+      <div class="result-item" data-idx="${idx}">
+        ${b.cover
+          ? `<img class="result-cover" src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
+          : `<div class="result-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
+        <div class="result-info">
+          <div class="result-title">${esc(b.title)}${sourceBadge}</div>
+          <div class="result-author">${esc(b.author)}</div>
+          <div class="result-meta">${esc(meta)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = html;
+  container.querySelectorAll('.result-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const b = items[+el.dataset.idx];
+      if (typeof selectBook === 'function') selectBook(b);
+    });
+  });
+}
+
+/* ─── 이벤트 바인딩 ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  const launchBtn = document.getElementById('scanLaunchBtn');
+  if (launchBtn) launchBtn.addEventListener('click', openScanStage);
+
+  const ocrBtn = document.getElementById('scanOcrBtn');
+  if (ocrBtn) ocrBtn.addEventListener('click', () => {
+    if (!SCAN.stream) return;
+    if (SCAN.processing) return;
+    SCAN.processing = true;
+    captureAndRunOCR().finally(() => {
+      SCAN.processing = false;
+    });
+  });
+
+  const ocrRetryBtn = document.getElementById('btnOcrRetry');
+  if (ocrRetryBtn) ocrRetryBtn.addEventListener('click', () => openScanStage());
+
+  const closeScanBtn = document.getElementById('basCloseScan');
+  const closeOcrBtn = document.getElementById('basCloseOcr');
+  const closeSheetFn = () => {
+    stopScanCamera();
+    const sheet = document.getElementById('basSheet');
+    const bd = document.getElementById('basBackdrop');
+    if (sheet) { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); }
+    if (bd) bd.classList.remove('open');
+    try { unlockBodyScroll && unlockBodyScroll(); } catch(e){}
+  };
+  if (closeScanBtn) closeScanBtn.addEventListener('click', closeSheetFn);
+  if (closeOcrBtn) closeOcrBtn.addEventListener('click', closeSheetFn);
+});
 
 /* ─── Stage 1: 책 검색 (Google Books 직접 호출) ─── */
 
