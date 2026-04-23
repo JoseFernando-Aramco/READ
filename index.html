@@ -3548,7 +3548,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   filter: opacity(0.55);
   cursor: pointer;
 }
-.dates-hint {
+.dates-hint,
+.rating-hint {
   font-size: 11px;
   color: var(--c-label);
   margin-top: 6px;
@@ -6613,6 +6614,20 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <div class="dates-hint" id="datesHint"></div>
       </div>
 
+      <!-- 별점 (완독일 때만 노출) -->
+      <div class="confirm-section" id="ratingSection" style="display:none">
+        <div class="confirm-section-lbl">별점</div>
+        <div class="bd-stars" id="confirmStars">
+          <button class="bd-star-btn" data-star="1" type="button">★</button>
+          <button class="bd-star-btn" data-star="2" type="button">★</button>
+          <button class="bd-star-btn" data-star="3" type="button">★</button>
+          <button class="bd-star-btn" data-star="4" type="button">★</button>
+          <button class="bd-star-btn" data-star="5" type="button">★</button>
+          <span class="bd-stars-val" id="confirmStarsVal"></span>
+        </div>
+        <div class="rating-hint" id="ratingHint">한 줄 감상 · 인상 깊은 문장은 나중에 상세 화면에서 기록할 수 있어요</div>
+      </div>
+
       <!-- 인생책 토글 (완독일 때만 활성) -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">인생책 · LIFE BOOK</div>
@@ -7628,6 +7643,7 @@ const BA = {
   stage: 'search',
   selected: null,       // 선택된 책 정보 (Google or manual)
   tagsSelected: [],     // 추가 시 선택한 태그
+  rating: 0,            // 완독 등록 시 별점 (0~5)
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -8855,6 +8871,10 @@ function renderConfirm() {
   if (dateEndEl) dateEndEl.value = today;
   updateDatesSection();
 
+  // 별점 초기화 (위시 기본값이므로 0)
+  BA.rating = 0;
+  updateRatingSection();
+
   // 인생책 토글 초기화
   BA.isLifeBook = false;
   updateLifebookToggle();
@@ -8910,6 +8930,34 @@ function updateDatesSection() {
       hint.textContent = '';
     }
   }
+}
+
+/* ─── 별점 섹션 표시/숨김 + 별 상태 갱신 ─── */
+function updateRatingSection() {
+  const status = document.querySelector('#statusSeg .status-seg-btn.active')?.dataset.status || 'wish';
+  const section = document.getElementById('ratingSection');
+  if (!section) return;
+
+  if (status !== 'done') {
+    section.style.display = 'none';
+    // 완독이 아니면 별점 초기화
+    BA.rating = 0;
+    _renderConfirmStars(0);
+    return;
+  }
+
+  section.style.display = '';
+  _renderConfirmStars(BA.rating || 0);
+}
+
+/* 별 버튼 UI 상태 반영 */
+function _renderConfirmStars(rating) {
+  document.querySelectorAll('#confirmStars .bd-star-btn').forEach(btn => {
+    const n = parseInt(btn.dataset.star, 10);
+    btn.classList.toggle('active', n <= rating);
+  });
+  const valEl = document.getElementById('confirmStarsVal');
+  if (valEl) valEl.textContent = rating > 0 ? `${rating}.0` : '';
 }
 
 /* ─── 인생책 토글 상태 업데이트 (상태·체크 변경 시 호출) ─── */
@@ -9051,16 +9099,18 @@ function confirmAddBook() {
   } else if (status === 'done') {
     newBook.dateStart = inputStart;
     newBook.dateEnd = inputEnd;
-    newBook.rating = 4.0;
+    // 사용자가 선택한 별점 (0은 미평가 상태)
+    newBook.rating = BA.rating > 0 ? BA.rating : 0;
   }
 
   BOOKS.unshift(newBook);
   STORE.set('books', BOOKS);
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
-  const extraMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
+  const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
+  const ratingMsg = (status === 'done' && newBook.rating > 0) ? ` · ${'★'.repeat(newBook.rating)}` : '';
   closeBookAdd();
-  showToast(`${statusLabel}에 추가됐어요${extraMsg} · "${newBook.title}"`);
+  showToast(`${statusLabel}에 추가됐어요${ratingMsg}${lifebookMsg} · "${newBook.title}"`);
 
   // UI 리렌더
   try { renderTagRadar(); } catch(e){}
@@ -9123,12 +9173,23 @@ document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
     btn.classList.add('active');
     updateLifebookToggle(); // 상태 바뀌면 인생책 토글 활성/비활성 재계산
     updateDatesSection();   // 상태 바뀌면 날짜 섹션 노출 여부 재계산
+    updateRatingSection();  // 상태 바뀌면 별점 섹션 노출 여부 재계산
   });
 });
 
 // 날짜 입력 변경 → hint 갱신
 ['dateStart', 'dateEnd'].forEach(id => {
   document.getElementById(id)?.addEventListener('change', updateDatesSection);
+});
+
+// 별점 버튼
+document.querySelectorAll('#confirmStars .bd-star-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const n = parseInt(btn.dataset.star, 10);
+    // 같은 별 다시 누르면 해제 (데미안→데미안 클릭 시 5→0)
+    BA.rating = (BA.rating === n) ? 0 : n;
+    _renderConfirmStars(BA.rating);
+  });
 });
 
 // 인생책 토글
