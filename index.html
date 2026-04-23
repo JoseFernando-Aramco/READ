@@ -6929,11 +6929,12 @@ async function _searchKakao(q) {
       title: doc.title || '',
       author: Array.isArray(doc.authors) ? doc.authors.join(' · ') : '',
       year,
-      pages: null,                  // Kakao는 페이지 수 제공 안 함
+      pages: null,                  // Kakao는 페이지 수 제공 안 함 (contents에서 추출 시도)
       publisher: doc.publisher || '',
       cover: doc.thumbnail || '',
       language: 'ko',
       isbn,
+      contents: doc.contents || '', // 책 소개 — 페이지 수 추출 힌트로 활용
       source: 'kakao',
     };
   });
@@ -6972,6 +6973,7 @@ async function _searchGoogle(q) {
       cover,
       language: info.language || 'en',
       isbn,
+      contents: info.description || '', // 책 소개 — 페이지 수 추출 힌트
       source: 'google',
     };
   });
@@ -7136,7 +7138,30 @@ function renderSearchResults(items, errors) {
   });
 }
 
-/* ─── ISBN으로 Google Books에서 페이지 수 보강 (Kakao 결과용) ─── */
+/* ─── contents 필드에서 페이지 수 패턴 추출 ─── */
+function _extractPagesFromContents(contents) {
+  if (!contents) return null;
+  const s = String(contents);
+
+  // 다양한 한국어 패턴 대응:
+  // "248쪽", "248 쪽", "248페이지", "248 페이지", "248p", "248 p", "총 248쪽", "본문 248쪽"
+  const patterns = [
+    /(?:총\s*|본문\s*|전\s*|약\s*)?(\d{2,5})\s*(?:쪽|페이지|면)(?!\s*[0-9])/,
+    /(\d{2,5})\s*[-–]?\s*p(?:age)?s?\b/i,
+    /pp?\.\s*(\d{2,5})/i,  // "pp. 248" 같은 학술 표기
+  ];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      // 합리적인 페이지 수 범위 (10~10000)
+      if (n >= 10 && n <= 10000) return n;
+    }
+  }
+  return null;
+}
+
+/* ─── Google Books · ISBN으로 페이지 수 조회 ─── */
 async function _fetchPagesByIsbn(isbn) {
   if (!isbn) return null;
   const clean = String(isbn).replace(/[-\s]/g, '');
@@ -7157,63 +7182,107 @@ async function _fetchPagesByIsbn(isbn) {
   return null;
 }
 
+/* ─── Google Books · 제목+저자로 페이지 수 조회 (ISBN 조회 실패 시 fallback) ─── */
+async function _fetchPagesByTitle(title, author) {
+  if (!title) return null;
+  try {
+    // intitle + inauthor로 정확도 높이기
+    const q = author
+      ? `intitle:${title} inauthor:${author.split(/[·,;]/)[0].trim()}`
+      : `intitle:${title}`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const items = data.items || [];
+    for (const it of items) {
+      const p = it?.volumeInfo?.pageCount;
+      if (typeof p === 'number' && p > 0) return p;
+    }
+  } catch (e) {
+    console.warn('[title-pages] fetch fail', e);
+  }
+  return null;
+}
+
+/* ─── 페이지 수 보강 · 여러 전략 순차 시도 ─── */
+async function _enrichPages(book) {
+  // 전략 1: contents에서 정규식 추출 (네트워크 불필요, 즉시)
+  const fromContents = _extractPagesFromContents(book.contents);
+  if (fromContents) return { pages: fromContents, source: 'contents' };
+
+  // 전략 2: ISBN으로 Google Books 조회
+  if (book.isbn) {
+    const fromIsbn = await _fetchPagesByIsbn(book.isbn);
+    if (fromIsbn) return { pages: fromIsbn, source: 'isbn' };
+  }
+
+  // 전략 3: 제목+저자로 Google Books 재검색
+  const fromTitle = await _fetchPagesByTitle(book.title, book.author);
+  if (fromTitle) return { pages: fromTitle, source: 'title' };
+
+  return { pages: null, source: null };
+}
+
 /* ─── 책 선택 → Stage 2 ─── */
 async function selectBook(normalizedBook) {
   let pages = normalizedBook.pages;
   let pagesFromApi = !!pages;
 
-  // Kakao 등 페이지 없는 소스면 ISBN으로 Google Books에서 보강 시도
-  if (!pages && normalizedBook.isbn) {
-    // 먼저 stage 이동해서 사용자에게 로딩 느낌 안 주기
-    BA.selected = { ...normalizedBook, pages: 0 };  // 0이면 input 빈칸
-    BA.pagesFromApi = false;
+  // 이미 페이지 있으면 (Google Books 원서 등) 바로 진행
+  if (pages) {
+    BA.selected = { ...normalizedBook, pages };
+    BA.pagesFromApi = true;
     BA.tagsSelected = [];
     goToStage('confirm');
     renderConfirm();
-
-    // 백그라운드에서 보강 → 성공 시 input만 조용히 채우기
-    const fetched = await _fetchPagesByIsbn(normalizedBook.isbn);
-    // 사용자가 그 사이 다른 책을 선택했다면 중단
-    if (!BA.selected || BA.selected.isbn !== normalizedBook.isbn) return;
-
-    if (fetched) {
-      BA.selected.pages = fetched;
-      BA.pagesFromApi = true;
-      const pagesInput = document.getElementById('confirmPages');
-      const pagesHint = document.getElementById('pagesHint');
-      if (pagesInput && !pagesInput.value) pagesInput.value = fetched;
-      if (pagesHint) {
-        pagesHint.className = 'pages-hint';
-        pagesHint.textContent = 'ISBN으로 자동 조회했어요. 실제와 다르면 수정하세요';
-      }
-      // 미리보기 meta도 갱신
-      const metaEl = document.querySelector('#confirmPreview .confirm-meta');
-      if (metaEl) {
-        const parts = [normalizedBook.year, `${fetched}p`,
-          normalizedBook.language && normalizedBook.language !== 'ko' ? `🌐 ${normalizedBook.language.toUpperCase()}` : '',
-          normalizedBook.publisher].filter(Boolean).join(' · ');
-        metaEl.textContent = parts;
-      }
-    } else {
-      // 조회 실패 → 경고로 전환
-      const pagesHint = document.getElementById('pagesHint');
-      if (pagesHint) {
-        pagesHint.className = 'pages-hint warn';
-        pagesHint.textContent = '⚠ 페이지 정보를 자동으로 찾지 못했어요. 실제 페이지 수를 입력해주세요';
-      }
-    }
     return;
   }
 
-  // 페이지 있는 소스거나 ISBN 없음 → 기존 흐름
-  BA.selected = {
-    ...normalizedBook,
-    pages: pages || 0,
-  };
-  BA.pagesFromApi = pagesFromApi;
+  // 페이지 없음 → 먼저 stage 이동 + 조회 중 UI
+  BA.selected = { ...normalizedBook, pages: 0 };
+  BA.pagesFromApi = false;
   BA.tagsSelected = [];
   goToStage('confirm');
   renderConfirm();
+
+  // 백그라운드에서 3단계 순차 보강
+  const result = await _enrichPages(normalizedBook);
+
+  // 사용자가 그 사이 다른 책을 선택했다면 중단
+  if (!BA.selected || BA.selected.isbn !== normalizedBook.isbn || BA.selected.title !== normalizedBook.title) return;
+
+  if (result.pages) {
+    BA.selected.pages = result.pages;
+    BA.pagesFromApi = true;
+    const pagesInput = document.getElementById('confirmPages');
+    const pagesHint = document.getElementById('pagesHint');
+    if (pagesInput && !pagesInput.value) pagesInput.value = result.pages;
+    if (pagesHint) {
+      pagesHint.className = 'pages-hint';
+      const sourceLabel = {
+        contents: '책 소개에서',
+        isbn: 'ISBN으로',
+        title: '제목·저자로',
+      }[result.source] || '자동으로';
+      pagesHint.textContent = `${sourceLabel} 조회했어요. 실제와 다르면 수정하세요`;
+    }
+    // 미리보기 meta도 갱신
+    const metaEl = document.querySelector('#confirmPreview .confirm-meta');
+    if (metaEl) {
+      const parts = [normalizedBook.year, `${result.pages}p`,
+        normalizedBook.language && normalizedBook.language !== 'ko' ? `🌐 ${normalizedBook.language.toUpperCase()}` : '',
+        normalizedBook.publisher].filter(Boolean).join(' · ');
+      metaEl.textContent = parts;
+    }
+  } else {
+    // 모든 전략 실패 → 수동 입력 유도
+    const pagesHint = document.getElementById('pagesHint');
+    if (pagesHint) {
+      pagesHint.className = 'pages-hint warn';
+      pagesHint.textContent = '⚠ 페이지 정보를 자동으로 찾지 못했어요. 책 뒷표지를 보고 입력해주세요';
+    }
+  }
 }
 
 /* ─── 직접 입력 제출 → Stage 2 ─── */
