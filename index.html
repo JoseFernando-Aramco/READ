@@ -11796,28 +11796,42 @@ async function _inlineImageForCapture(img) {
 
   img.removeAttribute('loading'); // lazy 해제
 
-  try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const probe = new Image();
-      probe.crossOrigin = 'anonymous';
-      probe.onload = () => {
-        try {
-          const c = document.createElement('canvas');
-          c.width = probe.naturalWidth;
-          c.height = probe.naturalHeight;
-          c.getContext('2d').drawImage(probe, 0, 0);
-          resolve(c.toDataURL('image/jpeg', 0.9));
-        } catch (e) { reject(e); }
-      };
-      probe.onerror = () => reject(new Error('image load failed'));
-      probe.src = originalSrc;
-    });
-    img.src = dataUrl;
-    if (img.decode) await img.decode().catch(() => {});
-  } catch (e) {
-    // CORS 실패 등 — 해당 이미지는 캡처에서 회색으로 남음 (화면 표시엔 영향 없음)
-    console.warn('[capture] cover inline failed:', originalSrc, e);
+  // 후보 URL: (1) 원본 직접 (2) Worker 프록시 경유
+  const candidates = [originalSrc];
+  if (ALADIN_PROXY_URL && !originalSrc.startsWith(ALADIN_PROXY_URL)) {
+    candidates.push(`${ALADIN_PROXY_URL}/cover?url=${encodeURIComponent(originalSrc)}`);
   }
+
+  for (const url of candidates) {
+    try {
+      const dataUrl = await _loadAsDataUrl(url);
+      img.src = dataUrl;
+      if (img.decode) await img.decode().catch(() => {});
+      return; // 성공
+    } catch (e) {
+      // 다음 후보 시도
+    }
+  }
+  console.warn('[capture] cover inline failed (all candidates):', originalSrc);
+}
+
+/* <img crossOrigin> 으로 로드 후 canvas → data URL */
+function _loadAsDataUrl(url) {
+  return new Promise((resolve, reject) => {
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = probe.naturalWidth;
+        c.height = probe.naturalHeight;
+        c.getContext('2d').drawImage(probe, 0, 0);
+        resolve(c.toDataURL('image/jpeg', 0.9));
+      } catch (e) { reject(e); }
+    };
+    probe.onerror = () => reject(new Error('image load failed'));
+    probe.src = url;
+  });
 }
 
 /* ─── 공유하기 (Web Share API) ─── */
