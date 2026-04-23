@@ -11919,18 +11919,41 @@ async function shareTicket() {
   }
 }
 
-/* ─── 저장하기 (다운로드) ─── */
+/* ─── 저장하기 ─── */
+/* iOS Safari에선 <a download>가 안 먹으므로 Web Share로 유도.
+   공유 시트에서 "이미지 저장" 선택 시 사진첩으로 직접 저장됨.
+   데스크톱/안드로이드에선 기존 다운로드 방식. */
 async function saveTicket() {
   const btn = document.getElementById('ddSaveBtn');
   if (!btn) return;
   btn.classList.add('loading');
   try {
     const canvas = await _captureTicketImage();
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
+    if (!blob) throw new Error('이미지 생성 실패');
+
     const y = document.getElementById('ddTkDate')?.textContent || '';
     const filename = `READ-${y.replace(/\s·\s/g, '-')}.png`;
-    _downloadCanvas(canvas, filename);
-    showToast('티켓을 저장했어요');
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const canShareFile = navigator.canShare && navigator.canShare({ files: [file] });
+
+    if (isIOS && canShareFile) {
+      // iOS: Web Share 시트 오픈 → 사용자가 "이미지 저장" 선택 시 사진첩 저장
+      try {
+        await navigator.share({ files: [file], title: '독서 기록' });
+      } catch (e) {
+        if (e.name !== 'AbortError') throw e;
+      }
+    } else {
+      // 데스크톱/안드로이드: 일반 다운로드
+      _downloadCanvas(canvas, filename);
+      showToast('티켓을 저장했어요');
+    }
   } catch (err) {
+    if (err.name === 'AbortError') return;
     console.error('저장 실패:', err);
     if (err.message === 'LIB_NOT_LOADED') {
       showToast('네트워크 확인 후 다시 시도해주세요');
