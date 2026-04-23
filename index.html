@@ -5703,85 +5703,84 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 14px;
 }
 
+
 /* ═══════════════════════════════════════════
-   월별 드릴다운 · 시네마 티켓 스타일 (G2)
+   월별 드릴다운 · 화이트 미니멀 티켓 (시안 A)
    ═══════════════════════════════════════════ */
 
-/* 월별일 땐 시트를 거의 풀스크린으로 확장 · X 버튼 숨기고 그립만 */
+/* 시트 풀스크린 · 연그레이 배경 */
 #ddSheet.dd-month-variant {
-  background: #F4EFE0;
+  background: #F5F5F7;
   height: 94vh;
 }
 #ddSheet.dd-month-variant .dd-head {
-  background: #F4EFE0;
+  background: #F5F5F7;
   border-bottom: none;
   padding: 0;
-  min-height: 20px;
+  min-height: 18px;
   position: relative;
 }
 #ddSheet.dd-month-variant .dd-ttl,
 #ddSheet.dd-month-variant .dd-sub {
   display: none;
 }
-/* X 버튼 숨김 — 스와이프 다운으로만 닫기 */
+/* X 버튼 숨김 */
 #ddSheet.dd-month-variant .bas-close {
   display: none;
 }
-/* 그립 강조 · 탭 영역 충분히 */
+/* 그립 · iOS 시스템 기본 느낌 (컨테이너는 기본값 유지, ::after 바만 살짝 조정) */
 #ddSheet.dd-month-variant .bas-grip {
-  width: 48px;
-  height: 5px;
-  background: #8B7355;
-  opacity: 0.45;
-  border-radius: 3px;
-  margin: 10px auto 6px;
-  cursor: grab;
+  background: transparent;
 }
-
-/* 시트 본문 크림 배경 (티켓이 얹히는 느낌) */
+#ddSheet.dd-month-variant .bas-grip::after {
+  width: 40px;
+  height: 4px;
+  background: rgba(60, 60, 67, 0.3);
+  border-radius: 99px;
+}
 #ddSheet.dd-month-variant .dd-body {
-  background: #F4EFE0;
-  padding: 6px 16px 20px;
+  background: #F5F5F7;
+  padding: 4px 14px 20px;
 }
 
-/* 티켓 본체 — 흰 카드, 테두리 절취선 효과 */
+/* 티켓 본체 — 순백 카드 */
 .dd-ticket {
-  background: #FBF7EC;
-  border-radius: 4px;
+  background: #FFFFFF;
+  border-radius: 6px;
   position: relative;
   box-shadow:
-    0 3px 14px rgba(44, 24, 16, 0.10),
-    0 1px 2px rgba(44, 24, 16, 0.05);
-  border: 0.5px solid #D4C9B3;
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 0.5px solid #E5E5EA;
   display: flex;
   align-items: stretch;
-  margin: 2px 0 8px;
+  margin: 4px 0 10px;
 }
 
 /* 좌측 세로 스텁 — 테마 색 연동 */
 .dd-ticket-stub {
   background: var(--primary);
-  color: #FBF7EC;
-  padding: 14px 10px;
+  color: #FFFFFF;
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   align-items: center;
   justify-items: center;
-  min-width: 48px;
-  border-right: 1.5px dashed rgba(251, 247, 236, 0.42);
+  min-width: 42px;
+  padding: 14px 8px;
+  border-right: 1.5px dashed rgba(255, 255, 255, 0.4);
   position: relative;
-  border-radius: 4px 0 0 4px;
+  border-radius: 6px 0 0 6px;
 }
 .dd-ticket-stub > .dd-stub-vtext:first-child { align-self: start; }
 .dd-ticket-stub > .dd-stub-vtext:last-child { align-self: end; }
-/* 절취선 양옆 홀펀치 (위아래) */
+/* 스텁 상단·하단 홀펀치 */
 .dd-ticket-stub::before,
 .dd-ticket-stub::after {
   content: '';
   position: absolute;
   width: 10px;
   height: 10px;
-  background: #F4EFE0;
+  background: #F5F5F7;
   border-radius: 50%;
   right: -5px;
 }
@@ -5799,7 +5798,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .dd-stub-seat {
   font-family: 'Noto Serif KR', serif;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -5817,128 +5816,93 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .dd-ticket-body {
   flex: 1;
   min-width: 0;
-  padding: 16px 18px 0;
 }
 .dd-tk-tophead {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  align-items: baseline;
+  padding: 14px 16px 6px;
 }
 .dd-tk-brand {
   font-size: 9px;
   letter-spacing: 0.3em;
-  color: #8B7355;
+  color: #86868B;
   font-weight: 500;
   font-family: 'Courier New', monospace;
 }
 .dd-tk-date {
   text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 .dd-tk-date-big {
   font-family: 'Noto Serif KR', serif;
-  font-size: 14px;
-  color: #2C1810;
+  font-size: 13px;
+  color: #1D1D1F;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.01em;
 }
 .dd-tk-date-sub {
   font-size: 8.5px;
-  color: #8B7355;
+  color: #86868B;
   letter-spacing: 0.14em;
-  margin-top: 2px;
   font-family: 'Courier New', monospace;
 }
 
+/* 메인 타이틀 블록 */
+.dd-tk-title-block {
+  padding: 2px 16px 10px;
+}
 .dd-tk-title {
   font-family: 'Noto Serif KR', serif;
   font-size: 34px;
   line-height: 1;
-  color: #2C1810;
+  color: #1D1D1F;
   font-weight: 700;
   letter-spacing: -0.025em;
-  margin-bottom: 4px;
-}
-.dd-tk-subtitle {
-  font-family: 'Noto Serif KR', serif;
-  font-style: italic;
-  font-size: 12px;
-  color: #8B7355;
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
+  margin-bottom: 10px;
 }
 
-/* 하이라이트 행 — 큰 숫자 + 캡션 */
-.dd-tk-highlight {
+/* 원-라인 메트릭 */
+.dd-tk-metrics {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: #F2EBD8;
-  border: 0.5px solid #D4C9B3;
-  border-radius: 2px;
-  margin-bottom: 12px;
+  align-items: baseline;
+  gap: 16px;
+  padding-top: 10px;
+  border-top: 0.5px solid #E5E5EA;
+  flex-wrap: wrap;
 }
-.dd-tk-hl-num {
+.dd-tk-mi {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.dd-tk-mi-val {
   font-family: 'Noto Serif KR', serif;
-  font-size: 36px;
-  color: var(--primary);
+  font-size: 17px;
+  color: #1D1D1F;
+  font-weight: 700;
   line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  flex-shrink: 0;
-}
-.dd-tk-hl-text {
-  flex: 1;
-  min-width: 0;
-}
-.dd-tk-hl-ttl {
-  font-size: 12px;
-  color: #2C1810;
-  font-weight: 700;
   letter-spacing: -0.01em;
 }
-.dd-tk-hl-sub {
-  font-size: 11px;
-  color: #6B5B47;
-  margin-top: 2px;
-  font-family: 'Noto Serif KR', serif;
-  font-style: italic;
+.dd-tk-mi-unit {
+  font-size: 9px;
+  color: #86868B;
 }
-
-/* 미니 스탯 */
-.dd-tk-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.dd-tk-statmini {
-  background: #FBF7EC;
-  border: 0.5px solid #D4C9B3;
-  border-radius: 2px;
-  padding: 8px 10px;
-}
-.dd-tk-sm-lbl {
+.dd-tk-mi-lbl {
   font-size: 8px;
   letter-spacing: 0.18em;
-  color: #8B7355;
+  color: #86868B;
   font-family: 'Courier New', monospace;
-}
-.dd-tk-sm-val {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 15px;
-  color: #2C1810;
-  font-weight: 700;
-  margin-top: 2px;
-  letter-spacing: -0.01em;
+  margin-left: 2px;
 }
 
 /* 컬렉션 섹션 — 절취선으로 구분 */
 .dd-tk-collection {
-  padding: 14px 18px 14px;
-  border-top: 1.5px dashed #C9BE9E;
+  padding: 12px 16px 14px;
+  border-top: 1px dashed #D2D2D7;
   position: relative;
   margin: 0;
 }
@@ -5948,7 +5912,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: absolute;
   width: 12px;
   height: 12px;
-  background: #F4EFE0;
+  background: #F5F5F7;
   border-radius: 50%;
   top: -6px;
 }
@@ -5958,7 +5922,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .dd-tk-coll-title {
   font-size: 9px;
   letter-spacing: 0.24em;
-  color: #8B7355;
+  color: #86868B;
   text-align: center;
   margin-bottom: 10px;
   font-family: 'Courier New', monospace;
@@ -5970,11 +5934,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   opacity: 0.6;
 }
 
-/* 포스터 그리드 — 4열 */
+
 .dd-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 .dd-grid-item {
   cursor: pointer;
@@ -5984,12 +5948,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .dd-grid-cover {
   position: relative;
   aspect-ratio: 2 / 3;
-  border-radius: 1px;
+  border-radius: 2px;
   overflow: hidden;
-  background: #C9BE9E;
+  background: #E5E5EA;
   box-shadow:
-    1px 2px 4px rgba(44, 24, 16, 0.18),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
 }
 .dd-grid-cover img {
   width: 100%;
@@ -6003,13 +5967,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 5px 4px;
+  padding: 7px 6px;
   color: #fff;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   text-align: center;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   overflow: hidden;
   word-break: keep-all;
   display: -webkit-box;
@@ -6019,24 +5983,24 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 인생책 배지 — 골드 */
 .dd-grid-lifebook {
   position: absolute;
-  top: 3px; right: 3px;
+  top: 4px; right: 4px;
   background: #F5C518;
   color: #2C1810;
-  font-size: 7.5px;
+  font-size: 8.5px;
   font-weight: 800;
-  padding: 1.5px 4px;
+  padding: 2px 5px;
   border-radius: 2px;
   letter-spacing: 0.04em;
 }
 /* 별점 배지 */
 .dd-grid-rating {
   position: absolute;
-  bottom: 3px; right: 3px;
+  bottom: 4px; right: 4px;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 700;
-  padding: 1.5px 4px;
+  padding: 2px 5px;
   border-radius: 2px;
   letter-spacing: -0.01em;
   backdrop-filter: blur(4px);
@@ -6044,23 +6008,23 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 하단 바코드 */
 .dd-tk-barcode {
-  height: 30px;
-  margin: 12px 0 4px;
+  height: 26px;
+  margin: 10px 0 4px;
   display: flex;
   align-items: center;
   gap: 1.5px;
-  padding: 4px 0;
+  padding: 2px 0;
   justify-content: center;
 }
 .dd-tk-bc-line {
-  background: #2C1810;
+  background: #1D1D1F;
   height: 100%;
 }
 .dd-tk-bc-code {
   font-family: 'Courier New', monospace;
   font-size: 9px;
-  letter-spacing: 0.2em;
-  color: #8B7355;
+  letter-spacing: 0.18em;
+  color: #86868B;
   text-align: center;
   margin-top: 2px;
 }
@@ -7328,29 +7292,26 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="dd-tk-tophead">
             <div class="dd-tk-brand">READ · MONTHLY</div>
             <div class="dd-tk-date">
-              <div class="dd-tk-date-big" id="ddTkDate">—</div>
-              <div class="dd-tk-date-sub" id="ddTkDateSub">—</div>
+              <span class="dd-tk-date-big" id="ddTkDate">—</span>
+              <span class="dd-tk-date-sub" id="ddTkDateSub">—</span>
             </div>
           </div>
-          <div class="dd-tk-title" id="ddTkTitle">—</div>
-          <div class="dd-tk-subtitle" id="ddTkSubtitle">—</div>
-          <!-- 하이라이트 박스 -->
-          <div class="dd-tk-highlight">
-            <div class="dd-tk-hl-num" id="ddTkHlNum">—</div>
-            <div class="dd-tk-hl-text">
-              <div class="dd-tk-hl-ttl" id="ddTkHlTtl">—</div>
-              <div class="dd-tk-hl-sub" id="ddTkHlSub">—</div>
-            </div>
-          </div>
-          <!-- 미니 스탯 -->
-          <div class="dd-tk-stats">
-            <div class="dd-tk-statmini">
-              <div class="dd-tk-sm-lbl">PAGES</div>
-              <div class="dd-tk-sm-val" id="ddTkPages">—</div>
-            </div>
-            <div class="dd-tk-statmini">
-              <div class="dd-tk-sm-lbl">AVG ★</div>
-              <div class="dd-tk-sm-val" id="ddTkRating">—</div>
+          <!-- 타이틀 + 원-라인 메트릭 -->
+          <div class="dd-tk-title-block">
+            <div class="dd-tk-title" id="ddTkTitle">—</div>
+            <div class="dd-tk-metrics">
+              <div class="dd-tk-mi">
+                <span class="dd-tk-mi-val" id="ddTkBooks">—</span>
+                <span class="dd-tk-mi-lbl">BOOKS</span>
+              </div>
+              <div class="dd-tk-mi">
+                <span class="dd-tk-mi-val" id="ddTkPages">—</span><span class="dd-tk-mi-unit">p</span>
+                <span class="dd-tk-mi-lbl">PAGES</span>
+              </div>
+              <div class="dd-tk-mi">
+                <span class="dd-tk-mi-val" id="ddTkRating">—</span>
+                <span class="dd-tk-mi-lbl">AVG</span>
+              </div>
             </div>
           </div>
         </div>
@@ -11670,30 +11631,10 @@ function _renderMonthTicket(books, year, month) {
   // 메인 타이틀 (영문 세리프)
   _setText('ddTkTitle', _MONTH_NAMES_EN_FULL[mIdx]);
 
-  // 서브타이틀 — 권수 따라 다른 카피
-  let subtitle;
-  if (count === 0) subtitle = 'a quiet month';
-  else if (count === 1) subtitle = 'one book well read';
-  else if (count <= 3) subtitle = `${count} books well read`;
-  else if (count <= 6) subtitle = `${count} books, a steady month`;
-  else if (count <= 10) subtitle = `${count} books, a harvest`;
-  else subtitle = `${count} books, what a month!`;
-  _setText('ddTkSubtitle', subtitle);
-
-  // 하이라이트 박스 — 큰 숫자 + 캡션
-  _setText('ddTkHlNum', count);
-  _setText('ddTkHlTtl', count === 1 ? '권 완독했습니다' : `권 완독했습니다`);
-  const hlSubCandidates = [
-    "this month's harvest",
-    "a page at a time",
-    "quietly kept reading",
-    "what a read",
-  ];
-  _setText('ddTkHlSub', hlSubCandidates[(mIdx + y) % hlSubCandidates.length]);
-
-  // 미니 스탯
+  // 원-라인 메트릭
+  _setText('ddTkBooks', count);
   _setText('ddTkPages', pages.toLocaleString());
-  _setText('ddTkRating', avgRating ? avgRating.toFixed(1) : '—');
+  _setText('ddTkRating', avgRating ? `★${avgRating.toFixed(1)}` : '★—');
 
   // 바코드 (의사랜덤 — 연+월 시드로 매달 다른 패턴)
   _renderBarcode(y, mIdx);
