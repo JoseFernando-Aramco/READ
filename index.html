@@ -5703,6 +5703,374 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 14px;
 }
 
+/* ═══════════════════════════════════════════
+   월별 드릴다운 · 시네마 티켓 스타일 (G2)
+   ═══════════════════════════════════════════ */
+
+/* 시트 본문 크림 배경 (티켓이 얹히는 느낌) */
+#ddSheet.dd-month-variant .dd-body {
+  background: #F4EFE0;
+  padding: 14px 16px 20px;
+}
+/* 월별일 땐 헤더도 크림색으로 융합 · 제목·서브는 숨기고 닫기 버튼만 */
+#ddSheet.dd-month-variant {
+  background: #F4EFE0;
+}
+#ddSheet.dd-month-variant .dd-head {
+  background: #F4EFE0;
+  border-bottom: none;
+  padding: 0;
+  min-height: 24px;
+  position: relative;
+}
+#ddSheet.dd-month-variant .dd-ttl,
+#ddSheet.dd-month-variant .dd-sub {
+  display: none;
+}
+#ddSheet.dd-month-variant .bas-grip {
+  background: #C9BE9E;
+  opacity: 0.6;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+#ddSheet.dd-month-variant .bas-close {
+  background: rgba(44, 24, 16, 0.08);
+  top: 6px;
+  right: 14px;
+}
+#ddSheet.dd-month-variant .bas-close:active {
+  background: rgba(44, 24, 16, 0.16);
+}
+#ddSheet.dd-month-variant .bas-close svg {
+  color: #6B5B47;
+}
+
+/* 티켓 본체 — 흰 카드, 테두리 절취선 효과 */
+.dd-ticket {
+  background: #FBF7EC;
+  border-radius: 4px;
+  position: relative;
+  box-shadow:
+    0 3px 14px rgba(44, 24, 16, 0.10),
+    0 1px 2px rgba(44, 24, 16, 0.05);
+  border: 0.5px solid #D4C9B3;
+  display: flex;
+  align-items: stretch;
+  margin: 4px 0 10px;
+}
+
+/* 좌측 세로 스텁 — 테마 색 연동 */
+.dd-ticket-stub {
+  background: var(--primary);
+  color: #FBF7EC;
+  padding: 14px 10px;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  min-width: 48px;
+  border-right: 1.5px dashed rgba(251, 247, 236, 0.42);
+  position: relative;
+  border-radius: 4px 0 0 4px;
+}
+.dd-ticket-stub > .dd-stub-vtext:first-child { align-self: start; }
+.dd-ticket-stub > .dd-stub-vtext:last-child { align-self: end; }
+/* 절취선 양옆 홀펀치 (위아래) */
+.dd-ticket-stub::before,
+.dd-ticket-stub::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #F4EFE0;
+  border-radius: 50%;
+  right: -5px;
+}
+.dd-ticket-stub::before { top: -5px; }
+.dd-ticket-stub::after  { bottom: -5px; }
+
+.dd-stub-vtext {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 8.5px;
+  letter-spacing: 0.28em;
+  font-family: 'Courier New', monospace;
+  padding: 4px 0;
+  opacity: 0.85;
+}
+.dd-stub-seat {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.dd-stub-seat-lbl {
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  margin-top: 3px;
+  opacity: 0.75;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+
+/* 티켓 본문 */
+.dd-ticket-body {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px 0;
+}
+.dd-tk-tophead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.dd-tk-brand {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #8B7355;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+.dd-tk-date {
+  text-align: right;
+}
+.dd-tk-date-big {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  color: #2C1810;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.dd-tk-date-sub {
+  font-size: 8.5px;
+  color: #8B7355;
+  letter-spacing: 0.14em;
+  margin-top: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+.dd-tk-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 34px;
+  line-height: 1;
+  color: #2C1810;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 4px;
+}
+.dd-tk-subtitle {
+  font-family: 'Noto Serif KR', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: #8B7355;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+/* 하이라이트 행 — 큰 숫자 + 캡션 */
+.dd-tk-highlight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #F2EBD8;
+  border: 0.5px solid #D4C9B3;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+.dd-tk-hl-num {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 36px;
+  color: var(--primary);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+.dd-tk-hl-text {
+  flex: 1;
+  min-width: 0;
+}
+.dd-tk-hl-ttl {
+  font-size: 12px;
+  color: #2C1810;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.dd-tk-hl-sub {
+  font-size: 11px;
+  color: #6B5B47;
+  margin-top: 2px;
+  font-family: 'Noto Serif KR', serif;
+  font-style: italic;
+}
+
+/* 미니 스탯 */
+.dd-tk-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.dd-tk-statmini {
+  background: #FBF7EC;
+  border: 0.5px solid #D4C9B3;
+  border-radius: 2px;
+  padding: 8px 10px;
+}
+.dd-tk-sm-lbl {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: #8B7355;
+  font-family: 'Courier New', monospace;
+}
+.dd-tk-sm-val {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  color: #2C1810;
+  font-weight: 700;
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+
+/* 컬렉션 섹션 — 절취선으로 구분 */
+.dd-tk-collection {
+  padding: 14px 18px 14px;
+  border-top: 1.5px dashed #C9BE9E;
+  position: relative;
+  margin: 0;
+}
+.dd-tk-collection::before,
+.dd-tk-collection::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #F4EFE0;
+  border-radius: 50%;
+  top: -6px;
+}
+.dd-tk-collection::before { left: -6px; }
+.dd-tk-collection::after  { right: -6px; }
+
+.dd-tk-coll-title {
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: #8B7355;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+}
+.dd-tk-coll-title::before,
+.dd-tk-coll-title::after {
+  content: '·';
+  margin: 0 8px;
+  opacity: 0.6;
+}
+
+/* 포스터 그리드 — 4열 */
+.dd-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.dd-grid-item {
+  cursor: pointer;
+  transition: transform .12s;
+}
+.dd-grid-item:active { transform: scale(0.96); }
+.dd-grid-cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 1px;
+  overflow: hidden;
+  background: #C9BE9E;
+  box-shadow:
+    1px 2px 4px rgba(44, 24, 16, 0.18),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+}
+.dd-grid-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.dd-grid-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 5px 4px;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+/* 인생책 배지 — 골드 */
+.dd-grid-lifebook {
+  position: absolute;
+  top: 3px; right: 3px;
+  background: #F5C518;
+  color: #2C1810;
+  font-size: 7.5px;
+  font-weight: 800;
+  padding: 1.5px 4px;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+}
+/* 별점 배지 */
+.dd-grid-rating {
+  position: absolute;
+  bottom: 3px; right: 3px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1.5px 4px;
+  border-radius: 2px;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(4px);
+}
+
+/* 하단 바코드 */
+.dd-tk-barcode {
+  height: 30px;
+  margin: 12px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 1.5px;
+  padding: 4px 0;
+  justify-content: center;
+}
+.dd-tk-bc-line {
+  background: #2C1810;
+  height: 100%;
+}
+.dd-tk-bc-code {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #8B7355;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* 그리드 타이틀 제거 시 fallback */
+.dd-grid-item .dd-grid-title {
+  display: none;   /* G2에서는 표지만 보여줌 */
+}
+
 /* 드릴다운 가능한 요소 힌트 */
 .rating-row[data-dd-rating],
 .monthly-bar-col[data-dd-month],
@@ -6944,6 +7312,64 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     <div class="dd-sub" id="ddSub">—</div>
   </div>
   <div class="dd-body">
+    <!-- 월별 전용 시네마 티켓 (variant=month일 때만 표시) -->
+    <div class="dd-ticket" id="ddTicket" style="display:none">
+      <!-- 좌측 세로 스텁 -->
+      <div class="dd-ticket-stub">
+        <div class="dd-stub-vtext">READER'S TICKET</div>
+        <div>
+          <div class="dd-stub-seat" id="ddStubMonth">—</div>
+          <div class="dd-stub-seat-lbl" id="ddStubMonthLbl">—</div>
+        </div>
+        <div class="dd-stub-vtext" id="ddStubNo">NO. 0000</div>
+      </div>
+      <!-- 우측 본문 -->
+      <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+        <div class="dd-ticket-body">
+          <div class="dd-tk-tophead">
+            <div class="dd-tk-brand">READ · MONTHLY</div>
+            <div class="dd-tk-date">
+              <div class="dd-tk-date-big" id="ddTkDate">—</div>
+              <div class="dd-tk-date-sub" id="ddTkDateSub">—</div>
+            </div>
+          </div>
+          <div class="dd-tk-title" id="ddTkTitle">—</div>
+          <div class="dd-tk-subtitle" id="ddTkSubtitle">—</div>
+          <!-- 하이라이트 박스 -->
+          <div class="dd-tk-highlight">
+            <div class="dd-tk-hl-num" id="ddTkHlNum">—</div>
+            <div class="dd-tk-hl-text">
+              <div class="dd-tk-hl-ttl" id="ddTkHlTtl">—</div>
+              <div class="dd-tk-hl-sub" id="ddTkHlSub">—</div>
+            </div>
+          </div>
+          <!-- 미니 스탯 -->
+          <div class="dd-tk-stats">
+            <div class="dd-tk-statmini">
+              <div class="dd-tk-sm-lbl">PAGES</div>
+              <div class="dd-tk-sm-val" id="ddTkPages">—</div>
+            </div>
+            <div class="dd-tk-statmini">
+              <div class="dd-tk-sm-lbl">AVG ★</div>
+              <div class="dd-tk-sm-val" id="ddTkRating">—</div>
+            </div>
+          </div>
+        </div>
+        <!-- 컬렉션 섹션 (절취선) -->
+        <div class="dd-tk-collection">
+          <div class="dd-tk-coll-title">THE COLLECTION</div>
+          <div class="dd-grid" id="ddGrid">
+            <!-- JS 렌더 -->
+          </div>
+          <!-- 하단 바코드 -->
+          <div class="dd-tk-barcode" id="ddBarcode">
+            <!-- JS 렌더 -->
+          </div>
+          <div class="dd-tk-bc-code" id="ddBcCode">—</div>
+        </div>
+      </div>
+    </div>
+    <!-- 기존 리스트 뷰 (태그·별점 등) -->
     <div class="dd-list" id="ddList">
       <!-- JS 렌더 -->
     </div>
@@ -11152,44 +11578,193 @@ function ddBooksByTagEtc() {
 }
 
 /* ─── 드릴다운 열기·닫기 ─── */
-function openDrillDown(title, subtitle, books, valFormatter) {
-  const list = document.getElementById('ddList');
+function openDrillDown(title, subtitle, books, valFormatter, options) {
+  const opts = options || {};
+  const variant = opts.variant || 'list';  // 'list' | 'month'
+  const list    = document.getElementById('ddList');
+  const ticket  = document.getElementById('ddTicket');
+  const sheet   = document.getElementById('ddSheet');
+
   document.getElementById('ddTtl').textContent = title;
   document.getElementById('ddSub').textContent = subtitle;
 
-  if (!books.length) {
-    list.innerHTML = '<div class="dd-empty">해당하는 책이 없어요</div>';
+  // 모든 뷰 먼저 숨김
+  if (list) list.style.display = 'none';
+  if (ticket) ticket.style.display = 'none';
+
+  if (variant === 'month' && books.length > 0) {
+    // ─── 월별 뷰: 시네마 티켓 ───
+    sheet.classList.add('dd-month-variant');
+    _renderMonthTicket(books, opts.year, opts.month);
+    if (ticket) ticket.style.display = '';
   } else {
-    // 최신순 (dateEnd desc; wish는 뒤로)
-    const sorted = [...books].sort((a, b) => {
-      const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
-      const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
-      return bD - aD;
-    });
-    list.innerHTML = sorted.map(b => {
-      const pal = esc(b.palette || 'demian');
-      const initial = (b.title || '?').charAt(0);
-      const dateStr = b.dateEnd
-        ? `${formatDate(b.dateStart)} – ${formatDate(b.dateEnd)}`
-        : b.dateStart ? `${formatDate(b.dateStart)} – 진행중` : '미독';
-      const val = valFormatter ? valFormatter(b) : '';
-      return `
-        <div class="dd-item" data-book-id="${b.id}">
-          <div class="dd-item-cover palette-${pal}" style="background:${PALETTE_DARK[b.palette] || '#64748b'}">${esc(initial)}</div>
-          <div class="dd-item-info">
-            <div class="dd-item-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
-            <div class="dd-item-meta">${esc(b.author)} · ${esc(dateStr)}</div>
-          </div>
-          <div class="dd-item-val">${val}</div>
-        </div>`;
-    }).join('');
+    // ─── 기본 리스트 뷰 (태그·별점 등) ───
+    sheet.classList.remove('dd-month-variant');
+    if (!books.length) {
+      list.innerHTML = '<div class="dd-empty">해당하는 책이 없어요</div>';
+    } else {
+      // 최신순 (dateEnd desc; wish는 뒤로)
+      const sorted = [...books].sort((a, b) => {
+        const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
+        const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
+        return bD - aD;
+      });
+      list.innerHTML = sorted.map(b => {
+        const pal = esc(b.palette || 'demian');
+        const initial = (b.title || '?').charAt(0);
+        const dateStr = b.dateEnd
+          ? `${formatDate(b.dateStart)} – ${formatDate(b.dateEnd)}`
+          : b.dateStart ? `${formatDate(b.dateStart)} – 진행중` : '미독';
+        const val = valFormatter ? valFormatter(b) : '';
+        return `
+          <div class="dd-item" data-book-id="${b.id}">
+            <div class="dd-item-cover palette-${pal}" style="background:${PALETTE_DARK[b.palette] || '#64748b'}">${esc(initial)}</div>
+            <div class="dd-item-info">
+              <div class="dd-item-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+              <div class="dd-item-meta">${esc(b.author)} · ${esc(dateStr)}</div>
+            </div>
+            <div class="dd-item-val">${val}</div>
+          </div>`;
+      }).join('');
+    }
+    if (list) list.style.display = '';
   }
 
   document.getElementById('ddBackdrop').classList.add('open');
-  const sheet = document.getElementById('ddSheet');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
   lockBodyScroll();
+}
+
+/* ─── 월 이름 영문 매핑 ─── */
+const _MONTH_NAMES_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const _MONTH_NAMES_EN_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const _MONTH_NAMES_EN_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/* 시네마 티켓 전체 렌더 */
+function _renderMonthTicket(books, year, month) {
+  // month는 0-indexed
+  const mIdx = (typeof month === 'number') ? month : new Date().getMonth();
+  const y = year || new Date().getFullYear();
+
+  // 데이터 계산
+  const count = books.length;
+  const pages = books.reduce((s, b) => s + (b.pages || 0), 0);
+  const rated = books.filter(b => typeof b.rating === 'number' && b.rating > 0);
+  const avgRating = rated.length
+    ? (rated.reduce((s, b) => s + b.rating, 0) / rated.length)
+    : null;
+  const lifebookCount = books.filter(b => b.isLifeBook).length;
+
+  // 월 일수
+  const daysInMonth = new Date(y, mIdx + 1, 0).getDate();
+
+  // 좌측 세로 스텁
+  _setText('ddStubMonth', String(mIdx + 1).padStart(2, '0'));
+  _setText('ddStubMonthLbl', _MONTH_NAMES_EN_SHORT[mIdx]);
+  _setText('ddStubNo', `NO. ${String(y).slice(-2)}${String(mIdx + 1).padStart(2, '0')}`);
+
+  // 우측 상단 날짜
+  _setText('ddTkDate', `${String(mIdx + 1).padStart(2, '0')} · ${y}`);
+  _setText('ddTkDateSub', `${daysInMonth} DAYS`);
+
+  // 메인 타이틀 (영문 세리프)
+  _setText('ddTkTitle', _MONTH_NAMES_EN_FULL[mIdx]);
+
+  // 서브타이틀 — 권수 따라 다른 카피
+  let subtitle;
+  if (count === 0) subtitle = 'a quiet month';
+  else if (count === 1) subtitle = 'one book well read';
+  else if (count <= 3) subtitle = `${count} books well read`;
+  else if (count <= 6) subtitle = `${count} books, a steady month`;
+  else if (count <= 10) subtitle = `${count} books, a harvest`;
+  else subtitle = `${count} books, what a month!`;
+  _setText('ddTkSubtitle', subtitle);
+
+  // 하이라이트 박스 — 큰 숫자 + 캡션
+  _setText('ddTkHlNum', count);
+  _setText('ddTkHlTtl', count === 1 ? '권 완독했습니다' : `권 완독했습니다`);
+  const hlSubCandidates = [
+    "this month's harvest",
+    "a page at a time",
+    "quietly kept reading",
+    "what a read",
+  ];
+  _setText('ddTkHlSub', hlSubCandidates[(mIdx + y) % hlSubCandidates.length]);
+
+  // 미니 스탯
+  _setText('ddTkPages', pages.toLocaleString());
+  _setText('ddTkRating', avgRating ? avgRating.toFixed(1) : '—');
+
+  // 바코드 (의사랜덤 — 연+월 시드로 매달 다른 패턴)
+  _renderBarcode(y, mIdx);
+
+  // 바코드 아래 시리얼 번호
+  const serial = `READ-${y}-${String(mIdx + 1).padStart(2, '0')}-${String(count).padStart(3, '0')}`;
+  _setText('ddBcCode', serial);
+
+  // 포스터 그리드
+  _renderMonthGrid(books);
+}
+
+/* 텍스트 셋팅 헬퍼 */
+function _setText(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v;
+}
+
+/* 바코드 의사랜덤 렌더 */
+function _renderBarcode(year, month) {
+  const el = document.getElementById('ddBarcode');
+  if (!el) return;
+  // 연·월 시드로 간단한 의사랜덤
+  let seed = year * 100 + month * 7 + 3;
+  const widths = [];
+  for (let i = 0; i < 32; i++) {
+    seed = (seed * 9301 + 49297) % 233280;
+    const w = 1 + (seed % 4); // 1~4px
+    widths.push(w);
+  }
+  el.innerHTML = widths.map(w =>
+    `<div class="dd-tk-bc-line" style="width:${w}px"></div>`
+  ).join('');
+}
+
+/* 월별 표지 그리드 렌더 */
+function _renderMonthGrid(books) {
+  const grid = document.getElementById('ddGrid');
+  if (!grid) return;
+
+  // 최신 완독 순 (dateEnd desc)
+  const sorted = [...books].sort((a, b) => {
+    const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
+    const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
+    return bD - aD;
+  });
+
+  grid.innerHTML = sorted.map(b => {
+    const hasCover = b.coverUrl && b.coverUrl.length > 0;
+    const palColor = PALETTE_DARK[b.palette] || '#64748b';
+    const rating = (typeof b.rating === 'number' && b.rating > 0)
+      ? `<div class="dd-grid-rating">★${b.rating.toFixed(1)}</div>`
+      : '';
+    const lifebook = b.isLifeBook
+      ? `<div class="dd-grid-lifebook">LIFE</div>`
+      : '';
+    const coverHtml = hasCover
+      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+             onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
+      : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
+
+    return `
+      <div class="dd-grid-item" data-book-id="${b.id}">
+        <div class="dd-grid-cover">
+          ${coverHtml}
+          ${lifebook}
+          ${rating}
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function closeDrillDown() {
@@ -11205,6 +11780,17 @@ document.getElementById('ddClose').addEventListener('click', closeDrillDown);
 
 /* ─── 목록 아이템 탭 → 책 상세로 전환 (드릴다운 닫고 책 상세 열기) ─── */
 document.getElementById('ddList').addEventListener('click', (e) => {
+  const item = e.target.closest('[data-book-id]');
+  if (!item) return;
+  const id = parseInt(item.dataset.bookId, 10);
+  if (id) {
+    closeDrillDown();
+    setTimeout(() => openBookDetail(id), 250);
+  }
+});
+
+/* ─── 그리드 아이템 탭 → 책 상세로 전환 ─── */
+document.getElementById('ddGrid')?.addEventListener('click', (e) => {
   const item = e.target.closest('[data-book-id]');
   if (!item) return;
   const id = parseInt(item.dataset.bookId, 10);
@@ -11258,10 +11844,11 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     const month = parseInt(monthCol.dataset.ddMonth, 10);
     const books = ddBooksByMonth(year, month);
     openDrillDown(
-      `${year}년 ${month + 1}월 · ${books.length}권`,
+      `${year}년 ${month + 1}월`,
       'MONTHLY',
       books,
-      (b) => b.pages ? `${b.pages}p` : ''
+      null,
+      { variant: 'month', year, month }
     );
     return;
   }
