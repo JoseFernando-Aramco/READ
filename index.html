@@ -7161,6 +7161,35 @@ function _extractPagesFromContents(contents) {
   return null;
 }
 
+/* ─── 알라딘 프록시 (Cloudflare Worker) URL ─── */
+/* 설정 방법: WORKER_SETUP.md 참고. 비어있으면 이 전략은 자동 스킵됨. */
+const ALADIN_PROXY_URL = 'https://read.jych0116.workers.dev';
+
+/* ─── 알라딘 프록시로 페이지 수 조회 (국내서 최우선) ─── */
+async function _fetchPagesFromAladin({ isbn, title }) {
+  if (!ALADIN_PROXY_URL) return null;
+  try {
+    let url;
+    if (isbn) {
+      const clean = String(isbn).replace(/[-\s]/g, '');
+      if (!clean) return null;
+      url = `${ALADIN_PROXY_URL}/pages?isbn=${encodeURIComponent(clean)}`;
+    } else if (title) {
+      url = `${ALADIN_PROXY_URL}/pages?query=${encodeURIComponent(title)}`;
+    } else {
+      return null;
+    }
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const p = data && data.pages;
+    return (typeof p === 'number' && p > 0) ? p : null;
+  } catch (e) {
+    console.warn('[aladin-proxy] fetch fail', e);
+    return null;
+  }
+}
+
 /* ─── Google Books · ISBN으로 페이지 수 조회 ─── */
 async function _fetchPagesByIsbn(isbn) {
   if (!isbn) return null;
@@ -7207,6 +7236,11 @@ async function _fetchPagesByTitle(title, author) {
 
 /* ─── 페이지 수 보강 · 여러 전략 순차 시도 ─── */
 async function _enrichPages(book) {
+  // 전략 0 (최우선): 알라딘 프록시 — 국내서 거의 100%
+  // ALADIN_PROXY_URL이 설정되어 있을 때만 동작
+  const fromAladin = await _fetchPagesFromAladin({ isbn: book.isbn, title: book.title });
+  if (fromAladin) return { pages: fromAladin, source: 'aladin' };
+
   // 전략 1: contents에서 정규식 추출 (네트워크 불필요, 즉시)
   const fromContents = _extractPagesFromContents(book.contents);
   if (fromContents) return { pages: fromContents, source: 'contents' };
@@ -7261,6 +7295,7 @@ async function selectBook(normalizedBook) {
     if (pagesHint) {
       pagesHint.className = 'pages-hint';
       const sourceLabel = {
+        aladin: '알라딘에서',
         contents: '책 소개에서',
         isbn: 'ISBN으로',
         title: '제목·저자로',
