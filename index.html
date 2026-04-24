@@ -11864,6 +11864,9 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
     _renderMonthTicket(books, opts.year, opts.month);
     if (ticket) ticket.style.display = '';
     if (actions) actions.style.display = '';
+    // 백그라운드 프리워밍: 저장/공유 시 html2canvas가 fetch할 이미지를 미리 캐시에
+    // (Cloudflare Worker cold start + 최초 fetch 지연 해결)
+    _prewarmCoverCache(books);
   } else {
     // ─── 기본 리스트 뷰 (태그·별점 등) ───
     sheet.classList.remove('dd-month-variant');
@@ -11985,6 +11988,19 @@ function _renderBarcode(year, month) {
 }
 
 /* ─── 이미지 URL → base64 dataURL 변환 (CORS 우회) ─── */
+/* 표지 이미지 프리워밍 — 티켓 오픈 시 백그라운드에서 fetch 캐시에 올려둠
+   사용자가 저장/공유 누를 때 html2canvas가 쓸 이미지가 이미 warm 상태 */
+function _prewarmCoverCache(books) {
+  if (!Array.isArray(books) || !books.length) return;
+  const proxy = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL) || '';
+  books.forEach(b => {
+    if (!b.coverUrl || b.coverUrl.startsWith('data:')) return;
+    const url = proxy ? `${proxy}/img?url=${encodeURIComponent(b.coverUrl)}` : b.coverUrl;
+    // no-await, 실패해도 무시 — 캐시 워밍이 목적이라 결과 안 씀
+    fetch(url, { mode: 'cors', cache: 'force-cache' }).catch(() => {});
+  });
+}
+
 async function _imageToDataUrl(url) {
   if (!url) return null;
 
@@ -12119,10 +12135,10 @@ async function shareTicket() {
       showToast('네트워크 확인 후 다시 시도해주세요');
       return;
     }
-    // 전체 캡처에 20초 타임아웃 — 무한 대기 방지
+    // 전체 캡처에 30초 타임아웃 — 프리워밍 실패한 최악의 경우에도 수용
     const canvas = await Promise.race([
       _captureTicketImage(),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 20000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 30000))
     ]);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
     if (!blob) {
@@ -12196,10 +12212,10 @@ async function saveTicket() {
       return;
     }
 
-    // 전체 캡처에 20초 타임아웃 — 무한 대기 방지
+    // 전체 캡처에 30초 타임아웃 — 프리워밍 실패한 최악의 경우에도 수용
     const canvas = await Promise.race([
       _captureTicketImage(),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 20000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 30000))
     ]);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
     if (!blob) {
