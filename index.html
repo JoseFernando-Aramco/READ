@@ -11988,17 +11988,25 @@ function _renderBarcode(year, month) {
 }
 
 /* ─── 이미지 URL → base64 dataURL 변환 (CORS 우회) ─── */
-/* 표지 이미지 프리워밍 — 티켓 오픈 시 백그라운드에서 fetch 캐시에 올려둠
-   사용자가 저장/공유 누를 때 html2canvas가 쓸 이미지가 이미 warm 상태 */
-function _prewarmCoverCache(books) {
+/* 표지 이미지 선변환 — 티켓 오픈 시 백그라운드에서 base64로 DOM 교체
+   저장 시점엔 fetch 필요 없이 즉시 캡처 가능 (iOS Safari fetch 캐시 이슈 완전 회피) */
+async function _prewarmCoverCache(books) {
   if (!Array.isArray(books) || !books.length) return;
-  const proxy = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL) || '';
-  books.forEach(b => {
-    if (!b.coverUrl || b.coverUrl.startsWith('data:')) return;
-    const url = proxy ? `${proxy}/img?url=${encodeURIComponent(b.coverUrl)}` : b.coverUrl;
-    // no-await, 실패해도 무시 — 캐시 워밍이 목적이라 결과 안 씀
-    fetch(url, { mode: 'cors', cache: 'force-cache' }).catch(() => {});
-  });
+  // DOM이 _renderMonthGrid로 그려진 직후 호출되므로 img 요소 접근 가능
+  // 한 틱 기다려 DOM 확정
+  await new Promise(r => setTimeout(r, 50));
+  const grid = document.getElementById('ddGrid');
+  if (!grid) return;
+  const imgs = grid.querySelectorAll('.dd-grid-cover img');
+  // 병렬 변환 — 실패는 조용히 넘김 (원본 URL이 남아 있어 저장 시 _inlineCoverImages가 재시도)
+  await Promise.all(Array.from(imgs).map(async (img) => {
+    try {
+      const src = img.src;
+      if (!src || src.startsWith('data:')) return;
+      const dataUrl = await _imageToDataUrl(src);
+      if (dataUrl && img.isConnected) img.src = dataUrl;
+    } catch (_) { /* noop */ }
+  }));
 }
 
 async function _imageToDataUrl(url) {
@@ -12110,7 +12118,7 @@ async function _captureTicketImage() {
 
     const canvas = await html2canvas(wrapper, {
       backgroundColor: '#F5F5F7',
-      scale: 2.5,
+      scale: 2,             // 2.5 → 2 (iOS 캔버스 렌더 비용 감소, 인스타 스토리엔 충분)
       useCORS: true,
       allowTaint: false,   // base64로 바꿨으니 taint 필요 없음
       logging: false,
