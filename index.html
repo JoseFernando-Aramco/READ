@@ -12144,17 +12144,23 @@ async function shareTicket() {
         });
       } catch (e) {
         if (e.name === 'AbortError') return;  // 사용자가 공유 취소
-        // Web Share 실패 시 최후 fallback
-        _openCanvasInNewTab(canvas);
-        showToast('이미지를 길게 눌러 저장하세요');
+        console.error('[shareTicket] share err:', e);
+        // Web Share 실패 시 fallback
+        const isIOSFB = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOSFB) {
+          _showIOSSavePreview(canvas);
+        } else {
+          _downloadCanvas(canvas, filename);
+          showToast('공유가 지원되지 않아 다운로드했어요');
+        }
       }
     } else {
-      // Web Share 미지원: 데스크톱은 다운로드, iOS 구버전은 새 탭
+      // Web Share 미지원: 데스크톱은 다운로드, iOS는 프리뷰 모달
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       if (isIOS) {
-        _openCanvasInNewTab(canvas);
-        showToast('이미지를 길게 눌러 저장하세요');
+        _showIOSSavePreview(canvas);
       } else {
         _downloadCanvas(canvas, filename);
         showToast('공유가 지원되지 않아 다운로드했어요');
@@ -12209,21 +12215,10 @@ async function saveTicket() {
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const canShareFile = navigator.canShare && navigator.canShare({ files: [file] });
 
-    if (isIOS && canShareFile) {
-      // iOS: Web Share 시트 오픈 → 사용자가 "이미지 저장" 선택 시 사진첩 저장
-      try {
-        await navigator.share({ files: [file], title: '독서 기록' });
-      } catch (e) {
-        if (e.name === 'AbortError') return;  // 사용자 취소
-        console.error('[saveTicket] share err:', e);
-        // Web Share 실패 시 최후 fallback: 새 탭에 이미지 열기
-        _openCanvasInNewTab(canvas);
-        showToast('이미지를 길게 눌러 저장하세요');
-      }
-    } else if (isIOS) {
-      // iOS지만 Web Share 파일 미지원 (구 버전 Safari) → 새 탭
-      _openCanvasInNewTab(canvas);
-      showToast('이미지를 길게 눌러 저장하세요');
+    if (isIOS) {
+      // iOS: 인앱 프리뷰 모달로 표시 → 길게 눌러 사진첩 저장
+      // (window.open은 async 이후 팝업 차단, navigator.share도 제스처 소실 위험 → 모달이 가장 확실)
+      _showIOSSavePreview(canvas);
     } else {
       // 데스크톱/안드로이드: 일반 다운로드
       _downloadCanvas(canvas, filename);
@@ -12239,6 +12234,54 @@ async function saveTicket() {
   } finally {
     btn.classList.remove('loading');
   }
+}
+
+/* iOS 전용: 인앱 프리뷰 모달 — 길게 눌러 사진첩에 저장 안내
+   (window.open/navigator.share는 async 이후 제스처 소실로 실패 가능) */
+function _showIOSSavePreview(canvas) {
+  // 기존 모달이 있으면 제거
+  const existing = document.getElementById('iosSavePreview');
+  if (existing) existing.remove();
+
+  const dataUrl = canvas.toDataURL('image/png');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'iosSavePreview';
+  overlay.style.cssText = `
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; gap: 16px;
+    animation: fadeIn 0.2s ease-out;
+  `;
+
+  overlay.innerHTML = `
+    <div style="color:#fff; font-size:15px; font-weight:600; text-align:center; line-height:1.5;">
+      이미지를 <u>길게 눌러</u> 사진에 저장하세요
+    </div>
+    <img src="${dataUrl}" alt="READ 티켓"
+         style="max-width:100%; max-height:70vh; border-radius:12px;
+                box-shadow:0 8px 32px rgba(0,0,0,0.4);
+                -webkit-touch-callout: default; user-select: none;">
+    <button id="iosSavePreviewClose" style="
+      background:#fff; color:#000; border:none;
+      padding:12px 32px; border-radius:100px;
+      font-size:14px; font-weight:600;
+      cursor:pointer; margin-top:8px;">닫기</button>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+  overlay.querySelector('#iosSavePreviewClose').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
 }
 
 /* iOS 최후 fallback — 새 탭에 이미지 띄움 (사용자가 길게 눌러 저장) */
