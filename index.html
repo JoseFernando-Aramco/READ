@@ -7222,8 +7222,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- SheetJS for Excel import/export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- SheetJS + 스타일 지원(xlsx-js-style) for Excel import/export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
 <body>
 
@@ -15532,19 +15532,134 @@ function _imDownloadTemplate() {
     showToast('엑셀 라이브러리 로드 실패');
     return;
   }
-  const header = IM_FIELDS.map(f => f.label);
-  const examples = [
-    ['데미안', '헤르만 헤세', 224, '완독', '2024-01-10', '2024-01-15', 4.5, '고전,독일', '자아 성장'],
-    ['코스모스', '칼 세이건', 492, '독서중', '2024-03-01', '', '', '과학,우주', ''],
-    ['채식주의자', '한강', 248, '위시', '', '', '', '한국 소설,현대', ''],
+
+  // ── 스타일 정의 ──
+  const S = {
+    title: {
+      font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: '111827' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+    },
+    subtitle: {
+      font: { sz: 11, italic: true, color: { rgb: '4B5563' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    },
+    header: {
+      font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: '374151' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: _border('4B5563'),
+    },
+    headerRequired: {
+      font: { bold: true, sz: 12, color: { rgb: 'FEF3C7' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: '374151' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: _border('4B5563'),
+    },
+    exampleRow: {
+      font: { sz: 11, italic: true, color: { rgb: '9CA3AF' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
+      alignment: { vertical: 'center' },
+      border: _border('E5E7EB'),
+    },
+    exampleCenter: {
+      font: { sz: 11, italic: true, color: { rgb: '9CA3AF' }, name: 'Malgun Gothic' },
+      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: _border('E5E7EB'),
+    },
+    blankRow: {
+      border: _border('E5E7EB'),
+      alignment: { vertical: 'center' },
+      font: { sz: 11, name: 'Malgun Gothic' },
+    },
+  };
+
+  function _border(rgb) {
+    return {
+      top:    { style: 'thin', color: { rgb } },
+      bottom: { style: 'thin', color: { rgb } },
+      left:   { style: 'thin', color: { rgb } },
+      right:  { style: 'thin', color: { rgb } },
+    };
+  }
+
+  // ── 데이터 (AOA) ──
+  const data = [
+    ['READ · 독서 기록 가져오기 템플릿'],
+    ['4~6행은 예시예요. 예시를 지우고 7행부터 본인 기록을 이어서 적으시면 돼요.   ※ "제목"은 필수, 나머지는 비워두셔도 됩니다.'],
+    ['제목', '저자', '페이지', '상태', '시작일', '완독일', '별점', '태그', '메모'],
+    ['데미안',      '헤르만 헤세', 224, '완독',  '2024-01-10', '2024-01-15', 4.5, '고전,독일',      '자아 성장'],
+    ['코스모스',    '칼 세이건',   492, '독서중', '2024-03-01', '',           '',  '과학,우주',      ''],
+    ['채식주의자',  '한강',        248, '위시',   '',           '',           '',  '한국 소설,현대', ''],
   ];
-  const ws = XLSX.utils.aoa_to_sheet([header, ...examples]);
-  // 컬럼 너비
-  ws['!cols'] = [ {wch:20},{wch:15},{wch:8},{wch:8},{wch:12},{wch:12},{wch:6},{wch:15},{wch:20} ];
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // ── 셀 병합 (타이틀·안내 행) ──
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },  // A1:I1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },  // A2:I2
+  ];
+
+  // ── 컬럼 너비 ──
+  ws['!cols'] = [
+    { wch: 22 }, { wch: 16 }, { wch: 8 },  { wch: 10 },
+    { wch: 13 }, { wch: 13 }, { wch: 7 },  { wch: 18 }, { wch: 28 }
+  ];
+
+  // ── 행 높이 ──
+  ws['!rows'] = [
+    { hpt: 34 },  // 타이틀
+    { hpt: 30 },  // 안내
+    { hpt: 26 },  // 헤더
+    { hpt: 22 }, { hpt: 22 }, { hpt: 22 },  // 예시
+  ];
+
+  // ── 스타일 적용 ──
+  const cols = ['A','B','C','D','E','F','G','H','I'];
+
+  // Row 1: 타이틀
+  if (ws['A1']) ws['A1'].s = S.title;
+  // Row 2: 안내
+  if (ws['A2']) ws['A2'].s = S.subtitle;
+  // Row 3: 헤더 (제목 컬럼만 살짝 다른 색으로 "필수" 느낌)
+  cols.forEach((c, i) => {
+    const ref = `${c}3`;
+    if (ws[ref]) ws[ref].s = (i === 0) ? S.headerRequired : S.header;
+  });
+  // Row 4-6: 예시
+  for (let r = 4; r <= 6; r++) {
+    cols.forEach((c, i) => {
+      const ref = `${c}${r}`;
+      if (!ws[ref]) ws[ref] = { v: '', t: 's' };
+      // 페이지·상태·별점은 가운데 정렬
+      ws[ref].s = (i === 2 || i === 3 || i === 6) ? S.exampleCenter : S.exampleRow;
+    });
+  }
+  // Row 7: 빈 줄 하나 준비 (유저가 여기부터 채우도록 테두리만)
+  cols.forEach(c => {
+    const ref = `${c}7`;
+    if (!ws[ref]) ws[ref] = { v: '', t: 's' };
+    ws[ref].s = S.blankRow;
+  });
+
+  // ── 창 고정: 헤더(3행)까지 freeze ──
+  ws['!views'] = [{ state: 'frozen', ySplit: 3, xSplit: 0 }];
+
+  // ── 상태 컬럼 드롭다운 ──
+  ws['!dataValidation'] = [{
+    sqref: 'D4:D1000',
+    type: 'list',
+    formula1: '"완독,독서중,위시"',
+  }];
+
+  // ── 워크북 생성 & 저장 ──
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'READ');
+  XLSX.utils.book_append_sheet(wb, ws, '독서기록');
   XLSX.writeFile(wb, 'READ_import_template.xlsx');
-  showToast('템플릿 다운로드됨 · 예시 3줄은 지우고 쓰세요');
+  showToast('템플릿 다운로드됨 · 4~6행 예시는 지우고 쓰세요');
 }
 
 /* ─── 이벤트 연결 ─── */
