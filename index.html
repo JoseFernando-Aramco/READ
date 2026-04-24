@@ -7226,7 +7226,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.0.1 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.3.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -7796,7 +7796,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.0.2 · 업데이트 소식</div>
+    <div class="wn-badge">v1.3.0 · 업데이트 소식</div>
     <div class="wn-ttl">이번 버전에 추가됐어요</div>
 
     <ul class="wn-list">
@@ -7851,7 +7851,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.0.2</div>
+      <div class="ab-ver">version 1.3.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -11993,9 +11993,20 @@ async function _imageToDataUrl(url) {
     ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(url)}`
     : url;
 
+  // fetch + 타임아웃 헬퍼 (프록시 행·네트워크 지연 방지)
+  const fetchWithTimeout = async (u, ms = 6000) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(u, { mode: 'cors', cache: 'force-cache', signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
   // 1차 시도: 프록시 경유
   try {
-    const res = await fetch(proxyUrl, { mode: 'cors', cache: 'force-cache' });
+    const res = await fetchWithTimeout(proxyUrl, 6000);
     if (res.ok) {
       const blob = await res.blob();
       return await new Promise((resolve, reject) => {
@@ -12011,7 +12022,7 @@ async function _imageToDataUrl(url) {
 
   // 2차 시도: 원본 직접 (서버가 CORS 허용하는 극소수 케이스)
   try {
-    const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+    const res = await fetchWithTimeout(url, 6000);
     if (!res.ok) throw new Error('fetch failed');
     const blob = await res.blob();
     return await new Promise((resolve, reject) => {
@@ -12087,7 +12098,7 @@ async function _captureTicketImage() {
       useCORS: true,
       allowTaint: false,   // base64로 바꿨으니 taint 필요 없음
       logging: false,
-      imageTimeout: 0,
+      imageTimeout: 10000, // 0(무한) → 10초. 이미지 하나 멈춰도 전체 멈춤 방지
     });
     return canvas;
   } finally {
@@ -12108,7 +12119,11 @@ async function shareTicket() {
       showToast('네트워크 확인 후 다시 시도해주세요');
       return;
     }
-    const canvas = await _captureTicketImage();
+    // 전체 캡처에 20초 타임아웃 — 무한 대기 방지
+    const canvas = await Promise.race([
+      _captureTicketImage(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 20000))
+    ]);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
     if (!blob) {
       showToast('이미지 생성에 실패했어요');
@@ -12147,7 +12162,11 @@ async function shareTicket() {
     }
   } catch (err) {
     console.error('[shareTicket] 실패:', err);
-    showToast('공유에 실패했어요. 다시 시도해주세요');
+    if (err.message === 'CAPTURE_TIMEOUT') {
+      showToast('시간 초과 · 잠시 후 다시 시도해주세요');
+    } else {
+      showToast('공유에 실패했어요. 다시 시도해주세요');
+    }
   } finally {
     btn.classList.remove('loading');
   }
@@ -12171,7 +12190,11 @@ async function saveTicket() {
       return;
     }
 
-    const canvas = await _captureTicketImage();
+    // 전체 캡처에 20초 타임아웃 — 무한 대기 방지
+    const canvas = await Promise.race([
+      _captureTicketImage(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 20000))
+    ]);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
     if (!blob) {
       showToast('이미지 생성에 실패했어요');
@@ -12208,7 +12231,11 @@ async function saveTicket() {
     }
   } catch (err) {
     console.error('[saveTicket] 실패:', err);
-    showToast('저장에 실패했어요. 다시 시도해주세요');
+    if (err.message === 'CAPTURE_TIMEOUT') {
+      showToast('시간 초과 · 잠시 후 다시 시도해주세요');
+    } else {
+      showToast('저장에 실패했어요. 다시 시도해주세요');
+    }
   } finally {
     btn.classList.remove('loading');
   }
@@ -14265,7 +14292,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: '1.0.2',
+        version: '1.3.0',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
@@ -14678,7 +14705,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.3.0';
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion';
 
 function openWhatsNew() {
@@ -14703,7 +14730,7 @@ function closeWhatsNew() {
   try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
 }
 
-/* 간단한 semver 비교 — v1.0.1 < v1.0.2 판단 */
+/* 간단한 semver 비교 — v1.0.2 < v1.3.0 판단 */
 function _versionLower(a, b) {
   if (!a) return true;  // 저장된 버전 없으면 무조건 구버전 취급
   const pa = String(a).split('.').map(n => parseInt(n, 10) || 0);
