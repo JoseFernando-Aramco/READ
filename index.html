@@ -11413,13 +11413,14 @@ function renderLogList() {
     return;
   }
 
-  // 시작일 내림차순 정렬
-  books.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
+  // 시작일 내림차순 정렬 (없으면 완독일로 fallback)
+  const sortKey = (b) => b.dateStart || b.dateEnd || '';
+  books.sort((a, b) => new Date(sortKey(b)) - new Date(sortKey(a)));
 
-  // 계절별 그룹화
+  // 계절별 그룹화 (시작일 없으면 완독일로 fallback)
   const groups = {};
   books.forEach(b => {
-    const s = getSeason(b.dateStart);
+    const s = getSeason(b.dateStart || b.dateEnd);
     const k = seasonKey(s);
     if (!groups[k]) groups[k] = { season:s, books:[] };
     groups[k].books.push(b);
@@ -15369,11 +15370,40 @@ function _imRenderMapUI() {
 /* ─── 값 파싱 ─── */
 // yearHint: 같은 행의 다른 날짜에서 추출한 연도 (월만 적힌 경우 대비)
 function _imParseDate(v, yearHint) {
-  if (!v) return '';
+  if (v === null || v === undefined || v === '') return '';
   if (v instanceof Date && !isNaN(v)) {
     const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
+
+  // 엑셀이 "YYYY.MM"을 숫자로 저장하면 trailing zero가 떨어짐
+  //   "2025.10" 입력 → 숫자 2025.1 로 저장 ← 이 케이스 복구
+  //   "2025.01" 입력 → 숫자 2025.01 유지 → 1월
+  //   "2025.12" 입력 → 숫자 2025.12 → 12월
+  // 휴리스틱: 소수 1자리 "1"만 10월로 복원 (2~9는 그대로 그 월, 20·30월은 없으니까)
+  if (typeof v === 'number') {
+    const str = String(v);
+    const dotIdx = str.indexOf('.');
+    if (dotIdx > 0) {
+      const yearStr = str.slice(0, dotIdx);
+      const decStr  = str.slice(dotIdx + 1);
+      const year = parseInt(yearStr, 10);
+      if (year >= 1900 && year <= 2100) {
+        let month = 0;
+        if (decStr.length === 1) {
+          const d = parseInt(decStr, 10);
+          // "1"만 10으로 복원 (엑셀 trailing zero 제거 가설), "2"~"9"는 그대로
+          month = (d === 1) ? 10 : d;
+        } else if (decStr.length >= 2) {
+          month = parseInt(decStr.substring(0, 2), 10);
+        }
+        if (month >= 1 && month <= 12) {
+          return `${year}-${String(month).padStart(2, '0')}-01`;
+        }
+      }
+    }
+  }
+
   const s = String(v).trim();
   if (!s) return '';
 
@@ -15420,8 +15450,13 @@ function _imParseDate(v, yearHint) {
 
 // 문자열에서 연도만 추출 (다른 날짜 필드의 연도 힌트로 쓰기 위함)
 function _imExtractYear(v) {
-  if (!v) return null;
+  if (v === null || v === undefined || v === '') return null;
   if (v instanceof Date && !isNaN(v)) return v.getFullYear();
+  if (typeof v === 'number') {
+    const y = Math.floor(v);
+    if (y >= 1900 && y <= 2100) return y;
+    return null;
+  }
   const s = String(v).trim();
   let m = s.match(/(\d{4})/);
   if (m) {
@@ -15505,8 +15540,13 @@ function _imBuildPreview() {
     const rawEnd = get('dateEnd');
     const yearFromStart = _imExtractYear(rawStart);
     const yearFromEnd = _imExtractYear(rawEnd);
-    const dateStart = _imParseDate(rawStart, yearFromEnd);
-    const dateEnd = _imParseDate(rawEnd, yearFromStart);
+    let dateStart = _imParseDate(rawStart, yearFromEnd);
+    let dateEnd = _imParseDate(rawEnd, yearFromStart);
+    // 시작일 없이 완독일만 있는 경우 → 시작일 = 완독일 (당일 완독으로 처리)
+    // 엑셀 정리형 유저 대부분이 "완독한 날짜"만 적어서 로그·시즌 그룹화가 깨지는 걸 방지
+    if (status === 'done' && !dateStart && dateEnd) {
+      dateStart = dateEnd;
+    }
     const rating = _imParseRating(get('rating'));
     const tags = _imParseTags(get('tags'));
     const note = String(get('note') || '').trim();
