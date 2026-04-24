@@ -15241,22 +15241,21 @@ async function _imHandleFile(file) {
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: false });
     if (!rows.length) { showToast('시트가 비어있어요'); return; }
 
-    // 헤더 = 첫 번째 '비어있지 않은' 행
-    let headerIdx = 0;
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].some(c => String(c).trim())) { headerIdx = i; break; }
-    }
-    IM_STATE.headers = rows[headerIdx].map(h => String(h || '').trim());
+    // 헤더 행 탐지 (병합된 타이틀/안내 행 건너뛰고 진짜 헤더 찾기)
+    const headerIdx = _imFindHeaderRow(rows);
+    IM_STATE.headers = (rows[headerIdx] || []).map(h => String(h || '').trim());
     IM_STATE.rawRows = rows.slice(headerIdx + 1);
+
+    // 모든 컬럼이 비어있는 행 제거
+    IM_STATE.rawRows = IM_STATE.rawRows.filter(r => r.some(c => String(c).trim()));
 
     // 헤더 자동 매핑
     IM_STATE.mapping = _imAutoMap(IM_STATE.headers);
 
-    // 템플릿 여부 자동 판정 (필수 필드 3개 이상 정확 매칭)
+    // 템플릿 여부 자동 판정
     const isTemplate = _imDetectTemplate(IM_STATE.headers);
 
     if (isTemplate) {
-      // 매핑 스킵 → 바로 미리보기
       _imBuildPreview();
       _imShowStep('preview');
     } else {
@@ -15269,28 +15268,71 @@ async function _imHandleFile(file) {
   }
 }
 
+/* 헤더명 정규화 — "페이지\n(모르면 패스)" → "페이지" */
+function _imNormalizeHeader(raw) {
+  return String(raw || '')
+    .split(/[\n\r]/)[0]              // 줄바꿈 이전까지
+    .split(/[\(（]/)[0]               // 괄호 이전까지
+    .replace(/[\s　]+/g, '')          // 모든 공백 제거
+    .trim()
+    .toLowerCase();
+}
+
+/* 헤더 행 탐지 — 2셀 이상 찬 행 중 우리 키워드와 가장 잘 매칭되는 행 */
+function _imFindHeaderRow(rows) {
+  const allKeywords = Object.values(IM_HEADER_HINTS).flat().map(s => s.toLowerCase());
+  let bestIdx = 0;
+  let bestScore = -1;
+
+  for (let i = 0; i < Math.min(rows.length, 15); i++) {
+    const row = rows[i] || [];
+    const filledCount = row.filter(c => String(c).trim()).length;
+    // 1셀만 찬 행은 거의 확실히 병합된 타이틀/안내 — 건너뛰기
+    if (filledCount < 2) continue;
+
+    // 키워드 매칭 점수
+    let kwScore = 0;
+    row.forEach(c => {
+      const n = _imNormalizeHeader(c);
+      if (!n) return;
+      if (allKeywords.some(k => n === k.toLowerCase())) kwScore += 5;
+      else if (allKeywords.some(k => n.includes(k.toLowerCase()))) kwScore += 2;
+    });
+
+    const score = filledCount + kwScore;
+    if (score > bestScore) {
+      bestScore = score;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
 function _imDetectTemplate(headers) {
-  // 우리 템플릿 헤더와 3개 이상 정확히 매칭되면 템플릿으로 간주
-  const templateHeaders = IM_FIELDS.map(f => f.label);
+  // 정규화 후 우리 라벨과 정확 매칭되는 개수로 판정
+  const labels = IM_FIELDS.map(f => f.label.toLowerCase());
   let match = 0;
   for (const h of headers) {
-    if (templateHeaders.includes(h)) match++;
+    const n = _imNormalizeHeader(h);
+    if (labels.includes(n)) match++;
   }
-  return match >= 3;
+  return match >= 4;  // 9개 중 4개 이상 매칭되면 템플릿으로 간주
 }
 
 function _imAutoMap(headers) {
   const map = {};
-  const lower = headers.map(h => String(h || '').trim().toLowerCase());
+  const normalized = headers.map(h => _imNormalizeHeader(h));
   for (const field of IM_FIELDS) {
     const hints = IM_HEADER_HINTS[field.key] || [];
-    for (let i = 0; i < lower.length; i++) {
-      // 정확히 일치 > 포함 순
-      if (hints.some(h => h.toLowerCase() === lower[i])) { map[field.key] = i; break; }
+    // 정확 일치 우선
+    for (let i = 0; i < normalized.length; i++) {
+      if (hints.some(h => h.toLowerCase() === normalized[i])) { map[field.key] = i; break; }
     }
+    // 없으면 포함 매칭
     if (map[field.key] === undefined) {
-      for (let i = 0; i < lower.length; i++) {
-        if (hints.some(h => lower[i].includes(h.toLowerCase()))) { map[field.key] = i; break; }
+      for (let i = 0; i < normalized.length; i++) {
+        if (!normalized[i]) continue;
+        if (hints.some(h => normalized[i].includes(h.toLowerCase()))) { map[field.key] = i; break; }
       }
     }
   }
@@ -15325,7 +15367,8 @@ function _imRenderMapUI() {
 }
 
 /* ─── 값 파싱 ─── */
-function _imParseDate(v) {
+// yearHint: 같은 행의 다른 날짜에서 추출한 연도 (월만 적힌 경우 대비)
+function _imParseDate(v, yearHint) {
   if (!v) return '';
   if (v instanceof Date && !isNaN(v)) {
     const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
@@ -15333,20 +15376,64 @@ function _imParseDate(v) {
   }
   const s = String(v).trim();
   if (!s) return '';
-  // ISO 유사
+
+  // 1) 전체 날짜: 2024-03-15 / 2024.3.15 / 2024/3/15
   let m = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
   if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
-  // 한글: 2024년 3월 15일
+
+  // 2) 한글 전체: 2024년 3월 15일
   m = s.match(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일?/);
   if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
-  // YY.M.D
+
+  // 3) 짧은 연도: 24.3.15 / 24-3-15
   m = s.match(/^(\d{2})[-./](\d{1,2})[-./](\d{1,2})/);
   if (m) {
     const yy = parseInt(m[1], 10);
     const yyyy = yy < 50 ? 2000 + yy : 1900 + yy;
     return `${yyyy}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
   }
+
+  // 4) 년+월만: 2024년 3월 / 2024.3 / 2024-03  → 그 달 1일
+  m = s.match(/^(\d{4})\s*[년\-./]\s*(\d{1,2})\s*월?$/);
+  if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-01`;
+
+  // 5) 짧은 년+월: 24년 3월 / 24.3
+  m = s.match(/^(\d{2})\s*[년\-./]\s*(\d{1,2})\s*월?$/);
+  if (m) {
+    const yy = parseInt(m[1], 10);
+    const yyyy = yy < 50 ? 2000 + yy : 1900 + yy;
+    return `${yyyy}-${String(m[2]).padStart(2, '0')}-01`;
+  }
+
+  // 6) 월만: 3월 / 3 월 → 연도는 힌트 또는 현재 연도, 1일로
+  m = s.match(/^(\d{1,2})\s*월$/);
+  if (m) {
+    const mo = parseInt(m[1], 10);
+    if (mo >= 1 && mo <= 12) {
+      const y = yearHint || new Date().getFullYear();
+      return `${y}-${String(mo).padStart(2, '0')}-01`;
+    }
+  }
+
   return '';
+}
+
+// 문자열에서 연도만 추출 (다른 날짜 필드의 연도 힌트로 쓰기 위함)
+function _imExtractYear(v) {
+  if (!v) return null;
+  if (v instanceof Date && !isNaN(v)) return v.getFullYear();
+  const s = String(v).trim();
+  let m = s.match(/(\d{4})/);
+  if (m) {
+    const y = parseInt(m[1], 10);
+    if (y >= 1900 && y <= 2100) return y;
+  }
+  m = s.match(/^(\d{2})[-./년]/);
+  if (m) {
+    const yy = parseInt(m[1], 10);
+    return yy < 50 ? 2000 + yy : 1900 + yy;
+  }
+  return null;
 }
 
 function _imParseRating(v) {
@@ -15413,8 +15500,13 @@ function _imBuildPreview() {
     const author = String(get('author') || '').trim();
     const pages = _imParsePages(get('pages'));
     const status = _imParseStatus(get('status'));
-    const dateStart = _imParseDate(get('dateStart'));
-    const dateEnd = _imParseDate(get('dateEnd'));
+    // 날짜 파싱 — 시작일/완독일 서로 연도 힌트 주고받기 (월만 적힌 경우 대비)
+    const rawStart = get('dateStart');
+    const rawEnd = get('dateEnd');
+    const yearFromStart = _imExtractYear(rawStart);
+    const yearFromEnd = _imExtractYear(rawEnd);
+    const dateStart = _imParseDate(rawStart, yearFromEnd);
+    const dateEnd = _imParseDate(rawEnd, yearFromStart);
     const rating = _imParseRating(get('rating'));
     const tags = _imParseTags(get('tags'));
     const note = String(get('note') || '').trim();
@@ -15526,55 +15618,12 @@ function _imExecute() {
   _imShowStep('done');
 }
 
-/* ─── 템플릿 다운로드 ─── */
+/* ─── 템플릿 다운로드 — 사용자 디자인 그대로 복제 ─── */
 function _imDownloadTemplate() {
   if (typeof XLSX === 'undefined') {
     showToast('엑셀 라이브러리 로드 실패');
     return;
   }
-
-  // ── 스타일 정의 ──
-  const S = {
-    title: {
-      font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: '111827' } },
-      alignment: { horizontal: 'center', vertical: 'center' },
-    },
-    subtitle: {
-      font: { sz: 11, italic: true, color: { rgb: '4B5563' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
-      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
-    },
-    header: {
-      font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: '374151' } },
-      alignment: { horizontal: 'center', vertical: 'center' },
-      border: _border('4B5563'),
-    },
-    headerRequired: {
-      font: { bold: true, sz: 12, color: { rgb: 'FEF3C7' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: '374151' } },
-      alignment: { horizontal: 'center', vertical: 'center' },
-      border: _border('4B5563'),
-    },
-    exampleRow: {
-      font: { sz: 11, italic: true, color: { rgb: '9CA3AF' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
-      alignment: { vertical: 'center' },
-      border: _border('E5E7EB'),
-    },
-    exampleCenter: {
-      font: { sz: 11, italic: true, color: { rgb: '9CA3AF' }, name: 'Malgun Gothic' },
-      fill: { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } },
-      alignment: { horizontal: 'center', vertical: 'center' },
-      border: _border('E5E7EB'),
-    },
-    blankRow: {
-      border: _border('E5E7EB'),
-      alignment: { vertical: 'center' },
-      font: { sz: 11, name: 'Malgun Gothic' },
-    },
-  };
 
   function _border(rgb) {
     return {
@@ -15585,81 +15634,72 @@ function _imDownloadTemplate() {
     };
   }
 
-  // ── 데이터 (AOA) ──
+  // 타이틀 (파란 배경 + 흰 글씨)
+  const titleStyle = {
+    font: { bold: true, sz: 16, color: { rgb: 'FFFFFFFF' }, name: '맑은 고딕' },
+    fill: { patternType: 'solid', fgColor: { rgb: 'FF0070C0' } },
+    alignment: { horizontal: 'center', vertical: 'center' },
+  };
+  // 헤더 (흰 배경 + 가운데 정렬 + 줄바꿈)
+  const headerStyle = {
+    font: { sz: 11, name: '맑은 고딕', color: { rgb: 'FF000000' } },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    border: _border('FFD4D4D4'),
+  };
+
+  // 데이터 (AOA)
   const data = [
     ['READ · 독서 기록 가져오기 템플릿'],
-    ['4~6행은 예시예요. 예시를 지우고 7행부터 본인 기록을 이어서 적으시면 돼요.   ※ "제목"은 필수, 나머지는 비워두셔도 됩니다.'],
-    ['제목', '저자', '페이지', '상태', '시작일', '완독일', '별점', '태그', '메모'],
-    ['데미안',      '헤르만 헤세', 224, '완독',  '2024-01-10', '2024-01-15', 4.5, '고전,독일',      '자아 성장'],
-    ['코스모스',    '칼 세이건',   492, '독서중', '2024-03-01', '',           '',  '과학,우주',      ''],
-    ['채식주의자',  '한강',        248, '위시',   '',           '',           '',  '한국 소설,현대', ''],
+    [
+      '제목',
+      '저자',
+      '페이지\n(모르면 패스)',
+      '상태',
+      '시작일\n(ex: 2025.01.15)',
+      '완독일\n(ex: 2025.01.15)',
+      '별점\n(숫자)',
+      '태그 \n(ex: SF, 로멘스, 스릴러, 에세이 등)',
+      '메모'
+    ],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
 
-  // ── 셀 병합 (타이틀·안내 행) ──
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },  // A1:I1
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },  // A2:I2
-  ];
+  // 타이틀 행 병합 A1:I1
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
 
-  // ── 컬럼 너비 ──
+  // 컬럼 너비 (사용자 템플릿 그대로)
   ws['!cols'] = [
-    { wch: 22 }, { wch: 16 }, { wch: 8 },  { wch: 10 },
-    { wch: 13 }, { wch: 13 }, { wch: 7 },  { wch: 18 }, { wch: 28 }
+    { wch: 21.7 }, { wch: 13.5 }, { wch: 13.5 }, { wch: 19.6 },
+    { wch: 17.2 }, { wch: 13.0 }, { wch: 12.6 }, { wch: 33.8 }, { wch: 33.8 }
   ];
 
-  // ── 행 높이 ──
+  // 행 높이
   ws['!rows'] = [
     { hpt: 34 },  // 타이틀
-    { hpt: 30 },  // 안내
-    { hpt: 26 },  // 헤더
-    { hpt: 22 }, { hpt: 22 }, { hpt: 22 },  // 예시
+    { hpt: 50 },  // 헤더 (2줄 줄바꿈)
   ];
 
-  // ── 스타일 적용 ──
-  const cols = ['A','B','C','D','E','F','G','H','I'];
-
-  // Row 1: 타이틀
-  if (ws['A1']) ws['A1'].s = S.title;
-  // Row 2: 안내
-  if (ws['A2']) ws['A2'].s = S.subtitle;
-  // Row 3: 헤더 (제목 컬럼만 살짝 다른 색으로 "필수" 느낌)
-  cols.forEach((c, i) => {
-    const ref = `${c}3`;
-    if (ws[ref]) ws[ref].s = (i === 0) ? S.headerRequired : S.header;
-  });
-  // Row 4-6: 예시
-  for (let r = 4; r <= 6; r++) {
-    cols.forEach((c, i) => {
-      const ref = `${c}${r}`;
-      if (!ws[ref]) ws[ref] = { v: '', t: 's' };
-      // 페이지·상태·별점은 가운데 정렬
-      ws[ref].s = (i === 2 || i === 3 || i === 6) ? S.exampleCenter : S.exampleRow;
-    });
-  }
-  // Row 7: 빈 줄 하나 준비 (유저가 여기부터 채우도록 테두리만)
-  cols.forEach(c => {
-    const ref = `${c}7`;
-    if (!ws[ref]) ws[ref] = { v: '', t: 's' };
-    ws[ref].s = S.blankRow;
+  // 스타일 적용
+  if (ws['A1']) ws['A1'].s = titleStyle;
+  ['A2','B2','C2','D2','E2','F2','G2','H2','I2'].forEach(c => {
+    if (ws[c]) ws[c].s = headerStyle;
   });
 
-  // ── 창 고정: 헤더(3행)까지 freeze ──
-  ws['!views'] = [{ state: 'frozen', ySplit: 3, xSplit: 0 }];
+  // 헤더 3행까지 freeze (타이틀 + 헤더)
+  ws['!views'] = [{ state: 'frozen', ySplit: 2, xSplit: 0 }];
 
-  // ── 상태 컬럼 드롭다운 ──
+  // 상태 컬럼 드롭다운 (D3:D1000)
   ws['!dataValidation'] = [{
-    sqref: 'D4:D1000',
+    sqref: 'D3:D1000',
     type: 'list',
     formula1: '"완독,독서중,위시"',
   }];
 
-  // ── 워크북 생성 & 저장 ──
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '독서기록');
   XLSX.writeFile(wb, 'READ_import_template.xlsx');
-  showToast('템플릿 다운로드됨 · 4~6행 예시는 지우고 쓰세요');
+  showToast('템플릿 다운로드 완료');
 }
 
 /* ─── 이벤트 연결 ─── */
