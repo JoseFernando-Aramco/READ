@@ -4017,6 +4017,89 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   transform: translate(-50%, 0);
 }
 
+/* ═══════════ 임포트 진행 상황 (지속형 토스트) ═══════════ */
+.im-progress {
+  position: fixed;
+  left: 50%;
+  bottom: 90px;                /* 하단 탭바 위쪽 */
+  transform: translate(-50%, 20px);
+  z-index: 199;
+  width: min(360px, calc(100vw - 32px));
+  padding: 14px 18px;
+  background: var(--c-text);
+  color: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(25,31,40,.3);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+}
+.im-progress.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.im-progress-spinner {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: im-spin 0.9s linear infinite;
+}
+@keyframes im-spin { to { transform: rotate(360deg); } }
+.im-progress-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.im-progress-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  opacity: 0.95;
+}
+.im-progress-bar-wrap {
+  height: 4px;
+  background: rgba(255,255,255,.18);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.im-progress-bar-fill {
+  height: 100%;
+  background: #fff;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+.im-progress-meta {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.im-progress-cancel {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.im-progress-cancel:active { background: rgba(255,255,255,.2); }
+
 /* ═══════════════════════════════════════════════════════════
    책 상세 페이지 · Book Detail Sheet
    ═══════════════════════════════════════════════════════════ */
@@ -8279,6 +8362,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 <!-- 토스트 -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- 임포트 페이지 조회 진행 상황 -->
+<div class="im-progress" id="imProgress" role="status" aria-live="polite">
+  <div class="im-progress-spinner"></div>
+  <div class="im-progress-body">
+    <div class="im-progress-title">페이지 수 찾는 중...</div>
+    <div class="im-progress-bar-wrap">
+      <div class="im-progress-bar-fill" id="imProgressFill"></div>
+    </div>
+    <div class="im-progress-meta" id="imProgressMeta">0 / 0권</div>
+  </div>
+  <button type="button" class="im-progress-cancel" id="imProgressCancel" aria-label="중단">✕</button>
+</div>
+
 <!-- ═══════════ 책 상세 페이지 ═══════════ -->
 <div class="bd-backdrop" id="bdBackdrop"></div>
 <aside class="bd-sheet" id="bdSheet" aria-hidden="true">
@@ -8807,6 +8903,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         <label class="im-opt">
           <input type="checkbox" id="imOptSkipDupe" checked>
           <span>제목+저자가 같은 책은 건너뛰기</span>
+        </label>
+        <label class="im-opt" style="margin-top:8px;">
+          <input type="checkbox" id="imOptAutoPages">
+          <span>페이지 수 자동 찾기 <span id="imAutoPagesHint" style="color:var(--c-muted); font-weight:400;">(빈 칸 0권)</span></span>
         </label>
       </div>
       <div class="im-warn" id="imWarnList" style="display:none;"></div>
@@ -15894,6 +15994,13 @@ function _imRenderPreview() {
   } else {
     warn.style.display = 'none';
   }
+
+  // 페이지 수 자동 찾기 힌트 업데이트 (빈 페이지 책 수)
+  const missingPagesCount = IM_STATE.parsedBooks.filter(b => !b.pages || b.pages === 0).length;
+  const hint = document.getElementById('imAutoPagesHint');
+  if (hint) hint.textContent = `(빈 칸 ${missingPagesCount}권)`;
+  const autoOpt = document.getElementById('imOptAutoPages')?.closest('label');
+  if (autoOpt) autoOpt.style.display = missingPagesCount > 0 ? '' : 'none';
 }
 
 /* ─── 실행 (BOOKS에 삽입) ─── */
@@ -15942,13 +16049,101 @@ function _imExecute() {
 
   // 결과 화면
   const desc = document.getElementById('imDoneDesc');
+  const autoPages = document.getElementById('imOptAutoPages')?.checked;
+  const pageMissing = newBooks.filter(b => !b.pages || b.pages === 0);
   if (desc) {
     const parts = [`<strong>${added}권</strong>을 서재에 추가했어요`];
     if (dupe) parts.push(`중복 <strong>${dupe}권</strong>은 건너뛰었어요`);
     if (IM_STATE.skipped.length) parts.push(`오류 <strong>${IM_STATE.skipped.length}행</strong>은 건너뛰었어요`);
+    if (autoPages && pageMissing.length) {
+      parts.push(`<br/>📖 <strong>페이지 수 자동 찾기</strong>가 시작돼요 (${pageMissing.length}권).<br/><span style="color:var(--c-muted); font-size:11px;">앱을 켜둔 상태로 기다려주세요. 완료되면 알려드릴게요.</span>`);
+    }
     desc.innerHTML = parts.join('<br/>');
   }
   _imShowStep('done');
+
+  // 백그라운드 페이지 조회 (체크됐을 때만, await 없이)
+  if (autoPages && pageMissing.length > 0) {
+    _imAutoFetchPages(pageMissing);
+  }
+}
+
+/* ─── 페이지 수 자동 조회 (백그라운드) ─── */
+// 임포트된 책들 중 페이지가 비어있는 것만 알라딘 프록시로 조회하고
+// 찾으면 BOOKS에 업데이트. rate limit 보호를 위해 순차 + 지연.
+let _imFetchAbort = false;
+
+function _imProgressShow(total) {
+  const el = document.getElementById('imProgress');
+  const meta = document.getElementById('imProgressMeta');
+  const fill = document.getElementById('imProgressFill');
+  if (el) el.classList.add('show');
+  if (meta) meta.textContent = `0 / ${total}권`;
+  if (fill) fill.style.width = '0%';
+}
+function _imProgressUpdate(done, total, foundCount) {
+  const meta = document.getElementById('imProgressMeta');
+  const fill = document.getElementById('imProgressFill');
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  if (meta) meta.textContent = `${done} / ${total}권 · ${foundCount}권 찾음`;
+  if (fill) fill.style.width = `${pct}%`;
+}
+function _imProgressHide() {
+  document.getElementById('imProgress')?.classList.remove('show');
+}
+
+// 취소 버튼
+document.getElementById('imProgressCancel')?.addEventListener('click', () => {
+  _imFetchAbort = true;
+  showToast('페이지 찾기를 중단했어요');
+});
+
+async function _imAutoFetchPages(books) {
+  _imFetchAbort = false;
+  const DELAY_MS = 450;   // 권당 간격
+  const total = books.length;
+  let found = 0, tried = 0;
+
+  _imProgressShow(total);
+
+  for (const b of books) {
+    if (_imFetchAbort) break;
+    tried++;
+
+    try {
+      const pages = await _fetchPagesFromAladin({ title: b.title });
+      if (pages && pages > 0) {
+        const target = BOOKS.find(x => x.id === b.id);
+        if (target) {
+          target.pages = pages;
+          found++;
+          // 10권마다 저장/리렌더
+          if (found % 10 === 0) {
+            try { STORE.set('books', BOOKS); } catch(_){}
+            try { renderLibraryCards && renderLibraryCards(); } catch(_){}
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[import-fetch-pages]', e);
+    }
+
+    _imProgressUpdate(tried, total, found);
+    await new Promise(r => setTimeout(r, DELAY_MS));
+  }
+
+  // 최종 저장/리렌더
+  try { STORE.set('books', BOOKS); } catch(_){}
+  try { renderLibraryCards && renderLibraryCards(); } catch(_){}
+  try { renderStats && renderStats(); } catch(_){}
+
+  _imProgressHide();
+
+  if (_imFetchAbort) {
+    showToast(`중단됨 · ${found}권 찾음`);
+  } else {
+    showToast(`✓ ${found}/${tried}권의 페이지 수를 찾았어요`);
+  }
 }
 
 /* ─── 템플릿 다운로드 — 사용자 디자인 그대로 복제 ─── */
