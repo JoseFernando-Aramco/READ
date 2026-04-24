@@ -2057,7 +2057,42 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 15px; font-weight: 500;
   color: var(--c-text); line-height: 1.6;
   letter-spacing: -0.01em;
+  white-space: pre-wrap;          /* 줄바꿈 유지 */
+  word-break: break-word;
 }
+.note-body.collapsed {
+  max-height: 168px;              /* 약 7줄 */
+  overflow: hidden;
+  position: relative;
+}
+.note-body.collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 56px;
+  background: linear-gradient(rgba(255,255,255,0), var(--c-surface) 85%);
+  pointer-events: none;
+}
+.note-card.quote .note-body.collapsed::after {
+  background: linear-gradient(rgba(255,255,255,0), var(--c-surface-2, var(--c-surface)) 85%);
+}
+.note-expand-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 0 2px;
+  margin-top: 4px;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.note-expand-btn:active { opacity: 0.6; }
 .note-card.quote .note-body {
   font-style: normal;
 }
@@ -14618,6 +14653,10 @@ function renderNoteCard(n) {
   const book = BOOKS.find(b => b.id === n.bookId);
   if (!book) return '';
   const bodyText = n.type === 'quote' ? '"' + esc(n.body) + '"' : esc(n.body);
+  // 긴 노트 판정 — 글자수 or 줄바꿈 기준
+  const raw = String(n.body || '');
+  const lineCount = (raw.match(/\n/g) || []).length + 1;
+  const isLong = raw.length > 220 || lineCount >= 7;
   return `
     <div class="note-card ${n.type}" data-note-id="${n.id}">
       <div class="note-head">
@@ -14633,7 +14672,8 @@ function renderNoteCard(n) {
           <span class="note-type ${n.type}">${n.type === 'quote' ? '인용구' : '내 생각'}</span>
         </div>
       </div>
-      <div class="note-body">${bodyText}</div>
+      <div class="note-body${isLong ? ' collapsed' : ''}">${bodyText}</div>
+      ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
       <div class="note-date">${timeAgo(n.createdAt)}</div>
     </div>`;
 }
@@ -14734,13 +14774,24 @@ document.getElementById('noteSearchInput').addEventListener('input', (e) => {
   renderNotesTab();
 });
 
-/* ─── 노트 카드 클릭 (편집 열기 · 즐겨찾기 토글) ─── */
+/* ─── 노트 카드 클릭 (편집 열기 · 즐겨찾기 토글 · 더보기 펼치기) ─── */
 document.getElementById('noteList').addEventListener('click', (e) => {
   const favBtn = e.target.closest('[data-action="note-fav"]');
   if (favBtn) {
     e.stopPropagation();
     const id = parseInt(favBtn.dataset.noteId, 10);
     toggleNoteFavorite(id);
+    return;
+  }
+  // 더보기 / 접기 토글
+  const expBtn = e.target.closest('[data-action="note-expand"]');
+  if (expBtn) {
+    e.stopPropagation();
+    const card = expBtn.closest('.note-card');
+    const body = card?.querySelector('.note-body');
+    if (!body) return;
+    const nowCollapsed = body.classList.toggle('collapsed');
+    expBtn.textContent = nowCollapsed ? '더보기 ⌄' : '접기 ⌃';
     return;
   }
   const card = e.target.closest('[data-note-id]');
