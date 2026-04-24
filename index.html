@@ -4681,6 +4681,292 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ct-submit .ic { width: 16px; height: 16px; }
 
+/* ═══════════ 엑셀에서 가져오기 모달 ═══════════ */
+.im-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.im-backdrop.open { opacity: 1; pointer-events: auto; }
+.im-modal {
+  position: fixed; inset: 0;
+  z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.im-modal.open { opacity: 1; pointer-events: auto; }
+.im-card {
+  background: var(--c-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  overflow: hidden;
+}
+.im-modal.open .im-card { transform: scale(1); }
+.im-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: none;
+  color: var(--c-label);
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+.im-step {
+  padding: 28px 24px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.im-head {
+  text-align: center;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--c-border);
+}
+.im-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--c-surface-2);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.im-icon svg { width: 30px; height: 30px; }
+.im-icon-success {
+  background: #e8f6ee;
+  color: #1e9e6e;
+}
+.im-ttl {
+  font-size: 17px; font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.im-desc {
+  font-size: 12px;
+  color: var(--c-label);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+.im-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 20px;
+  border: 2px dashed var(--c-border);
+  border-radius: 14px;
+  background: var(--c-bg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--c-label);
+}
+.im-dropzone.dragover {
+  border-color: var(--primary);
+  background: var(--c-surface-2);
+}
+.im-dropzone svg { width: 28px; height: 28px; color: var(--c-muted); }
+.im-dz-main {
+  font-size: 13px; font-weight: 600;
+  color: var(--c-text-2);
+  margin-top: 4px;
+}
+.im-dz-sub {
+  font-size: 11px;
+  color: var(--c-muted);
+}
+.im-template-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+.im-template-txt { flex: 1; min-width: 0; }
+.im-template-ttl {
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text-2);
+}
+.im-template-sub {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-top: 2px;
+}
+.im-template-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.im-template-btn:active { background: var(--c-bg); }
+.im-template-btn .ic { width: 12px; height: 12px; }
+
+.im-map-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.im-map-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+.im-map-field {
+  flex: 0 0 90px;
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+}
+.im-map-field .req { color: #e24b4a; margin-left: 2px; }
+.im-map-select {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.im-preview {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.im-preview-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--c-bg);
+  border-radius: 8px;
+  align-items: baseline;
+}
+.im-preview-idx {
+  font-size: 11px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  width: 24px;
+}
+.im-preview-main { flex: 1; min-width: 0; }
+.im-preview-ttl {
+  font-size: 13px; font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.im-preview-meta {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-top: 2px;
+}
+.im-preview-meta .im-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  font-weight: 500;
+  margin-right: 4px;
+}
+.im-opt-row {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+.im-opt {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+.im-opt input { width: 16px; height: 16px; accent-color: var(--primary); }
+.im-warn {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #f4d8a3;
+  background: #fef6e4;
+  color: #9a6b1c;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.im-footer {
+  display: flex;
+  gap: 8px;
+  padding: 14px 24px 22px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+  flex-shrink: 0;
+}
+.im-btn-primary, .im-btn-ghost {
+  padding: 13px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.im-btn-primary {
+  flex: 1;
+  border: none;
+  background: var(--c-text);
+  color: var(--c-surface);
+}
+.im-btn-primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.im-btn-primary:not(:disabled):active { opacity: 0.85; }
+.im-btn-ghost {
+  flex: 0 0 auto;
+  padding: 13px 20px;
+  background: transparent;
+  border: 1px solid var(--c-border);
+  color: var(--c-text-2);
+}
+.im-btn-ghost:active { background: var(--c-bg); }
+
 .ab-modal {
   position: fixed; inset: 0;
   z-index: 210;
@@ -6936,6 +7222,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- SheetJS for Excel import/export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -6997,6 +7285,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
   <!-- 업로드 / 내보내기 -->
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
   <!-- 정보 -->
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
@@ -7458,6 +7747,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-main">
             <div class="settings-row-ttl">데이터 내보내기</div>
             <div class="settings-row-sub">PDF · JSON 백업</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+        <button class="settings-row" id="importRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-download"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">엑셀에서 가져오기</div>
+            <div class="settings-row-sub">대용량 독서 기록 한 번에</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -8180,7 +8477,81 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </div>
 </div>
 
-<!-- ═══════════ 데이터 내보내기 안내 모달 ═══════════ -->
+<!-- ═══════════ 엑셀에서 가져오기 모달 ═══════════ -->
+<div class="im-backdrop" id="imBackdrop"></div>
+<div class="im-modal" id="imModal" aria-hidden="true">
+  <div class="im-card">
+    <button class="im-close" id="imClose" aria-label="닫기">✕</button>
+
+    <!-- Step 1: 파일 선택 -->
+    <div class="im-step" data-step="pick">
+      <div class="im-head">
+        <div class="im-icon"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-download"/></svg></div>
+        <div class="im-ttl">엑셀에서 가져오기</div>
+        <div class="im-desc">기존에 쓰시던 엑셀/CSV 파일을 그대로 업로드하세요.<br/>컬럼 자동 매칭 후 미리보기로 확인할 수 있어요.</div>
+      </div>
+
+      <label class="im-dropzone" id="imDropzone">
+        <input type="file" id="imFileInput" accept=".xlsx,.xls,.csv" hidden>
+        <svg class="ic ic-2xl" aria-hidden="true"><use href="#i-upload"/></svg>
+        <div class="im-dz-main">파일을 끌어다 놓거나 탭해서 선택</div>
+        <div class="im-dz-sub">.xlsx · .xls · .csv 지원</div>
+      </label>
+
+      <div class="im-template-row">
+        <div class="im-template-txt">
+          <div class="im-template-ttl">처음이시거나 정리된 양식을 원하신다면</div>
+          <div class="im-template-sub">READ 템플릿을 받아서 채워 쓰세요</div>
+        </div>
+        <button type="button" class="im-template-btn" id="imTemplateBtn">
+          <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+          템플릿
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: 컬럼 매핑 (템플릿 아닐 때만) -->
+    <div class="im-step" data-step="map" style="display:none;">
+      <div class="im-head">
+        <div class="im-ttl">컬럼 연결하기</div>
+        <div class="im-desc">엑셀의 어떤 컬럼이 어떤 정보인지 알려주세요.<br/>자동으로 추측한 내용은 확인 후 바꿀 수 있어요.</div>
+      </div>
+      <div class="im-map-list" id="imMapList"></div>
+    </div>
+
+    <!-- Step 3: 미리보기 + 옵션 -->
+    <div class="im-step" data-step="preview" style="display:none;">
+      <div class="im-head">
+        <div class="im-ttl">미리보기</div>
+        <div class="im-desc"><span id="imPreviewCount">0</span>권이 다음과 같이 들어갑니다.</div>
+      </div>
+      <div class="im-preview" id="imPreviewList"></div>
+      <div class="im-opt-row">
+        <label class="im-opt">
+          <input type="checkbox" id="imOptSkipDupe" checked>
+          <span>제목+저자가 같은 책은 건너뛰기</span>
+        </label>
+      </div>
+      <div class="im-warn" id="imWarnList" style="display:none;"></div>
+    </div>
+
+    <!-- Step 4: 결과 -->
+    <div class="im-step" data-step="done" style="display:none;">
+      <div class="im-head">
+        <div class="im-icon im-icon-success"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-check"/></svg></div>
+        <div class="im-ttl">가져오기 완료!</div>
+        <div class="im-desc" id="imDoneDesc">—</div>
+      </div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <div class="im-footer">
+      <button type="button" class="im-btn-ghost" id="imBtnBack" style="display:none;">이전</button>
+      <button type="button" class="im-btn-primary" id="imBtnNext" disabled>다음</button>
+    </div>
+  </div>
+</div>
+
 <div class="ex-backdrop" id="exBackdrop"></div>
 <div class="ex-modal" id="exModal" aria-hidden="true">
   <div class="ex-card">
@@ -14749,6 +15120,490 @@ document.getElementById('ctSubmit')?.addEventListener('click', async () => {
   row.addEventListener('click', () => {
     closeSettings();
     setTimeout(openContactModal, 280);
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   엑셀에서 가져오기 (Import)
+   ═══════════════════════════════════════════════════════════ */
+
+// READ 필드 정의 — 키는 BOOKS 스키마, 라벨은 UI 표시용
+const IM_FIELDS = [
+  { key: 'title',     label: '제목',   required: true  },
+  { key: 'author',    label: '저자',   required: false },
+  { key: 'pages',     label: '페이지', required: false },
+  { key: 'status',    label: '상태',   required: false },
+  { key: 'dateStart', label: '시작일', required: false },
+  { key: 'dateEnd',   label: '완독일', required: false },
+  { key: 'rating',    label: '별점',   required: false },
+  { key: 'tags',      label: '태그',   required: false },
+  { key: 'note',      label: '메모',   required: false },
+];
+
+// 한국어 헤더명 heuristic — 엑셀 컬럼명 → READ 필드 자동 추측
+const IM_HEADER_HINTS = {
+  title:     ['제목', '책제목', '책', '도서명', '도서', 'title', 'name', '책이름', '서명'],
+  author:    ['저자', '글쓴이', '지은이', '작가', 'author', 'writer'],
+  pages:     ['페이지', '쪽수', '분량', '페이지수', '페이지 수', 'pages', 'page', 'p'],
+  status:    ['상태', '분류', '구분', 'status', '진행'],
+  dateStart: ['시작일', '시작', '시작날짜', '시작 날짜', 'start', '읽기시작', '독서시작', '개시'],
+  dateEnd:   ['완독일', '완독', '완독날짜', '완독 날짜', '다읽은날', '다 읽은 날', '종료일', '종료', '끝', '끝난날',
+              '독료', '독료일', 'end', 'finish', 'read', '읽은날', '읽은 날'],
+  rating:    ['별점', '평점', '점수', 'rating', 'score', 'stars'],
+  tags:      ['태그', '카테고리', '장르', '분야', 'tag', 'tags', 'category', 'genre'],
+  note:      ['메모', '감상', '리뷰', '후기', '한줄평', '코멘트', 'note', 'memo', 'review', 'comment'],
+};
+
+// 상태 문자열 → BOOKS status 정규화
+const IM_STATUS_MAP = {
+  done:    ['완독', '완료', '다읽음', '읽음', '읽었음', '끝', '완결', 'done', 'finished', 'read', 'complete', '독료'],
+  reading: ['독서중', '읽는중', '읽고있음', '진행중', '진행', 'reading', 'in-progress', 'ongoing', '독서 중'],
+  wish:    ['위시', '읽고싶음', '읽을것', '예정', '대기', '읽을예정', 'wish', 'want', 'todo', 'later', 'to-read', '구매'],
+};
+
+let IM_STATE = {
+  file: null,
+  rawRows: [],      // 엑셀 데이터 (배열의 배열)
+  headers: [],      // 첫 번째 행 = 헤더
+  mapping: {},      // { title: 'Column A 인덱스', ... }
+  parsedBooks: [],  // 최종 파싱된 책 객체들
+  skipped: [],      // 스킵된 행 {row, reason}
+  step: 'pick',     // pick | map | preview | done
+};
+
+function _imOpen() {
+  IM_STATE = {
+    file: null, rawRows: [], headers: [], mapping: {},
+    parsedBooks: [], skipped: [], step: 'pick',
+  };
+  _imShowStep('pick');
+  _imUpdateButtons();
+  document.getElementById('imBackdrop').classList.add('open');
+  document.getElementById('imModal').classList.add('open');
+  document.getElementById('imModal').setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+function _imClose() {
+  document.getElementById('imBackdrop').classList.remove('open');
+  document.getElementById('imModal').classList.remove('open');
+  document.getElementById('imModal').setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+
+function _imShowStep(step) {
+  IM_STATE.step = step;
+  document.querySelectorAll('#imModal .im-step').forEach(el => {
+    el.style.display = (el.dataset.step === step) ? '' : 'none';
+  });
+  _imUpdateButtons();
+}
+
+function _imUpdateButtons() {
+  const next = document.getElementById('imBtnNext');
+  const back = document.getElementById('imBtnBack');
+  if (!next || !back) return;
+  switch (IM_STATE.step) {
+    case 'pick':
+      next.textContent = '다음';
+      next.disabled = !IM_STATE.rawRows.length;
+      back.style.display = 'none';
+      break;
+    case 'map':
+      next.textContent = '미리보기';
+      next.disabled = false;
+      back.style.display = '';
+      break;
+    case 'preview':
+      next.textContent = `${IM_STATE.parsedBooks.length}권 가져오기`;
+      next.disabled = !IM_STATE.parsedBooks.length;
+      back.style.display = '';
+      break;
+    case 'done':
+      next.textContent = '닫기';
+      next.disabled = false;
+      back.style.display = 'none';
+      break;
+  }
+}
+
+/* ─── 파일 처리 ─── */
+async function _imHandleFile(file) {
+  if (!file) return;
+  if (typeof XLSX === 'undefined') {
+    showToast('엑셀 라이브러리 로드 실패 · 네트워크 확인');
+    return;
+  }
+  try {
+    IM_STATE.file = file;
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: false });
+    if (!rows.length) { showToast('시트가 비어있어요'); return; }
+
+    // 헤더 = 첫 번째 '비어있지 않은' 행
+    let headerIdx = 0;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].some(c => String(c).trim())) { headerIdx = i; break; }
+    }
+    IM_STATE.headers = rows[headerIdx].map(h => String(h || '').trim());
+    IM_STATE.rawRows = rows.slice(headerIdx + 1);
+
+    // 헤더 자동 매핑
+    IM_STATE.mapping = _imAutoMap(IM_STATE.headers);
+
+    // 템플릿 여부 자동 판정 (필수 필드 3개 이상 정확 매칭)
+    const isTemplate = _imDetectTemplate(IM_STATE.headers);
+
+    if (isTemplate) {
+      // 매핑 스킵 → 바로 미리보기
+      _imBuildPreview();
+      _imShowStep('preview');
+    } else {
+      _imRenderMapUI();
+      _imShowStep('map');
+    }
+  } catch (err) {
+    console.error('[import] 파일 처리 실패:', err);
+    showToast('파일을 읽지 못했어요. xlsx·xls·csv 만 지원해요');
+  }
+}
+
+function _imDetectTemplate(headers) {
+  // 우리 템플릿 헤더와 3개 이상 정확히 매칭되면 템플릿으로 간주
+  const templateHeaders = IM_FIELDS.map(f => f.label);
+  let match = 0;
+  for (const h of headers) {
+    if (templateHeaders.includes(h)) match++;
+  }
+  return match >= 3;
+}
+
+function _imAutoMap(headers) {
+  const map = {};
+  const lower = headers.map(h => String(h || '').trim().toLowerCase());
+  for (const field of IM_FIELDS) {
+    const hints = IM_HEADER_HINTS[field.key] || [];
+    for (let i = 0; i < lower.length; i++) {
+      // 정확히 일치 > 포함 순
+      if (hints.some(h => h.toLowerCase() === lower[i])) { map[field.key] = i; break; }
+    }
+    if (map[field.key] === undefined) {
+      for (let i = 0; i < lower.length; i++) {
+        if (hints.some(h => lower[i].includes(h.toLowerCase()))) { map[field.key] = i; break; }
+      }
+    }
+  }
+  return map;
+}
+
+function _imRenderMapUI() {
+  const list = document.getElementById('imMapList');
+  if (!list) return;
+  list.innerHTML = IM_FIELDS.map(f => {
+    const selectedIdx = (IM_STATE.mapping[f.key] !== undefined) ? IM_STATE.mapping[f.key] : -1;
+    const options = [`<option value="-1">(사용 안 함)</option>`]
+      .concat(IM_STATE.headers.map((h, i) =>
+        `<option value="${i}" ${i === selectedIdx ? 'selected' : ''}>${esc(h || `열 ${i + 1}`)}</option>`
+      ))
+      .join('');
+    return `
+      <div class="im-map-item">
+        <div class="im-map-field">${esc(f.label)}${f.required ? '<span class="req">*</span>' : ''}</div>
+        <select class="im-map-select" data-field="${f.key}">${options}</select>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('.im-map-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const k = sel.dataset.field;
+      const v = parseInt(sel.value, 10);
+      if (v === -1) delete IM_STATE.mapping[k];
+      else IM_STATE.mapping[k] = v;
+    });
+  });
+}
+
+/* ─── 값 파싱 ─── */
+function _imParseDate(v) {
+  if (!v) return '';
+  if (v instanceof Date && !isNaN(v)) {
+    const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  const s = String(v).trim();
+  if (!s) return '';
+  // ISO 유사
+  let m = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
+  // 한글: 2024년 3월 15일
+  m = s.match(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일?/);
+  if (m) return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
+  // YY.M.D
+  m = s.match(/^(\d{2})[-./](\d{1,2})[-./](\d{1,2})/);
+  if (m) {
+    const yy = parseInt(m[1], 10);
+    const yyyy = yy < 50 ? 2000 + yy : 1900 + yy;
+    return `${yyyy}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
+  }
+  return '';
+}
+
+function _imParseRating(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const s = String(v).trim();
+  // 별 기호 카운트
+  const starCount = (s.match(/★|⭐|✭|\*/g) || []).length;
+  if (starCount > 0 && !/\d/.test(s)) {
+    return Math.max(0, Math.min(5, starCount));
+  }
+  // 숫자 추출
+  const match = s.match(/-?\d+(\.\d+)?/);
+  if (!match) return null;
+  let n = parseFloat(match[0]);
+  if (isNaN(n)) return null;
+  // 10점 만점 → ÷2
+  if (n > 5) n = n / 2;
+  return Math.max(0, Math.min(5, Math.round(n * 10) / 10));
+}
+
+function _imParseStatus(v) {
+  if (!v) return 'done';  // 기본값: 완독
+  const s = String(v).trim().toLowerCase();
+  for (const [key, keywords] of Object.entries(IM_STATUS_MAP)) {
+    if (keywords.some(k => s.includes(k.toLowerCase()))) return key;
+  }
+  return 'done';
+}
+
+function _imParsePages(v) {
+  if (!v) return 0;
+  const match = String(v).match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+}
+
+function _imParseTags(v) {
+  if (!v) return [];
+  return String(v)
+    .split(/[,，、;；/|#]/)
+    .map(t => t.trim().replace(/^#/, ''))
+    .filter(Boolean)
+    .slice(0, 10);  // 태그는 최대 10개
+}
+
+/* ─── 미리보기용 파싱 ─── */
+function _imBuildPreview() {
+  const parsed = [];
+  const skipped = [];
+  const map = IM_STATE.mapping;
+
+  if (map.title === undefined) {
+    showToast('제목 컬럼을 선택해주세요');
+    _imShowStep('map');
+    return;
+  }
+
+  IM_STATE.rawRows.forEach((row, idx) => {
+    const get = (k) => (map[k] !== undefined) ? row[map[k]] : '';
+    const title = String(get('title') || '').trim();
+    if (!title) {
+      skipped.push({ row: idx + 2, reason: '제목 비어있음' });
+      return;
+    }
+    const author = String(get('author') || '').trim();
+    const pages = _imParsePages(get('pages'));
+    const status = _imParseStatus(get('status'));
+    const dateStart = _imParseDate(get('dateStart'));
+    const dateEnd = _imParseDate(get('dateEnd'));
+    const rating = _imParseRating(get('rating'));
+    const tags = _imParseTags(get('tags'));
+    const note = String(get('note') || '').trim();
+
+    parsed.push({ title, author, pages, status, dateStart, dateEnd, rating, tags, note, _rowIdx: idx + 2 });
+  });
+
+  IM_STATE.parsedBooks = parsed;
+  IM_STATE.skipped = skipped;
+
+  _imRenderPreview();
+}
+
+function _imRenderPreview() {
+  const list = document.getElementById('imPreviewList');
+  const count = document.getElementById('imPreviewCount');
+  const warn = document.getElementById('imWarnList');
+  if (!list || !count) return;
+
+  count.textContent = IM_STATE.parsedBooks.length;
+
+  const STATUS_LABEL = { done: '완독', reading: '독서중', wish: '위시' };
+  const shown = IM_STATE.parsedBooks.slice(0, 20);
+  list.innerHTML = shown.map((b, i) => {
+    const meta = [];
+    if (b.author) meta.push(esc(b.author));
+    meta.push(`<span class="im-badge">${STATUS_LABEL[b.status] || b.status}</span>`);
+    if (b.dateEnd) meta.push(esc(b.dateEnd));
+    if (b.rating !== null) meta.push(`★${b.rating}`);
+    if (b.pages) meta.push(`${b.pages}p`);
+    return `
+      <div class="im-preview-item">
+        <div class="im-preview-idx">${i + 1}</div>
+        <div class="im-preview-main">
+          <div class="im-preview-ttl">${esc(b.title)}</div>
+          <div class="im-preview-meta">${meta.join(' · ')}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (IM_STATE.parsedBooks.length > 20) {
+    list.innerHTML += `<div class="im-preview-item" style="justify-content:center; color: var(--c-muted); font-size: 11px;">
+      외 ${IM_STATE.parsedBooks.length - 20}권 더…
+    </div>`;
+  }
+
+  if (IM_STATE.skipped.length) {
+    warn.style.display = '';
+    const lines = IM_STATE.skipped.slice(0, 10).map(s => `${s.row}행: ${s.reason}`);
+    const extra = IM_STATE.skipped.length > 10 ? ` 외 ${IM_STATE.skipped.length - 10}건` : '';
+    warn.innerHTML = `⚠️ ${IM_STATE.skipped.length}개 행 건너뜀${extra}<br/>${lines.join('<br/>')}`;
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+/* ─── 실행 (BOOKS에 삽입) ─── */
+function _imExecute() {
+  const skipDupe = document.getElementById('imOptSkipDupe')?.checked;
+  const existingKeys = new Set(
+    BOOKS.map(b => `${String(b.title || '').trim().toLowerCase()}|${String(b.author || '').trim().toLowerCase()}`)
+  );
+
+  let added = 0, dupe = 0;
+  const newBooks = [];
+  IM_STATE.parsedBooks.forEach((b, i) => {
+    const key = `${b.title.toLowerCase()}|${b.author.toLowerCase()}`;
+    if (skipDupe && existingKeys.has(key)) { dupe++; return; }
+    existingKeys.add(key);
+    const palette = (typeof pickPalette === 'function')
+      ? pickPalette(b.title + b.author)
+      : 'ink';
+    newBooks.push({
+      id: Date.now() + i,
+      title: b.title,
+      author: b.author,
+      pages: b.pages,
+      palette,
+      status: b.status,
+      dateStart: b.dateStart || undefined,
+      dateEnd: b.dateEnd || undefined,
+      rating: (b.rating !== null) ? b.rating : undefined,
+      tags: b.tags,
+      isbn: '',
+      language: 'ko',
+      coverUrl: '',
+      publisher: '',
+      isLifeBook: false,
+      rereads: [],
+      readingNote: b.note || '',
+    });
+    added++;
+  });
+
+  BOOKS.unshift(...newBooks);
+  try { STORE.set('books', BOOKS); } catch (e) {}
+  try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
+  try { renderLogList && renderLogList(); } catch (e) {}
+  try { renderStats && renderStats(); } catch (e) {}
+
+  // 결과 화면
+  const desc = document.getElementById('imDoneDesc');
+  if (desc) {
+    const parts = [`<strong>${added}권</strong>을 서재에 추가했어요`];
+    if (dupe) parts.push(`중복 <strong>${dupe}권</strong>은 건너뛰었어요`);
+    if (IM_STATE.skipped.length) parts.push(`오류 <strong>${IM_STATE.skipped.length}행</strong>은 건너뛰었어요`);
+    desc.innerHTML = parts.join('<br/>');
+  }
+  _imShowStep('done');
+}
+
+/* ─── 템플릿 다운로드 ─── */
+function _imDownloadTemplate() {
+  if (typeof XLSX === 'undefined') {
+    showToast('엑셀 라이브러리 로드 실패');
+    return;
+  }
+  const header = IM_FIELDS.map(f => f.label);
+  const examples = [
+    ['데미안', '헤르만 헤세', 224, '완독', '2024-01-10', '2024-01-15', 4.5, '고전,독일', '자아 성장'],
+    ['코스모스', '칼 세이건', 492, '독서중', '2024-03-01', '', '', '과학,우주', ''],
+    ['채식주의자', '한강', 248, '위시', '', '', '', '한국 소설,현대', ''],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([header, ...examples]);
+  // 컬럼 너비
+  ws['!cols'] = [ {wch:20},{wch:15},{wch:8},{wch:8},{wch:12},{wch:12},{wch:6},{wch:15},{wch:20} ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'READ');
+  XLSX.writeFile(wb, 'READ_import_template.xlsx');
+  showToast('템플릿 다운로드됨 · 예시 3줄은 지우고 쓰세요');
+}
+
+/* ─── 이벤트 연결 ─── */
+document.getElementById('imClose')?.addEventListener('click', _imClose);
+document.getElementById('imBackdrop')?.addEventListener('click', _imClose);
+document.getElementById('imTemplateBtn')?.addEventListener('click', _imDownloadTemplate);
+
+document.getElementById('imFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files?.[0];
+  if (file) _imHandleFile(file);
+  e.target.value = '';  // 같은 파일 재선택 허용
+});
+
+// 드래그앤드롭
+const dz = document.getElementById('imDropzone');
+if (dz) {
+  ['dragenter', 'dragover'].forEach(ev =>
+    dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('dragover'); })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('dragover'); })
+  );
+  dz.addEventListener('drop', (e) => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) _imHandleFile(file);
+  });
+}
+
+document.getElementById('imBtnNext')?.addEventListener('click', () => {
+  switch (IM_STATE.step) {
+    case 'pick':   /* auto handled by _imHandleFile */ break;
+    case 'map':    _imBuildPreview(); _imShowStep('preview'); break;
+    case 'preview': _imExecute(); break;
+    case 'done':   _imClose(); break;
+  }
+});
+document.getElementById('imBtnBack')?.addEventListener('click', () => {
+  if (IM_STATE.step === 'preview') {
+    // 템플릿이면 pick, 아니면 map
+    const isTemplate = _imDetectTemplate(IM_STATE.headers);
+    _imShowStep(isTemplate ? 'pick' : 'map');
+  } else if (IM_STATE.step === 'map') {
+    _imShowStep('pick');
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('imModal')?.classList.contains('open')) {
+    _imClose();
+  }
+});
+
+/* 설정에서 "엑셀에서 가져오기" 행 클릭 → 모달 */
+(function wireImportRow() {
+  const row = document.getElementById('importRow');
+  if (!row || row.dataset.importWired) return;
+  row.dataset.importWired = '1';
+  row.addEventListener('click', () => {
+    closeSettings();
+    setTimeout(_imOpen, 280);
   });
 })();
 
