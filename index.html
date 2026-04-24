@@ -555,6 +555,53 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-transform: none;
 }
 
+/* 완독 섹션 더보기/전체 보기 액션 */
+.done-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 0 2px;
+}
+.done-more-btn,
+.done-all-btn {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.done-more-btn:active,
+.done-all-btn:active {
+  background: var(--c-bg);
+}
+.done-more-count {
+  color: var(--c-muted);
+  font-weight: 500;
+  margin-left: 4px;
+}
+.done-all-btn {
+  background: transparent;
+  border: none;
+  color: var(--c-label);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  text-align: center;
+}
+.done-all-btn:active {
+  color: var(--c-text-2);
+  background: transparent;
+}
+
 /* ═══════════ [TAB 1] 서재 ═══════════ */
 
 /* 지금 읽는 책 히어로 카드 — v1 다크카드 + 꺾쇠 */
@@ -10550,7 +10597,7 @@ function renderMonthStrip() {
 }
 
 /* 섹션 하나 (제목 + 책 카드들) */
-function renderBookSection(title, subLabel, books) {
+function renderBookSection(title, subLabel, books, trailing = '') {
   if (!books.length) return '';
   return `
     <div class="section">
@@ -10563,6 +10610,7 @@ function renderBookSection(title, subLabel, books) {
       <div class="book-row">
         ${books.map((b, i) => renderBookCard(b, i)).join('')}
       </div>
+      ${trailing}
     </div>`;
 }
 
@@ -10642,15 +10690,20 @@ function renderHallOfFame() {
   });
 }
 
+/* 완독 섹션 "더보기" 상태 — 페이지 세션 내 유지 */
+let _visibleDoneCount = 10;
+const DONE_PAGE_SIZE = 20;
+const DONE_FULL_VIEW_THRESHOLD = 100;
+
 function renderLibraryCards() {
   const container = document.getElementById('libCards');
   if (!container) return;
 
   const reading = BOOKS.filter(b => b.status === 'reading');
   // 완독 · 최근순 (dateEnd 내림차순)
-  const done = BOOKS.filter(b => b.status === 'done')
-                    .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0))
-                    .slice(0, 10);
+  const doneAll = BOOKS.filter(b => b.status === 'done')
+                    .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
+  const done = doneAll.slice(0, _visibleDoneCount);
   const wish = BOOKS.filter(b => b.status === 'wish');
 
   // 빈 상태 처리
@@ -10664,11 +10717,37 @@ function renderLibraryCards() {
     return;
   }
 
+  // 완독 섹션 하단 액션 영역 (더보기 + 전체 보기)
+  const hasMore = doneAll.length > _visibleDoneCount;
+  const showFullViewLink = doneAll.length > DONE_FULL_VIEW_THRESHOLD;
+  let doneTrailing = '';
+  if (hasMore || showFullViewLink) {
+    const buttons = [];
+    if (hasMore) {
+      const remain = doneAll.length - _visibleDoneCount;
+      const nextBatch = Math.min(DONE_PAGE_SIZE, remain);
+      buttons.push(`<button type="button" class="done-more-btn" data-action="done-more">
+        + 더보기 <span class="done-more-count">${nextBatch}권</span>
+      </button>`);
+    }
+    if (showFullViewLink) {
+      buttons.push(`<button type="button" class="done-all-btn" data-action="done-all">
+        전체 ${doneAll.length}권 보기 ›
+      </button>`);
+    }
+    doneTrailing = `<div class="done-actions">${buttons.join('')}</div>`;
+  }
+
+  // 완독 섹션 헤더 라벨
+  const doneSubLabel = doneAll.length > _visibleDoneCount
+    ? `최근 ${done.length}/${doneAll.length}권`
+    : (doneAll.length >= 10 ? `${done.length}권` : '');
+
   container.innerHTML = `
     ${reading.length ? renderNowHero(reading[0]) : ''}
     ${renderMonthStrip()}
     ${renderBookSection('독서중',      '', reading)}
-    ${renderBookSection('완독',        done.length >= 10 ? '최근 10권' : '', done)}
+    ${renderBookSection('완독',        doneSubLabel, done, doneTrailing)}
     ${renderBookSection('위시리스트',  '', wish)}
   `;
 }
@@ -10688,6 +10767,18 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       if (action === 'start-timer' && id) { startTimer(id); return; }
       if (action === 'stop-timer') { openTimerStop(); return; }
       if (action === 'open-detail' && id) { openBookDetail(id); return; }
+      // ─── 완독 섹션 더보기 / 전체 보기 ───
+      if (action === 'done-more') {
+        _visibleDoneCount += DONE_PAGE_SIZE;
+        renderLibraryCards();
+        return;
+      }
+      if (action === 'done-all') {
+        const allDone = BOOKS.filter(b => b.status === 'done')
+          .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
+        openDrillDown('완독한 책 전체', `총 ${allDone.length}권`, allDone);
+        return;
+      }
     }
     const card = e.target.closest('[data-book-id]');
     if (card) {
