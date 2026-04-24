@@ -4490,6 +4490,197 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ab-backdrop.open { opacity: 1; pointer-events: auto; }
 
+/* ═══════════ 문의하기 모달 ═══════════ */
+.ct-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.ct-backdrop.open { opacity: 1; pointer-events: auto; }
+.ct-modal {
+  position: fixed; inset: 0;
+  z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.ct-modal.open { opacity: 1; pointer-events: auto; }
+.ct-card {
+  background: var(--c-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 28px 24px 22px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.ct-modal.open .ct-card { transform: scale(1); }
+.ct-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: none;
+  color: var(--c-label);
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.ct-head {
+  text-align: center;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--c-border);
+}
+.ct-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--c-surface-2);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.ct-icon svg { width: 30px; height: 30px; }
+.ct-ttl {
+  font-size: 17px; font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.ct-desc {
+  font-size: 12px;
+  color: var(--c-label);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+.ct-field {
+  margin-bottom: 16px;
+}
+.ct-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.ct-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ct-chip {
+  padding: 8px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ct-chip.active {
+  background: var(--c-text);
+  border-color: var(--c-text);
+  color: var(--c-surface);
+  font-weight: 600;
+}
+.ct-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+.ct-textarea:focus {
+  border-color: var(--primary);
+}
+.ct-textarea::placeholder { color: var(--c-muted); }
+.ct-email-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--c-bg);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ct-email-label {
+  font-size: 11px;
+  color: var(--c-muted);
+  font-weight: 500;
+}
+.ct-email-val {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--c-text-2);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ct-email-copy {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ct-email-copy:active { background: var(--c-bg); }
+.ct-submit {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--c-text);
+  color: var(--c-surface);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease;
+}
+.ct-submit:active { opacity: 0.85; }
+.ct-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ct-submit .ic { width: 16px; height: 16px; }
+
 .ab-modal {
   position: fixed; inset: 0;
   z-index: 210;
@@ -6808,6 +6999,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
   <!-- 정보 -->
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
 </svg>
 
 
@@ -7266,6 +7458,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-main">
             <div class="settings-row-ttl">데이터 내보내기</div>
             <div class="settings-row-sub">PDF · JSON 백업</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+        <button class="settings-row" id="contactRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-mail"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">문의하기</div>
+            <div class="settings-row-sub">기능 제안 · 버그 신고 · 기타</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -7939,6 +8139,44 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
 
     <div class="ab-footer">© 2026 Locadomingo · Made for <strong>GH</strong>, <strong>YJ</strong></div>
+  </div>
+</div>
+
+<!-- ═══════════ 문의하기 모달 ═══════════ -->
+<div class="ct-backdrop" id="ctBackdrop"></div>
+<div class="ct-modal" id="ctModal" aria-hidden="true">
+  <div class="ct-card">
+    <button class="ct-close" id="ctClose" aria-label="닫기">✕</button>
+
+    <div class="ct-head">
+      <div class="ct-icon"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-mail"/></svg></div>
+      <div class="ct-ttl">READ에 문의하기</div>
+      <div class="ct-desc">보내주신 내용은 제작자에게 전달돼요.<br/>빠른 시일 내에 확인하겠습니다 🙏</div>
+    </div>
+
+    <div class="ct-field">
+      <div class="ct-lbl">문의 유형</div>
+      <div class="ct-chips" id="ctTypeChips">
+        <button type="button" class="ct-chip active" data-type="기능 제안">기능 제안</button>
+        <button type="button" class="ct-chip" data-type="버그 신고">버그 신고</button>
+        <button type="button" class="ct-chip" data-type="기타">기타</button>
+      </div>
+    </div>
+
+    <div class="ct-field">
+      <div class="ct-lbl">내용</div>
+      <textarea id="ctBody" class="ct-textarea" rows="6"
+        placeholder="안녕하세요, ..."></textarea>
+    </div>
+
+    <!-- 허니팟 (스팸 봇 방어) - 사람은 안 보임 -->
+    <input type="text" id="ctHoney" name="_h" tabindex="-1" autocomplete="off"
+      style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
+
+    <button type="button" class="ct-submit" id="ctSubmit">
+      <svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>
+      <span class="ct-submit-label">보내기</span>
+    </button>
   </div>
 </div>
 
@@ -14409,6 +14647,108 @@ document.addEventListener('keydown', (e) => {
   row.addEventListener('click', () => {
     closeSettings();
     setTimeout(openAboutModal, 280);
+  });
+})();
+
+/* ═══════════ 문의하기 모달 ═══════════ */
+const CONTACT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzPDLGGp86LXe11-Tn_bZ75XeTvNtSCwXfOjb-YXDyEaaCJZ18fbDhGEb7LxmmQ-h7vUw/exec';
+let _contactType = '기능 제안';  // 기본값
+let _contactSending = false;
+
+function openContactModal() {
+  document.getElementById('ctBackdrop').classList.add('open');
+  document.getElementById('ctModal').classList.add('open');
+  document.getElementById('ctModal').setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+function closeContactModal() {
+  document.getElementById('ctBackdrop').classList.remove('open');
+  document.getElementById('ctModal').classList.remove('open');
+  document.getElementById('ctModal').setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+document.getElementById('ctClose')?.addEventListener('click', closeContactModal);
+document.getElementById('ctBackdrop')?.addEventListener('click', closeContactModal);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('ctModal')?.classList.contains('open')) {
+    closeContactModal();
+  }
+});
+
+/* 칩 선택 */
+(function wireContactChips() {
+  const chips = document.getElementById('ctTypeChips');
+  if (!chips) return;
+  chips.addEventListener('click', (e) => {
+    const btn = e.target.closest('.ct-chip');
+    if (!btn) return;
+    chips.querySelectorAll('.ct-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    _contactType = btn.dataset.type;
+  });
+})();
+
+/* 보내기 — Apps Script로 전송 */
+document.getElementById('ctSubmit')?.addEventListener('click', async () => {
+  if (_contactSending) return;
+
+  const bodyEl = document.getElementById('ctBody');
+  const submitBtn = document.getElementById('ctSubmit');
+  const labelEl = submitBtn?.querySelector('.ct-submit-label');
+  const body = (bodyEl?.value || '').trim();
+
+  if (!body) {
+    showToast('내용을 입력해주세요');
+    bodyEl?.focus();
+    return;
+  }
+  if (body.length < 2) {
+    showToast('내용을 조금 더 자세히 적어주세요');
+    bodyEl?.focus();
+    return;
+  }
+
+  _contactSending = true;
+  if (submitBtn) submitBtn.disabled = true;
+  if (labelEl) labelEl.textContent = '전송 중...';
+
+  try {
+    // text/plain 으로 보내야 preflight 없이 Apps Script 에 바로 도달
+    await fetch(CONTACT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        type: _contactType,
+        body: body,
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '',
+        ua: navigator.userAgent || '',
+        _h: document.getElementById('ctHoney')?.value || '',  // 허니팟
+      }),
+    });
+    // Apps Script 응답은 CORS 로 못 읽을 수 있어서 상태만 보지 않고 성공 가정
+    // (네트워크 에러가 아니면 시트에는 기록됨)
+
+    showToast('문의가 접수되었어요 🙏');
+    if (bodyEl) bodyEl.value = '';
+    closeContactModal();
+  } catch (err) {
+    console.error('[contact] 전송 실패:', err);
+    showToast('전송 실패 · 네트워크 확인 후 다시 시도해주세요');
+  } finally {
+    _contactSending = false;
+    if (submitBtn) submitBtn.disabled = false;
+    if (labelEl) labelEl.textContent = '보내기';
+  }
+});
+
+/* 설정에서 "문의하기" 행 클릭 → 모달 */
+(function wireContactRow() {
+  const row = document.getElementById('contactRow');
+  if (!row || row.dataset.contactWired) return;
+  row.dataset.contactWired = '1';
+  row.addEventListener('click', () => {
+    closeSettings();
+    setTimeout(openContactModal, 280);
   });
 })();
 
