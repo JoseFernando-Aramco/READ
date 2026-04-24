@@ -11864,9 +11864,6 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
     _renderMonthTicket(books, opts.year, opts.month);
     if (ticket) ticket.style.display = '';
     if (actions) actions.style.display = '';
-    // 백그라운드 프리워밍: 저장/공유 시 html2canvas가 fetch할 이미지를 미리 캐시에
-    // (Cloudflare Worker cold start + 최초 fetch 지연 해결)
-    _prewarmCoverCache(books);
   } else {
     // ─── 기본 리스트 뷰 (태그·별점 등) ───
     sheet.classList.remove('dd-month-variant');
@@ -12113,16 +12110,16 @@ async function _captureTicketImage() {
   document.body.appendChild(wrapper);
 
   try {
-    // 외부 URL 표지들을 base64로 치환 (CORS 우회)
-    await _inlineCoverImages(clone);
+    // 이미지는 렌더 시점에 crossorigin="anonymous" + 프록시 URL로 이미 CORS-clean 상태
+    // html2canvas가 fetch/base64 변환 없이 바로 캔버스에 그릴 수 있음
 
     const canvas = await html2canvas(wrapper, {
       backgroundColor: '#F5F5F7',
-      scale: 2,             // 2.5 → 2 (iOS 캔버스 렌더 비용 감소, 인스타 스토리엔 충분)
+      scale: 2,             // iOS 캔버스 렌더 비용 감소, 인스타 스토리엔 충분
       useCORS: true,
-      allowTaint: false,   // base64로 바꿨으니 taint 필요 없음
+      allowTaint: false,
       logging: false,
-      imageTimeout: 10000, // 0(무한) → 10초. 이미지 하나 멈춰도 전체 멈춤 방지
+      imageTimeout: 10000,
     });
     return canvas;
   } finally {
@@ -12364,8 +12361,14 @@ function _renderMonthGrid(books) {
     const lifebook = b.isLifeBook
       ? `<div class="dd-grid-lifebook">LIFE</div>`
       : '';
+    // CORS-safe URL: 프록시 경유 + crossorigin anonymous
+    // 이미지가 "CORS-clean" 상태로 브라우저 캐시에 들어가서
+    // 저장 시점에 html2canvas가 fetch 없이 바로 읽을 수 있음
+    const proxyUrl = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL)
+      ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl || '')}`
+      : b.coverUrl;
     const coverHtml = hasCover
-      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+      ? `<img src="${esc(proxyUrl)}" alt="${esc(b.title)}" loading="eager" crossorigin="anonymous"
              onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
       : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
 
