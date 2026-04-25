@@ -2564,21 +2564,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-bottom: none;
   gap: 10px;
 }
-/* season-group 자체에 아래 간격 — 봄 카드 끝 ↔ 겨울 헤더 사이가 벌어짐 */
-.season-group {
-  margin-bottom: 32px;
-}
-.season-group:last-child {
-  margin-bottom: 0;
-}
-.season-group .log-entry:first-of-type {
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
-}
-.season-group .log-entry:last-of-type {
-  border-bottom-left-radius: 14px;
-  border-bottom-right-radius: 14px;
-}
 .season-group .log-entry {
   background: var(--c-surface);
 }
@@ -2616,19 +2601,36 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
  * ═══════════════════════════════════════════ */
 .log-list {
   display: flex; flex-direction: column;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+
+/* 계절을 각각 독립 카드 블록으로 — 사이에 캔버스 배경 보임 */
+.season-group {
   background: var(--c-surface);
   border-radius: 14px;
   overflow: hidden;
-}
-/* 계절 헤더 + 다음 카드 컨테이너 그룹 — JS에서 .log-season-group으로 감쌈 */
-.log-season-group {
   margin-bottom: 16px;
+  padding: 14px 0 0;
 }
-.log-season-group:last-child { margin-bottom: 0; }
-.log-season-group .log-list {
-  background: var(--c-surface);
-  border-radius: 14px;
-  overflow: hidden;
+.season-group:last-child { margin-bottom: 0; }
+.season-group .season-header {
+  padding: 0 14px;
+  margin-bottom: 12px;
+}
+.season-group .log-entry {
+  border-radius: 0;
+  background: transparent;
+}
+.season-group .log-entry:first-of-type {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.season-group .log-entry:last-of-type {
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* 엔트리 한 행 */
