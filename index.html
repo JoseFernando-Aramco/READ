@@ -2480,6 +2480,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   transition: transform .1s;
 }
 .tag-chart-row:active { transform: scale(.98); }
+/* 기타 행 — 클릭 불가 + 차분한 색 */
+.tag-chart-row-rest {
+  cursor: default;
+  opacity: 0.7;
+}
+.tag-chart-row-rest:active { transform: none; }
+.tag-chart-row-rest .tag-chart-name {
+  color: var(--c-muted);
+  font-weight: 600;
+}
 .tag-chart-name {
   display: flex; align-items: center; gap: 5px;
   font-weight: 600;
@@ -7864,7 +7874,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="tag-radar">
         <div class="tag-radar-head">
           <div>
-            <div class="tag-radar-lbl">이번 달 자주 읽은 분야</div>
+            <div class="tag-radar-lbl">최근 1년 자주 읽은 분야</div>
             <div class="tag-radar-ttl">요즘 관심사</div>
           </div>
           <div class="tag-radar-period">태그 클릭 →<br/>같은 태그 필터</div>
@@ -11564,18 +11574,36 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 // 필터 상태
 let currentFilter = null;
 
-/* 관심사 레이더 렌더 */
+/* 관심사 레이더 렌더 — 최근 1년, 상위 3개 + 기타 */
 function renderTagRadar() {
   const chart = document.getElementById('tagChart');
-  // 진행중 + 완독만 집계
-  const counts = {};
-  BOOKS.filter(b => b.status !== 'wish').forEach(b => {
-    b.tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; });
-  });
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const max = sorted[0]?.[1] || 1;
 
-  chart.innerHTML = sorted.map(([name, count]) => {
+  // 최근 1년 컷오프 — 시작일 기준 365일 이내
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 365);
+  const cutoffStr = cutoff.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // 진행중 + 완독, 그리고 최근 1년 내 시작된 책만
+  const counts = {};
+  BOOKS
+    .filter(b => b.status !== 'wish')
+    .filter(b => (b.dateStart || b.dateEnd || '') >= cutoffStr)
+    .forEach(b => {
+      b.tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+    });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!sorted.length) {
+    chart.innerHTML = `<div style="font-size:12px;color:var(--c-muted);padding:6px 0;">최근 1년간 등록된 책이 없어요</div>`;
+    return;
+  }
+
+  // 상위 3개 + 나머지 합산 "기타"
+  const top3 = sorted.slice(0, 3);
+  const restCount = sorted.slice(3).reduce((s, [, c]) => s + c, 0);
+  const max = top3[0][1];
+
+  let rowsHtml = top3.map(([name, count]) => {
     const tag = TAGS[name] || { emoji:'📖', color:'#64748b' };
     return `
       <div class="tag-chart-row" data-tag="${name}">
@@ -11590,7 +11618,25 @@ function renderTagRadar() {
       </div>`;
   }).join('');
 
-  chart.querySelectorAll('.tag-chart-row').forEach(row => {
+  // 기타 행 — 4개 이상 태그가 있을 때만
+  if (restCount > 0) {
+    rowsHtml += `
+      <div class="tag-chart-row tag-chart-row-rest">
+        <div class="tag-chart-name">
+          <span class="tag-chart-emoji">⋯</span>
+          <span>기타</span>
+        </div>
+        <div class="tag-chart-bar-wrap">
+          <div class="tag-chart-bar" style="--tag-color:var(--c-muted);width:${restCount/max*100}%"></div>
+        </div>
+        <div class="tag-chart-count">${restCount}</div>
+      </div>`;
+  }
+
+  chart.innerHTML = rowsHtml;
+
+  // 클릭 → 필터 (기타 행은 제외)
+  chart.querySelectorAll('.tag-chart-row[data-tag]').forEach(row => {
     row.addEventListener('click', () => setLogFilter(row.dataset.tag));
   });
 }
