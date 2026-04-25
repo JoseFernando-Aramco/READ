@@ -12056,6 +12056,46 @@ if (TIMER.bookId && TIMER.startTime) {
   startTimerTick();
 }
 
+/* ═══════════════════════════════════════════
+ * ModalStack · 시스템 뒤로가기 → 모달 닫기 매니저
+ * 안드로이드 PWA에서 시스템 뒤로가기 시
+ * 앱 종료 대신 최상단 모달을 닫도록 함.
+ * iOS 엣지 스와이프·브라우저 뒤로가기 버튼에서도 동일 동작.
+ * ═══════════════════════════════════════════ */
+const ModalStack = {
+  stack: [],  // [{ id, close }]
+
+  // 모달 열릴 때 호출 — history에 항목 하나 쌓음
+  open(id, closeFn) {
+    if (this.stack.some(m => m.id === id)) return;  // 중복 open 방어
+    this.stack.push({ id, close: closeFn });
+    history.pushState(
+      Object.assign({}, history.state || {}, { modalDepth: this.stack.length }),
+      ''
+    );
+  },
+
+  // UI 이벤트(X버튼·배경·스와이프 등)로 닫을 때 호출
+  // 직접 close 하지 않고 history.go(-N)만 호출 → popstate에서 실제 close
+  // 이렇게 해야 X버튼 경로와 시스템 뒤로가기 경로가 같은 흐름을 탐
+  requestClose(id) {
+    const idx = this.stack.findIndex(m => m.id === id);
+    if (idx === -1) return;
+    const steps = this.stack.length - idx;
+    history.go(-steps);
+  },
+
+  // popstate 진입점 — 실제 close 수행
+  _handlePop() {
+    const targetDepth = (history.state && history.state.modalDepth) || 0;
+    while (this.stack.length > targetDepth) {
+      const top = this.stack.pop();
+      try { top.close(); } catch (e) { console.error('[ModalStack]', e); }
+    }
+  }
+};
+window.addEventListener('popstate', () => ModalStack._handlePop());
+
 /* ─── 모달 열기/닫기 ─── */
 function openBookDetail(id) {
   const book = BOOKS.find(b => b.id === id);
@@ -12071,9 +12111,13 @@ function openBookDetail(id) {
   lockBodyScroll();
   renderBookDetail();
   document.getElementById('bdBody').scrollTo({ top: 0 });
+
+  // ModalStack 등록 — 시스템 뒤로가기로 닫을 수 있게
+  ModalStack.open('bd', _closeBookDetailActual);
 }
 
-function closeBookDetail() {
+// 실제 DOM을 닫는 내부 함수 (ModalStack이 호출)
+function _closeBookDetailActual() {
   document.getElementById('bdBackdrop').classList.remove('open');
   const sheet = document.getElementById('bdSheet');
   sheet.classList.remove('open');
@@ -12084,6 +12128,17 @@ function closeBookDetail() {
   BD.book = null;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
+}
+
+// UI 이벤트 핸들러·코드 내부 auto-close가 호출하는 함수
+// (기존 호출부 전혀 수정 안 해도 됨 — 모두 이 함수로 이미 들어오고 있음)
+function closeBookDetail() {
+  // 스택에 없으면(이미 닫혔거나 등록 안 된 상태) 직접 닫기
+  if (!ModalStack.stack.some(m => m.id === 'bd')) {
+    _closeBookDetailActual();
+    return;
+  }
+  ModalStack.requestClose('bd');
 }
 
 /* ─── 메인 렌더 ─── */
