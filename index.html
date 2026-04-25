@@ -2564,11 +2564,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-bottom: none;
   gap: 10px;
 }
-.season-group:not(:first-child) .season-header {
-  margin-top: 32px;  /* 시즌 사이 충분한 호흡 */
-}
-/* season-group 안의 entry들을 surface 카드 컨테이너로 묶음 */
+/* season-group 자체에 아래 간격 — 봄 카드 끝 ↔ 겨울 헤더 사이가 벌어짐 */
 .season-group {
+  margin-bottom: 32px;
+}
+.season-group:last-child {
   margin-bottom: 0;
 }
 .season-group .log-entry:first-of-type {
