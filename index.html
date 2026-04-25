@@ -719,6 +719,126 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   50%      { opacity: 0.4; }
 }
 
+/* ─── D-3: 다중 독서 책 캐러셀 (.has-multi 일 때) ─── */
+.now-hero-slim.has-multi {
+  isolation: isolate;
+  padding-bottom: 14px;
+}
+.now-hero-slim.has-multi .now-slim-progress {
+  display: none;
+}
+.now-slim-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.now-slim-bg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+  filter: blur(5px);
+  transform: scale(1.08);
+}
+.now-slim-content {
+  position: relative;
+  z-index: 1;
+}
+.now-slim-head-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.now-slim-indi {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  background: rgba(255,255,255,0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--c-border);
+}
+[data-theme="midnight"] .now-slim-indi {
+  background: rgba(0,0,0,0.35);
+  color: var(--c-text);
+}
+.now-slim-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.now-slim-arrow {
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,0.85);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: transform .1s, background .2s;
+}
+.now-slim-arrow:active { transform: scale(.92); }
+.now-slim-arrow svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+[data-theme="midnight"] .now-slim-arrow {
+  background: rgba(0,0,0,0.35);
+  color: var(--c-text);
+}
+.now-slim-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--c-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.now-slim-progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .5s cubic-bezier(.2,.9,.2,1);
+}
+.now-hero-slim.has-multi .now-btn.ghost {
+  background: rgba(255,255,255,0.85);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--c-border);
+}
+[data-theme="midnight"] .now-hero-slim.has-multi .now-btn.ghost {
+  background: rgba(0,0,0,0.35);
+}
+@keyframes nowHeroFromRight {
+  0% { opacity: 0; transform: translateX(8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes nowHeroFromLeft {
+  0% { opacity: 0; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.now-hero-slim.swap-from-next .now-slim-content {
+  animation: nowHeroFromRight .28s cubic-bezier(.2,.9,.2,1);
+}
+.now-hero-slim.swap-from-prev .now-slim-content {
+  animation: nowHeroFromLeft .28s cubic-bezier(.2,.9,.2,1);
+}
+
 .now-tag {
   display: inline-flex;
   align-items: center;
@@ -7565,6 +7685,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></symbol>
   <!-- 일시정지 -->
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <!-- 셰브론 좌/우 (Now 카드 캐러셀) -->
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
   <!-- 책 (닫힌) — 커버 fallback -->
   <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
   <!-- 책 (펼친) -->
@@ -11519,35 +11642,80 @@ function renderBookCard(b, idx) {
     </div>`;
 }
 
-/* Now Reading 히어로 */
-function renderNowHero(b) {
-  if (!b) return '';
+/* Now Reading 히어로 — 단일 또는 다중(.has-multi) */
+let _nowHeroIdx = 0;
+
+function renderNowHero(arr) {
+  if (!Array.isArray(arr)) arr = arr ? [arr] : [];
+  if (!arr.length) return '';
+  if (_nowHeroIdx >= arr.length) _nowHeroIdx = 0;
+  if (_nowHeroIdx < 0) _nowHeroIdx = 0;
+
+  const b = arr[_nowHeroIdx];
   const pct = b.pages ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
   const timerRunning = TIMER.bookId === b.id;
   const primaryBtn = timerRunning
     ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> --:-- · 저장</button>`
     : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</button>`;
+
+  const multi = arr.length > 1;
+  const indi = multi
+    ? `<span class="now-slim-indi">${_nowHeroIdx + 1} / ${arr.length}</span>`
+    : '';
+  const bgCover = (multi && b.coverUrl)
+    ? `<div class="now-slim-bg"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>`
+    : '';
+  const progressBlock = multi
+    ? `<div class="now-slim-progress-row">
+        <button class="now-slim-arrow" data-action="now-prev" aria-label="이전 책"><svg class="ic" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+        <div class="now-slim-progress-bar"><div class="now-slim-progress-bar-fill" style="width: ${pct}%"></div></div>
+        <button class="now-slim-arrow" data-action="now-next" aria-label="다음 책"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+       </div>`
+    : `<div class="now-slim-progress"><div class="now-slim-progress-fill" style="width: ${pct}%"></div></div>`;
+
   return `
-    <div class="now-hero now-hero-slim">
-      <div class="now-slim-head">
-        <span class="now-slim-tag">지금 읽는 중</span>
-        ${b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : ''}
-      </div>
-      <div class="now-slim-row">
-        <div class="now-slim-title-col">
-          <div class="now-slim-title">${esc(b.title)}</div>
-          <div class="now-slim-meta">${esc(b.author)}${b.pages ? ` · ${b.currentPage || 0} / ${b.pages} p` : ''}</div>
+    <div class="now-hero now-hero-slim ${multi ? 'has-multi' : ''}" id="nowHero">
+      ${bgCover}
+      <div class="now-slim-content">
+        <div class="now-slim-head">
+          <div class="now-slim-head-left">
+            <span class="now-slim-tag">지금 읽는 중</span>
+            ${b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : ''}
+          </div>
+          ${indi}
         </div>
-        <div class="now-slim-pct">${pct}<span class="unit">%</span></div>
-      </div>
-      <div class="now-slim-actions">
-        ${primaryBtn}
-        <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
-      </div>
-      <div class="now-slim-progress">
-        <div class="now-slim-progress-fill" style="width: ${pct}%"></div>
+        <div class="now-slim-row">
+          <div class="now-slim-title-col">
+            <div class="now-slim-title">${esc(b.title)}</div>
+            <div class="now-slim-meta">${esc(b.author)}${b.pages ? ` · ${b.currentPage || 0} / ${b.pages} p` : ''}</div>
+          </div>
+          <div class="now-slim-pct">${pct}<span class="unit">%</span></div>
+        </div>
+        <div class="now-slim-actions">
+          ${primaryBtn}
+          <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
+        </div>
+        ${progressBlock}
       </div>
     </div>`;
+}
+
+/* 화살표·스와이프로 책 전환 — Now Hero 부분만 outerHTML 교체 */
+function nowHeroGo(delta) {
+  const arr = BOOKS.filter(b => b.status === 'reading');
+  if (arr.length <= 1) return;
+  const direction = delta > 0 ? 'next' : 'prev';
+  _nowHeroIdx = (_nowHeroIdx + delta + arr.length) % arr.length;
+
+  const oldHero = document.getElementById('nowHero');
+  if (!oldHero) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = renderNowHero(arr);
+  const newHero = wrap.firstElementChild;
+  if (!newHero) return;
+  newHero.classList.add('swap-from-' + direction);
+  oldHero.replaceWith(newHero);
+  setTimeout(() => newHero.classList.remove('swap-from-' + direction), 320);
 }
 
 /* 이번 달 요약 스트립 */
@@ -11739,7 +11907,7 @@ function renderLibraryCards() {
     : (doneAll.length >= 10 ? `${done.length}권` : '');
 
   container.innerHTML = `
-    ${reading.length ? renderNowHero(reading[0]) : ''}
+    ${reading.length ? renderNowHero(reading) : ''}
     ${renderMonthStrip()}
     ${renderBookSection('독서중',      '', reading)}
     ${renderBookSection('완독',        doneSubLabel, done, doneTrailing)}
@@ -11762,6 +11930,8 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       if (action === 'start-timer' && id) { startTimer(id); return; }
       if (action === 'stop-timer') { openTimerStop(); return; }
       if (action === 'open-detail' && id) { openBookDetail(id); return; }
+      if (action === 'now-prev') { nowHeroGo(-1); return; }
+      if (action === 'now-next') { nowHeroGo(1); return; }
       // ─── 완독 섹션 더보기 / 전체 보기 ───
       if (action === 'done-more') {
         _visibleDoneCount += DONE_PAGE_SIZE;
@@ -11780,6 +11950,30 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       const id = parseInt(card.dataset.bookId, 10);
       if (id) openBookDetail(id);
     }
+  });
+
+  // ─── 스와이프 제스처 (Now Hero 위에서만) ───
+  let _swipeStartX = null;
+  let _swipeStartY = null;
+  let _swipeOnHero = false;
+  container.addEventListener('touchstart', (e) => {
+    const hero = e.target.closest('#nowHero');
+    if (!hero) { _swipeOnHero = false; return; }
+    if (e.target.closest('button, a, input')) { _swipeOnHero = false; return; }
+    _swipeOnHero = true;
+    _swipeStartX = e.touches[0].clientX;
+    _swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+  container.addEventListener('touchend', (e) => {
+    if (!_swipeOnHero || _swipeStartX === null) { _swipeStartX = null; return; }
+    const dx = e.changedTouches[0].clientX - _swipeStartX;
+    const dy = e.changedTouches[0].clientY - _swipeStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      nowHeroGo(dx < 0 ? 1 : -1);
+    }
+    _swipeStartX = null;
+    _swipeStartY = null;
+    _swipeOnHero = false;
   });
 })();
 
