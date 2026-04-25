@@ -2546,203 +2546,209 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 계절 그룹 헤더 */
 .season-header {
   display: flex; justify-content: space-between; align-items: baseline;
-  margin: 8px 2px 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--c-border);
+  margin: 8px 2px 10px;
+  padding-bottom: 0;
+  border-bottom: none;
   gap: 10px;
 }
 .season-group:not(:first-child) .season-header {
   margin-top: 24px;
 }
+/* season-group 안의 entry들을 surface 카드 컨테이너로 묶음 */
+.season-group {
+  margin-bottom: 4px;
+}
+.season-group .log-entry:first-of-type {
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+.season-group .log-entry:last-of-type {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+.season-group .log-entry {
+  background: var(--c-surface);
+}
 .season-name {
   display: flex; align-items: baseline; gap: 8px;
-  font-size: 16px; font-weight: 700;
-  color: var(--c-text); letter-spacing: -0.02em;
+  font-size: 17px; font-weight: 800;
+  color: var(--c-text); letter-spacing: -0.025em;
 }
 .season-name-emoji {
-  font-size: 16px;
+  font-size: 18px;
 }
 .season-name-yr {
   font-family: inherit;
-  color: var(--c-label);
-  font-weight: 500;
+  color: var(--c-muted);
+  font-weight: 600;
   font-size: 13px;
   letter-spacing: -0.01em;
 }
 .season-stats {
   font-family: inherit;
-  font-size: 13px; font-weight: 500;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
+  font-size: 11px; font-weight: 600;
+  color: var(--c-text-2);
+  letter-spacing: 0;
 }
 .season-stats strong {
   color: var(--c-text);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* 로그 엔트리 */
-.log-list { display: flex; flex-direction: column; }
-.log-entry {
-  display: grid;
-  grid-template-columns: 54px 1fr;
-  gap: 10px;
-  position: relative;
-  padding-bottom: 10px;
-}
-.log-entry-time {
-  position: relative;
+/* ═══════════════════════════════════════════
+ * 로그 페이지 V4-C — 한 줄 row + 미니 표지
+ * ═══════════════════════════════════════════ */
+.log-list {
   display: flex; flex-direction: column;
-  align-items: center;
-  padding-top: 12px;
-}
-.log-entry-axis {
-  position: absolute;
-  left: 50%; top: 0; bottom: 0;
-  width: 2px;
-  background: var(--c-border);
-  opacity: 1;
-  transform: translateX(-50%);
-  z-index: 0;
-}
-.log-entry.log-group-start .log-entry-axis { top: 36px; }
-.log-entry.log-group-end   .log-entry-axis { bottom: auto; height: 36px; top: 0; }
-.log-entry.log-group-start.log-group-end .log-entry-axis { display: none; }
-
-.log-entry-date {
-  position: relative; z-index: 2;
-  font-family: inherit;
-  font-size: 12px; font-weight: 600;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
-  background: var(--c-canvas);
-  padding: 1px 5px;
-  border-radius: 4px;
-  margin-bottom: 6px;
-  line-height: 1.2;
-}
-.log-entry-dot {
-  position: relative; z-index: 2;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 3px var(--c-canvas);
-}
-.log-entry.reading .log-entry-dot::after {
-  content: '';
-  position: absolute; inset: -5px;
-  border-radius: 50%;
-  border: 2px solid var(--primary);
-  opacity: .5;
-  animation: ringPulse 1.8s infinite;
-}
-@keyframes ringPulse {
-  0%   { transform: scale(.7); opacity: .55; }
-  100% { transform: scale(1.9); opacity: 0; }
-}
-
-/* 로그 엔트리 카드 */
-.log-entry-card {
   background: var(--c-surface);
-  border: none;
-  border-left: 3px solid var(--primary);
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: transform .1s;
-  margin-top: 8px;
-  box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+  border-radius: 14px;
+  overflow: hidden;
 }
-.log-entry-card:active { transform: scale(.99); }
+/* 계절 헤더 + 다음 카드 컨테이너 그룹 — JS에서 .log-season-group으로 감쌈 */
+.log-season-group {
+  margin-bottom: 16px;
+}
+.log-season-group:last-child { margin-bottom: 0; }
+.log-season-group .log-list {
+  background: var(--c-surface);
+  border-radius: 14px;
+  overflow: hidden;
+}
 
-.log-entry-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  gap: 8px; margin-bottom: 4px;
+/* 엔트리 한 행 */
+.log-entry {
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--c-border);
+  cursor: pointer;
+  transition: background .12s;
+}
+.log-entry:last-child { border-bottom: none; }
+.log-entry:active { background: var(--c-input); }
+
+/* 좌측: 날짜 + 미니 표지 */
+.log-entry-left {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.log-entry-date {
+  font-size: 11px; font-weight: 700;
+  color: var(--c-muted);
+  line-height: 1.1;
+  text-align: right;
+  width: 28px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.log-entry-cover {
+  width: 28px; height: 40px;
+  border-radius: 4px;
+  background: var(--entry-color, var(--primary));
+  color: white;
+  font-size: 7px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  line-height: 1.1;
+  text-align: center;
+  padding: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.log-entry-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.log-entry-cover .cover-fallback {
+  font-size: 7px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* 본문 */
+.log-entry-content {
+  min-width: 0;
+}
+.log-entry-title-row {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 3px;
 }
 .log-entry-title {
-  font-family: inherit;
-  font-size: 15px; font-weight: 700;
-  color: var(--c-text); letter-spacing: -0.02em;
-  line-height: 1.25;
+  font-size: 14px; font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   flex: 1; min-width: 0;
 }
-.log-entry-badge {
-  flex-shrink: 0;
-  font-family: inherit;
-  font-size: 11px; font-weight: 600;
-  letter-spacing: -0.01em;
-  text-transform: none;
-  padding: 3px 10px; border-radius: 999px;
-  white-space: nowrap;
-  border: none;
-}
-.log-entry-badge.reading {
-  background: var(--primary-bg);
-  color: var(--primary);
-  border: none;
-}
-.log-entry-badge.star {
-  background: var(--c-gold-50);
-  color: var(--c-gold-700);
-  border: none;
+.log-entry-title .lifebook-star,
+.log-entry-title .reread-pill {
+  font-size: 9px;
   font-weight: 700;
+  margin-left: 4px;
+  vertical-align: middle;
 }
-.log-entry-meta {
-  font-family: inherit;
-  font-style: normal;
-  font-size: 13px; font-weight: 500;
-  color: var(--c-label);
-  margin-bottom: 10px;
-  letter-spacing: -0.01em;
+.log-entry-author {
+  font-size: 10px; font-weight: 500;
+  color: var(--c-muted);
+  flex-shrink: 0;
+  max-width: 40%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.log-entry-meta .dot {
-  display: inline-block; margin: 0 5px;
-  opacity: .5;
-  font-style: normal;
-}
-.log-entry-meta .pages {
-  font-family: inherit;
-  font-weight: 600;
-  font-style: normal;
-  color: var(--c-text-2);
-}
-
-/* 진행률 바 (진행중 책만) */
-.log-progress {
-  height: 4px;
-  background: var(--c-border);
-  border-radius: 99px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.log-progress-fill {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 99px;
-  transition: width .6s ease;
-}
-
-/* 태그 칩 */
-.log-tags {
-  display: flex; flex-wrap: wrap; gap: 5px;
-  margin-top: 2px;
+.log-entry-tags {
+  display: flex; gap: 4px; flex-wrap: wrap;
 }
 .log-tag {
+  font-size: 10px; font-weight: 700;
+  color: var(--entry-color, var(--primary));
+  background: color-mix(in srgb, var(--entry-color, var(--primary)) 12%, var(--c-surface));
+  padding: 1px 7px;
+  border-radius: 100px;
   display: inline-flex; align-items: center; gap: 3px;
-  padding: 4px 10px 4px 8px;
-  border-radius: 999px;
-  background: var(--c-border);
-  color: var(--c-text-2);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  border: none;
-  transition: all .15s;
-  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--entry-color, var(--primary)) 18%, transparent);
 }
-.log-tag:active {
-  transform: scale(.95);
-  background: var(--c-border-2);
+.log-tag-emoji {
+  font-size: 10px;
+  line-height: 1;
 }
-.log-tag-emoji { font-size: 11px; }
+
+/* 우측 사이드 (별점 / 진행률 / 일수) */
+.log-entry-side {
+  text-align: right;
+  flex-shrink: 0;
+  min-width: 38px;
+}
+.log-entry-rating {
+  font-size: 11px; font-weight: 800;
+  color: var(--c-gold-700, #8B6914);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.log-entry-pct {
+  font-size: 10px; font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.log-entry-dur {
+  font-size: 9px; font-weight: 500;
+  color: var(--c-muted);
+  margin-top: 1px;
+  letter-spacing: 0;
+}
 
 /* 빈 상태 */
 .log-empty {
@@ -6532,10 +6538,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-terra-700);
   color: #fff;
 }
-
-/* 클릭 가능한 엔트리 힌트 */
-.log-entry-card { cursor: pointer; }
-.log-entry-card:active { transform: scale(.996); }
 
 /* ═══════════════════════════════════════════════════════════
    타이머 · Timer
@@ -11578,56 +11580,64 @@ function renderTagRadar() {
   });
 }
 
-/* 로그 엔트리 한 개 렌더 */
+/* 로그 엔트리 한 개 렌더 (V4-C: 한 줄 + 미니 표지) */
 function renderLogEntry(b, isFirst, isLast) {
   const color    = PALETTE_DARK[b.palette] || '#64748b';
-  const date     = formatDate(b.dateStart);
   const reading  = b.status === 'reading';
-  const progPct  = reading ? Math.round(b.currentPage / b.pages * 100) : 100;
+  const progPct  = reading ? Math.round((b.currentPage || 0) / (b.pages || 1) * 100) : 100;
   const elapsed  = reading ? daysBetween(b.dateStart, todayStr()) : null;
   const duration = !reading ? daysBetween(b.dateStart, b.dateEnd) : null;
 
-  let meta = `${b.author}`;
-  if (reading) meta += ` <span class="dot">·</span> ${elapsed}일째 <span class="dot">·</span> <span class="pages">${b.currentPage}/${b.pages}p</span>`;
-  else         meta += ` <span class="dot">·</span> ${duration}일 소요 <span class="dot">·</span> <span class="pages">${b.pages}p</span>`;
+  // 좌측: MM(상단) DD(하단)
+  const dateParts = (b.dateStart || '').split('-'); // YYYY-MM-DD
+  const monthStr = dateParts[1] || '';
+  const dayStr   = dateParts[2] || '';
 
-  let badge = '';
-  if (reading)       badge = `<span class="log-entry-badge reading">진행중 ${progPct}%</span>`;
-  else if (b.rating) badge = `<span class="log-entry-badge star">★ ${b.rating.toFixed(1)}</span>`;
+  // 미니 표지: 이미지 있으면 img, 없으면 제목 줄임 fallback
+  const coverInner = b.coverUrl
+    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-fallback" style="display:none">${esc(b.title)}</div>`
+    : `<div class="cover-fallback">${esc(b.title)}</div>`;
 
-  // 인생책·재독 표시
+  // 우측 사이드: 진행중 % vs 별점, 그리고 일수
+  let sideHtml = '';
+  if (reading) {
+    sideHtml = `<div class="log-entry-pct">${progPct}%</div>
+                <div class="log-entry-dur">${elapsed}일째</div>`;
+  } else if (b.rating) {
+    sideHtml = `<div class="log-entry-rating">★ ${b.rating.toFixed(1)}</div>
+                <div class="log-entry-dur">${duration ?? 0}일</div>`;
+  } else {
+    sideHtml = `<div class="log-entry-dur">${duration ?? 0}일</div>`;
+  }
+
+  // 인생책·재독 표시 (제목 옆 미니 뱃지)
   const totalReads = 1 + (b.rereads?.length || 0);
-  const lifebookBadge = b.isLifeBook ? `<span class="lifebook-star">인생책</span>` : '';
-  const rereadPill = totalReads > 1 ? `<span class="reread-pill">${totalReads}번째</span>` : '';
+  const lifebookBadge = b.isLifeBook ? `<span class="lifebook-star">★</span>` : '';
+  const rereadPill = totalReads > 1 ? `<span class="reread-pill">${totalReads}회</span>` : '';
 
+  // 태그 - 책별 색 톤 적용
   const tagHtml = b.tags.map(t => {
-    const tag = TAGS[t] || { emoji:'📖', color:'#64748b' };
-    return `<span class="log-tag" data-tag="${t}" style="--tag-color:${tag.color}">
+    const tag = TAGS[t] || { emoji:'📖' };
+    return `<span class="log-tag" data-tag="${t}">
       <span class="log-tag-emoji">${tag.emoji}</span>${t}
     </span>`;
   }).join('');
 
-  const groupCls = [
-    reading ? 'reading' : 'done',
-    isFirst ? 'log-group-start' : '',
-    isLast  ? 'log-group-end'   : '',
-  ].filter(Boolean).join(' ');
-
   return `
-    <div class="log-entry ${groupCls}" style="--entry-color:${color}" data-book-id="${b.id}">
-      <div class="log-entry-time">
-        <div class="log-entry-axis"></div>
-        <div class="log-entry-date">${date}</div>
-        <div class="log-entry-dot"></div>
+    <div class="log-entry" style="--entry-color:${color}" data-book-id="${b.id}">
+      <div class="log-entry-left">
+        <div class="log-entry-date">${monthStr}<br>${dayStr}</div>
+        <div class="log-entry-cover">${coverInner}</div>
       </div>
-      <div class="log-entry-card">
-        <div class="log-entry-head">
-          <div class="log-entry-title">${b.title}${lifebookBadge}${rereadPill}</div>
-          ${badge}
+      <div class="log-entry-content">
+        <div class="log-entry-title-row">
+          <div class="log-entry-title">${esc(b.title)}${lifebookBadge}${rereadPill}</div>
+          <div class="log-entry-author">${esc(b.author)}</div>
         </div>
-        <div class="log-entry-meta">${meta}</div>
-        ${reading ? `<div class="log-progress"><div class="log-progress-fill" style="width:${progPct}%"></div></div>` : ''}
-        <div class="log-tags">${tagHtml}</div>
+        <div class="log-entry-tags">${tagHtml}</div>
+      </div>
+      <div class="log-entry-side">
+        ${sideHtml}
       </div>
     </div>`;
 }
@@ -13171,10 +13181,9 @@ document.getElementById('bdBack').addEventListener('click', closeBookDetail);
 document.getElementById('logList').addEventListener('click', (e) => {
   // 태그 클릭은 필터용이므로 무시
   if (e.target.closest('.log-tag')) return;
-  const card = e.target.closest('.log-entry-card');
-  if (!card) return;
-  const entryDiv = card.closest('.log-entry');
-  const bookId = parseInt(entryDiv?.dataset.bookId, 10);
+  const entryDiv = e.target.closest('.log-entry');
+  if (!entryDiv) return;
+  const bookId = parseInt(entryDiv.dataset.bookId, 10);
   if (bookId) openBookDetail(bookId);
 });
 
