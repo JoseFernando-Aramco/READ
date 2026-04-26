@@ -3086,6 +3086,345 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .stat-card.dark .pace-timer-empty { color: rgba(230,221,200,0.5); }
 
 /* ═══════════════════════════════════════════════════════════
+   V2 통계 카드 (시안 B · 카드 대시보드)
+   ═══════════════════════════════════════════════════════════ */
+.stat-card-v2 {
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border-2);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 8px;
+}
+.stat-card-v2:first-of-type {
+  margin-top: 12px;
+}
+.stat-card-v2-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stat-card-v2-bar {
+  width: 3px;
+  height: 14px;
+  background: var(--c-terra-700);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.stat-card-v2-ttl {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.stat-card-v2-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 10px;
+}
+.stat-card-v2-k {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  flex-shrink: 0;
+}
+.stat-card-v2-v {
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.8;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.stat-card-v2-v strong {
+  color: var(--c-terra-700);
+  font-weight: 800;
+}
+.stat-card-v2-divider {
+  height: 0.5px;
+  background: var(--c-border-2);
+  margin: 18px 0 4px;
+}
+
+/* 페이스 카드 — 4셀 그리드 */
+.stat-card-v2-pace {
+  padding: 0;
+  overflow: hidden;
+}
+.stat-card-v2-pace .stat-card-v2-head {
+  padding: 16px 16px 12px;
+}
+.stat-card-v2-pace .pace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 0;
+}
+.pace-cell-v2 {
+  padding: 12px 16px 14px;
+  border-top: 0.5px solid var(--c-border-2);
+  min-width: 0;
+}
+.pace-cell-v2:nth-child(odd) {
+  border-right: 0.5px solid var(--c-border-2);
+}
+.pace-cell-v2-k {
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.85;
+  font-weight: 600;
+}
+.pace-cell-v2-v {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin-top: 4px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.pace-cell-v2-v .u {
+  font-size: 12px;
+  color: var(--c-text-2);
+  opacity: 0.75;
+  font-weight: 500;
+  margin-left: 1px;
+}
+.pace-cell-v2-s {
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.6;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pace-cell-v2.empty .pace-cell-v2-v {
+  display: none;
+}
+.pace-cell-v2.empty .pace-cell-v2-s {
+  margin-top: 8px;
+}
+
+/* 별점 분포 — 수평 스택 바 */
+.rating-hist .rating-stack {
+  display: flex;
+  height: 8px;
+  border-radius: 3px;
+  overflow: hidden;
+  gap: 2px;
+  margin-top: 4px;
+}
+.rating-hist .rating-stack-seg {
+  height: 100%;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity .15s ease;
+  min-width: 4px;
+}
+.rating-hist .rating-stack-seg:hover {
+  opacity: 0.75;
+}
+.rating-hist .rating-stack-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.85;
+}
+.rating-hist .rating-empty {
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.6;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ─── V2 카드 안 차트 톤 정리 ─── */
+.stat-card-v2 .monthly-chart {
+  height: 72px;
+  margin: 4px 0 0;
+  padding: 0;
+  gap: 4px;
+}
+.stat-card-v2 .monthly-bar-col {
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 0;
+  height: 100%;
+}
+.stat-card-v2 .monthly-bar-val { display: none; }
+.stat-card-v2 .monthly-bar-rect {
+  width: 100%;
+  background: var(--c-border-2);
+  border-radius: 3px;
+  min-height: 4px;
+}
+.stat-card-v2 .monthly-bar-col.cur .monthly-bar-rect {
+  background: var(--c-terra-700);
+}
+.stat-card-v2 .monthly-labels {
+  padding: 6px 0 0;
+  border-top: none;
+  gap: 4px;
+}
+.stat-card-v2 .monthly-lbl {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-label);
+  font-family: inherit;
+}
+.stat-card-v2 .monthly-lbl.cur {
+  color: var(--c-terra-700);
+  font-weight: 700;
+}
+
+.stat-card-v2 .weekday-chart {
+  margin-top: 10px;
+  height: 64px;
+  padding-bottom: 0;
+  gap: 6px;
+}
+.stat-card-v2 .weekday-bar {
+  background: var(--c-border-2);
+  box-shadow: none;
+}
+.stat-card-v2 .weekday-bar.peak {
+  background: var(--c-terra-700);
+  box-shadow: none;
+}
+.stat-card-v2 .weekday-bar-val { display: none; }
+.stat-card-v2 .weekday-label {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-label);
+  letter-spacing: 0;
+}
+.stat-card-v2 .weekday-label.weekend {
+  color: var(--c-text-2);
+  opacity: 0.7;
+}
+.stat-card-v2 .weekday-insight {
+  margin-top: 14px;
+  padding: 12px 0 0;
+  background: transparent;
+  border: none;
+  border-top: 0.5px solid var(--c-border-2);
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  line-height: 1.55;
+}
+
+/* 이번달 캘린더 */
+.month-cal-nav-row {
+  align-items: center;
+}
+.month-cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.month-cal-nav-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--c-text-2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  transition: background .15s ease, opacity .15s ease;
+}
+.month-cal-nav-btn:active {
+  background: var(--c-surface-2);
+  transform: scale(0.92);
+}
+.month-cal-nav-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+}
+.month-cal-label-btn {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  min-width: 76px;
+  text-align: center;
+  letter-spacing: -0.01em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s ease;
+}
+.month-cal-label-btn:active {
+  background: var(--c-surface-2);
+}
+.month-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-top: 4px;
+}
+.month-cal-dow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-label);
+  text-align: center;
+  padding-bottom: 4px;
+}
+.month-cal-dow.weekend {
+  color: var(--c-text-2);
+  opacity: 0.55;
+}
+.month-cal-cell {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-label);
+  background: var(--c-surface-2);
+  border-radius: 6px;
+  position: relative;
+  transition: transform .15s ease;
+}
+.month-cal-cell.empty {
+  background: transparent;
+}
+.month-cal-cell.active {
+  color: var(--c-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+.month-cal-cell.lvl-1 { background: color-mix(in srgb, var(--c-terra-700) 14%, var(--c-surface-2)); }
+.month-cal-cell.lvl-2 { background: color-mix(in srgb, var(--c-terra-700) 30%, var(--c-surface-2)); }
+.month-cal-cell.lvl-3 { background: color-mix(in srgb, var(--c-terra-700) 55%, transparent); color: #fff; }
+.month-cal-cell.lvl-4 { background: var(--c-terra-700); color: #fff; }
+.month-cal-cell.today {
+  outline: 1.5px solid var(--c-terra-700);
+  outline-offset: -1.5px;
+  font-weight: 800;
+}
+.month-cal-cell.active:active { transform: scale(0.94); }
+
+/* ═══════════════════════════════════════════════════════════
    API 키 설정 UI (설정 모달 내 섹션)
    ═══════════════════════════════════════════════════════════ */
 .api-key-item {
@@ -7950,146 +8289,85 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <span class="fold-arrow arrow-right">›</span>
     </button>
 
-    <!-- ═══ 시간의 흔적 (펼친 상태 기본) ═══ -->
-    <div class="stats-fold open" data-fold="time">
-      <button class="fold-head" type="button">
-        <div class="fold-head-l">
-          <div class="fold-icon blue"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg></div>
-          <div class="fold-head-text">
-            <div class="fold-t">시간의 흔적</div>
-            <div class="fold-s">월별 · 요일별 · 누적</div>
-          </div>
-        </div>
-        <span class="fold-arrow">⌄</span>
-      </button>
-      <div class="fold-body">
-
-        <!-- 월별 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head" id="monthlyHead">
-            <div class="stat-card-lbl">MONTHLY BOOKS</div>
-            <div class="stat-card-ttl">
-              <span class="num">—</span>
-              <span class="unit">권 · 올해 누적</span>
-            </div>
-            <div class="stat-card-sub">—</div>
-          </div>
-          <div class="monthly-chart" id="monthlyChart"></div>
-          <div class="monthly-labels" id="monthlyLabels"></div>
-        </div>
-
-        <!-- 요일별 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head">
-            <div class="stat-card-lbl">WEEKDAY PATTERN</div>
-            <div class="stat-card-ttl">
-              <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> 요일별 독서 패턴</span>
-            </div>
-            <div class="stat-card-sub" id="weekdayCardSub">언제 가장 많이 읽는지</div>
-          </div>
-          <div class="weekday-chart" id="weekdayChart"></div>
-          <div class="weekday-insight" id="weekdayInsight"></div>
-        </div>
-
-        <!-- 누적 페이지 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head" id="cumuHead">
-            <div class="stat-card-lbl">CUMULATIVE PAGES</div>
-            <div class="stat-card-ttl">
-              <span class="num">—</span>
-              <span class="unit">p · 올해 누적</span>
-            </div>
-            <div class="stat-card-sub">—</div>
-          </div>
-          <div class="page-line-wrap">
-            <svg class="page-line-svg" id="cumuLineSvg" viewBox="0 0 300 130" preserveAspectRatio="none"></svg>
-            <div class="page-line-foot">
-              <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>현재</span>
-            </div>
-          </div>
-        </div>
-
+    <!-- ═══ V2 시안 B: 활동 카드 (이번달 캘린더 + 월별 + 요일별) ═══ -->
+    <div class="stat-card-v2">
+      <div class="stat-card-v2-head">
+        <div class="stat-card-v2-bar"></div>
+        <div class="stat-card-v2-ttl">활동</div>
       </div>
+
+      <!-- 이번달 캘린더 -->
+      <div class="stat-card-v2-row month-cal-nav-row">
+        <div class="month-cal-nav">
+          <button class="month-cal-nav-btn" type="button" onclick="monthCalNav(-1)" aria-label="이전 달">‹</button>
+          <button class="month-cal-label-btn" type="button" onclick="monthCalReset()" id="monthCalLabel" aria-label="이번달로 돌아가기">—</button>
+          <button class="month-cal-nav-btn" type="button" id="monthCalNextBtn" onclick="monthCalNav(1)" aria-label="다음 달">›</button>
+        </div>
+        <span class="stat-card-v2-v" id="monthCalSub">—</span>
+      </div>
+      <div class="month-cal" id="monthCal"></div>
+
+      <div class="stat-card-v2-divider"></div>
+
+      <!-- 월별 -->
+      <div class="stat-card-v2-row" id="monthlyHead">
+        <span class="stat-card-v2-k">월별</span>
+        <span class="stat-card-v2-v">—</span>
+      </div>
+      <div class="monthly-chart" id="monthlyChart"></div>
+      <div class="monthly-labels" id="monthlyLabels"></div>
+
+      <div class="stat-card-v2-divider"></div>
+
+      <!-- 요일별 -->
+      <div class="stat-card-v2-row">
+        <span class="stat-card-v2-k">요일</span>
+        <span class="stat-card-v2-v" id="weekdayCardSub">—</span>
+      </div>
+      <div class="weekday-chart" id="weekdayChart"></div>
+      <div class="weekday-insight" id="weekdayInsight"></div>
     </div>
 
-    <!-- ═══ 무엇을 읽었나 ═══ -->
-    <div class="stats-fold" data-fold="what">
-      <button class="fold-head" type="button">
-        <div class="fold-head-l">
-          <div class="fold-icon green"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></div>
-          <div class="fold-head-text">
-            <div class="fold-t">무엇을 읽었나</div>
-            <div class="fold-s">장르 비중 · 별점 분포</div>
-          </div>
-        </div>
-        <span class="fold-arrow">⌄</span>
-      </button>
-      <div class="fold-body">
-
-        <!-- 장르 도넛 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head" id="genreHead">
-            <div class="stat-card-lbl">GENRE DISTRIBUTION</div>
-            <div class="stat-card-ttl">
-              <span>태그 비중</span>
-            </div>
-            <div class="stat-card-sub">읽는중 + 완독 책의 태그 기준</div>
-          </div>
-          <div class="donut-wrap">
-            <div class="donut" id="genreDonut">
-              <div class="donut-center">
-                <div class="donut-center-num" id="genreDonutNum">—</div>
-                <div class="donut-center-lbl">books</div>
-              </div>
-            </div>
-            <div class="donut-legend" id="genreLegend"></div>
-          </div>
-        </div>
-
-        <!-- 별점 히스토그램 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head" id="ratingHead">
-            <div class="stat-card-lbl">RATING DISTRIBUTION</div>
-            <div class="stat-card-ttl">
-              <span class="num">—</span>
-              <span class="unit">평균 별점</span>
-            </div>
-            <div class="stat-card-sub">—</div>
-          </div>
-          <div class="rating-hist" id="ratingHist"></div>
-        </div>
-
+    <!-- ═══ V2 시안 B: 취향 카드 (장르 + 별점) ═══ -->
+    <div class="stat-card-v2">
+      <div class="stat-card-v2-head">
+        <div class="stat-card-v2-bar"></div>
+        <div class="stat-card-v2-ttl">취향</div>
       </div>
+
+      <!-- 장르 도넛 -->
+      <div class="stat-card-v2-row" id="genreHead">
+        <span class="stat-card-v2-k">장르 비중</span>
+        <span class="stat-card-v2-v">—</span>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut" id="genreDonut">
+          <div class="donut-center">
+            <div class="donut-center-num" id="genreDonutNum">—</div>
+            <div class="donut-center-lbl">books</div>
+          </div>
+        </div>
+        <div class="donut-legend" id="genreLegend"></div>
+      </div>
+
+      <div class="stat-card-v2-divider"></div>
+
+      <!-- 별점 분포 -->
+      <div class="stat-card-v2-row" id="ratingHead">
+        <span class="stat-card-v2-k">별점 분포</span>
+        <span class="stat-card-v2-v">—</span>
+      </div>
+      <div class="rating-hist" id="ratingHist"></div>
     </div>
 
-    <!-- ═══ 독서 습관 ═══ -->
-    <div class="stats-fold" data-fold="habit">
-      <button class="fold-head" type="button">
-        <div class="fold-head-l">
-          <div class="fold-icon amber"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg></div>
-          <div class="fold-head-text">
-            <div class="fold-t">독서 습관</div>
-            <div class="fold-s">속도 · 집중 · 분당 페이지</div>
-          </div>
-        </div>
-        <span class="fold-arrow">⌄</span>
-      </button>
-      <div class="fold-body">
-
-        <!-- 독서 페이스 -->
-        <div class="stat-sub">
-          <div class="stat-sub-head">
-            <div class="stat-card-lbl">READING PACE</div>
-            <div class="stat-card-ttl">
-              <span><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 독서 속도</span>
-            </div>
-            <div class="stat-card-sub" id="paceCardSub">완독한 책 기준</div>
-          </div>
-          <div class="pace-grid" id="paceGrid"></div>
-          <div class="pace-timer" id="paceTimer"></div>
-        </div>
-
+    <!-- ═══ V2 시안 B: 페이스 카드 (4 셀 통합) ═══ -->
+    <div class="stat-card-v2 stat-card-v2-pace">
+      <div class="stat-card-v2-head">
+        <div class="stat-card-v2-bar"></div>
+        <div class="stat-card-v2-ttl">페이스</div>
+        <span class="stat-card-v2-v" id="paceCardSub" style="margin-left:auto;"></span>
       </div>
+      <div class="pace-grid" id="paceGrid"></div>
     </div>
 
   </section>
@@ -13285,6 +13563,35 @@ function ddBooksByMonth(year, month /* 0-indexed */) {
   });
   return BOOKS.filter(b => ids.has(b.id));
 }
+function ddBooksByDay(year, month, day) {
+  // 그날(year, month, day) 기준 진행중이거나 완독한 책
+  const dayStart = new Date(year, month, day, 0, 0, 0, 0).getTime();
+  const dayEnd   = new Date(year, month, day, 23, 59, 59, 999).getTime();
+  const seen = new Set();
+  const result = [];
+  function inRange(start, end) {
+    if (!start || !end) return false;
+    const s = new Date(start).getTime();
+    const e = new Date(end).getTime();
+    if (isNaN(s) || isNaN(e)) return false;
+    return e >= dayStart && s <= dayEnd;
+  }
+  BOOKS.forEach(b => {
+    if (!b.dateStart) return;
+    const end = b.dateEnd || (b.status === 'reading' ? new Date().toISOString() : null);
+    if (!end) return;
+    const key = b.id || b.title;
+    if (inRange(b.dateStart, end) && !seen.has(key)) {
+      result.push(b); seen.add(key);
+    }
+    (b.rereads || []).forEach(r => {
+      if (r.dateStart && r.dateEnd && inRange(r.dateStart, r.dateEnd) && !seen.has(key)) {
+        result.push(b); seen.add(key);
+      }
+    });
+  });
+  return result;
+}
 function ddBooksByTag(tagName) {
   return BOOKS.filter(b => b.status !== 'wish' && (b.tags || []).includes(tagName));
 }
@@ -13911,7 +14218,7 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     return;
   }
   // 월별 바
-  const monthCol = e.target.closest('[data-dd-month]');
+  const monthCol = e.target.closest('[data-dd-month]:not([data-dd-day])');
   if (monthCol) {
     const year = parseInt(monthCol.dataset.ddYear, 10);
     const month = parseInt(monthCol.dataset.ddMonth, 10);
@@ -13922,6 +14229,30 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
       books,
       null,
       { variant: 'month', year, month }
+    );
+    return;
+  }
+  // 캘린더 셀 (특정 일자)
+  const dayCell = e.target.closest('[data-dd-day]');
+  if (dayCell) {
+    const day = parseInt(dayCell.dataset.ddDay, 10);
+    const month = parseInt(dayCell.dataset.ddMonth, 10);
+    const year = parseInt(dayCell.dataset.ddYear, 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return;
+    const books = ddBooksByDay(year, month, day);
+    const dt = new Date(year, month, day);
+    const dowStr = ['일','월','화','수','목','금','토'][dt.getDay()];
+    openDrillDown(
+      `${month + 1}월 ${day}일 (${dowStr}) · ${books.length}권`,
+      'DAY',
+      books,
+      (b) => {
+        const isFinishedToday = b.dateEnd && new Date(b.dateEnd).toDateString() === dt.toDateString();
+        if (isFinishedToday) return '✓ 완독';
+        if (b.status === 'reading') return '📖';
+        if (b.rating) return `★ ${b.rating.toFixed(1)}`;
+        return '';
+      }
     );
     return;
   }
@@ -14079,6 +14410,14 @@ function renderWeekdayChart() {
       <div style="margin-bottom:4px">가장 많이 읽는 요일: <strong>${labels[peakIdx]}요일</strong></div>
       <div>${compareLine}</div>`;
   }
+
+  // V2 row 우측 부제 (간단 요약)
+  const sub = document.getElementById('weekdayCardSub');
+  if (sub) {
+    sub.textContent = max === 0
+      ? '기록 없음'
+      : `최다 ${labels[peakIdx]}요일 ${Math.round(s.pages[peakIdx])}p`;
+  }
 }
 
 /* ─── ③ 독서 페이스 ─── */
@@ -14149,81 +14488,87 @@ function renderPaceCard() {
   const s = computePaceStats();
   const grid = document.getElementById('paceGrid');
   const sub = document.getElementById('paceCardSub');
-  const timerBox = document.getElementById('paceTimer');
+  if (!grid) return;
 
-  if (!s || !s.hasDayBased) {
-    // 일수 기반 데이터 없음 → 타이머 데이터만 있을 수도
-    grid.innerHTML = `
-      <div class="pace-cell main" style="grid-column:1/-1">
-        <div class="pace-cell-icon"><svg class="ic ic-xl" aria-hidden="true"><use href="#i-bar-chart"/></svg></div>
-        <div class="pace-cell-sub" style="font-size:11px">완독 책이 쌓이면 페이스가 나와요</div>
+  // 헤더 우측 부제 (집계 기반)
+  if (sub) {
+    const parts = [];
+    if (s?.hasDayBased) parts.push(`${s.count}회 완독`);
+    if (s?.timerSessions?.length) parts.push(`타이머 ${s.timerSessions.length}회`);
+    sub.textContent = parts.join(' · ');
+  }
+
+  // ─── 셀 1: 권당 일수 ───
+  const cell1 = s?.hasDayBased
+    ? `
+      <div class="pace-cell-v2">
+        <div class="pace-cell-v2-k">권당 일수</div>
+        <div class="pace-cell-v2-v">${s.avgDays.toFixed(1)}<span class="u">일</span></div>
+        <div class="pace-cell-v2-s">하루 ${Math.round(s.avgPagesPerDay)}p 페이스</div>
+      </div>`
+    : `
+      <div class="pace-cell-v2 empty">
+        <div class="pace-cell-v2-k">권당 일수</div>
+        <div class="pace-cell-v2-s">완독하면 표시</div>
       </div>`;
-    sub.textContent = '완독한 책 기준';
+
+  // ─── 셀 2: 최단 · 최장 ───
+  const cell2 = s?.hasDayBased
+    ? `
+      <div class="pace-cell-v2">
+        <div class="pace-cell-v2-k">최단 · 최장</div>
+        <div class="pace-cell-v2-v">${s.fastest.days}<span class="u">·</span>${s.slowest.days}<span class="u">일</span></div>
+        <div class="pace-cell-v2-s">${esc(s.fastest.book.title)} · ${esc(s.slowest.book.title)}</div>
+      </div>`
+    : `
+      <div class="pace-cell-v2 empty">
+        <div class="pace-cell-v2-k">최단 · 최장</div>
+        <div class="pace-cell-v2-s">완독하면 표시</div>
+      </div>`;
+
+  // ─── 셀 3: 총 독서시간 ───
+  let cell3;
+  if (s?.totalTimerMinutes > 0) {
+    const hours = Math.floor(s.totalTimerMinutes / 60);
+    const mins = s.totalTimerMinutes % 60;
+    const timeStr = hours > 0
+      ? `${hours}<span class="u">시</span> ${mins}<span class="u">분</span>`
+      : `${mins}<span class="u">분</span>`;
+    const sessionAvg = Math.round(s.avgMinutesPerSession);
+    cell3 = `
+      <div class="pace-cell-v2">
+        <div class="pace-cell-v2-k">총 독서시간</div>
+        <div class="pace-cell-v2-v">${timeStr}</div>
+        <div class="pace-cell-v2-s">${s.timerSessions.length}회 · 평균 ${sessionAvg}분</div>
+      </div>`;
   } else {
-    sub.textContent = `${s.count}회 독서 세션 기준 (재독 포함)`;
-    grid.innerHTML = `
-      <div class="pace-cell main">
-        <div class="pace-cell-icon">📈</div>
-        <div class="pace-cell-val">${s.avgDays.toFixed(1)}</div>
-        <div class="pace-cell-unit">일 / 권 평균</div>
-        <div class="pace-cell-sub">하루 ${Math.round(s.avgPagesPerDay)}p 페이스</div>
-      </div>
-      <div class="pace-cell">
-        <div class="pace-cell-icon">⚡</div>
-        <div class="pace-cell-val">${s.fastest.days}</div>
-        <div class="pace-cell-unit">일 · 최단</div>
-        <div class="pace-cell-sub">${esc(s.fastest.book.title)}</div>
-      </div>
-      <div class="pace-cell">
-        <div class="pace-cell-icon">🐢</div>
-        <div class="pace-cell-val">${s.slowest.days}</div>
-        <div class="pace-cell-unit">일 · 최장</div>
-        <div class="pace-cell-sub">${esc(s.slowest.book.title)}</div>
+    cell3 = `
+      <div class="pace-cell-v2 empty">
+        <div class="pace-cell-v2-k">총 독서시간</div>
+        <div class="pace-cell-v2-s">타이머 사용시 집계</div>
       </div>`;
   }
 
-  // ─── 타이머 섹션 ───
-  if (!timerBox) return;
-  if (!s || s.totalTimerMinutes === 0) {
-    timerBox.innerHTML = `
-      <div class="pace-timer-head"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 기반</div>
-      <div class="pace-timer-empty">
-        독서 중에 <strong style="color:var(--c-terra-700)"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</strong> 을 누르면<br>
-        실제 분 단위 독서 시간이 여기 집계돼요
-      </div>
-    `;
-    return;
+  // ─── 셀 4: 분당 페이지 ───
+  let cell4;
+  if (s?.pagesPerMinute > 0) {
+    const ppm = s.pagesPerMinute.toFixed(1);
+    const dailyAvg = Math.round(s.dailyAvgRecent);
+    cell4 = `
+      <div class="pace-cell-v2">
+        <div class="pace-cell-v2-k">분당 페이지</div>
+        <div class="pace-cell-v2-v">${ppm}<span class="u">p</span></div>
+        <div class="pace-cell-v2-s">${dailyAvg > 0 ? `최근 7일 ${dailyAvg}분` : '7일 평균 —'}</div>
+      </div>`;
+  } else {
+    cell4 = `
+      <div class="pace-cell-v2 empty">
+        <div class="pace-cell-v2-k">분당 페이지</div>
+        <div class="pace-cell-v2-s">타이머 사용시 집계</div>
+      </div>`;
   }
 
-  const totalMin = s.totalTimerMinutes;
-  const hours = Math.floor(totalMin / 60);
-  const mins = totalMin % 60;
-  const timeStr = hours > 0 ? `${hours}시간 ${mins}분` : `${mins}분`;
-  const sessionAvg = Math.round(s.avgMinutesPerSession);
-  const ppm = s.pagesPerMinute > 0 ? s.pagesPerMinute.toFixed(1) : null;
-  const dailyAvg = Math.round(s.dailyAvgRecent);
-
-  timerBox.innerHTML = `
-    <div class="pace-timer-head"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 기반 · ${s.timerSessions.length}회 세션</div>
-    <div class="pace-timer-row">
-      <div class="pace-timer-k">총 독서 시간</div>
-      <div class="pace-timer-v">${timeStr}</div>
-    </div>
-    <div class="pace-timer-row">
-      <div class="pace-timer-k">세션 평균</div>
-      <div class="pace-timer-v">${sessionAvg}분</div>
-    </div>
-    ${dailyAvg > 0 ? `
-    <div class="pace-timer-row">
-      <div class="pace-timer-k">최근 7일 하루 평균</div>
-      <div class="pace-timer-v">${dailyAvg}분</div>
-    </div>` : ''}
-    ${ppm ? `
-    <div class="pace-timer-row">
-      <div class="pace-timer-k">분당 페이지</div>
-      <div class="pace-timer-v">${ppm}p</div>
-    </div>` : ''}
-  `;
+  grid.innerHTML = cell1 + cell2 + cell3 + cell4;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -14590,6 +14935,158 @@ function openGoalEditor() {
   try { showToast(`올해 목표 ${n}권으로 저장됨`); } catch(e){}
 }
 
+/* ─── ⑦ 이번달 캘린더 (V2) ─── */
+const MONTH_CAL_VIEW = (() => {
+  const t = new Date();
+  return { year: t.getFullYear(), month: t.getMonth() };
+})();
+
+function monthCalNav(delta) {
+  let m = MONTH_CAL_VIEW.month + delta;
+  let y = MONTH_CAL_VIEW.year;
+  while (m < 0)  { m += 12; y--; }
+  while (m > 11) { m -= 12; y++; }
+  // 미래로는 이동 불가 (오늘이 속한 달까지만)
+  const t = new Date();
+  if (y > t.getFullYear() || (y === t.getFullYear() && m > t.getMonth())) return;
+  MONTH_CAL_VIEW.year = y;
+  MONTH_CAL_VIEW.month = m;
+  renderMonthCal();
+}
+
+function monthCalReset() {
+  const t = new Date();
+  if (MONTH_CAL_VIEW.year === t.getFullYear() && MONTH_CAL_VIEW.month === t.getMonth()) return;
+  MONTH_CAL_VIEW.year = t.getFullYear();
+  MONTH_CAL_VIEW.month = t.getMonth();
+  renderMonthCal();
+}
+
+function renderMonthCal() {
+  const cal = document.getElementById('monthCal');
+  const sub = document.getElementById('monthCalSub');
+  const lbl = document.getElementById('monthCalLabel');
+  const nextBtn = document.getElementById('monthCalNextBtn');
+  if (!cal) return;
+
+  const today = new Date();
+  const todayY = today.getFullYear();
+  const todayM = today.getMonth();
+  const todayD = today.getDate();
+
+  const year = MONTH_CAL_VIEW.year;
+  const month = MONTH_CAL_VIEW.month;
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const firstWeekday = new Date(year, month, 1).getDay(); // 0=일
+
+  const isViewingThisMonth = (year === todayY && month === todayM);
+
+  // 라벨 갱신
+  if (lbl) {
+    lbl.textContent = isViewingThisMonth
+      ? `이번달 · ${month + 1}월`
+      : (year === todayY ? `${month + 1}월` : `${year}.${month + 1}`);
+  }
+
+  // 다음 버튼 비활성화 (이번달이거나 미래면)
+  if (nextBtn) {
+    const isFutureOrCurrent = isViewingThisMonth || (year > todayY) || (year === todayY && month >= todayM);
+    nextBtn.disabled = isFutureOrCurrent;
+  }
+
+  // 각 날짜의 활동 (책 진행 + 추정 페이지)
+  const dayAct = {};
+  for (let d = 1; d <= daysInMonth; d++) dayAct[d] = { books: [], pages: 0, finished: 0 };
+
+  function add(dStart, dEnd, pages, book, finishKey) {
+    if (!dStart) return;
+    const start = new Date(dStart);
+    const end = dEnd ? new Date(dEnd) : null;
+    if (!end || isNaN(start) || isNaN(end)) return;
+    const totalDays = Math.max(1, Math.round((end - start) / 86400000) + 1);
+    const ppd = (pages || 0) / totalDays;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(year, month, d);
+      if (dt >= start && dt <= end) {
+        dayAct[d].books.push(book);
+        dayAct[d].pages += ppd;
+      }
+    }
+    if (finishKey && end.getFullYear() === year && end.getMonth() === month) {
+      dayAct[end.getDate()].finished++;
+    }
+  }
+
+  BOOKS.forEach(b => {
+    if (!b.dateStart) return;
+    const end = b.dateEnd || (b.status === 'reading' ? today.toISOString() : null);
+    if (!end) return;
+    add(b.dateStart, end, b.pages, b, !!b.dateEnd);
+    (b.rereads || []).forEach(r => {
+      if (r.dateStart && r.dateEnd) add(r.dateStart, r.dateEnd, b.pages, b, true);
+    });
+  });
+
+  // 통계
+  let activeDays = 0, finishedTotal = 0, maxPages = 0;
+  Object.values(dayAct).forEach(a => {
+    if (a.books.length > 0) activeDays++;
+    finishedTotal += a.finished;
+    if (a.pages > maxPages) maxPages = a.pages;
+  });
+
+  if (sub) {
+    if (activeDays === 0) {
+      sub.textContent = '기록 없음';
+    } else {
+      const parts = [`${activeDays}일 독서`];
+      if (finishedTotal > 0) parts.push(`완독 ${finishedTotal}권`);
+      sub.textContent = parts.join(' · ');
+    }
+  }
+
+  // 그리드
+  const dowLabels = ['일','월','화','수','목','금','토'];
+  let html = '<div class="month-cal-grid">';
+  dowLabels.forEach((dow, i) => {
+    html += `<div class="month-cal-dow ${i === 0 || i === 6 ? 'weekend' : ''}">${dow}</div>`;
+  });
+  for (let i = 0; i < firstWeekday; i++) {
+    html += `<div class="month-cal-cell empty"></div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const a = dayAct[d];
+    const isToday = isViewingThisMonth && d === todayD;
+    const isActive = a.books.length > 0;
+    let lvl = '';
+    if (isActive) {
+      if (a.finished > 0) lvl = 'lvl-4';
+      else if (maxPages > 0) {
+        const r = a.pages / maxPages;
+        if (r > 0.66) lvl = 'lvl-3';
+        else if (r > 0.33) lvl = 'lvl-2';
+        else lvl = 'lvl-1';
+      } else {
+        lvl = 'lvl-1';
+      }
+    }
+    const cls = ['month-cal-cell'];
+    if (isActive) cls.push('active');
+    if (lvl) cls.push(lvl);
+    if (isToday) cls.push('today');
+    const tip = isActive
+      ? `${d}일 · ${a.books.length}권${a.finished > 0 ? ' · 완독' : ''}`
+      : `${d}일`;
+    const ddAttrs = isActive
+      ? `data-dd-day="${d}" data-dd-month="${month}" data-dd-year="${year}"`
+      : '';
+    html += `<div class="${cls.join(' ')}" ${ddAttrs} title="${tip}">${d}</div>`;
+  }
+  html += '</div>';
+  cal.innerHTML = html;
+}
+
 /* ─── 전체 렌더 ─── */
 function renderAllStats() {
   try { _bindYearNav(); } catch(e) {}
@@ -14602,6 +15099,7 @@ function renderAllStats() {
   try { renderGenreDonut();       } catch(e) { console.error('[genre]', e); }
   try { renderCumulativeStatCard(); } catch(e) { console.error('[cumu]', e); }
   try { renderRatingStatCard();   } catch(e) { console.error('[rating]', e); }
+  try { renderMonthCal();         } catch(e) { console.error('[monthcal]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
@@ -14825,23 +15323,22 @@ function renderMonthlyStatCard() {
   const lastMonth = curMonth > 0 ? counts[curMonth - 1] : 0;
   const diff = thisMonth - lastMonth;
 
-  // Head
+  // Head (V2 row 구조)
   const head = document.getElementById('monthlyHead');
-  head.querySelector('.num').textContent = totalYear;
-  head.querySelector('.unit').textContent = `권 · ${year} 누적`;
-  const sub = head.querySelector('.stat-card-sub');
-  if (totalYear === 0) {
-    sub.textContent = isCurrent ? '올해 완독한 책이 아직 없어요' : `${year}년 완독 기록이 없어요`;
-  } else if (!isCurrent) {
-    // 과거 연도 — 월별 최고 찾기
-    const maxMonth = counts.indexOf(Math.max(...counts));
-    sub.innerHTML = `가장 많이 읽은 달 <strong>${maxMonth + 1}월 · ${counts[maxMonth]}권</strong>`;
-  } else if (diff > 0) {
-    sub.innerHTML = `이번달 <strong style="color:var(--c-terra-700)">${thisMonth}권</strong> · 지난달보다 <strong style="color:var(--c-terra-700)">+${diff}권</strong>`;
-  } else if (diff < 0) {
-    sub.innerHTML = `이번달 <strong>${thisMonth}권</strong> · 지난달보다 <strong>${diff}권</strong>`;
-  } else {
-    sub.innerHTML = `이번달 <strong>${thisMonth}권</strong> · 지난달과 동일`;
+  const v = head?.querySelector('.stat-card-v2-v');
+  if (v) {
+    if (totalYear === 0) {
+      v.textContent = isCurrent ? '아직 완독 없음' : `${year}년 기록 없음`;
+    } else if (!isCurrent) {
+      const maxMonth = counts.indexOf(Math.max(...counts));
+      v.innerHTML = `${year} 총 <strong>${totalYear}권</strong> · 최다 ${maxMonth + 1}월`;
+    } else if (diff > 0) {
+      v.innerHTML = `이번달 <strong>${thisMonth}권</strong> · 지난달 +${diff}권`;
+    } else if (diff < 0) {
+      v.innerHTML = `이번달 ${thisMonth}권 · 지난달 ${diff}권`;
+    } else {
+      v.innerHTML = `이번달 ${thisMonth}권 · 지난달과 동일`;
+    }
   }
 
   // Bars
@@ -14920,10 +15417,21 @@ function renderGenreDonut() {
         <div class="legend-v">${count}<span class="pct">${pct}%</span></div>
       </div>`;
   }).join('');
+
+  // V2 row 우측 부제
+  const gh = document.getElementById('genreHead');
+  const gv = gh?.querySelector('.stat-card-v2-v');
+  if (gv) {
+    gv.textContent = slices.length === 0
+      ? '태그 기록 없음'
+      : `총 ${bookCount}권 · ${slices.length}개 카테고리`;
+  }
 }
 
 /* ─── ⑥ 누적 페이지 라인 ─── */
 function renderCumulativeStatCard() {
+  // V2 시안 B에서는 누적 페이지 라인 차트 제거됨 → element 없으면 noop
+  if (!document.getElementById('cumuHead')) return;
   const year = getStatsYear();
   const isCurrent = isStatsCurrentYear();
   const curMonth = isCurrent ? new Date().getMonth() : 11; // 과거는 전체 12개월
@@ -15053,26 +15561,41 @@ function renderRatingStatCard() {
   buckets.forEach((c, i) => { if (c > modeCount) { modeCount = c; modeIdx = i; } });
   const mode = modeIdx + 1;
 
-  // Head
+  // Head (V2 row 구조)
   const head = document.getElementById('ratingHead');
-  head.querySelector('.num').textContent = total ? avg.toFixed(1) : '—';
-  head.querySelector('.unit').textContent = '평균 별점';
-  head.querySelector('.stat-card-sub').textContent =
-    total === 0 ? '별점 매긴 책이 아직 없어요' : `${total}회 독서 · 최빈값 ${mode}점`;
+  const v = head?.querySelector('.stat-card-v2-v');
+  if (v) {
+    v.textContent = total === 0
+      ? '별점 기록 없음'
+      : `평균 ★${avg.toFixed(1)} · ${total}회 · 최빈 ★${mode}`;
+  }
 
-  // Histogram
+  // Stacked bar (V2) — 0 아닌 별점만 표시
   const hist = document.getElementById('ratingHist');
+  if (!hist) return;
+  if (total === 0) {
+    hist.innerHTML = `<div class="rating-empty">완독 후 별점을 매긴 책이 쌓이면 분포가 보여요</div>`;
+    return;
+  }
   const starStr = ['★','★★','★★★','★★★★','★★★★★'];
-  // 5점 → 1점 순서로 출력
-  hist.innerHTML = [4, 3, 2, 1, 0].map(i => {
-    const pct = total ? Math.round(buckets[i] / max * 100) : 0;
-    return `
-      <div class="rating-row" data-dd-rating="${i + 1}">
-        <div class="rating-stars">${starStr[i]}</div>
-        <div class="rating-bar"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
-        <div class="rating-count">${buckets[i]}</div>
-      </div>`;
-  }).join('');
+  const shades = ['var(--c-text)', 'var(--c-text-2)', '#A8A8AC', '#C8C8CC', '#DDDDE0'];
+  // 5 → 1 순서, count > 0 인 것만
+  const segs = [4,3,2,1,0]
+    .map(i => ({ idx: i, count: buckets[i], stars: starStr[i] }))
+    .filter(s => s.count > 0);
+
+  const segments = segs.map((s, k) =>
+    `<div class="rating-stack-seg" data-dd-rating="${s.idx + 1}" style="flex:${s.count};background:${shades[k] || '#E0E0E3'}" title="${s.stars} · ${s.count}회"></div>`
+  ).join('');
+
+  const labels = segs.map(s =>
+    `<span>${s.stars} · ${s.count}회</span>`
+  ).join('');
+
+  hist.innerHTML = `
+    <div class="rating-stack">${segments}</div>
+    <div class="rating-stack-labels">${labels}</div>
+  `;
 }
 
 /* ─── 탭 전환 시 통계 리렌더 훅 ─── */
