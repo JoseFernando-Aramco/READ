@@ -9625,7 +9625,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.3.0 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.4.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -19510,7 +19510,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: '1.3.0',
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.4.0',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
