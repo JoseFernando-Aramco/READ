@@ -2052,138 +2052,360 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 700;
 }
 
-/* ═══════════ [TAB 4] 노트 ═══════════ */
+/* ═══════════════════════════════════════════════════════════
+   [TAB 4] 노트 V2 (v1.4.0)
+   - 헤더 통계 · 검색 · 필터 행(세그먼트+즐겨찾기+정렬) · 책 carousel
+   - 월별 그룹 · 카드 V2 (책별 색·serif 인용구·표지·공유)
+   - 책별 시트
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── 헤더 통계 ─── */
+.notes-summary-head { margin-bottom: 12px; }
+.notes-sum-line1 {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 2px;
+}
+.notes-sum-title {
+  font-family: inherit;
+  font-size: 22px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.025em;
+}
+.notes-sum-count {
+  font-size: 12px; color: var(--c-label); font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.notes-sum-line2 {
+  font-size: 11px; color: var(--c-muted);
+  letter-spacing: -0.005em;
+}
+.notes-sum-line2 strong { color: var(--c-text-2); font-weight: 600; }
+
+/* ─── 검색바 ─── */
 .note-search {
   background: var(--c-surface);
   border: none;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 11px 14px;
   display: flex; align-items: center; gap: 10px;
-  margin-top: 4px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
 }
 .note-search input {
   flex: 1; border: none; background: transparent;
-  font-size: 15px;
+  font-size: 14px;
   font-family: inherit;
   font-style: normal; font-weight: 500;
   color: var(--c-text); outline: none;
   letter-spacing: -0.01em;
 }
-.note-search input::placeholder { color: var(--c-label); font-style: normal; font-weight: 400; }
+.note-search input::placeholder { color: var(--c-label); font-weight: 400; }
 
-.filter-chips {
-  display: flex; gap: 6px;
-  margin-top: 14px; overflow-x: auto;
-  padding-bottom: 4px;
+/* ─── 필터 행 (세그먼트 + 즐겨찾기 + 정렬) ─── */
+.note-filter-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
-.filter-chips::-webkit-scrollbar { display: none; }
-.chip {
-  padding: 8px 14px;
-  border-radius: 999px;
+.note-type-seg {
+  display: inline-flex;
+  background: var(--c-border);
+  border-radius: 9px;
+  padding: 2px;
+}
+.note-type-seg-btn {
+  padding: 5px 11px;
+  border-radius: 7px;
   font-family: inherit;
-  font-size: 13px; font-weight: 500;
+  font-size: 12px; font-weight: 500;
+  color: var(--c-text-2);
   letter-spacing: -0.01em;
-  text-transform: none;
+  border: none; background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .15s;
+  display: inline-flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.note-type-seg-btn.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(25,31,40,0.08);
+}
+.note-fav-toggle {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px;
+  border-radius: 7px;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
+  font-family: inherit;
+  font-size: 12px; font-weight: 500;
   color: var(--c-text-2);
-  white-space: nowrap;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: all .15s;
+  white-space: nowrap;
 }
-.chip.active {
-  background: var(--c-text);
-  color: #fff;
-  border-color: var(--c-text);
+.note-fav-toggle.active {
+  background: #FAEEDA;
+  border-color: #F5D89A;
+  color: #6B4A0B;
+}
+.note-fav-toggle .star-icn { color: #E5C04E; flex-shrink: 0; }
+.note-sort-wrap {
+  margin-left: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.note-sort-toggle {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 5px 4px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 11px; font-weight: 500;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.note-sort-toggle:active { opacity: 0.6; }
+
+.note-sort-menu {
+  position: absolute;
+  top: calc(100% + 6px); right: 0;
+  z-index: 30;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-2);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(25,31,40,0.12);
+  padding: 4px;
+  min-width: 140px;
+  display: none;
+}
+.note-sort-menu.show { display: block; }
+.note-sort-menu-item {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px; font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+.note-sort-menu-item:active { background: var(--c-bg); }
+.note-sort-menu-item.active { color: var(--primary); font-weight: 700; }
+.note-sort-menu-item .check {
+  color: var(--primary);
+  display: none;
+  font-size: 11px;
+}
+.note-sort-menu-item.active .check { display: inline-flex; }
+
+/* ─── 책별 carousel ─── */
+.note-book-carousel {
+  display: flex; gap: 7px;
+  overflow-x: auto;
+  margin: 14px -16px 14px;
+  padding: 2px 16px 8px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.note-book-carousel::-webkit-scrollbar { display: none; }
+.note-book-tile {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: transparent;
+  border: none; padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  width: 56px;
+}
+.note-book-tile-cover {
+  width: 32px; height: 42px;
+  border-radius: 3px;
+  background: var(--pale, #C5C0B5);
+  box-shadow: 0 1px 3px rgba(25,31,40,0.15);
+  background-size: cover; background-position: center;
+  position: relative;
+  transition: transform .15s, outline-offset .15s;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.note-book-tile-cover::before {
+  content: ''; flex: 0 0 68%;
+  background: var(--dark, rgba(0,0,0,0.2));
+  pointer-events: none;
+}
+.note-book-tile-cover.has-img::before { display: none; }
+.note-book-tile.active .note-book-tile-cover {
+  outline: 2px solid var(--c-text);
+  outline-offset: 1.5px;
+  transform: translateY(-1px);
+}
+.note-book-tile-title {
+  font-size: 9.5px; font-weight: 500;
+  color: var(--c-text-2);
+  text-align: center;
+  width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.note-book-tile.active .note-book-tile-title {
+  font-weight: 700; color: var(--c-text);
+}
+.note-book-tile-cnt {
+  font-size: 9px; color: var(--c-muted);
+  font-weight: 500;
+}
+.note-book-tile-more {
+  border-left: 1px solid var(--c-border-2);
+  padding-left: 7px; margin-left: 3px;
+}
+.note-book-tile-more .note-book-tile-cover {
+  background: var(--c-surface);
+  border: 1.5px dashed var(--c-border-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-label);
+  box-shadow: none;
+}
+.note-book-tile-more .note-book-tile-cover::before { display: none; }
+
+/* ─── 노트 리스트 ─── */
+.note-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+/* 월별 / 책별 그룹 헤더 */
+.note-group-head {
+  font-family: inherit;
+  font-size: 10px; font-weight: 700;
+  color: var(--c-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 0 4px;
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.note-group-head:first-child { margin-top: 0; padding-top: 4px; }
+.note-group-head .group-emph { color: var(--c-text-2); font-weight: 700; }
+.note-group-head-book {
+  display: flex; align-items: center; gap: 8px;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  font-size: 11px;
+}
+.note-group-head-book-cover {
+  width: 18px; height: 24px;
+  border-radius: 2px;
+  background: var(--pale, #C5C0B5);
+  background-size: cover; background-position: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.note-group-head-book-title {
+  font-size: 12px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+}
+.note-group-head-book-cnt {
+  font-size: 10px; color: var(--c-label);
+  font-weight: 500;
+  margin-left: auto;
+  letter-spacing: 0;
 }
 
-.note-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+/* 노트 카드 V2 */
 .note-card {
   background: var(--c-surface);
   border: none;
   border-radius: 14px;
-  padding: 16px 18px 14px;
+  border-left: 3px solid var(--c-border-2);
+  padding: 13px 16px 11px;
   position: relative;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s;
 }
-.note-card.quote {
-  border-left: 3px solid var(--primary);
-}
-.note-card.thought {
-  border-left: 3px solid var(--c-sage-500);
-}
-.note-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
-}
-.note-book {
-  display: flex; align-items: center; gap: 10px; min-width: 0;
-}
-.note-book-mini {
-  width: 24px; height: 32px; border-radius: 3px;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(25,31,40,0.15);
-  overflow: hidden;
-  position: relative;
-  background: var(--pale);
-  display: flex; flex-direction: column;
-}
-.note-book-mini::before {
-  content: ''; flex: 0 0 68%;
-  background: var(--dark);
-}
-.note-book-mini::after {
-  content: ''; position: absolute;
-  left: 3px; top: 68%;
-  width: 7px; height: 1.5px;
-  background: var(--accent);
-  transform: translateY(1px);
-}
-.note-book-info { min-width: 0; }
-.note-book-title {
+.note-card:active { transform: scale(0.998); }
+
+/* palette 클래스가 붙으면 책별 색이 좌측 보더로 자동 반영 */
+.note-card[class*="palette-"] { border-left-color: var(--dark, var(--c-border-2)); }
+.note-card .note-quote-mark { color: var(--dark, var(--primary)); }
+
+/* 우측 상단 유형 라벨 */
+.note-type-pill {
+  position: absolute;
+  top: 8px; right: 14px;
   font-family: inherit;
-  font-size: 13px; font-weight: 700;
-  color: var(--c-text); letter-spacing: -0.015em;
-  line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 170px;
-}
-.note-book-page {
-  font-family: inherit;
-  font-style: normal;
-  font-size: 12px; font-weight: 500;
-  color: var(--c-label);
-  margin-top: 2px;
-}
-.note-type {
-  font-family: inherit;
-  font-size: 11px; font-weight: 600;
-  padding: 4px 10px; border-radius: 999px;
-  letter-spacing: -0.01em;
-  flex-shrink: 0;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
   text-transform: none;
-  border: none;
+  z-index: 1;
 }
-.note-type.quote {
+.note-type-pill.quote {
   background: var(--primary-bg);
   color: var(--primary);
 }
-.note-type.thought {
+.note-type-pill.thought {
   background: var(--c-sage-50);
   color: var(--c-sage-700);
 }
-.note-body {
+
+/* 인용구 — serif + 큰 따옴표 글리프 */
+.note-quote-mark {
+  font-family: Georgia, 'Noto Serif KR', serif;
+  font-size: 32px;
+  line-height: 0.5;
+  font-weight: 700;
+  margin: 8px 0 -6px;
+  /* color는 인라인으로 책별 색 */
+}
+.note-card.quote .note-body {
+  font-family: 'Noto Serif KR', Georgia, serif;
+  font-size: 14.5px; font-weight: 400;
+  color: var(--c-text);
+  line-height: 1.7;
+  letter-spacing: -0.005em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-left: 2px;
+}
+
+/* 내 생각 — sans + 펜 태그 */
+.note-card.thought .note-body {
   font-family: inherit;
-  font-size: 15px; font-weight: 500;
-  color: var(--c-text); line-height: 1.6;
+  font-size: 14.5px; font-weight: 500;
+  color: var(--c-text);
+  line-height: 1.7;
   letter-spacing: -0.01em;
-  white-space: pre-wrap;          /* 줄바꿈 유지 */
+  white-space: pre-wrap;
   word-break: break-word;
 }
+.note-thought-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: inherit;
+  font-size: 10px; font-weight: 600;
+  color: var(--c-label);
+  letter-spacing: 0.02em;
+  margin-bottom: 7px;
+  margin-top: 2px;
+}
+
+/* 본문 collapsed */
 .note-body.collapsed {
-  max-height: 168px;              /* 약 7줄 */
+  max-height: 168px;
   overflow: hidden;
   position: relative;
 }
@@ -2194,9 +2416,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   height: 56px;
   background: linear-gradient(rgba(255,255,255,0), var(--c-surface) 85%);
   pointer-events: none;
-}
-.note-card.quote .note-body.collapsed::after {
-  background: linear-gradient(rgba(255,255,255,0), var(--c-surface-2, var(--c-surface)) 85%);
 }
 .note-expand-btn {
   background: none;
@@ -2215,14 +2434,278 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 3px;
 }
 .note-expand-btn:active { opacity: 0.6; }
-.note-card.quote .note-body {
-  font-style: normal;
+
+/* 카드 하단 — 구분선 + 메타 */
+.note-card-divider {
+  height: 1px;
+  background: var(--c-border);
+  margin: 11px 0 9px;
 }
-.note-date {
+.note-meta {
+  display: flex; align-items: center; gap: 8px;
+}
+.note-meta-cover {
+  width: 18px; height: 24px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  background: var(--pale, #C5C0B5);
+  background-size: cover; background-position: center;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.note-meta-cover::before {
+  content: ''; flex: 0 0 68%;
+  background: var(--dark, rgba(0,0,0,0.25));
+}
+.note-meta-cover.has-img::before { display: none; }
+.note-meta-info {
+  flex: 1; min-width: 0;
+}
+.note-meta-title {
   font-family: inherit;
-  font-style: normal;
-  font-size: 12px; font-weight: 500;
-  color: var(--c-label); margin-top: 10px;
+  font-size: 12px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.note-meta-sub {
+  font-family: inherit;
+  font-size: 10.5px; font-weight: 500;
+  color: var(--c-label);
+  letter-spacing: -0.005em;
+  margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.note-meta-actions {
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
+}
+.note-meta-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin: -6px -2px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--c-label);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: opacity .12s;
+}
+.note-meta-btn:active { opacity: 0.5; }
+.note-meta-btn.fav-on { color: #E5C04E; }
+.note-meta-btn.fav-on svg { fill: currentColor; }
+.note-meta-btn.shared-loading { opacity: 0.4; pointer-events: none; }
+
+/* ─── 빈 상태 ─── */
+.notes-empty {
+  text-align: center; padding: 60px 20px;
+}
+.notes-empty-emoji {
+  margin-bottom: 14px;
+  opacity: 0.5;
+}
+.notes-empty-ttl {
+  font-size: 15px; font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.015em;
+}
+.notes-empty-sub {
+  font-size: 13px; color: var(--c-label);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+.notes-empty-sub strong {
+  color: var(--c-text-2); font-weight: 700;
+}
+
+/* ─── 책별 시트 ─── */
+.note-book-sheet-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(25,31,40,0.45);
+  z-index: 80;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.note-book-sheet-backdrop.show {
+  opacity: 1; pointer-events: auto;
+}
+.note-book-sheet {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 480px;
+  max-height: 84vh;
+  background: var(--c-surface);
+  border-radius: 16px 16px 0 0;
+  z-index: 81;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column;
+  transition: transform .28s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  visibility: hidden;
+}
+.note-book-sheet.show {
+  transform: translateX(-50%) translateY(0);
+  visibility: visible;
+}
+.note-book-sheet-grip {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: rgba(60,60,67,0.3);
+  margin: 6px auto 4px;
+  flex-shrink: 0;
+}
+.note-book-sheet-head {
+  padding: 8px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-shrink: 0;
+}
+.note-book-sheet-head-info { min-width: 0; }
+.note-book-sheet-ttl {
+  font-family: inherit;
+  font-size: 17px; font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.note-book-sheet-cnt {
+  font-size: 11px; color: var(--c-label);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.note-book-sheet-close {
+  background: none; border: none; padding: 4px;
+  margin: -4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--c-text-2);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.note-book-sheet-tools {
+  padding: 2px 18px 12px;
+  flex-shrink: 0;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+.note-book-sheet-search {
+  background: var(--c-bg);
+  border-radius: 10px;
+  padding: 9px 13px;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.note-book-sheet-search input {
+  flex: 1;
+  background: transparent; border: none;
+  font-family: inherit;
+  font-size: 13px; font-weight: 500;
+  color: var(--c-text); outline: none;
+  letter-spacing: -0.01em;
+}
+.note-book-sheet-search input::placeholder {
+  color: var(--c-label); font-weight: 400;
+}
+.note-book-sheet-sort {
+  display: inline-flex;
+  background: var(--c-border);
+  border-radius: 8px;
+  padding: 2px;
+}
+.note-book-sheet-sort-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 11.5px; font-weight: 500;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  border: none; background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.note-book-sheet-sort-btn.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(25,31,40,0.08);
+}
+.note-book-sheet-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+}
+.note-book-sheet-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 18px;
+  border-bottom: 0.5px solid var(--c-border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s;
+  background: transparent;
+  border-left: none; border-right: none; border-top: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+.note-book-sheet-row:active { background: var(--c-bg); }
+.note-book-sheet-row.active {
+  background: color-mix(in srgb, var(--primary) 6%, var(--c-surface));
+}
+.note-book-sheet-row-cover {
+  width: 30px; height: 42px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--pale, #C5C0B5);
+  background-size: cover; background-position: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.note-book-sheet-row-cover::before {
+  content: ''; flex: 0 0 68%;
+  background: var(--dark, rgba(0,0,0,0.25));
+}
+.note-book-sheet-row-cover.has-img::before { display: none; }
+.note-book-sheet-row-info {
+  flex: 1; min-width: 0;
+}
+.note-book-sheet-row-title {
+  font-family: inherit;
+  font-size: 14px; font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.note-book-sheet-row-author {
+  font-size: 11px; color: var(--c-label);
+  font-weight: 500;
+  margin-top: 2px;
+  letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.note-book-sheet-row-cnt {
+  flex-shrink: 0;
+  font-size: 11px; font-weight: 600;
+  color: var(--c-text-2);
+  background: var(--c-bg);
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: -0.01em;
+}
+.note-book-sheet-row-arrow {
+  color: var(--c-muted);
+  flex-shrink: 0;
+  display: inline-flex;
+}
+.note-book-sheet-empty {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13px; color: var(--c-label);
+  letter-spacing: -0.005em;
 }
 
 /* ═══════════ FAB ═══════════ */
@@ -8799,18 +9282,25 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
   </section>
 
-  <!-- ═══════════ [TAB 4] 노트 ═══════════ -->
+  <!-- ═══════════ [TAB 4] 노트 V2 (v1.4.0) ═══════════ -->
   <section class="pane" id="pane-notes">
 
+    <!-- 헤더 통계 — JS 렌더 -->
+    <div class="notes-summary-head" id="notesSummaryHead"></div>
+
+    <!-- 검색 -->
     <div class="note-search">
       <span style="color:var(--c-muted);display:inline-flex;align-items:center"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
-      <input type="text" id="noteSearchInput" placeholder="하이라이트·인용구 검색…"/>
+      <input type="text" id="noteSearchInput" placeholder="하이라이트·인용구·책 검색…"/>
     </div>
 
-    <div class="filter-chips" id="noteFilterChips">
-      <!-- JS 렌더 -->
-    </div>
+    <!-- 필터 행 — JS 렌더 (세그먼트 + 즐겨찾기 + 정렬) -->
+    <div class="note-filter-row" id="noteFilterRow"></div>
 
+    <!-- 책별 carousel — JS 렌더 -->
+    <div class="note-book-carousel" id="noteBookCarousel" style="display:none"></div>
+
+    <!-- 노트 리스트 -->
     <div class="note-list" id="noteList">
       <!-- JS 렌더 -->
     </div>
@@ -8854,6 +9344,35 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   </div>
   <div class="lib-search-body" id="libSearchBody">
     <!-- 초기 상태: 최근 추가된 책 / 입력 중: 필터된 결과 -->
+  </div>
+</aside>
+
+<!-- ═══════════ 노트 · 책별 시트 (v1.4.0) ═══════════ -->
+<div class="note-book-sheet-backdrop" id="noteBookSheetBackdrop"></div>
+<aside class="note-book-sheet" id="noteBookSheet" aria-hidden="true" role="dialog" aria-label="책별 보기">
+  <div class="note-book-sheet-grip"></div>
+  <div class="note-book-sheet-head">
+    <div class="note-book-sheet-head-info">
+      <div class="note-book-sheet-ttl">책별 보기</div>
+      <div class="note-book-sheet-cnt" id="noteBookSheetCnt">0권 · 노트 0개</div>
+    </div>
+    <button class="note-book-sheet-close" id="noteBookSheetClose" aria-label="닫기">
+      <svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg>
+    </button>
+  </div>
+  <div class="note-book-sheet-tools">
+    <div class="note-book-sheet-search">
+      <svg class="ic" aria-hidden="true" style="color:var(--c-muted)"><use href="#i-search"/></svg>
+      <input type="text" id="noteBookSheetSearch" placeholder="제목·저자 검색…" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div class="note-book-sheet-sort" id="noteBookSheetSortGroup" role="tablist">
+      <button class="note-book-sheet-sort-btn active" data-bsort="freq" type="button">빈도순</button>
+      <button class="note-book-sheet-sort-btn" data-bsort="alpha" type="button">가나다</button>
+      <button class="note-book-sheet-sort-btn" data-bsort="recent" type="button">최근 등록</button>
+    </div>
+  </div>
+  <div class="note-book-sheet-list" id="noteBookSheetList">
+    <!-- JS 렌더 -->
   </div>
 </aside>
 
@@ -9523,43 +10042,43 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.3.0 · 업데이트 소식</div>
+    <div class="wn-badge">v1.4.0 · 업데이트 소식</div>
     <div class="wn-ttl">이번 버전에 추가됐어요</div>
 
     <ul class="wn-list">
-      <li class="wn-item">
-        <div class="wn-icon">📖</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">바코드 스캔으로 책 추가</div>
-          <div class="wn-item-sub">책 뒷면 바코드를 찍으면 제목·저자·페이지·표지까지 자동 입력</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">✏️</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">독서 기록 수정</div>
-          <div class="wn-item-sub">책 상세에서 연필 아이콘 누르면 완독일·별점 언제든 수정</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">🗓️</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">연도별 통계 조회</div>
-          <div class="wn-item-sub">통계 상단의 화살표로 작년·재작년 기록도 볼 수 있어요</div>
-        </div>
-      </li>
       <li class="wn-item wn-item-highlight">
-        <div class="wn-icon">🎫</div>
+        <div class="wn-icon">📓</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">월별 리더스 티켓 · 공유·저장</div>
-          <div class="wn-item-sub">월별 독서 기록이 영화 티켓처럼 정리돼요. 인스타·카톡으로 바로 공유하거나 이미지로 저장할 수 있어요</div>
+          <div class="wn-item-ttl">노트 탭이 새로워졌어요</div>
+          <div class="wn-item-sub">인용구는 인용구답게, 카드마다 책별 색이 들어와요. 인용구·내 생각 카드를 이미지로 저장하거나 공유할 수 있어요</div>
+        </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">📚</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">책별 보기 · 정렬 옵션</div>
+          <div class="wn-item-sub">노트가 많아져도 책별 시트에서 빠르게 찾을 수 있어요. 최신순·오래된순·페이지순·책별 묶기 정렬도 추가</div>
+        </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">🔄</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">여러 권 동시 독서 카드</div>
+          <div class="wn-item-sub">홈 상단 Now 카드를 좌우로 넘기면서 진행 중인 책들을 한눈에 볼 수 있어요</div>
+        </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">📅</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">로그 · 책 상세 페이지 정리</div>
+          <div class="wn-item-sub">시기별 한 줄 로그와 책 상세 화면이 더 차분해졌어요</div>
         </div>
       </li>
     </ul>
 
     <div class="wn-actions">
       <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">티켓 구경하기 ›</button>
+      <button class="wn-btn primary" id="wnGoStats">노트 보러 가기 ›</button>
     </div>
   </div>
 </div>
@@ -9578,7 +10097,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.3.0</div>
+      <div class="ab-ver">version 1.4.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -12068,6 +12587,14 @@ const NOTE_FILTER = {
   type: null,      // null | 'quote' | 'thought'
   favorite: false,
   bookId: null,
+  sort: 'recent',  // 'recent' | 'oldest' | 'page' | 'byBook' (v1.4.0)
+};
+
+/* ─── 노트 책별 시트 상태 (v1.4.0) ─── */
+const NOTE_BOOK_SHEET = {
+  open: false,
+  search: '',
+  sort: 'freq',    // 'freq' | 'alpha' | 'recent'
 };
 
 /* ─── 노트 추가/편집 모달 상태 ─── */
@@ -16365,7 +16892,9 @@ renderLibraryCards();
 renderAllStats();
 
 /* ═══════════════════════════════════════════════════════════
-   📓 노트 탭 · 기능 (동적 렌더·필터·CRUD)
+   📓 노트 탭 V2 (v1.4.0)
+   헤더 통계 · 필터(세그먼트+즐겨찾기+정렬) · 책 carousel
+   카드 V2 (책별 색·serif 인용구·표지·공유) · 책별 시트
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── 시간 표시 유틸 ─── */
@@ -16382,7 +16911,17 @@ function timeAgo(d) {
   return Math.floor(days/365) + '년 전';
 }
 
-/* ─── 필터 적용된 노트 반환 (최신순) ─── */
+/* ─── 책 → 표지 background-image style 문자열 (없으면 빈 문자열) ─── */
+function _noteCoverStyle(b) {
+  if (!b || !b.coverUrl) return '';
+  const safe = String(b.coverUrl).replace(/"/g, '%22');
+  return `background-image:url("${safe}")`;
+}
+function _noteCoverHasImg(b) {
+  return !!(b && b.coverUrl);
+}
+
+/* ─── 필터 + 정렬 적용된 노트 반환 ─── */
 function getFilteredNotes() {
   let result = [...NOTES];
   if (NOTE_FILTER.type) result = result.filter(n => n.type === NOTE_FILTER.type);
@@ -16397,75 +16936,241 @@ function getFilteredNotes() {
              (book && book.author.toLowerCase().includes(q));
     });
   }
-  return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // 정렬
+  const sort = NOTE_FILTER.sort || 'recent';
+  if (sort === 'oldest') {
+    result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else if (sort === 'page') {
+    result.sort((a, b) => (a.page || 9999) - (b.page || 9999) || new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sort === 'byBook') {
+    // 같은 책끼리 묶기 — 빈도 높은 책부터, 같은 책 안에선 최신순
+    const counts = {};
+    result.forEach(n => { counts[n.bookId] = (counts[n.bookId] || 0) + 1; });
+    result.sort((a, b) => {
+      if (a.bookId !== b.bookId) {
+        const ca = counts[a.bookId] || 0, cb = counts[b.bookId] || 0;
+        if (ca !== cb) return cb - ca;
+        return a.bookId - b.bookId;
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  } else {
+    // recent (default)
+    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+  return result;
 }
 
 /* ─── 카드 렌더 ─── */
 function renderNoteCard(n) {
   const book = BOOKS.find(b => b.id === n.bookId);
   if (!book) return '';
-  const bodyText = n.type === 'quote' ? '"' + esc(n.body) + '"' : esc(n.body);
-  // 긴 노트 판정 — 글자수 or 줄바꿈 기준
-  const raw = String(n.body || '');
+  const palette = esc(book.palette || 'demian');
+  const isQuote = n.type === 'quote';
+  // 인용구 본문에 따옴표가 이미 있으면 제거 (저장된 데이터 + 자동 따옴표 중복 방지)
+  let bodyText = String(n.body || '');
+  if (isQuote) {
+    // 양 끝의 따옴표 제거 (사용자가 따옴표 포함해서 저장한 경우)
+    bodyText = bodyText.replace(/^[\s"'"'"」』]+|[\s"'"'"」』]+$/g, '');
+  }
+  const raw = bodyText;
   const lineCount = (raw.match(/\n/g) || []).length + 1;
   const isLong = raw.length > 220 || lineCount >= 7;
+
+  const coverHasImg = _noteCoverHasImg(book);
+  const coverStyle = _noteCoverStyle(book);
+  const pageStr = n.page ? ' · p.' + n.page : '';
+  const authorStr = book.author ? esc(book.author) + ' · ' : '';
+
+  const labelHtml = isQuote
+    ? `<span class="note-type-pill quote">인용구</span>`
+    : `<span class="note-type-pill thought">내 생각</span>`;
+
+  const headHtml = isQuote
+    ? `<div class="note-quote-mark">"</div>`
+    : `<div class="note-thought-tag"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-pen"/></svg><span>내 메모</span></div>`;
+
+  const favBtnClass = n.favorite ? 'note-meta-btn fav-on' : 'note-meta-btn';
+  const favIcon = n.favorite
+    ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+    : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+
   return `
-    <div class="note-card ${n.type}" data-note-id="${n.id}">
-      <div class="note-head">
-        <div class="note-book">
-          <div class="note-book-mini palette-${esc(book.palette || 'demian')}"></div>
-          <div class="note-book-info">
-            <div class="note-book-title">${esc(book.title)}</div>
-            <div class="note-book-page">${n.page ? 'p. ' + n.page : '&nbsp;'}</div>
-          </div>
+    <div class="note-card ${esc(n.type)} palette-${palette}" data-note-id="${n.id}">
+      ${labelHtml}
+      ${headHtml}
+      <div class="note-body${isLong ? ' collapsed' : ''}">${esc(bodyText)}</div>
+      ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
+      <div class="note-card-divider"></div>
+      <div class="note-meta">
+        <div class="note-meta-cover palette-${palette}${coverHasImg ? ' has-img' : ''}" style="${coverStyle}"></div>
+        <div class="note-meta-info">
+          <div class="note-meta-title">${esc(book.title)}${pageStr}</div>
+          <div class="note-meta-sub">${authorStr}${timeAgo(n.createdAt)}</div>
         </div>
-        <div class="note-head-right">
-          <button class="note-fav-btn ${n.favorite ? 'on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">⭐</button>
-          <span class="note-type ${n.type}">${n.type === 'quote' ? '인용구' : '내 생각'}</span>
+        <div class="note-meta-actions">
+          <button class="${favBtnClass}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
+          <button class="note-meta-btn" data-action="note-share" data-note-id="${n.id}" aria-label="공유">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
         </div>
       </div>
-      <div class="note-body${isLong ? ' collapsed' : ''}">${bodyText}</div>
-      ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
-      <div class="note-date">${timeAgo(n.createdAt)}</div>
     </div>`;
 }
 
-/* ─── 필터 칩 렌더 ─── */
-function renderNoteFilterChips() {
-  const chips = document.getElementById('noteFilterChips');
+/* ─── 헤더 통계 ─── */
+function renderNoteSummaryHead() {
+  const head = document.getElementById('notesSummaryHead');
+  if (!head) return;
   const total = NOTES.length;
+  if (!total) {
+    // 빈 상태 — 헤더 숨김 (empty 메시지가 메인 컨텐츠가 됨)
+    head.style.display = 'none';
+    head.innerHTML = '';
+    return;
+  }
+  head.style.display = '';
+  // 책 N권
+  const bookSet = new Set(NOTES.map(n => n.bookId));
+  const bookCnt = bookSet.size;
+  // 이번 달 추가
+  const now = new Date();
+  const thisMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const thisMonthAdded = NOTES.filter(n => {
+    const d = new Date(n.createdAt);
+    const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    return k === thisMonthKey;
+  }).length;
+  // 가장 많이 기록한 책
+  const counts = {};
+  NOTES.forEach(n => { counts[n.bookId] = (counts[n.bookId] || 0) + 1; });
+  let topBookId = null, topCnt = 0;
+  Object.entries(counts).forEach(([bid, cnt]) => {
+    if (cnt > topCnt) { topCnt = cnt; topBookId = parseInt(bid, 10); }
+  });
+  const topBook = topBookId != null ? BOOKS.find(b => b.id === topBookId) : null;
+
+  const line2Parts = [];
+  if (thisMonthAdded > 0) line2Parts.push(`이번 달 +${thisMonthAdded}`);
+  if (topBook) line2Parts.push(`자주 기록 · <strong>${esc(topBook.title)}</strong> ${topCnt}개`);
+
+  head.innerHTML = `
+    <div class="notes-sum-line1">
+      <span class="notes-sum-title">노트</span>
+      <span class="notes-sum-count">${total}개 · ${bookCnt}권</span>
+    </div>
+    ${line2Parts.length ? `<div class="notes-sum-line2">${line2Parts.join(' · ')}</div>` : ''}
+  `;
+}
+
+/* ─── 필터 행 (세그먼트 + 즐겨찾기 + 정렬) ─── */
+function renderNoteFilterRow() {
+  const row = document.getElementById('noteFilterRow');
+  if (!row) return;
+  const total = NOTES.length;
+  // 빈 상태 — 필터 행 자체를 숨김
+  if (!total) {
+    row.style.display = 'none';
+    row.innerHTML = '';
+    return;
+  }
+  row.style.display = '';
   const quoteCnt = NOTES.filter(n => n.type === 'quote').length;
   const thoughtCnt = NOTES.filter(n => n.type === 'thought').length;
   const favCnt = NOTES.filter(n => n.favorite).length;
+  const sortLabels = {
+    recent: '최신순', oldest: '오래된순', page: '페이지순', byBook: '책별 묶기'
+  };
+  const curSort = NOTE_FILTER.sort || 'recent';
+  const curSortLabel = sortLabels[curSort] || '최신순';
 
-  // 책별 카운트
-  const bookCounts = {};
-  NOTES.forEach(n => {
-    bookCounts[n.bookId] = (bookCounts[n.bookId] || 0) + 1;
-  });
-  const bookChips = Object.entries(bookCounts)
+  const sortItems = Object.entries(sortLabels).map(([key, lab]) => `
+    <button class="note-sort-menu-item ${key === curSort ? 'active' : ''}" data-sort="${key}" type="button">
+      <span>${esc(lab)}</span>
+      <span class="check">✓</span>
+    </button>`).join('');
+
+  row.innerHTML = `
+    <div class="note-type-seg" id="noteTypeSeg">
+      <button class="note-type-seg-btn ${!NOTE_FILTER.type ? 'active' : ''}" data-type="" type="button">전체 ${total}</button>
+      ${thoughtCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-type="thought" type="button">내 생각 ${thoughtCnt}</button>` : ''}
+      ${quoteCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-type="quote" type="button">인용구 ${quoteCnt}</button>` : ''}
+    </div>
+    ${favCnt ? `
+    <button class="note-fav-toggle ${NOTE_FILTER.favorite ? 'active' : ''}" id="noteFavToggle" type="button">
+      <svg class="star-icn" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      ${favCnt}
+    </button>` : ''}
+    <div class="note-sort-wrap">
+      <button class="note-sort-toggle" id="noteSortToggle" type="button" aria-haspopup="menu" aria-expanded="false">
+        ${esc(curSortLabel)}
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="note-sort-menu" id="noteSortMenu" role="menu">
+        ${sortItems}
+      </div>
+    </div>
+  `;
+}
+
+/* ─── 책별 carousel (상위 5권 + 더보기) ─── */
+function renderNoteCarousel() {
+  const carousel = document.getElementById('noteBookCarousel');
+  if (!carousel) return;
+
+  // 책 카운트
+  const counts = {};
+  NOTES.forEach(n => { counts[n.bookId] = (counts[n.bookId] || 0) + 1; });
+  const bookEntries = Object.entries(counts)
     .map(([bid, cnt]) => {
       const book = BOOKS.find(b => b.id === parseInt(bid, 10));
       if (!book) return null;
-      return { id: parseInt(bid, 10), title: book.title, cnt };
+      return { id: parseInt(bid, 10), book, cnt };
     })
     .filter(Boolean)
     .sort((a, b) => b.cnt - a.cnt);
 
-  const isAll = !NOTE_FILTER.type && !NOTE_FILTER.favorite && !NOTE_FILTER.bookId;
+  if (!bookEntries.length) {
+    carousel.style.display = 'none';
+    carousel.innerHTML = '';
+    return;
+  }
+  carousel.style.display = 'flex';
 
-  chips.innerHTML = `
-    <button class="chip ${isAll ? 'active' : ''}" data-chip-all>전체 ${total}</button>
-    ${thoughtCnt ? `<button class="chip ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-chip-type="thought"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 내 생각 ${thoughtCnt}</button>` : ''}
-    ${quoteCnt ? `<button class="chip ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-chip-type="quote"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 인용구 ${quoteCnt}</button>` : ''}
-    ${favCnt ? `<button class="chip ${NOTE_FILTER.favorite ? 'active' : ''}" data-chip-fav>⭐ 즐겨찾기 ${favCnt}</button>` : ''}
-    ${bookChips.map(b => `<button class="chip ${NOTE_FILTER.bookId === b.id ? 'active' : ''}" data-chip-book="${b.id}">${esc(b.title)} ${b.cnt}</button>`).join('')}
-  `;
+  const TOP_N = 5;
+  const top = bookEntries.slice(0, TOP_N);
+  const rest = bookEntries.slice(TOP_N);
+
+  const tileHtml = top.map(({ book, cnt }) => {
+    const palette = esc(book.palette || 'demian');
+    const active = NOTE_FILTER.bookId === book.id;
+    const hasImg = _noteCoverHasImg(book);
+    const style = _noteCoverStyle(book);
+    return `
+      <button class="note-book-tile ${active ? 'active' : ''}" data-tile-book="${book.id}" type="button">
+        <div class="note-book-tile-cover palette-${palette}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+        <div class="note-book-tile-title">${esc(book.title)}</div>
+        <div class="note-book-tile-cnt">${cnt}</div>
+      </button>`;
+  }).join('');
+
+  const moreHtml = rest.length ? `
+    <button class="note-book-tile note-book-tile-more" id="noteBookMoreTile" type="button">
+      <div class="note-book-tile-cover">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="12"/><line x1="9" y1="6" x2="15" y2="12"/></svg>
+      </div>
+      <div class="note-book-tile-title">전체</div>
+      <div class="note-book-tile-cnt">+${rest.length}</div>
+    </button>` : '';
+
+  carousel.innerHTML = tileHtml + moreHtml;
 }
 
 /* ─── 메인 렌더 ─── */
 function renderNotesTab() {
-  renderNoteFilterChips();
+  renderNoteSummaryHead();
+  renderNoteFilterRow();
+  renderNoteCarousel();
   const list = document.getElementById('noteList');
   if (!list) return;
   const filtered = getFilteredNotes();
@@ -16491,33 +17196,108 @@ function renderNotesTab() {
       </div>`;
     return;
   }
-  list.innerHTML = filtered.map(renderNoteCard).join('');
+
+  // 그룹화 — 정렬에 따라 헤더 분기
+  const sort = NOTE_FILTER.sort || 'recent';
+  let html = '';
+
+  if (sort === 'byBook') {
+    // 책별 그룹 헤더
+    let curBookId = null;
+    filtered.forEach(n => {
+      if (n.bookId !== curBookId) {
+        curBookId = n.bookId;
+        const book = BOOKS.find(b => b.id === n.bookId);
+        if (book) {
+          const cnt = filtered.filter(x => x.bookId === n.bookId).length;
+          const hasImg = _noteCoverHasImg(book);
+          const style = _noteCoverStyle(book);
+          html += `
+            <div class="note-group-head note-group-head-book">
+              <div class="note-group-head-book-cover palette-${esc(book.palette || 'demian')}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+              <span class="note-group-head-book-title">${esc(book.title)}</span>
+              <span class="note-group-head-book-cnt">${cnt}개</span>
+            </div>`;
+        }
+      }
+      html += renderNoteCard(n);
+    });
+  } else if (sort === 'recent' || sort === 'oldest') {
+    // 월별 그룹 헤더
+    const now = new Date();
+    const thisMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    let curKey = null;
+    filtered.forEach(n => {
+      const d = new Date(n.createdAt);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      if (key !== curKey) {
+        curKey = key;
+        const isThis = (key === thisMonthKey);
+        const label = `${d.getFullYear()}년 ${d.getMonth() + 1}월${isThis ? ' · 이번 달' : ''}`;
+        html += `<div class="note-group-head"><span class="${isThis ? 'group-emph' : ''}">${esc(label)}</span></div>`;
+      }
+      html += renderNoteCard(n);
+    });
+  } else {
+    // page 정렬은 그룹 없이
+    html = filtered.map(renderNoteCard).join('');
+  }
+
+  list.innerHTML = html;
 }
 
-/* ─── 필터 이벤트 위임 ─── */
-document.getElementById('noteFilterChips').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-chip-all],button[data-chip-type],button[data-chip-fav],button[data-chip-book]');
-  if (!btn) return;
-  if (btn.hasAttribute('data-chip-all')) {
-    NOTE_FILTER.type = null;
-    NOTE_FILTER.favorite = false;
-    NOTE_FILTER.bookId = null;
-  } else if (btn.dataset.chipType) {
-    const t = btn.dataset.chipType;
-    NOTE_FILTER.type = NOTE_FILTER.type === t ? null : t;
-    NOTE_FILTER.favorite = false;
-    NOTE_FILTER.bookId = null;
-  } else if (btn.hasAttribute('data-chip-fav')) {
-    NOTE_FILTER.favorite = !NOTE_FILTER.favorite;
-    NOTE_FILTER.type = null;
-    NOTE_FILTER.bookId = null;
-  } else if (btn.dataset.chipBook) {
-    const bid = parseInt(btn.dataset.chipBook, 10);
-    NOTE_FILTER.bookId = NOTE_FILTER.bookId === bid ? null : bid;
-    NOTE_FILTER.type = null;
-    NOTE_FILTER.favorite = false;
+/* ─── 필터 행 이벤트 위임 ─── */
+document.getElementById('noteFilterRow').addEventListener('click', (e) => {
+  // 유형 세그먼트
+  const segBtn = e.target.closest('.note-type-seg-btn');
+  if (segBtn) {
+    const t = segBtn.dataset.type || '';
+    NOTE_FILTER.type = t || null;
+    renderNotesTab();
+    return;
   }
-  renderNotesTab();
+  // 즐겨찾기 토글
+  const favBtn = e.target.closest('#noteFavToggle');
+  if (favBtn) {
+    NOTE_FILTER.favorite = !NOTE_FILTER.favorite;
+    renderNotesTab();
+    return;
+  }
+  // 정렬 메뉴 토글
+  const sortBtn = e.target.closest('#noteSortToggle');
+  if (sortBtn) {
+    e.stopPropagation();
+    const menu = document.getElementById('noteSortMenu');
+    if (!menu) return;
+    const isOpen = menu.classList.toggle('show');
+    sortBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    return;
+  }
+  // 정렬 메뉴 항목 선택
+  const sortItem = e.target.closest('.note-sort-menu-item');
+  if (sortItem) {
+    e.stopPropagation();
+    const next = sortItem.dataset.sort;
+    if (next && next !== NOTE_FILTER.sort) {
+      NOTE_FILTER.sort = next;
+      renderNotesTab();
+    } else {
+      // 같은 값 다시 누른 경우 — 그냥 메뉴 닫기
+      const menu = document.getElementById('noteSortMenu');
+      if (menu) menu.classList.remove('show');
+    }
+    return;
+  }
+});
+
+/* ─── 외부 클릭 시 정렬 메뉴 닫기 ─── */
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('noteSortMenu');
+  if (!menu || !menu.classList.contains('show')) return;
+  if (e.target.closest('.note-sort-wrap')) return;
+  menu.classList.remove('show');
+  const btn = document.getElementById('noteSortToggle');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
 });
 
 /* ─── 검색 이벤트 ─── */
@@ -16526,7 +17306,22 @@ document.getElementById('noteSearchInput').addEventListener('input', (e) => {
   renderNotesTab();
 });
 
-/* ─── 노트 카드 클릭 (편집 열기 · 즐겨찾기 토글 · 더보기 펼치기) ─── */
+/* ─── 책별 carousel 이벤트 위임 ─── */
+document.getElementById('noteBookCarousel').addEventListener('click', (e) => {
+  const moreBtn = e.target.closest('#noteBookMoreTile');
+  if (moreBtn) {
+    openNoteBookSheet();
+    return;
+  }
+  const tileBtn = e.target.closest('[data-tile-book]');
+  if (tileBtn) {
+    const bid = parseInt(tileBtn.dataset.tileBook, 10);
+    NOTE_FILTER.bookId = NOTE_FILTER.bookId === bid ? null : bid;
+    renderNotesTab();
+  }
+});
+
+/* ─── 노트 카드 클릭 (편집·즐겨찾기·공유·더보기) ─── */
 document.getElementById('noteList').addEventListener('click', (e) => {
   const favBtn = e.target.closest('[data-action="note-fav"]');
   if (favBtn) {
@@ -16535,7 +17330,13 @@ document.getElementById('noteList').addEventListener('click', (e) => {
     toggleNoteFavorite(id);
     return;
   }
-  // 더보기 / 접기 토글
+  const shareBtn = e.target.closest('[data-action="note-share"]');
+  if (shareBtn) {
+    e.stopPropagation();
+    const id = parseInt(shareBtn.dataset.noteId, 10);
+    shareNoteCard(id, shareBtn);
+    return;
+  }
   const expBtn = e.target.closest('[data-action="note-expand"]');
   if (expBtn) {
     e.stopPropagation();
@@ -16562,6 +17363,274 @@ function toggleNoteFavorite(id) {
   renderNotesTab();
   showToast(note.favorite ? '⭐ 즐겨찾기에 추가' : '즐겨찾기 해제');
 }
+
+/* ═══════════════════════════════════════════════════════════
+   📤 노트 카드 공유 (v1.4.0) — html2canvas + Web Share API
+   티켓 공유 패턴 재사용 (saveTicket / shareTicket과 동일 흐름)
+   ═══════════════════════════════════════════════════════════ */
+async function shareNoteCard(id, btnEl) {
+  if (typeof html2canvas === 'undefined') {
+    showToast('네트워크 확인 후 다시 시도해주세요');
+    return;
+  }
+  const note = NOTES.find(n => n.id === id);
+  if (!note) return;
+  const book = BOOKS.find(b => b.id === note.bookId);
+  if (!book) return;
+
+  if (btnEl && btnEl.classList.contains('shared-loading')) return;
+  if (btnEl) btnEl.classList.add('shared-loading');
+  showToast('이미지 만드는 중…');
+
+  try {
+    // 캡처용 오프스크린 카드 만들기 (실제 카드보다 큰 사이즈로, 스타일 인라인)
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      position: fixed; left: -9999px; top: 0;
+      width: 380px; padding: 24px 20px 28px;
+      background: var(--c-bg, #F5F1E8);
+      font-family: inherit;
+    `;
+    // 카드 클론 — 실제 렌더된 노트 카드를 복제하고 액션 영역만 제거 + 워터마크 추가
+    const cardEl = document.querySelector(`.note-card[data-note-id="${id}"]`);
+    if (!cardEl) {
+      showToast('카드를 찾을 수 없어요');
+      return;
+    }
+    const clone = cardEl.cloneNode(true);
+    clone.style.cssText = `
+      position: relative; cursor: default;
+      box-shadow: 0 4px 18px rgba(25,31,40,0.08);
+      margin: 0;
+    `;
+    // 메타 액션 (즐겨찾기·공유 버튼) 제거
+    const actions = clone.querySelector('.note-meta-actions');
+    if (actions) actions.remove();
+    // collapsed 펼치기
+    const body = clone.querySelector('.note-body');
+    if (body) body.classList.remove('collapsed');
+    const expandBtn = clone.querySelector('.note-expand-btn');
+    if (expandBtn) expandBtn.remove();
+
+    wrapper.appendChild(clone);
+
+    // 워터마크
+    const watermark = document.createElement('div');
+    watermark.style.cssText = `
+      margin-top: 14px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--c-muted, #A39E94);
+      letter-spacing: 0.15em;
+    `;
+    watermark.textContent = 'MADE WITH READ';
+    wrapper.appendChild(watermark);
+
+    document.body.appendChild(wrapper);
+
+    let canvas;
+    try {
+      canvas = await html2canvas(wrapper, {
+        backgroundColor: null,
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 10000,
+      });
+    } finally {
+      document.body.removeChild(wrapper);
+    }
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
+    if (!blob) {
+      showToast('이미지 생성 실패');
+      return;
+    }
+
+    const safeTitle = String(book.title).replace(/[\\\/:*?"<>|]/g, '_').slice(0, 20);
+    const filename = `READ-note-${safeTitle}-${id}.png`;
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    // Web Share Level 2 우선, 안 되면 다운로드
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: book.title + ' · 노트',
+          text: note.type === 'quote' ? '인용구' : '내 생각',
+        });
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        // fallback
+        const isIOSFB = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOSFB && typeof _showIOSSavePreview === 'function') {
+          _showIOSSavePreview(canvas);
+        } else if (typeof _downloadCanvas === 'function') {
+          _downloadCanvas(canvas, filename);
+          showToast('다운로드했어요');
+        }
+      }
+    } else {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS && typeof _showIOSSavePreview === 'function') {
+        _showIOSSavePreview(canvas);
+      } else if (typeof _downloadCanvas === 'function') {
+        _downloadCanvas(canvas, filename);
+        showToast('다운로드했어요');
+      } else {
+        // 최종 폴백 — 새 창에 이미지 표시
+        const dataUrl = canvas.toDataURL('image/png');
+        const win = window.open();
+        if (win) {
+          win.document.write(`<img src="${dataUrl}" style="width:100%"/><p style="text-align:center;font-family:sans-serif;color:#666;font-size:13px">길게 눌러 저장</p>`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[shareNoteCard]', err);
+    showToast('공유 중 오류가 발생했어요');
+  } finally {
+    if (btnEl) btnEl.classList.remove('shared-loading');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📚 노트 · 책별 시트 (v1.4.0)
+   ═══════════════════════════════════════════════════════════ */
+function openNoteBookSheet() {
+  const sheet = document.getElementById('noteBookSheet');
+  const backdrop = document.getElementById('noteBookSheetBackdrop');
+  if (!sheet || !backdrop) return;
+  NOTE_BOOK_SHEET.open = true;
+  NOTE_BOOK_SHEET.search = '';
+  const inp = document.getElementById('noteBookSheetSearch');
+  if (inp) inp.value = '';
+  renderNoteBookSheetList();
+  // 표시
+  sheet.classList.add('show');
+  backdrop.classList.add('show');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  // ModalStack 등록
+  ModalStack.open('noteBookSheet', _closeNoteBookSheetActual);
+}
+function closeNoteBookSheet() {
+  if (!ModalStack.stack.some(m => m.id === 'noteBookSheet')) {
+    _closeNoteBookSheetActual();
+    return;
+  }
+  ModalStack.requestClose('noteBookSheet');
+}
+function _closeNoteBookSheetActual() {
+  const sheet = document.getElementById('noteBookSheet');
+  const backdrop = document.getElementById('noteBookSheetBackdrop');
+  if (!sheet || !backdrop) return;
+  NOTE_BOOK_SHEET.open = false;
+  sheet.classList.remove('show');
+  backdrop.classList.remove('show');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function renderNoteBookSheetList() {
+  const list = document.getElementById('noteBookSheetList');
+  const cntEl = document.getElementById('noteBookSheetCnt');
+  if (!list) return;
+
+  // 모든 노트 보유 책 수집
+  const counts = {};
+  NOTES.forEach(n => { counts[n.bookId] = (counts[n.bookId] || 0) + 1; });
+  let entries = Object.entries(counts)
+    .map(([bid, cnt]) => {
+      const book = BOOKS.find(b => b.id === parseInt(bid, 10));
+      if (!book) return null;
+      // 최근 등록 — 그 책의 가장 최근 노트 createdAt
+      const latest = NOTES
+        .filter(n => n.bookId === parseInt(bid, 10))
+        .reduce((max, n) => Math.max(max, +new Date(n.createdAt)), 0);
+      return { id: parseInt(bid, 10), book, cnt, latest };
+    })
+    .filter(Boolean);
+
+  // 검색 필터
+  const q = (NOTE_BOOK_SHEET.search || '').toLowerCase().trim();
+  if (q) {
+    entries = entries.filter(e =>
+      e.book.title.toLowerCase().includes(q) ||
+      (e.book.author && e.book.author.toLowerCase().includes(q))
+    );
+  }
+
+  // 정렬
+  const sort = NOTE_BOOK_SHEET.sort || 'freq';
+  if (sort === 'alpha') {
+    entries.sort((a, b) => a.book.title.localeCompare(b.book.title, 'ko'));
+  } else if (sort === 'recent') {
+    entries.sort((a, b) => b.latest - a.latest);
+  } else {
+    entries.sort((a, b) => b.cnt - a.cnt || a.book.title.localeCompare(b.book.title, 'ko'));
+  }
+
+  // 카운트 표시 갱신
+  if (cntEl) {
+    const totalNotes = NOTES.length;
+    const totalBooks = Object.keys(counts).length;
+    cntEl.textContent = `${totalBooks}권 · 노트 ${totalNotes}개`;
+  }
+
+  if (!entries.length) {
+    list.innerHTML = `<div class="note-book-sheet-empty">${q ? '검색에 맞는 책이 없어요' : '아직 노트가 없어요'}</div>`;
+    return;
+  }
+
+  list.innerHTML = entries.map(({ id, book, cnt }) => {
+    const palette = esc(book.palette || 'demian');
+    const hasImg = _noteCoverHasImg(book);
+    const style = _noteCoverStyle(book);
+    const active = NOTE_FILTER.bookId === id;
+    return `
+      <button class="note-book-sheet-row ${active ? 'active' : ''}" data-bsheet-book="${id}" type="button">
+        <div class="note-book-sheet-row-cover palette-${palette}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+        <div class="note-book-sheet-row-info">
+          <div class="note-book-sheet-row-title">${esc(book.title)}</div>
+          <div class="note-book-sheet-row-author">${esc(book.author || '')}</div>
+        </div>
+        <span class="note-book-sheet-row-cnt">${cnt}</span>
+        <span class="note-book-sheet-row-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </button>`;
+  }).join('');
+}
+
+/* ─── 책 시트 이벤트 ─── */
+document.getElementById('noteBookSheetClose').addEventListener('click', closeNoteBookSheet);
+document.getElementById('noteBookSheetBackdrop').addEventListener('click', closeNoteBookSheet);
+document.getElementById('noteBookSheetSearch').addEventListener('input', (e) => {
+  NOTE_BOOK_SHEET.search = e.target.value;
+  renderNoteBookSheetList();
+});
+document.getElementById('noteBookSheetSortGroup').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-bsort]');
+  if (!btn) return;
+  NOTE_BOOK_SHEET.sort = btn.dataset.bsort;
+  document.querySelectorAll('#noteBookSheetSortGroup .note-book-sheet-sort-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.bsort === NOTE_BOOK_SHEET.sort);
+  });
+  renderNoteBookSheetList();
+});
+document.getElementById('noteBookSheetList').addEventListener('click', (e) => {
+  const row = e.target.closest('[data-bsheet-book]');
+  if (!row) return;
+  const bid = parseInt(row.dataset.bsheetBook, 10);
+  NOTE_FILTER.bookId = NOTE_FILTER.bookId === bid ? null : bid;
+  closeNoteBookSheet();
+  renderNotesTab();
+});
 
 /* ═══════════════════════════════════════════════════════════
    📝 노트 추가/편집 시트
@@ -18556,7 +19625,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.4.0';
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion';
 
 function openWhatsNew() {
@@ -18625,18 +19694,10 @@ function _versionLower(a, b) {
   if (goStats) {
     goStats.addEventListener('click', () => {
       closeWhatsNew();
-      // 통계탭 이동
+      // v1.4.0 — 노트 탭 이동
       setTimeout(() => {
-        const statsTab = document.querySelector('.tab-btn[data-tab="stats"]');
-        if (statsTab) statsTab.click();
-        // 시간의 흔적 fold 자동 펼치기 → 월별 차트 보이게
-        setTimeout(() => {
-          document.querySelectorAll('[data-fold="time"]').forEach(f => f.classList.add('open'));
-          // 토스트로 안내
-          if (typeof showToast === 'function') {
-            showToast('월별 막대를 눌러보세요');
-          }
-        }, 300);
+        const notesTab = document.querySelector('.tab-btn[data-tab="notes"]');
+        if (notesTab) notesTab.click();
       }, 320);
     });
   }
