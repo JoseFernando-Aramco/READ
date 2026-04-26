@@ -1834,15 +1834,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   line-height: 1;
 }
 .annual-hero-num {
-  font-size: 52px; font-weight: 800;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 52px; font-weight: 700;
   color: #fff;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 .annual-hero-unit {
-  font-size: 22px; font-weight: 700;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px; font-weight: 600;
   color: rgba(255,255,255,0.9);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .annual-hero-sub {
   position: relative;
@@ -3423,6 +3425,352 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 800;
 }
 .month-cal-cell.active:active { transform: scale(0.94); }
+
+/* ═══════════════════════════════════════════════════════════
+   목표탭 V2 — goal-strip + 도전과제 카드
+   ═══════════════════════════════════════════════════════════ */
+.goal-strip {
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border-2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+.goal-strip-item {
+  flex: 1;
+  min-width: 0;
+}
+.goal-strip-divider {
+  width: 0.5px;
+  background: var(--c-border-2);
+  align-self: stretch;
+}
+.goal-strip-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  opacity: 0.85;
+}
+.goal-strip-val {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-top: 2px;
+  font-family: inherit;
+}
+.goal-strip-val .num,
+.goal-strip-val .streak-current-num,
+.goal-strip-val .streak-best-num {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.goal-strip-val .unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-text-2);
+  opacity: 0.75;
+}
+.goal-strip-mid {
+  font-size: 12px;
+  color: var(--c-text-2);
+  opacity: 0.45;
+  margin: 0 1px;
+}
+.goal-strip-track {
+  height: 3px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.goal-strip-track .monthly-fill {
+  height: 100%;
+  background: var(--c-terra-700);
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+.goal-strip-sub {
+  font-size: 10px;
+  color: var(--c-text-2);
+  opacity: 0.6;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.goal-strip-meta {
+  font-size: 10px;
+  color: var(--c-text-2);
+  opacity: 0.5;
+  margin-top: 6px;
+}
+
+/* 도전과제 카드 */
+.achv-card {
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border-2);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 8px;
+}
+.achv-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.achv-bar {
+  width: 3px;
+  height: 14px;
+  background: var(--c-terra-700);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.achv-ttl {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.achv-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.75;
+}
+.achv-body {
+  margin-top: 4px;
+}
+.achv-cat {
+  margin-top: 18px;
+}
+.achv-cat:first-child { margin-top: 14px; }
+.achv-cat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+.achv-cat-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--c-text);
+}
+.achv-cat-summary {
+  font-size: 11px;
+  color: var(--c-terra-700);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.achv-divider {
+  height: 0.5px;
+  background: var(--c-border-2);
+  margin: 22px 0 0;
+}
+
+/* 획득한 칭호 영역 (옵션 B) */
+.achv-trophies {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--c-gold-deep, #B8860B) 6%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--c-gold-deep, #B8860B) 22%, transparent);
+  border-radius: 12px;
+}
+.achv-trophies-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.achv-trophies-ttl {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--c-gold-deep, #B8860B);
+  letter-spacing: 0.02em;
+}
+.achv-trophies-count {
+  font-size: 11px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  opacity: 0.85;
+}
+.achv-trophies-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.achv-trophy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: var(--c-surface);
+  border: 0.5px solid var(--c-border-2);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.achv-trophy.master {
+  background: var(--c-gold-deep, #B8860B);
+  color: #fff;
+  border-color: var(--c-gold-deep, #B8860B);
+}
+.achv-trophies-empty {
+  font-size: 11px;
+  color: var(--c-text-2);
+  opacity: 0.65;
+  text-align: center;
+  padding: 6px 0;
+  font-weight: 500;
+}
+.achv-sub-name {
+  font-size: 10px;
+  color: var(--c-text-2);
+  opacity: 0.65;
+  margin: 0 0 8px;
+  padding-left: 4px;
+  font-weight: 600;
+}
+.achv-cat .achv-sub-name + .achv-step + .achv-sub-name {
+  margin-top: 18px;
+}
+
+/* step progression */
+.achv-step {
+  position: relative;
+  padding: 0 4px;
+}
+.achv-step-line {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  height: 2px;
+  background: var(--c-border-2);
+  z-index: 0;
+}
+.achv-step-prog {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  height: 2px;
+  background: var(--c-terra-700);
+  z-index: 1;
+  transition: width .5s ease;
+}
+.achv-step-nodes {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+.achv-step-col {
+  text-align: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.achv-step-col:active .achv-node {
+  transform: scale(0.92);
+  transition: transform .12s ease;
+}
+.achv-node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+}
+.achv-node.done {
+  background: var(--c-terra-700);
+  color: #fff;
+}
+.achv-node.current {
+  background: var(--c-surface);
+  border: 2px solid var(--c-terra-700);
+  color: var(--c-terra-700);
+  font-size: 9px;
+  font-weight: 800;
+}
+.achv-node.lock {
+  background: var(--c-border-2);
+  color: var(--c-text-2);
+  opacity: 0.5;
+  font-size: 11px;
+}
+.achv-node.master {
+  background: var(--c-gold-deep, #B8860B);
+  color: #fff;
+  font-size: 13px;
+}
+.achv-node-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  margin-top: 4px;
+}
+.achv-node-lbl.current {
+  color: var(--c-terra-700);
+  font-weight: 700;
+}
+.achv-node-lbl.lock {
+  color: var(--c-text-2);
+  opacity: 0.45;
+  font-weight: 500;
+}
+.achv-node-lbl.master {
+  color: var(--c-gold-deep, #B8860B);
+  font-weight: 800;
+}
+
+/* 사이드 미션 칩 */
+.achv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+.achv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--c-terra-700) 9%, transparent);
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-terra-700);
+}
+.achv-chip.inactive {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  opacity: 0.7;
+}
+.achv-chip.done {
+  background: var(--c-terra-700);
+  color: #fff;
+}
+.achv-chip-prog {
+  opacity: 0.65;
+  font-weight: 500;
+}
+.achv-chip.done .achv-chip-prog {
+  opacity: 0.85;
+}
 
 /* ═══════════════════════════════════════════════════════════
    API 키 설정 UI (설정 모달 내 섹션)
@@ -8394,30 +8742,41 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
       <div class="annual-hero-pace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
     </div>
 
-    <!-- 이번 달 목표 -->
-    <div class="monthly-card" id="goalMonthly">
-      <div class="monthly-head">
-        <div class="monthly-lbl">이번 달</div>
-        <div class="monthly-main">
-          <span class="num">2</span><span class="unit">/ 3권</span>
+    <!-- 이번달 + 연속·최고 통합 strip -->
+    <div class="goal-strip" id="goalMonthly">
+      <div class="goal-strip-item">
+        <div class="goal-strip-lbl">이번달</div>
+        <div class="goal-strip-val">
+          <span class="num">2</span>
+          <span class="unit">/ 3권</span>
         </div>
+        <div class="monthly-track goal-strip-track">
+          <div class="monthly-fill" style="width:67%"></div>
+        </div>
+        <div class="monthly-sub goal-strip-sub">한 권만 더 읽으면 완료예요</div>
       </div>
-      <div class="monthly-track">
-        <div class="monthly-fill" style="width:66.7%"></div>
+      <div class="goal-strip-divider" aria-hidden="true"></div>
+      <div class="goal-strip-item">
+        <div class="goal-strip-lbl">연속 · 최고</div>
+        <div class="goal-strip-val">
+          <span class="streak-current-num">12</span>
+          <span class="goal-strip-mid">·</span>
+          <span class="streak-best-num">34</span>
+          <span class="unit">일</span>
+        </div>
+        <div class="goal-strip-meta">현재 / 역대</div>
       </div>
-      <div class="monthly-sub">한 권만 더 읽으면 완료예요</div>
     </div>
 
-    <!-- 스트릭 통합 카드 -->
-    <div class="streak-unified">
-      <div class="streak-item">
-        <div class="streak-lbl">연속 독서</div>
-        <div class="streak-val"><span class="streak-current-num">12</span><span class="unit">일</span></div>
+    <!-- 도전과제 -->
+    <div class="achv-card">
+      <div class="achv-head">
+        <div class="achv-bar"></div>
+        <span class="achv-ttl">도전과제</span>
+        <span class="achv-meta" id="achvMeta">달성 — · 진행 —</span>
       </div>
-      <div class="streak-divider" aria-hidden="true"></div>
-      <div class="streak-item">
-        <div class="streak-lbl">최고 기록</div>
-        <div class="streak-val"><span class="streak-best-num">34</span><span class="unit">일</span></div>
+      <div class="achv-body" id="achvBody">
+        <!-- JS로 4개 카테고리 렌더 -->
       </div>
     </div>
 
@@ -14736,6 +15095,394 @@ function celebrateGoal() {
     try { navigator.vibrate([30, 60, 30, 60, 60]); } catch(e) {}
   }
 }
+/* ═══════════════════════════════════════════════════════════
+   도전과제 (목표탭 V2)
+   ═══════════════════════════════════════════════════════════ */
+function _achvComputeReadDays() {
+  const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+  const set = new Set();
+  const keyOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const markRange = (s, e) => {
+    if (!s) return;
+    const a = new Date(s);
+    const b = e ? new Date(e) : new Date();
+    if (isNaN(a) || isNaN(b)) return;
+    a.setHours(0,0,0,0); b.setHours(0,0,0,0);
+    for (let d = new Date(a); d <= b; d.setDate(d.getDate()+1)) set.add(keyOf(d));
+  };
+  for (const b of books) {
+    (b.readingSessions || []).forEach(s => { if (s?.date) set.add(String(s.date).slice(0,10)); });
+    markRange(b.dateStart, b.dateEnd);
+    (b.rereads || []).forEach(r => markRange(r.dateStart, r.dateEnd));
+  }
+  return set;
+}
+
+function _achvBestStreak(readDays) {
+  if (readDays.size === 0) return 0;
+  const sorted = Array.from(readDays).sort();
+  let best = 1, run = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i-1]);
+    const curr = new Date(sorted[i]);
+    if (Math.round((curr - prev) / 86400000) === 1) run++;
+    else { if (run > best) best = run; run = 1; }
+  }
+  if (run > best) best = run;
+  return best;
+}
+
+function computeAchievements() {
+  const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+  const notes = (typeof NOTES !== 'undefined' && Array.isArray(NOTES)) ? NOTES : [];
+
+  // 권수 — 완독 + 재독 모두 합산
+  let bookCount = 0;
+  books.forEach(b => {
+    if (b.status === 'done') bookCount++;
+    bookCount += (b.rereads || []).filter(r => r.dateEnd).length;
+  });
+
+  // 페이지 — 완독 책의 pages 합산 (재독은 1회만 기본 카운트)
+  let pageTotal = 0;
+  books.forEach(b => {
+    if (b.status === 'done') pageTotal += (b.pages || 0);
+    pageTotal += ((b.rereads || []).filter(r => r.dateEnd).length) * (b.pages || 0);
+  });
+
+  // 두꺼운 책 (500p+ 완독)
+  const thickCount = books.filter(b => b.status === 'done' && (b.pages || 0) >= 500).length;
+
+  // 연속 (최고)
+  const readDays = _achvComputeReadDays();
+  const bestStreak = _achvBestStreak(readDays);
+
+  // 이번달 개근
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  let monthActive = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (readDays.has(k)) monthActive++;
+  }
+
+  // 메모
+  const memoCount = notes.length;
+  const byBook = {};
+  notes.forEach(n => { byBook[n.bookId] = (byBook[n.bookId] || 0) + 1; });
+  const deepBookCount = Object.values(byBook).filter(c => c >= 5).length;
+
+  // 인생책
+  const lifeCount = books.filter(b => b.isLifeBook).length;
+
+  // 재독자 (재독 한 번이라도 한 책 수)
+  const rereadBookCount = books.filter(b => (b.rereads || []).length > 0).length;
+
+  return {
+    bookCount, pageTotal, thickCount,
+    bestStreak, monthActive, monthTotal: daysInMonth,
+    memoCount, deepBookCount, lifeCount, rereadBookCount,
+  };
+}
+
+function _achvFmtPagesShort(p) {
+  if (p >= 10000) return (p / 10000).toFixed(p >= 100000 ? 0 : 1).replace(/\.0$/, '') + '만';
+  if (p >= 1000)  return (p / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return String(p);
+}
+function _achvFmtPages(p) {
+  if (p >= 10000) return Math.round(p / 10000) + '만p';
+  if (p >= 1000)  return Math.round(p / 1000) + 'k p';
+  return p + 'p';
+}
+function _achvNextStep(arr, current) {
+  const next = arr.find(n => current < n);
+  return next != null ? next : arr[arr.length - 1];
+}
+
+/* 카테고리 summary 동적 계산 (현재 칭호 · 다음 칭호) */
+function _achvComputeSummary(cat) {
+  // 깊이처럼 미리 정의된 summary 있으면 그대로
+  if (cat.summary) return cat.summary;
+  // single group 카테고리 (권수/페이지/연속): 칭호명 흐름
+  const g = cat.groups[0];
+  const lastStep = g.steps[g.steps.length - 1];
+  if (g.current >= lastStep.n) {
+    return `${lastStep.title} · 마스터`;
+  }
+  const currentIdx = g.steps.findIndex(s => g.current < s.n);
+  if (currentIdx === -1) return `${lastStep.title} · 마스터`;
+  const lastDoneIdx = currentIdx - 1;
+  if (lastDoneIdx >= 0) {
+    return `${g.steps[lastDoneIdx].title} · 다음 ${g.steps[currentIdx].title}`;
+  }
+  return `다음 ${g.steps[currentIdx].title}`;
+}
+
+function _achvRenderStep(group) {
+  const { steps, current, currentLabel } = group;
+  // 현재 위치 인덱스 — 다음 미달성 노드
+  let currentIdx = steps.findIndex(s => current < s.n);
+  if (currentIdx === -1) currentIdx = steps.length - 1; // 다 달성
+
+  // 진행 바 너비
+  let progPct = 0;
+  if (steps.length > 1) {
+    const segWidth = 100 / (steps.length - 1);
+    if (current >= steps[steps.length - 1].n) {
+      progPct = 100;
+    } else {
+      const lastDoneIdx = currentIdx - 1; // -1 가능 (첫 노드도 미달)
+      const lastDoneN = lastDoneIdx >= 0 ? steps[lastDoneIdx].n : 0;
+      const nextN = steps[currentIdx].n;
+      const ratio = (current - lastDoneN) / Math.max(1, nextN - lastDoneN);
+      progPct = (lastDoneIdx + 1) * segWidth + ratio * segWidth;
+      progPct = Math.max(0, Math.min(100, progPct));
+    }
+  }
+
+  let nodesHtml = '';
+  steps.forEach((s, i) => {
+    let cls = 'achv-node ';
+    let inner = '·';
+    let lblCls = '';
+    let status = 'lock';
+    if (current >= s.n) {
+      if (i === steps.length - 1) {
+        cls += 'done master';
+        inner = '★';
+        status = 'master';
+        lblCls = 'master';
+      } else {
+        cls += 'done';
+        inner = '✓';
+        status = 'done';
+      }
+    } else if (i === currentIdx && current > 0) {
+      cls += 'current';
+      inner = currentLabel;
+      lblCls = 'current';
+      status = 'current';
+    } else {
+      cls += 'lock';
+      lblCls = 'lock';
+    }
+    const titleAttr = s.title ? ` data-achv-title="${esc(s.title)}"` : '';
+    nodesHtml += `
+      <div class="achv-step-col"${titleAttr} data-achv-status="${status}" data-achv-label="${esc(s.label)}">
+        <div class="${cls}">${inner}</div>
+        <div class="achv-node-lbl ${lblCls}">${s.label}</div>
+      </div>`;
+  });
+
+  return `
+    <div class="achv-step">
+      <div class="achv-step-line"></div>
+      <div class="achv-step-prog" style="width:${progPct}%"></div>
+      <div class="achv-step-nodes">${nodesHtml}</div>
+    </div>`;
+}
+
+function renderAchievements() {
+  const body = document.getElementById('achvBody');
+  const meta = document.getElementById('achvMeta');
+  if (!body) return;
+
+  const a = computeAchievements();
+
+  // 카테고리 정의
+  const cats = [
+    {
+      icon: '📚', name: '권수',
+      groups: [{
+        steps: [
+          { n: 1,   label: '1권',   title: '첫 책' },
+          { n: 5,   label: '5권',   title: '한 자릿수 클럽' },
+          { n: 10,  label: '10권',  title: '두 자릿수 독자' },
+          { n: 30,  label: '30권',  title: '꾸준한 독서가' },
+          { n: 50,  label: '50권',  title: '마라토너' },
+          { n: 100, label: '100권', title: '백권 클럽' },
+        ],
+        current: a.bookCount,
+        currentLabel: a.bookCount,
+      }],
+      chips: [],
+    },
+    {
+      icon: '📄', name: '페이지',
+      groups: [{
+        steps: [
+          { n: 10000,  label: '1만p',  title: '만 페이지 클럽' },
+          { n: 50000,  label: '5만p',  title: '종이의 산맥' },
+          { n: 100000, label: '10만p', title: '종이의 항해사' },
+        ],
+        current: a.pageTotal,
+        currentLabel: _achvFmtPagesShort(a.pageTotal),
+      }],
+      chips: [
+        { icon: '✦', name: '두꺼운 책 정복자', current: a.thickCount, target: 5, unit: '권' },
+      ],
+    },
+    {
+      icon: '🔥', name: '연속',
+      groups: [{
+        steps: [
+          { n: 7,   label: '7일',   title: '일주일 독서가' },
+          { n: 30,  label: '30일',  title: '습관의 독자' },
+          { n: 100, label: '100일', title: '백일의 마라토너' },
+        ],
+        current: a.bestStreak,
+        currentLabel: a.bestStreak,
+      }],
+      chips: [
+        { icon: '◐', name: '이번달 개근', current: a.monthActive, target: a.monthTotal, unit: '일' },
+      ],
+    },
+    {
+      icon: '💭', name: '깊이',
+      summary: `메모 ${a.memoCount}개 · 인생책 ${a.lifeCount}권`,
+      groups: [
+        {
+          subName: '메모',
+          steps: [
+            { n: 10,  label: '10개',  title: '기록의 시작' },
+            { n: 50,  label: '50개',  title: '메모 마스터' },
+            { n: 200, label: '200개', title: '사색의 기록자' },
+          ],
+          current: a.memoCount,
+          currentLabel: a.memoCount,
+        },
+        {
+          subName: '인생책',
+          steps: [
+            { n: 10,  label: '10권',  title: '첫 컬렉션' },
+            { n: 50,  label: '50권',  title: '선별된 책장' },
+            { n: 100, label: '100권', title: '인생의 전당' },
+          ],
+          current: a.lifeCount,
+          currentLabel: a.lifeCount,
+        },
+      ],
+      chips: [
+        { icon: '✦', name: '사유의 책', current: a.deepBookCount, target: 1, unit: '' },
+        { icon: '↻', name: '재독자', current: a.rereadBookCount, target: 5, unit: '권' },
+      ],
+    },
+  ];
+
+  // 달성/진행 카운트 + 트로피 수집
+  let achieved = 0, inProgress = 0;
+  const trophies = [];
+  cats.forEach(cat => {
+    cat.groups.forEach(g => {
+      g.steps.forEach((s, i) => {
+        if (g.current >= s.n) {
+          achieved++;
+          if (s.title) {
+            trophies.push({
+              icon: cat.icon,
+              title: s.title,
+              isMaster: i === g.steps.length - 1,
+            });
+          }
+        }
+      });
+      const nextIdx = g.steps.findIndex(s => g.current < s.n);
+      if (nextIdx !== -1 && g.current > 0) inProgress++;
+    });
+    cat.chips.forEach(c => {
+      if (c.current >= c.target) {
+        achieved++;
+        trophies.push({ icon: c.icon, title: c.name, isMaster: false });
+      } else if (c.current > 0) inProgress++;
+    });
+  });
+  if (meta) meta.textContent = `달성 ${achieved} · 진행 ${inProgress}`;
+
+  // 트로피 영역 마크업
+  let trophiesHtml = '';
+  if (trophies.length === 0) {
+    trophiesHtml = `
+      <div class="achv-trophies">
+        <div class="achv-trophies-head">
+          <span class="achv-trophies-ttl">🏆 획득한 칭호</span>
+        </div>
+        <div class="achv-trophies-empty">아직 없어요. 첫 책 완독으로 시작해볼까요?</div>
+      </div>`;
+  } else {
+    const list = trophies.map(t =>
+      `<span class="achv-trophy${t.isMaster ? ' master' : ''}"><span>${t.icon}</span><span>${esc(t.title)}</span></span>`
+    ).join('');
+    trophiesHtml = `
+      <div class="achv-trophies">
+        <div class="achv-trophies-head">
+          <span class="achv-trophies-ttl">🏆 획득한 칭호</span>
+          <span class="achv-trophies-count">${trophies.length}개</span>
+        </div>
+        <div class="achv-trophies-list">${list}</div>
+      </div>`;
+  }
+
+  // 마크업 생성
+  let html = trophiesHtml;
+  cats.forEach((cat, idx) => {
+    if (idx > 0) html += `<div class="achv-divider"></div>`;
+    const summary = _achvComputeSummary(cat);
+    html += `<div class="achv-cat">`;
+    html += `
+      <div class="achv-cat-head">
+        <span class="achv-cat-name">${cat.icon} ${cat.name}</span>
+        <span class="achv-cat-summary">${esc(summary)}</span>
+      </div>`;
+
+    cat.groups.forEach((g, gi) => {
+      if (g.subName) html += `<div class="achv-sub-name">${g.subName}</div>`;
+      html += _achvRenderStep(g);
+      if (gi < cat.groups.length - 1) html += `<div style="height:18px"></div>`;
+    });
+
+    if (cat.chips.length > 0) {
+      html += `<div class="achv-chips">`;
+      cat.chips.forEach(c => {
+        let cls = 'inactive';
+        if (c.current >= c.target) cls = 'done';
+        else if (c.current > 0) cls = 'active';
+        const progText = c.target > 1 ? `${c.current}/${c.target}${c.unit}` : (c.current > 0 ? '달성' : '미달성');
+        html += `
+          <div class="achv-chip ${cls}">
+            <span>${c.icon}</span>
+            <span>${c.name}</span>
+            <span class="achv-chip-prog">${progText}</span>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+  body.innerHTML = html;
+}
+
+/* 칭호 토스트 — step 노드 탭 시 */
+(function _bindAchvNodeToast() {
+  if (window._achvNodeToastBound) return;
+  window._achvNodeToastBound = true;
+  document.addEventListener('click', (e) => {
+    const col = e.target.closest('.achv-step-col[data-achv-title]');
+    if (!col) return;
+    const title = col.dataset.achvTitle;
+    const status = col.dataset.achvStatus;
+    const label = col.dataset.achvLabel || '';
+    if (!title) return;
+    let msg = '';
+    if (status === 'master')      msg = `👑 ${title} · 마스터`;
+    else if (status === 'done')    msg = `🏆 ${title}`;
+    else if (status === 'current') msg = `진행 중 · ${title}`;
+    else                            msg = `🔒 ${label} 달성 시 · ${title}`;
+    if (typeof showToast === 'function') showToast(msg);
+  });
+})();
+
 function renderGoalsPane() {
   const pane = document.getElementById('pane-goals');
   if (!pane) return;
@@ -14896,6 +15643,9 @@ function renderGoalsPane() {
   } else {
     _goalPrevAchieved = achievedNow;
   }
+
+  // 도전과제 (V2)
+  try { renderAchievements(); } catch(e) { console.error('[achievements]', e); }
 
   // 독서 캘린더 (실제 데이터 기반) — 목표 탭 렌더 시점에 함께 갱신
   try { renderHeatmap(); } catch(e) { console.error('[heatmap]', e); }
