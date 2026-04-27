@@ -3944,46 +3944,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   letter-spacing: -0.02em;
   word-break: keep-all;
 }
-.month-cal-cell.has-cover .mc-num-badge {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #1a1a1a;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 9px;
-  min-width: 10px;
-  text-align: center;
-  line-height: 1.5;
-  border: 0.5px solid rgba(0, 0, 0, 0.05);
-  z-index: 2;
-}
-.month-cal-cell.has-cover .mc-more-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #1a1a1a;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 0 5px;
-  border-radius: 7px;
-  line-height: 1.5;
-  border: 0.5px solid rgba(0, 0, 0, 0.05);
-  z-index: 2;
-}
 .month-cal-cell.has-cover.today {
   outline: none;
 }
 .month-cal-cell.has-cover.today .mc-cv {
   box-shadow: 0 0 0 1.5px var(--c-terra-700), 0 0.5px 2px rgba(0, 0, 0, 0.18);
-}
-.month-cal-cell.has-cover.today .mc-num-badge {
-  background: var(--c-terra-700);
-  color: #fff;
-  border-color: transparent;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -16686,15 +16651,12 @@ function renderMonthCal() {
     if (hasCover) {
       const cvUrl = esc(coverBook.coverUrl);
       const fbTitle = esc(coverBook.title || '');
-      const moreCount = a.finished - 1;
-      const moreHtml = moreCount > 0 ? `<div class="mc-more-badge">+${moreCount}</div>` : '';
       inner =
         `<div class="mc-cv">` +
           `<img src="${cvUrl}" alt="" referrerpolicy="no-referrer" loading="lazy" ` +
             `onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` +
           `<div class="mc-cv-fb" style="display:none">${fbTitle}</div>` +
-        `</div>` +
-        `<div class="mc-num-badge">${d}</div>` + moreHtml;
+        `</div>`;
     } else {
       inner = String(d);
     }
