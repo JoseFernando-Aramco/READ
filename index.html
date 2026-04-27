@@ -5291,6 +5291,89 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; gap: 6px;
   margin-top: 8px;
 }
+
+/* ─── 태그 편집 토글 + 삭제 모드 ─── */
+.tag-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+.tag-section-row .confirm-section-lbl,
+.tag-section-row .bd-section-lbl {
+  margin-bottom: 0;
+  padding-left: 0;
+}
+.tag-edit-toggle {
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--c-label);
+  background: transparent;
+  border: 1px solid var(--c-border-2);
+  border-radius: 999px;
+  padding: 4px 11px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tag-edit-toggle:active {
+  transform: scale(0.96);
+  background: var(--c-surface-2);
+}
+.tag-edit-toggle.is-editing {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  background: var(--primary-bg);
+}
+
+/* 편집 모드 - 사용 중 태그 (잠금 상태, 삭제 불가) */
+.tag-chip.is-locked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.tag-chip.is-locked:active { transform: none; }
+
+/* 편집 모드 - 삭제 가능 태그 (× 배지 표시) */
+.tag-chip.is-deletable {
+  position: relative;
+  border-color: rgba(239, 68, 68, 0.42);
+  color: #b91c1c;
+}
+.tag-chip.is-deletable .tc-emoji {
+  opacity: 0.85;
+}
+.tag-chip.is-deletable .tc-x {
+  position: absolute;
+  top: -5px; right: -5px;
+  width: 18px; height: 18px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--c-surface);
+  pointer-events: none;
+  font-family: -apple-system, sans-serif;
+}
+.tag-chip.is-deletable:active {
+  background: rgba(239, 68, 68, 0.08);
+  transform: scale(0.96);
+}
+.tag-chip.is-deletable:active .tc-x {
+  background: #dc2626;
+}
 .tag-new-input {
   flex: 1;
   padding: 11px 14px;
@@ -10236,7 +10319,10 @@ body.cn-locked {
 
       <!-- 태그 선택 -->
       <div class="confirm-section">
-        <div class="confirm-section-lbl">태그 (선택)</div>
+        <div class="tag-section-row">
+          <div class="confirm-section-lbl">태그 (선택)</div>
+          <button type="button" class="tag-edit-toggle" id="tagEditToggle">편집</button>
+        </div>
         <div class="tag-chips-all" id="tagChipsAll">
           <!-- JS 렌더 -->
         </div>
@@ -11613,6 +11699,7 @@ const BA = {
   selected: null,       // 선택된 책 정보 (Google or manual)
   tagsSelected: [],     // 추가 시 선택한 태그
   rating: 0,            // 완독 등록 시 별점 (0~5)
+  tagEditMode: false,   // 태그 편집(삭제) 모드
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -11655,6 +11742,7 @@ function closeBookAdd() {
   // reset
   BA.selected = null;
   BA.tagsSelected = [];
+  BA.tagEditMode = false;
   document.getElementById('bookSearchInput').value = '';
   document.getElementById('manualForm').reset();
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
@@ -12872,25 +12960,84 @@ function updateLifebookToggle() {
   count.textContent = `${currentCount} / 100`;
 }
 
-/* ─── 태그 칩 렌더 (전체 + 선택 상태) ─── */
+/* ─── 태그 사용 여부 판정 / 삭제 ─── */
+function isTagUsed(name) {
+  return BOOKS.some(b => Array.isArray(b.tags) && b.tags.includes(name));
+}
+
+function tryDeleteTag(name, onDone) {
+  if (isTagUsed(name)) {
+    showToast('사용 중인 태그라 삭제할 수 없어요');
+    return;
+  }
+  if (!TAGS[name]) return;
+  showConfirm({
+    title: `"${name}" 태그 삭제`,
+    message: '이 태그를 영구 삭제할까요?\n다른 책에서 사용되지 않는 것을 확인했어요.',
+    confirmLabel: '삭제',
+    cancelLabel: '취소',
+    destructive: true,
+    onConfirm: () => {
+      delete TAGS[name];
+      STORE.set('tags', TAGS);
+      // BA의 선택 목록에서도 제거
+      if (Array.isArray(BA.tagsSelected)) {
+        BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
+      }
+      showToast(`"${name}" 태그를 삭제했어요`);
+      if (typeof onDone === 'function') onDone();
+    },
+  });
+}
+
+/* ─── 태그 칩 렌더 (전체 + 선택 상태) — BA(책 추가) 컨텍스트 ─── */
 function renderTagChips() {
   const container = document.getElementById('tagChipsAll');
-  // 선택된 태그를 위로, 미선택을 아래로 정렬 (각 그룹 내 원래 순서 유지)
+  if (!container) return;
+  const editing = !!BA.tagEditMode;
+
+  // 정렬: 편집 모드면 삭제 가능 항목(미사용)을 위로, 아니면 선택된 것을 위로
   const entries = Object.entries(TAGS).sort(([a], [c]) => {
+    if (editing) {
+      const aDel = !isTagUsed(a) ? 0 : 1;
+      const cDel = !isTagUsed(c) ? 0 : 1;
+      return aDel - cDel;
+    }
     const aSel = BA.tagsSelected.includes(a) ? 0 : 1;
     const cSel = BA.tagsSelected.includes(c) ? 0 : 1;
     return aSel - cSel;
   });
+
   container.innerHTML = entries.map(([name, tag]) => {
+    if (editing) {
+      const used = isTagUsed(name);
+      const cls = used ? 'is-locked' : 'is-deletable';
+      return `<button type="button" class="tag-chip ${cls}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
+        <span class="tc-emoji">${tag.emoji}</span>
+        <span class="tc-name">${esc(name)}</span>
+        ${used ? '' : '<span class="tc-x" aria-hidden="true">×</span>'}
+      </button>`;
+    }
     const active = BA.tagsSelected.includes(name) ? ' active' : '';
-    return `<button class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
+    return `<button type="button" class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
       <span class="tc-emoji">${tag.emoji}</span>
       <span class="tc-name">${esc(name)}</span>
     </button>`;
   }).join('');
+
   container.querySelectorAll('.tag-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const name = chip.dataset.tag;
+      if (editing) {
+        // 편집 모드: 미사용 태그면 삭제 시도, 사용 중이면 토스트
+        if (chip.classList.contains('is-locked')) {
+          showToast('사용 중인 태그라 삭제할 수 없어요');
+          return;
+        }
+        tryDeleteTag(name, () => renderTagChips());
+        return;
+      }
+      // 일반 모드: 선택 토글
       if (BA.tagsSelected.includes(name)) {
         BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
       } else {
@@ -12899,6 +13046,13 @@ function renderTagChips() {
       renderTagChips();
     });
   });
+
+  // 편집 토글 버튼 라벨/상태 동기화
+  const toggleBtn = document.getElementById('tagEditToggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = editing ? '✓ 완료' : '편집';
+    toggleBtn.classList.toggle('is-editing', editing);
+  }
 }
 
 /* ─── 새 태그 생성 ─── */
@@ -13091,6 +13245,12 @@ document.getElementById('lifebookToggle').addEventListener('click', () => {
 document.getElementById('tagNewBtn').addEventListener('click', createNewTag);
 document.getElementById('tagNewInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); createNewTag(); }
+});
+
+// 태그 편집(삭제) 모드 토글
+document.getElementById('tagEditToggle').addEventListener('click', () => {
+  BA.tagEditMode = !BA.tagEditMode;
+  renderTagChips();
 });
 
 // 최종 추가 / 취소
@@ -14002,6 +14162,7 @@ const BD = {
   showRereadForm: false,
   confirmDelete: false,
   editingReadIdx: null,  // 편집 중인 독서 기록 인덱스 (-1: 현재 세션, 0+: rereads 인덱스, null: 편집 안 함)
+  tagEditMode: false,    // 태그 편집(삭제) 모드
 };
 
 /* ─── 독서 세션 모음 (본 독서 + 재독 정렬) ─── */
@@ -14499,6 +14660,7 @@ function _closeBookDetailActual() {
   BD.book = null;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
+  BD.tagEditMode = false;
 }
 
 // UI 이벤트 핸들러·코드 내부 auto-close가 호출하는 함수
@@ -14730,20 +14892,41 @@ function renderBookDetail() {
     ${!wish ? `
     <!-- 태그 -->
     <div class="bd-section">
-      <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
+      <div class="tag-section-row">
+        <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
+        <button type="button" class="tag-edit-toggle${BD.tagEditMode ? ' is-editing' : ''}" id="bdTagEditToggle">${BD.tagEditMode ? '✓ 완료' : '편집'}</button>
+      </div>
       <div class="tag-chips-all" id="bdTagChips">
-        ${Object.entries(TAGS).sort(([a], [c]) => {
-          const sel = (b.tags || []);
-          const aSel = sel.includes(a) ? 0 : 1;
-          const cSel = sel.includes(c) ? 0 : 1;
-          return aSel - cSel;
-        }).map(([name, tag]) => {
-          const active = (b.tags || []).includes(name) ? ' active' : '';
-          return `<button class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
-            <span class="tc-emoji">${tag.emoji}</span>
-            <span class="tc-name">${esc(name)}</span>
-          </button>`;
-        }).join('')}
+        ${(() => {
+          const editing = !!BD.tagEditMode;
+          const entries = Object.entries(TAGS).sort(([a], [c]) => {
+            if (editing) {
+              const aDel = !isTagUsed(a) ? 0 : 1;
+              const cDel = !isTagUsed(c) ? 0 : 1;
+              return aDel - cDel;
+            }
+            const sel = (b.tags || []);
+            const aSel = sel.includes(a) ? 0 : 1;
+            const cSel = sel.includes(c) ? 0 : 1;
+            return aSel - cSel;
+          });
+          return entries.map(([name, tag]) => {
+            if (editing) {
+              const used = isTagUsed(name);
+              const cls = used ? 'is-locked' : 'is-deletable';
+              return `<button type="button" class="tag-chip ${cls}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
+                <span class="tc-emoji">${tag.emoji}</span>
+                <span class="tc-name">${esc(name)}</span>
+                ${used ? '' : '<span class="tc-x" aria-hidden="true">×</span>'}
+              </button>`;
+            }
+            const active = (b.tags || []).includes(name) ? ' active' : '';
+            return `<button type="button" class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
+              <span class="tc-emoji">${tag.emoji}</span>
+              <span class="tc-name">${esc(name)}</span>
+            </button>`;
+          }).join('');
+        })()}
       </div>
       <div class="tag-new-wrap">
         <input class="tag-new-input" id="bdTagNewInput" type="text" placeholder="새 태그 만들기…" maxlength="12" autocomplete="off">
@@ -15207,12 +15390,31 @@ function wireBookDetailEvents() {
   document.querySelectorAll('#bdTagChips .tag-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const name = chip.dataset.tag;
+      if (BD.tagEditMode) {
+        // 편집 모드: 미사용 태그면 삭제 시도, 사용 중이면 토스트
+        if (chip.classList.contains('is-locked')) {
+          showToast('사용 중인 태그라 삭제할 수 없어요');
+          return;
+        }
+        tryDeleteTag(name, () => renderBookDetail());
+        return;
+      }
+      // 일반 모드: 이 책의 태그 토글
       const tags = b.tags || [];
       const newTags = tags.includes(name) ? tags.filter(t => t !== name) : [...tags, name];
       updateBook(b.id, { tags: newTags });
       renderBookDetail();
     });
   });
+
+  // 태그 편집(삭제) 모드 토글 — 책 상세
+  const bdEditToggle = document.getElementById('bdTagEditToggle');
+  if (bdEditToggle) {
+    bdEditToggle.addEventListener('click', () => {
+      BD.tagEditMode = !BD.tagEditMode;
+      renderBookDetail();
+    });
+  }
 
   // 새 태그 만들기 (책 상세)
   const bdNewInput = document.getElementById('bdTagNewInput');
