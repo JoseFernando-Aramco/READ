@@ -8179,6 +8179,298 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ═══════════════════════════════════════════════════════════
+   🎬 시네마 모드 · Cinema Mode (가로/세로 풀스크린 타이머)
+   Theme-agnostic: 항상 검정 배경 + 따뜻한 앰버 골드 톤.
+   가로/세로 양쪽 지원 — data-cn-mode 속성으로 layout 분기.
+   회전 시 letterbox·메타·시간이 부드럽게 reflow.
+   ═══════════════════════════════════════════════════════════ */
+
+/* 고정 시네마 팔레트 (테마 무관 — 영화관은 영화관) */
+.cn-overlay {
+  --cn-gold:        #d4a574;
+  --cn-gold-soft:   #e8c094;
+  --cn-gold-glow:   rgba(212, 165, 116, 0.25);
+  --cn-text-dim:    rgba(255, 255, 255, 0.55);
+  --cn-text-mute:   rgba(255, 255, 255, 0.42);
+
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999; /* 모든 모달 위 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  /* 노치/홈인디케이터 영역까지 전부 차지 */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.cn-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── 시네마 무대 ─── */
+.cn-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ─── Letterbox 바 (상하) — 진입 시 슬라이드 인 + 회전 시 두께 변화 ─── */
+.cn-letterbox {
+  position: absolute;
+  left: 0; right: 0;
+  background: #000;
+  z-index: 4;
+  transform: scaleY(0);
+  transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1),
+              height 0.55s ease;
+}
+.cn-letterbox-top    { top: 0;    transform-origin: top; }
+.cn-letterbox-bottom { bottom: 0; transform-origin: bottom; }
+.cn-overlay.cn-running .cn-letterbox { transform: scaleY(1); }
+
+/* 세로: 얇은 띠 / 가로: 두꺼운 띠 */
+.cn-overlay[data-cn-mode="portrait"]  .cn-letterbox { height: 9%; }
+.cn-overlay[data-cn-mode="landscape"] .cn-letterbox { height: 13%; }
+
+/* 중앙 글로우 — 시간 주변 따뜻한 빛 */
+.cn-bg-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 70%; height: 90%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, var(--cn-gold-glow) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 1.4s ease 0.5s;
+  pointer-events: none;
+}
+.cn-overlay.cn-running .cn-bg-glow { opacity: 1; }
+
+/* 미세한 필름 그레인 라인 */
+.cn-grain {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 2px,
+      rgba(255,255,255,0.012) 2px,
+      rgba(255,255,255,0.012) 3px
+    );
+  opacity: 0;
+  transition: opacity 1.4s ease 0.5s;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+}
+.cn-overlay.cn-running .cn-grain { opacity: 1; }
+
+/* ─── 중앙 시간 — 거대한 serif ─── */
+.cn-time {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.94);
+  font-family: 'Georgia', 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  font-weight: 400;
+  color: var(--cn-gold);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  text-shadow: 0 0 50px var(--cn-gold-glow);
+  opacity: 0;
+  transition: opacity 0.9s ease 0.6s,
+              transform 1s ease 0.6s,
+              font-size 0.55s ease;
+  z-index: 5;
+  white-space: nowrap;
+  user-select: none;
+  max-width: 88%;
+}
+.cn-overlay.cn-running .cn-time {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* 세로 / 가로 시간 크기 */
+.cn-overlay[data-cn-mode="portrait"]  .cn-time { font-size: clamp(64px, 20vw, 180px); }
+.cn-overlay[data-cn-mode="landscape"] .cn-time { font-size: clamp(80px, 15vw, 220px); }
+
+/* ─── 좌상단(가로) / 상단 중앙(세로) — 책 제목 ─── */
+.cn-meta-top {
+  position: absolute;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 0.7s ease 1.1s,
+              transform 0.7s ease 1.1s,
+              top 0.55s ease,
+              left 0.55s ease,
+              right 0.55s ease,
+              max-width 0.55s ease,
+              text-align 0.3s ease;
+}
+.cn-overlay[data-cn-mode="portrait"] .cn-meta-top {
+  top: 16%; left: 50%;
+  text-align: center;
+  max-width: 80%;
+  transform: translate(-50%, -6px);
+}
+.cn-overlay[data-cn-mode="portrait"].cn-running .cn-meta-top {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.cn-overlay[data-cn-mode="landscape"] .cn-meta-top {
+  top: 6%; left: 5%;
+  text-align: left;
+  max-width: 40%;
+  transform: translateY(-6px);
+}
+.cn-overlay[data-cn-mode="landscape"].cn-running .cn-meta-top {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cn-meta-label {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--cn-gold);
+  margin-bottom: 5px;
+}
+.cn-meta-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.88);
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.cn-meta-author {
+  font-size: 11px;
+  color: var(--cn-text-mute);
+  margin-top: 3px;
+}
+
+/* ─── 우하단(가로) / 하단 중앙(세로) — 페이지 진도 ─── */
+.cn-meta-bottom {
+  position: absolute;
+  z-index: 6;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--cn-text-dim);
+  opacity: 0;
+  transition: opacity 0.7s ease 1.1s,
+              transform 0.7s ease 1.1s,
+              bottom 0.55s ease,
+              left 0.55s ease,
+              right 0.55s ease,
+              text-align 0.3s ease;
+}
+.cn-overlay[data-cn-mode="portrait"] .cn-meta-bottom {
+  bottom: 16%; left: 50%; right: auto;
+  text-align: center;
+  transform: translate(-50%, 6px);
+}
+.cn-overlay[data-cn-mode="portrait"].cn-running .cn-meta-bottom {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.cn-overlay[data-cn-mode="landscape"] .cn-meta-bottom {
+  bottom: 6%; right: 5%; left: auto;
+  text-align: right;
+  transform: translateY(6px);
+}
+.cn-overlay[data-cn-mode="landscape"].cn-running .cn-meta-bottom {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cn-progress-num {
+  color: var(--cn-gold);
+  font-weight: 700;
+}
+
+/* ─── 컨트롤 (탭 시 페이드 인) ─── */
+.cn-controls {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+.cn-overlay.show-controls .cn-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* 컨트롤이 보이면 시간을 살짝 어둡게 */
+.cn-overlay.show-controls .cn-time {
+  opacity: 0.18;
+  transition: opacity 0.32s ease;
+}
+
+.cn-ctrl-exit,
+.cn-ctrl-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.cn-ctrl-exit svg,
+.cn-ctrl-save svg {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+}
+.cn-ctrl-exit {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+}
+.cn-ctrl-exit:active {
+  background: rgba(255,255,255,0.14);
+  transform: scale(0.97);
+}
+.cn-ctrl-save {
+  background: var(--cn-gold);
+  border: 1px solid var(--cn-gold);
+  color: #1a1208;
+  box-shadow: 0 4px 24px var(--cn-gold-glow);
+}
+.cn-ctrl-save:active {
+  background: var(--cn-gold-soft);
+  transform: scale(0.97);
+}
+
+/* 시네마 모드일 때 body 잠금 */
+body.cn-locked {
+  overflow: hidden;
+  /* iOS bounce 방지 */
+  position: fixed;
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
    드릴다운 시트 · Drill-down Sheet
    별점·월별·태그 탭 → 해당 책 목록 표시
    ═══════════════════════════════════════════════════════════ */
@@ -10095,6 +10387,45 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
     </div>
   </div>
 </aside>
+
+<!-- ═══════════ 시네마 모드 (가로/세로 풀스크린 타이머) ═══════════ -->
+<div class="cn-overlay" id="cnOverlay" data-cn-mode="portrait" aria-hidden="true">
+  <!-- 시네마 무대 (가로·세로 양쪽 지원) -->
+  <div class="cn-stage" id="cnStage" aria-hidden="true">
+    <div class="cn-letterbox cn-letterbox-top"></div>
+    <div class="cn-letterbox cn-letterbox-bottom"></div>
+    <div class="cn-bg-glow"></div>
+    <div class="cn-grain"></div>
+
+    <div class="cn-meta-top">
+      <div class="cn-meta-label">NOW READING</div>
+      <div class="cn-meta-title" id="cnMetaTitle">—</div>
+      <div class="cn-meta-author" id="cnMetaAuthor">—</div>
+    </div>
+
+    <div class="cn-time" id="cnTime">00:00</div>
+
+    <div class="cn-meta-bottom">
+      <span class="cn-progress-num" id="cnProgressNum">—</span> / <span id="cnProgressTotal">—</span> P
+    </div>
+
+    <!-- 탭 시 페이드 인 컨트롤 -->
+    <div class="cn-controls" id="cnControls">
+      <button class="cn-ctrl-exit" id="cnCtrlExit" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+        <span>앱으로</span>
+      </button>
+      <button class="cn-ctrl-save" id="cnCtrlSave" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 13l4 4L19 7"/>
+        </svg>
+        <span>기록 저장</span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ 노트 추가/편집 시트 ═══════════ -->
 <div class="na-backdrop" id="naBackdrop"></div>
@@ -13701,7 +14032,7 @@ function deleteBookById(id) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ⏱️ 타이머 로직
+   ⏱️ 타이머 로직 + 🎬 시네마 모드
    ═══════════════════════════════════════════════════════════ */
 
 function formatTimerDisplay(seconds) {
@@ -13719,6 +14050,9 @@ function tickTimerUI() {
   const display = formatTimerDisplay(elapsed);
   const btn = document.getElementById('nowTimerBtn');
   if (btn) btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> ${display} · 저장`;
+  // 시네마 모드 시간도 동시 업데이트
+  const cnTimeEl = document.getElementById('cnTime');
+  if (cnTimeEl && CINEMA.active) cnTimeEl.textContent = display;
 }
 
 function startTimerTick() {
@@ -13742,7 +14076,9 @@ function startTimer(bookId) {
 
   renderLibraryCards(); // 버튼 실행중 상태로 리렌더
   startTimerTick();
-  showToast(`"${book.title}" 타이머 시작 ⏱️`);
+
+  // 시네마 모드 자동 진입 (사용자 제스처 컨텍스트 안에서 호출돼야 fullscreen 가능)
+  CINEMA.enter(bookId);
 }
 
 /* 타이머 정지 시트 열기 */
@@ -13812,6 +14148,9 @@ function saveTimerSession() {
   TIMER.pendingMinutes = null;
   STORE.set('timer', null);
 
+  // 시네마 모드 종료 (열려 있다면)
+  CINEMA.exit({ silent: true });
+
   closeTimerStop();
   renderLibraryCards();
 
@@ -13823,6 +14162,195 @@ function saveTimerSession() {
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
 document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+
+/* ═══════════════════════════════════════════════════════════
+   🎬 CINEMA 모듈 — 가로/세로 풀스크린 몰입 타이머
+   - startTimer가 호출됨 → CINEMA.enter(bookId)
+   - 가로/세로 자동 감지하여 data-cn-mode 토글 → CSS reflow
+   - 화면 탭 → 컨트롤 페이드 인 → 3초 후 자동 fade-out
+   - "앱으로" → 무대만 빠짐 (타이머 유지) / "기록 저장" → openTimerStop()
+   ═══════════════════════════════════════════════════════════ */
+const CINEMA = {
+  active: false,           // 오버레이가 떠 있는지
+  bookId: null,            // 현재 시네마 대상 책
+  controlsTimer: null,     // 컨트롤 자동 숨김 타이머
+  rotateListener: null,    // orientationchange/resize 핸들러
+  fullscreenLocked: false, // requestFullscreen 성공했는지
+
+  /* 가로 화면인지 판정 — matchMedia 우선, 없으면 window 비교 */
+  _isLandscape() {
+    if (window.matchMedia) {
+      const mm = window.matchMedia('(orientation: landscape)');
+      if (typeof mm.matches === 'boolean') return mm.matches;
+    }
+    return window.innerWidth > window.innerHeight;
+  },
+
+  /* data-cn-mode 속성을 현재 orientation으로 동기화 */
+  _updateMode() {
+    const overlay = document.getElementById('cnOverlay');
+    overlay.dataset.cnMode = this._isLandscape() ? 'landscape' : 'portrait';
+  },
+
+  /* 시네마 진입 — 사용자 제스처 컨텍스트에서 호출돼야 함 */
+  async enter(bookId) {
+    const book = BOOKS.find(b => b.id === bookId);
+    if (!book) return;
+
+    this.bookId = bookId;
+    this.active = true;
+
+    // 책 메타 채우기
+    document.getElementById('cnMetaTitle').textContent = book.title || '';
+    document.getElementById('cnMetaAuthor').textContent = book.author || '';
+    document.getElementById('cnProgressNum').textContent = book.currentPage || 0;
+    document.getElementById('cnProgressTotal').textContent = book.pages || '—';
+    document.getElementById('cnTime').textContent = '00:00';
+
+    // 현재 orientation 반영
+    this._updateMode();
+
+    // 오버레이 열기
+    const overlay = document.getElementById('cnOverlay');
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cn-locked');
+
+    // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
+    await this._tryFullscreen();
+
+    // 진입 애니메이션 트리거 (다음 프레임에서 cn-running 추가)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => overlay.classList.add('cn-running'));
+    });
+
+    // 첫 진입 시 컨트롤 살짝 비춤(2.4초 후 사라짐) — "어떻게 종료하지?" 안내
+    setTimeout(() => {
+      if (this.active) this._showControls(2400);
+    }, 1900);
+
+    // orientation 변경 리스너 등록
+    this._attachRotationListener();
+  },
+
+  /* 풀스크린 요청 (가능한 경우만) */
+  async _tryFullscreen() {
+    const el = document.documentElement;
+    try {
+      if (el.requestFullscreen) {
+        await el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+        this.fullscreenLocked = !!document.fullscreenElement;
+      } else if (el.webkitRequestFullscreen) {
+        // Safari
+        el.webkitRequestFullscreen();
+        this.fullscreenLocked = true;
+      }
+    } catch (_) { /* iOS Safari 차단 — 무시 */ }
+  },
+
+  /* orientation 변경 시 mode 토글 */
+  _attachRotationListener() {
+    if (this.rotateListener) return;
+    this.rotateListener = () => {
+      // setTimeout: orientation 이벤트 직후 innerWidth가 아직 갱신 안 된 경우 대비
+      setTimeout(() => {
+        if (!this.active) return;
+        this._updateMode();
+      }, 120);
+    };
+    window.addEventListener('orientationchange', this.rotateListener);
+    window.addEventListener('resize', this.rotateListener);
+  },
+
+  /* 컨트롤 페이드 인 + 자동 페이드 아웃 */
+  _showControls(autoHideMs = 3000) {
+    const overlay = document.getElementById('cnOverlay');
+    overlay.classList.add('show-controls');
+    if (this.controlsTimer) clearTimeout(this.controlsTimer);
+    this.controlsTimer = setTimeout(() => {
+      overlay.classList.remove('show-controls');
+    }, autoHideMs);
+  },
+
+  /* 시네마만 종료 (타이머는 계속) */
+  exit(opts = {}) {
+    if (!this.active) return;
+    const overlay = document.getElementById('cnOverlay');
+
+    overlay.classList.remove('open', 'cn-running', 'show-controls');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('cn-locked');
+
+    if (this.controlsTimer) { clearTimeout(this.controlsTimer); this.controlsTimer = null; }
+
+    if (this.rotateListener) {
+      window.removeEventListener('orientationchange', this.rotateListener);
+      window.removeEventListener('resize', this.rotateListener);
+      this.rotateListener = null;
+    }
+
+    // 풀스크린 해제
+    if (this.fullscreenLocked) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      this.fullscreenLocked = false;
+    }
+
+    this.active = false;
+    this.bookId = null;
+
+    if (!opts.silent && opts.toast) showToast(opts.toast);
+  },
+};
+
+/* 시네마 이벤트 바인딩 */
+(function wireCinema() {
+  const overlay = document.getElementById('cnOverlay');
+  const stage   = document.getElementById('cnStage');
+  const btnExit = document.getElementById('cnCtrlExit');
+  const btnSave = document.getElementById('cnCtrlSave');
+
+  // 무대 탭 → 컨트롤 토글 (이미 보이면 즉시 숨김, 아니면 보임)
+  stage.addEventListener('click', (e) => {
+    // 컨트롤 버튼 클릭은 자체 핸들러가 처리
+    if (e.target.closest('.cn-controls')) return;
+    if (overlay.classList.contains('show-controls')) {
+      overlay.classList.remove('show-controls');
+      if (CINEMA.controlsTimer) { clearTimeout(CINEMA.controlsTimer); CINEMA.controlsTimer = null; }
+    } else {
+      CINEMA._showControls(3000);
+    }
+  });
+
+  // "앱으로" — 시네마만 종료, 타이머 유지
+  btnExit.addEventListener('click', () => {
+    CINEMA.exit({ silent: false, toast: '타이머는 계속 돌아가고 있어요' });
+  });
+
+  // "기록 저장" — 시네마 닫고 정지 시트 열기
+  btnSave.addEventListener('click', () => {
+    CINEMA.exit({ silent: true });
+    setTimeout(openTimerStop, 280);
+  });
+
+  // ESC로 시네마 종료 (데스크탑/외부 키보드)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && CINEMA.active) {
+      CINEMA.exit({ silent: true });
+    }
+  });
+
+  // 풀스크린이 외부 요인(F11, ESC 등)으로 빠졌을 때 시네마도 같이 종료
+  document.addEventListener('fullscreenchange', () => {
+    if (CINEMA.active && CINEMA.fullscreenLocked && !document.fullscreenElement) {
+      CINEMA.fullscreenLocked = false;
+      CINEMA.exit({ silent: true });
+    }
+  });
+})();
 
 /* 이 시점에 resumeTimer에서 복원된 TIMER.bookId가 있으면 tick 시작 */
 if (TIMER.bookId && TIMER.startTime) {
