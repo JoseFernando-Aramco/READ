@@ -14193,6 +14193,8 @@ const CINEMA = {
   rotateListener: null,    // orientationchange/resize 핸들러
   fullscreenLocked: false, // requestFullscreen 성공했는지
   prevThemeColor: null,    // 시네마 진입 전 theme-color 백업
+  prevHtmlBg: null,        // 진입 전 html 배경 백업
+  prevBodyBg: null,        // 진입 전 body 배경 백업
 
   /* 가로 화면인지 판정 — matchMedia 우선, 없으면 window 비교 */
   _isLandscape() {
@@ -14221,6 +14223,23 @@ const CINEMA = {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', this.prevThemeColor);
     this.prevThemeColor = null;
+  },
+
+  /* iOS PWA 홈 인디케이터·노치 safe area에 흰색이 비치지 않도록
+     html/body 배경을 잠시 검정으로 (cn-overlay만으론 닿지 못하는 영역까지) */
+  _lockBackgrounds() {
+    const html = document.documentElement;
+    const body = document.body;
+    this.prevHtmlBg = html.style.backgroundColor;
+    this.prevBodyBg = body.style.backgroundColor;
+    html.style.backgroundColor = '#000';
+    body.style.backgroundColor = '#000';
+  },
+  _restoreBackgrounds() {
+    document.documentElement.style.backgroundColor = this.prevHtmlBg || '';
+    document.body.style.backgroundColor = this.prevBodyBg || '';
+    this.prevHtmlBg = null;
+    this.prevBodyBg = null;
   },
 
   /* 시네마 진입 — 사용자 제스처 컨텍스트에서 호출돼야 함 */
@@ -14256,6 +14275,9 @@ const CINEMA = {
 
     // 상태바도 검정으로 (Android Chrome · iOS PWA)
     this._setThemeColor('#000000');
+
+    // html/body 배경 검정 강제 (홈 인디케이터·노치 safe area 흰색 차단)
+    this._lockBackgrounds();
 
     // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
     await this._tryFullscreen();
@@ -14324,6 +14346,9 @@ const CINEMA = {
 
     // 상태바 색 복원
     this._restoreThemeColor();
+
+    // html/body 배경 복원
+    this._restoreBackgrounds();
 
     if (this.controlsTimer) { clearTimeout(this.controlsTimer); this.controlsTimer = null; }
 
