@@ -7964,19 +7964,28 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
    타이머 · Timer
    ═══════════════════════════════════════════════════════════ */
 
-/* Now Hero 버튼의 "실행 중" 상태 */
+/* Now Hero 버튼의 "실행 중" 상태 — 시네마 톤 (검정 + 골드) */
 .now-btn.timer-running {
-  background: var(--c-oxblood) !important;
-  color: #fff !important;
-  border: none !important;
+  background: #0a0807 !important;
+  color: #d4a574 !important;
+  border: 1px solid rgba(212, 165, 116, 0.45) !important;
   font-family: inherit;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   font-weight: 600;
-  animation: timerPulse 2s ease-in-out infinite;
+  /* 시네마 골드 글로우 */
+  animation: cinemaPulse 2.4s ease-in-out infinite;
 }
-@keyframes timerPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 68, 82, 0.45); }
-  50%      { box-shadow: 0 0 0 10px rgba(240, 68, 82, 0); }
+.now-btn.timer-running .ic { color: #d4a574; }
+.now-btn.timer-running:active {
+  transform: scale(.98);
+  background: #15110d !important;
+  border-color: rgba(212, 165, 116, 0.7) !important;
+}
+@keyframes cinemaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.32),
+                        inset 0 0 0 0 rgba(212, 165, 116, 0); }
+  50%      { box-shadow: 0 0 0 8px rgba(212, 165, 116, 0),
+                        inset 0 0 24px 0 rgba(212, 165, 116, 0.08); }
 }
 
 /* 타이머 정지 시트 */
@@ -8398,26 +8407,27 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 700;
 }
 
-/* ─── 컨트롤 (탭 시 페이드 인) ─── */
+/* ─── 컨트롤 (탭 시 페이드 인) — 시계 아래쪽에 배치 ─── */
 .cn-controls {
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 72%; left: 50%;
+  transform: translate(-50%, -50%) translateY(8px);
   z-index: 8;
   display: flex;
   gap: 12px;
   align-items: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.32s ease;
+  transition: opacity 0.32s ease, transform 0.32s ease;
 }
 .cn-overlay.show-controls .cn-controls {
   opacity: 1;
   pointer-events: auto;
+  transform: translate(-50%, -50%) translateY(0);
 }
-/* 컨트롤이 보이면 시간을 살짝 어둡게 */
+/* 컨트롤이 보이면 시간을 살짝 어둡게 (가려짐 방지) */
 .cn-overlay.show-controls .cn-time {
-  opacity: 0.18;
+  opacity: 0.55;
   transition: opacity 0.32s ease;
 }
 
@@ -9451,6 +9461,8 @@ body.cn-locked {
   <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></symbol>
   <!-- 일시정지 -->
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <!-- 재생 (시네마 재진입용) -->
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></symbol>
   <!-- 셰브론 좌/우 (Now 카드 캐러셀) -->
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
@@ -13556,7 +13568,7 @@ function renderNowHero(arr) {
   const pct = b.pages ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
   const timerRunning = TIMER.bookId === b.id;
   const primaryBtn = timerRunning
-    ? `<button class="now-btn primary timer-running" data-action="stop-timer" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> --:-- · 저장</button>`
+    ? `<button class="now-btn primary timer-running" data-action="cinema-resume" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> --:-- · 계속 읽기</button>`
     : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</button>`;
 
   const multi = arr.length > 1;
@@ -13829,7 +13841,11 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       const action = actionBtn.dataset.action;
       const id = parseInt(actionBtn.dataset.bookId, 10);
       if (action === 'start-timer' && id) { startTimer(id); return; }
-      if (action === 'stop-timer') { openTimerStop(); return; }
+      if (action === 'cinema-resume') {
+        // 라이브러리 "계속 읽기" 버튼 → 현재 진행 중인 타이머의 시네마로 재진입
+        if (TIMER.bookId) CINEMA.enter(TIMER.bookId);
+        return;
+      }
       if (action === 'open-detail' && id) { openBookDetail(id); return; }
       if (action === 'now-prev') { nowHeroGo(-1); return; }
       if (action === 'now-next') { nowHeroGo(1); return; }
@@ -14049,7 +14065,7 @@ function tickTimerUI() {
   const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
   const display = formatTimerDisplay(elapsed);
   const btn = document.getElementById('nowTimerBtn');
-  if (btn) btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg> ${display} · 저장`;
+  if (btn) btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> ${display} · 계속 읽기`;
   // 시네마 모드 시간도 동시 업데이트
   const cnTimeEl = document.getElementById('cnTime');
   if (cnTimeEl && CINEMA.active) cnTimeEl.textContent = display;
@@ -14194,6 +14210,7 @@ const CINEMA = {
 
   /* 시네마 진입 — 사용자 제스처 컨텍스트에서 호출돼야 함 */
   async enter(bookId) {
+    if (this.active) return; // 이미 떠 있으면 무시
     const book = BOOKS.find(b => b.id === bookId);
     if (!book) return;
 
@@ -14205,7 +14222,13 @@ const CINEMA = {
     document.getElementById('cnMetaAuthor').textContent = book.author || '';
     document.getElementById('cnProgressNum').textContent = book.currentPage || 0;
     document.getElementById('cnProgressTotal').textContent = book.pages || '—';
-    document.getElementById('cnTime').textContent = '00:00';
+    // 재진입 시에는 현재 경과시간 그대로, 첫 진입엔 00:00
+    if (TIMER.startTime) {
+      const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
+      document.getElementById('cnTime').textContent = formatTimerDisplay(elapsed);
+    } else {
+      document.getElementById('cnTime').textContent = '00:00';
+    }
 
     // 현재 orientation 반영
     this._updateMode();
