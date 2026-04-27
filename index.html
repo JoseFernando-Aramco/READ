@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>READ — 독서기록</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14192,6 +14192,7 @@ const CINEMA = {
   controlsTimer: null,     // 컨트롤 자동 숨김 타이머
   rotateListener: null,    // orientationchange/resize 핸들러
   fullscreenLocked: false, // requestFullscreen 성공했는지
+  prevThemeColor: null,    // 시네마 진입 전 theme-color 백업
 
   /* 가로 화면인지 판정 — matchMedia 우선, 없으면 window 비교 */
   _isLandscape() {
@@ -14206,6 +14207,20 @@ const CINEMA = {
   _updateMode() {
     const overlay = document.getElementById('cnOverlay');
     overlay.dataset.cnMode = this._isLandscape() ? 'landscape' : 'portrait';
+  },
+
+  /* 상태바 색을 시네마 검정으로 (Android Chrome · iOS PWA 일부) */
+  _setThemeColor(color) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    if (this.prevThemeColor === null) this.prevThemeColor = meta.getAttribute('content');
+    meta.setAttribute('content', color);
+  },
+  _restoreThemeColor() {
+    if (this.prevThemeColor === null) return;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', this.prevThemeColor);
+    this.prevThemeColor = null;
   },
 
   /* 시네마 진입 — 사용자 제스처 컨텍스트에서 호출돼야 함 */
@@ -14238,6 +14253,9 @@ const CINEMA = {
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('cn-locked');
+
+    // 상태바도 검정으로 (Android Chrome · iOS PWA)
+    this._setThemeColor('#000000');
 
     // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
     await this._tryFullscreen();
@@ -14303,6 +14321,9 @@ const CINEMA = {
     overlay.classList.remove('open', 'cn-running', 'show-controls');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
+
+    // 상태바 색 복원
+    this._restoreThemeColor();
 
     if (this.controlsTimer) { clearTimeout(this.controlsTimer); this.controlsTimer = null; }
 
