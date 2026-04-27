@@ -331,7 +331,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: relative;
   background: transparent;
   min-height: 100vh;
-  padding-bottom: 110px;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
 }
 
 /* ═══════════ 헤더 ═══════════ */
@@ -340,7 +340,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   top: 0;
   z-index: 50;
   background: var(--c-canvas);
-  padding: 14px 20px;
+  /* iOS PWA 노치/Dynamic Island 영역 회피 */
+  padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -453,7 +454,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* ═══════════ 탭 바 ═══════════ */
 .tab-bar {
-  position: sticky; top: 68px; z-index: 45;
+  position: sticky; top: calc(68px + env(safe-area-inset-top)); z-index: 45;
   background: var(--c-canvas);
   padding: 6px 20px 0;
   display: flex;
@@ -2711,7 +2712,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* ═══════════ FAB ═══════════ */
 .fab {
   position: fixed;
-  bottom: 22px;
+  bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
