@@ -8494,7 +8494,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* ─── 컨트롤 (탭 시 페이드 인) — 시계 아래쪽에 배치 ─── */
 .cn-controls {
   position: absolute;
-  top: 72%; left: 50%;
+  left: 50%;
+  /* 세로: 72% / 가로: 82% (가로에서 시계가 화면 폭에 비해 더 커서 더 아래로) */
+  top: 72%;
   transform: translate(-50%, -50%) translateY(8px);
   z-index: 8;
   display: flex;
@@ -8502,7 +8504,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   align-items: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.32s ease, transform 0.32s ease;
+  transition: opacity 0.32s ease, transform 0.32s ease, top 0.5s ease;
+}
+.cn-overlay[data-cn-mode="landscape"] .cn-controls {
+  top: 82%;
 }
 .cn-overlay.show-controls .cn-controls {
   opacity: 1;
@@ -8511,7 +8516,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 /* 컨트롤이 보이면 시간을 살짝 어둡게 (가려짐 방지) */
 .cn-overlay.show-controls .cn-time {
-  opacity: 0.55;
+  opacity: 0.32;
   transition: opacity 0.32s ease;
 }
 
