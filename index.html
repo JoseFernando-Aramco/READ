@@ -14608,11 +14608,29 @@ const CINEMA = {
         await el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
         this.fullscreenLocked = !!document.fullscreenElement;
       } else if (el.webkitRequestFullscreen) {
-        // Safari
+        // Safari (데스크톱)
         el.webkitRequestFullscreen();
         this.fullscreenLocked = true;
       }
     } catch (_) { /* iOS Safari 차단 — 무시 */ }
+
+    // iOS Safari (PWA 아닌 경우): 바를 직접 숨길 수 없으므로
+    // 살짝 스크롤 트릭으로 Safari가 자동으로 바를 축소하도록 유도
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    const isiOS = /iPhone|iPod/.test(navigator.userAgent);
+    if (!isStandalone && isiOS) {
+      // body가 cn-locked로 fixed 되어있으니, html의 스크롤로 트릭
+      window.scrollTo(0, 1);
+      setTimeout(() => window.scrollTo(0, 0), 50);
+
+      // Safari 사용자에게 PWA 안내 한 번만 (전역 1회 한정)
+      if (!STORE.get('cinemaPwaHintShown', false)) {
+        setTimeout(() => {
+          showToast('💡 홈 화면에 추가하면 더 깊은 몰입을 즐기실 수 있어요');
+          STORE.set('cinemaPwaHintShown', true);
+        }, 2200);
+      }
+    }
   },
 
   /* orientation 변경 시 mode 토글 */
