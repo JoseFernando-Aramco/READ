@@ -8516,6 +8516,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 .cn-ctrl-exit,
+.cn-ctrl-pause,
 .cn-ctrl-save {
   display: inline-flex;
   align-items: center;
@@ -8532,6 +8533,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   white-space: nowrap;
 }
 .cn-ctrl-exit svg,
+.cn-ctrl-pause svg,
 .cn-ctrl-save svg {
   width: 16px; height: 16px;
   flex-shrink: 0;
@@ -8545,6 +8547,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: rgba(255,255,255,0.14);
   transform: scale(0.97);
 }
+/* 일시정지 — 골드 톤 outlined */
+.cn-ctrl-pause {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--cn-gold) 55%, transparent);
+  color: var(--cn-gold);
+}
+.cn-ctrl-pause:active {
+  background: color-mix(in srgb, var(--cn-gold) 14%, transparent);
+  transform: scale(0.97);
+}
 .cn-ctrl-save {
   background: var(--cn-gold);
   border: 1px solid var(--cn-gold);
@@ -8554,6 +8566,44 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .cn-ctrl-save:active {
   background: var(--cn-gold-soft);
   transform: scale(0.97);
+}
+
+/* ─── 일시정지 상태 — 시계 dim + PAUSED 배지 ─── */
+.cn-overlay.cn-paused .cn-time {
+  opacity: 0.32;
+  transition: opacity 0.4s ease;
+}
+.cn-overlay.cn-paused .cn-bg-glow {
+  opacity: 0.4;
+  transition: opacity 0.4s ease;
+}
+.cn-overlay.cn-paused.show-controls .cn-time {
+  opacity: 0.18;
+}
+.cn-overlay::before {
+  content: 'PAUSED';
+  position: absolute;
+  top: calc(50% - clamp(78px, 13vw, 160px));
+  left: 50%;
+  transform: translate(-50%, -100%);
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--cn-gold);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity 0.4s ease;
+}
+.cn-overlay.cn-paused::before {
+  opacity: 0.85;
+}
+
+/* 라이브러리 버튼 일시정지 상태 — 펄스 애니메이션 멈춤 */
+.now-btn.timer-running.timer-paused {
+  animation: none;
+  background: #1a1612 !important;
 }
 
 /* 시네마 모드일 때 body 잠금 */
@@ -10515,6 +10565,13 @@ body.cn-locked {
           <path d="M15 18l-6-6 6-6"/>
         </svg>
         <span>앱으로</span>
+      </button>
+      <button class="cn-ctrl-pause" id="cnCtrlPause" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="6" y="4" width="4" height="16" rx="1"/>
+          <rect x="14" y="4" width="4" height="16" rx="1"/>
+        </svg>
+        <span>일시정지</span>
       </button>
       <button class="cn-ctrl-save" id="cnCtrlSave" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -13467,7 +13524,32 @@ const TIMER = {
   bookId: null,
   startTime: null,
   intervalId: null,
+  pausedAt: null,      // 일시정지 시작 시각 (null이면 진행중)
+  pausedTotal: 0,      // 지금까지 누적된 일시정지 시간 합 (ms)
 };
+
+/* ─── 현재 경과시간 (일시정지 시간 제외) ─── */
+function getElapsedMs() {
+  if (!TIMER.startTime) return 0;
+  const now = Date.now();
+  const pausedNow = TIMER.pausedAt ? (now - TIMER.pausedAt) : 0;
+  return Math.max(0, now - TIMER.startTime - TIMER.pausedTotal - pausedNow);
+}
+
+/* 경과시간을 초 단위로 (정수) */
+function getElapsedSec() {
+  return Math.floor(getElapsedMs() / 1000);
+}
+
+/* 일시정지 여부 */
+function isTimerPaused() {
+  return TIMER.bookId !== null && TIMER.pausedAt !== null;
+}
+
+/* 진행 중 (일시정지 아님) 여부 */
+function isTimerRunning() {
+  return TIMER.bookId !== null && TIMER.pausedAt === null;
+}
 
 /* ─── 새로고침 후 타이머 복원 ─── */
 (function resumeTimer() {
@@ -13480,6 +13562,8 @@ const TIMER = {
   }
   TIMER.bookId = saved.bookId;
   TIMER.startTime = saved.startTime;
+  TIMER.pausedAt = saved.pausedAt || null;
+  TIMER.pausedTotal = saved.pausedTotal || 0;
   // startTimerTick는 나중에 정의됨 — 여기서는 상태만 복원
 })();
 
@@ -14224,13 +14308,30 @@ function formatTimerDisplay(seconds) {
 
 function tickTimerUI() {
   if (!TIMER.startTime) return;
-  const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
+  const elapsed = getElapsedSec();
   const display = formatTimerDisplay(elapsed);
+  const paused = isTimerPaused();
+
   const btn = document.getElementById('nowTimerBtn');
-  if (btn) btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> ${display} · 계속 읽기`;
+  if (btn) {
+    const icon = paused ? '#i-pause' : '#i-play';
+    const label = paused ? '일시정지됨' : '계속 읽기';
+    btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="${icon}"/></svg> ${display} · ${label}`;
+    btn.classList.toggle('timer-paused', paused);
+  }
   // 시네마 모드 시간도 동시 업데이트
   const cnTimeEl = document.getElementById('cnTime');
   if (cnTimeEl && CINEMA.active) cnTimeEl.textContent = display;
+  // 시네마 일시정지 배지
+  const overlay = document.getElementById('cnOverlay');
+  if (overlay) overlay.classList.toggle('cn-paused', paused);
+  // 일시정지/재개 버튼 라벨 동기화
+  const pauseBtn = document.getElementById('cnCtrlPause');
+  if (pauseBtn) {
+    pauseBtn.innerHTML = paused
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg><span>재개</span>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><span>일시정지</span>`;
+  }
 }
 
 function startTimerTick() {
@@ -14250,7 +14351,9 @@ function startTimer(bookId) {
 
   TIMER.bookId = bookId;
   TIMER.startTime = Date.now();
-  STORE.set('timer', { bookId, startTime: TIMER.startTime });
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
+  STORE.set('timer', { bookId, startTime: TIMER.startTime, pausedAt: null, pausedTotal: 0 });
 
   renderLibraryCards(); // 버튼 실행중 상태로 리렌더
   startTimerTick();
@@ -14259,13 +14362,45 @@ function startTimer(bookId) {
   CINEMA.enter(bookId);
 }
 
+/* ─── 일시정지 / 재개 ─── */
+function pauseTimer() {
+  if (!TIMER.bookId || TIMER.pausedAt !== null) return;
+  TIMER.pausedAt = Date.now();
+  STORE.set('timer', {
+    bookId: TIMER.bookId,
+    startTime: TIMER.startTime,
+    pausedAt: TIMER.pausedAt,
+    pausedTotal: TIMER.pausedTotal,
+  });
+  tickTimerUI();
+}
+
+function resumeTimerNow() {
+  if (!TIMER.bookId || TIMER.pausedAt === null) return;
+  const pausedFor = Date.now() - TIMER.pausedAt;
+  TIMER.pausedTotal += pausedFor;
+  TIMER.pausedAt = null;
+  STORE.set('timer', {
+    bookId: TIMER.bookId,
+    startTime: TIMER.startTime,
+    pausedAt: null,
+    pausedTotal: TIMER.pausedTotal,
+  });
+  tickTimerUI();
+}
+
+function toggleTimerPause() {
+  if (isTimerPaused()) resumeTimerNow();
+  else pauseTimer();
+}
+
 /* 타이머 정지 시트 열기 */
 function openTimerStop() {
   if (!TIMER.bookId || !TIMER.startTime) return;
   const book = BOOKS.find(b => b.id === TIMER.bookId);
   if (!book) return;
 
-  const elapsedSec = Math.floor((Date.now() - TIMER.startTime) / 1000);
+  const elapsedSec = getElapsedSec();
   const minutes = Math.max(1, Math.round(elapsedSec / 60));
   TIMER.pendingMinutes = minutes;
 
@@ -14324,6 +14459,8 @@ function saveTimerSession() {
   TIMER.startTime = null;
   TIMER.intervalId = null;
   TIMER.pendingMinutes = null;
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
   STORE.set('timer', null);
 
   // 시네마 모드 종료 (열려 있다면)
@@ -14420,8 +14557,7 @@ const CINEMA = {
     document.getElementById('cnProgressTotal').textContent = book.pages || '—';
     // 재진입 시에는 현재 경과시간 그대로, 첫 진입엔 00:00
     if (TIMER.startTime) {
-      const elapsed = Math.floor((Date.now() - TIMER.startTime) / 1000);
-      document.getElementById('cnTime').textContent = formatTimerDisplay(elapsed);
+      document.getElementById('cnTime').textContent = formatTimerDisplay(getElapsedSec());
     } else {
       document.getElementById('cnTime').textContent = '00:00';
     }
@@ -14433,6 +14569,7 @@ const CINEMA = {
     const overlay = document.getElementById('cnOverlay');
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.toggle('cn-paused', isTimerPaused());
     document.body.classList.add('cn-locked');
 
     // 상태바도 검정으로 (Android Chrome · iOS PWA)
@@ -14502,7 +14639,7 @@ const CINEMA = {
     if (!this.active) return;
     const overlay = document.getElementById('cnOverlay');
 
-    overlay.classList.remove('open', 'cn-running', 'show-controls');
+    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
 
@@ -14542,6 +14679,7 @@ const CINEMA = {
   const overlay = document.getElementById('cnOverlay');
   const stage   = document.getElementById('cnStage');
   const btnExit = document.getElementById('cnCtrlExit');
+  const btnPause = document.getElementById('cnCtrlPause');
   const btnSave = document.getElementById('cnCtrlSave');
 
   // 무대 탭 → 컨트롤 토글 (이미 보이면 즉시 숨김, 아니면 보임)
@@ -14552,13 +14690,24 @@ const CINEMA = {
       overlay.classList.remove('show-controls');
       if (CINEMA.controlsTimer) { clearTimeout(CINEMA.controlsTimer); CINEMA.controlsTimer = null; }
     } else {
-      CINEMA._showControls(3000);
+      // 일시정지 중이면 컨트롤을 더 오래 보여줌 (자동 재개 안 되게)
+      CINEMA._showControls(isTimerPaused() ? 6000 : 3000);
     }
   });
 
   // "앱으로" — 시네마만 종료, 타이머 유지
   btnExit.addEventListener('click', () => {
-    CINEMA.exit({ silent: false, toast: '타이머는 계속 돌아가고 있어요' });
+    CINEMA.exit({
+      silent: false,
+      toast: isTimerPaused() ? '타이머가 일시정지된 상태예요' : '타이머는 계속 돌아가고 있어요',
+    });
+  });
+
+  // "일시정지 / 재개" 토글
+  btnPause.addEventListener('click', () => {
+    toggleTimerPause();
+    // 토글 후 컨트롤 자동 숨김 타이머 갱신 (또 만져볼 수 있게)
+    CINEMA._showControls(isTimerPaused() ? 6000 : 2400);
   });
 
   // "기록 저장" — 시네마 닫고 정지 시트 열기
@@ -20771,6 +20920,8 @@ function resetAppData() {
   TIMER.bookId = null;
   TIMER.startTime = null;
   TIMER.intervalId = null;
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
   STORE.set('timer', null);
   // UI 리렌더
   try { renderTagRadar(); } catch(e){}
