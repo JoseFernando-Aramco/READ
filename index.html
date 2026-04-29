@@ -5061,6 +5061,71 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .form-submit:active { transform: translateY(1px); }
 
+/* ─── 표지 직접 첨부 (직접 입력 폼) ─── */
+.cover-upload {
+  display: flex; gap: 12px; align-items: center;
+  padding: 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+}
+.cover-upload-preview {
+  width: 56px; height: 84px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--c-border-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-muted);
+  overflow: hidden;
+}
+.cover-upload-preview img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.cover-upload-actions {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.cover-upload-btn {
+  align-self: flex-start;
+  padding: 7px 12px;
+  background: var(--c-text);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: -.2px;
+}
+.cover-upload-btn:active { transform: translateY(1px); }
+.cover-upload-clear {
+  align-self: flex-start;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--c-muted);
+  border: 1px solid var(--c-border);
+  border-radius: 7px;
+  font-size: 11.5px; font-weight: 600;
+}
+.cover-upload-hint {
+  font-size: 11px; color: var(--c-muted);
+  letter-spacing: -.1px;
+}
+
+/* ─── 책 상세 표지 편집 배지 ─── */
+.bd-cover-edit-badge {
+  position: absolute;
+  right: 4px; bottom: 4px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.bd-cover-edit-badge svg { width: 12px; height: 12px; }
+.bd-hero-cover { position: relative; cursor: pointer; }
+.bd-hero-cover:active { opacity: 0.85; }
+
 /* ─── Stage 2: 추가 확인 ─── */
 .confirm-preview {
   display: flex; gap: 14px;
@@ -9788,6 +9853,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
           <label class="form-label">출판사 (선택)</label>
           <input class="form-input" type="text" name="publisher" maxlength="60" placeholder="예: 민음사">
         </div>
+        <!-- 표지 직접 첨부 (선택) -->
+        <div class="form-field">
+          <label class="form-label">표지 이미지 (선택)</label>
+          <div class="cover-upload" id="coverUpload">
+            <div class="cover-upload-preview" id="coverUploadPreview">
+              <svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg>
+            </div>
+            <div class="cover-upload-actions">
+              <input type="file" id="coverFileInput" accept="image/*" style="display:none">
+              <button type="button" class="cover-upload-btn" id="coverPickBtn">사진 선택</button>
+              <button type="button" class="cover-upload-clear" id="coverClearBtn" style="display:none">제거</button>
+              <div class="cover-upload-hint">검색에 없는 책 · 5MB 이하</div>
+            </div>
+          </div>
+        </div>
         <button class="form-submit" id="btnManualSubmit">다음 ›</button>
       </form>
     </div>
@@ -11286,6 +11366,7 @@ const BA = {
   selected: null,       // 선택된 책 정보 (Google or manual)
   tagsSelected: [],     // 추가 시 선택한 태그
   rating: 0,            // 완독 등록 시 별점 (0~5)
+  manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 dataURL
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -11328,8 +11409,14 @@ function closeBookAdd() {
   // reset
   BA.selected = null;
   BA.tagsSelected = [];
+  BA.manualCover = '';
   document.getElementById('bookSearchInput').value = '';
   document.getElementById('manualForm').reset();
+  // 표지 미리보기·제거 버튼도 초기화
+  const preview = document.getElementById('coverUploadPreview');
+  if (preview) preview.innerHTML = '<svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg>';
+  const clearBtn = document.getElementById('coverClearBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
 }
 function goToStage(stage) {
@@ -12334,6 +12421,47 @@ async function selectBook(normalizedBook) {
 }
 
 /* ─── 직접 입력 제출 → Stage 2 ─── */
+/* ─── 사용자 선택 이미지 → 리사이즈 → base64 dataURL ─── */
+async function processCoverImage(file) {
+  if (!file) return null;
+  if (!file.type.startsWith('image/')) {
+    throw new Error('이미지 파일만 선택해주세요');
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('5MB 이하 이미지로 선택해주세요');
+  }
+
+  // FileReader로 일단 dataURL로
+  const dataUrl = await new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('이미지를 읽지 못했어요'));
+    r.readAsDataURL(file);
+  });
+
+  // 큰 이미지는 600x900 기준으로 리사이즈 (책 표지 비율 4:6)
+  const img = await new Promise((resolve, reject) => {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = () => reject(new Error('이미지를 불러오지 못했어요'));
+    i.src = dataUrl;
+  });
+
+  const MAX_W = 600, MAX_H = 900;
+  let w = img.naturalWidth, h = img.naturalHeight;
+  if (w > MAX_W || h > MAX_H) {
+    const ratio = Math.min(MAX_W / w, MAX_H / h);
+    w = Math.round(w * ratio);
+    h = Math.round(h * ratio);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  // JPEG 80% — 파일 크기와 품질 균형
+  return canvas.toDataURL('image/jpeg', 0.8);
+}
+
 function submitManual() {
   const form = document.getElementById('manualForm');
   const fd = new FormData(form);
@@ -12348,7 +12476,7 @@ function submitManual() {
     title, author, pages,
     year: String(fd.get('year') || '').trim(),
     publisher: String(fd.get('publisher') || '').trim(),
-    cover: '',
+    cover: BA.manualCover || '',
     isbn: '',
     language: 'ko',
     source: 'manual',
@@ -12720,6 +12848,68 @@ document.querySelectorAll('.bas-back').forEach(btn => {
 // 수동 입력 이동
 document.getElementById('btnManualInput').addEventListener('click', () => goToStage('manual'));
 document.getElementById('btnManualSubmit').addEventListener('click', submitManual);
+
+// 표지 직접 첨부 (직접 입력 폼)
+document.getElementById('coverPickBtn').addEventListener('click', () => {
+  document.getElementById('coverFileInput').click();
+});
+document.getElementById('coverFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    showToast('표지 처리 중…');
+    const dataUrl = await processCoverImage(file);
+    BA.manualCover = dataUrl;
+    document.getElementById('coverUploadPreview').innerHTML =
+      `<img src="${dataUrl}" alt="표지 미리보기">`;
+    document.getElementById('coverClearBtn').style.display = '';
+    showToast('표지 첨부됨 ✓');
+  } catch (err) {
+    showToast(err.message || '표지를 첨부하지 못했어요');
+  } finally {
+    // 같은 파일 재선택 가능하도록 input 초기화
+    e.target.value = '';
+  }
+});
+document.getElementById('coverClearBtn').addEventListener('click', () => {
+  BA.manualCover = '';
+  document.getElementById('coverUploadPreview').innerHTML =
+    '<svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg>';
+  document.getElementById('coverClearBtn').style.display = 'none';
+});
+
+// 책 상세 표지 클릭 → 갤러리에서 교체 (이벤트 위임)
+document.addEventListener('click', (e) => {
+  const cover = e.target.closest('.bd-hero-cover');
+  if (!cover) return;
+  // 책 상세 모달이 열려있을 때만
+  const bdSheet = document.getElementById('bdSheet');
+  if (!bdSheet || !bdSheet.classList.contains('open')) return;
+  const fileInput = document.getElementById('bdCoverFileInput');
+  if (fileInput) fileInput.click();
+});
+
+// 책 상세 file input change 위임 (renderBookDetail 호출 후마다 재바인딩 불필요)
+document.addEventListener('change', async (e) => {
+  if (e.target.id !== 'bdCoverFileInput') return;
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!BD || !BD.book) return;
+  try {
+    showToast('표지 처리 중…');
+    const dataUrl = await processCoverImage(file);
+    updateBook(BD.book.id, { coverUrl: dataUrl });
+    BD.book.coverUrl = dataUrl;
+    renderBookDetail();
+    try { renderLibraryCards(); } catch(_) {}
+    try { renderLogList(); } catch(_) {}
+    showToast('표지 변경됨 ✓');
+  } catch (err) {
+    showToast(err.message || '표지를 변경하지 못했어요');
+  } finally {
+    e.target.value = '';
+  }
+});
 
 // 상태 세그먼트
 document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
@@ -13958,13 +14148,15 @@ function renderBookDetail() {
   const cover = b.coverUrl
     ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)">📖</div>`;
+  // ✏️ 편집 배지 (탭하면 갤러리에서 교체)
+  const coverEditBadge = `<div class="bd-cover-edit-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>`;
 
   document.getElementById('bdBody').innerHTML = `
 
     <!-- Hero 통합: 커버 + 타이틀 + 메타 + 상태 + (reading시 진행률) -->
     <div class="bd-hero bd-hero-unified">
       <div class="bd-hero-top">
-        <div class="bd-hero-cover">${cover}</div>
+        <div class="bd-hero-cover">${cover}${coverEditBadge}<input type="file" id="bdCoverFileInput" accept="image/*" style="display:none"></div>
         <div class="bd-hero-info">
           <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
           <div class="bd-hero-author">${esc(b.author)}</div>
