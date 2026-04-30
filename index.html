@@ -5722,6 +5722,207 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   backdrop-filter: blur(4px);
 }
 .bd-cover-edit-badge .ic { width: 11px; height: 11px; }
+
+/* ═══ 위시리스트 정렬 토글 (취향순) ═══ */
+.wish-sort-toggle {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 10px 0;
+  justify-content: flex-end;
+}
+.wish-sort-pill {
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 100px;
+  color: var(--c-text);
+  letter-spacing: -.2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.wish-sort-pill:active { transform: translateY(1px); }
+.wish-sort-pill.on {
+  background: var(--c-text);
+  color: var(--c-surface);
+  border-color: var(--c-text);
+}
+.wish-rec-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--c-gold-500, #C99836) 18%, transparent);
+  color: var(--c-gold-500, #B5862E);
+  border-radius: 5px;
+  z-index: 2;
+  pointer-events: none;
+  letter-spacing: -.2px;
+}
+.book-card { position: relative; }
+
+/* ═══ 통계 탭 — 취향 인사이트 섹션 ═══ */
+.taste-insight { margin-top: 14px; }
+.taste-insight-h {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin: 18px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -.3px;
+}
+.taste-insight-h:first-child { margin-top: 0; }
+.taste-insight-sub {
+  font-size: 11.5px;
+  color: var(--c-muted);
+  margin-bottom: 10px;
+  letter-spacing: -.1px;
+}
+.balance-card {
+  padding: 13px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.balance-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.balance-bar-row:last-child { margin-bottom: 0; }
+.balance-bar-label {
+  min-width: 64px;
+  color: var(--c-text);
+  letter-spacing: -.2px;
+}
+.balance-bar-track {
+  flex: 1;
+  height: 7px;
+  background: var(--c-border-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.balance-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.balance-bar-pct {
+  min-width: 32px;
+  text-align: right;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.balance-comment {
+  padding: 11px 13px;
+  background: color-mix(in srgb, var(--c-gold-500, #C99836) 10%, transparent);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--c-text);
+  letter-spacing: -.2px;
+}
+.taste-rec-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 4px 16px 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.taste-rec-row::-webkit-scrollbar { display: none; }
+.taste-rec-card {
+  flex-shrink: 0;
+  width: 138px;
+  padding: 11px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.taste-rec-card:active { transform: scale(0.97); }
+.taste-rec-card.featured {
+  border: 1.5px solid var(--c-gold-500, #C99836);
+}
+.taste-rec-cover {
+  width: 100%;
+  height: 80px;
+  border-radius: 6px;
+  background: var(--c-border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--c-muted);
+  margin-bottom: 9px;
+  overflow: hidden;
+}
+.taste-rec-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.taste-rec-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  background: color-mix(in srgb, var(--c-gold-500, #C99836) 18%, transparent);
+  color: var(--c-gold-500, #B5862E);
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  letter-spacing: -.2px;
+}
+.taste-rec-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 2px;
+  color: var(--c-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  letter-spacing: -.2px;
+}
+.taste-rec-author {
+  font-size: 10.5px;
+  color: var(--c-muted);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.taste-rec-reason {
+  font-size: 9.5px;
+  color: var(--c-muted);
+  padding: 2px 6px;
+  background: var(--c-border-2);
+  border-radius: 4px;
+  display: inline-block;
+  letter-spacing: -.1px;
+}
+
+/* ═══ 응원하기 row (페어리 후원) ═══ */
+.settings-row-support .settings-row-icon {
+  background: color-mix(in srgb, #E11D48 12%, transparent);
+  color: #E11D48;
+}
+.settings-row-support:active .settings-row-icon {
+  background: color-mix(in srgb, #E11D48 18%, transparent);
+}
+
 .bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
 .bd-hero-title {
   font-family: inherit;
@@ -9962,6 +10163,9 @@ body.cn-locked {
       <div class="pace-grid" id="paceGrid"></div>
     </div>
 
+    <!-- ═══ 취향 인사이트 (균형 + 추천) ═══ -->
+    <div class="taste-insight" id="tasteInsight"></div>
+
   </section>
 
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
@@ -10198,11 +10402,19 @@ body.cn-locked {
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <button class="settings-row settings-row-support" id="supportRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-heart"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">응원하기</div>
+            <div class="settings-row-sub">커피 한 잔의 응원이 다음 업데이트가 돼요</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
         <button class="settings-row" id="aboutRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.4.0 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.5.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -10867,101 +11079,90 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.4.0 · 업데이트 소식</div>
-    <div class="wn-ttl">새 버전이 도착했어요</div>
-    <div class="wn-sub">통계·목표·노트 — 세 탭이 크게 바뀌었습니다.</div>
+    <div class="wn-badge">v1.5.0 · 업데이트 소식</div>
+    <div class="wn-ttl">읽는 시간이 영화 같았으면 했어요</div>
+    <div class="wn-sub">시네마 타이머·표지 첨부·다음 책 추천 — 묵직한 업데이트입니다.</div>
 
-    <!-- ★ HERO — 목표 마일스톤 -->
+    <!-- ★ HERO — 시네마 모드 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">🏆</span>
-        NEW · 목표 탭
+        <span style="font-size:11px">🎬</span>
+        NEW · 시네마 모드
       </div>
-      <div class="wn-hero-ttl">마일스톤이 들어왔어요</div>
-      <div class="wn-hero-sub">권수·페이지·연속·깊이 — 4가지 카테고리에서 단계별 칭호를 모아보세요</div>
+      <div class="wn-hero-ttl">풀스크린 타이머가 들어왔어요</div>
+      <div class="wn-hero-sub">letterbox 화면에 시간만 흐릅니다. 가로·세로 자동 분기, 골드 톤 한 색만</div>
       <div class="ms-grid">
         <div class="ms-cell">
-          <div class="ms-cell-icon">📚</div>
+          <div class="ms-cell-icon">⏱️</div>
           <div>
-            <div class="ms-cell-name">권수</div>
-            <div class="ms-cell-step">백권 클럽까지 6단계</div>
+            <div class="ms-cell-name">풀스크린</div>
+            <div class="ms-cell-step">letterbox + serif 시간</div>
           </div>
         </div>
         <div class="ms-cell">
-          <div class="ms-cell-icon">📄</div>
+          <div class="ms-cell-icon">⏸</div>
           <div>
-            <div class="ms-cell-name">페이지</div>
-            <div class="ms-cell-step">10만 페이지까지</div>
+            <div class="ms-cell-name">일시정지</div>
+            <div class="ms-cell-step">멈췄다 이어 읽기</div>
           </div>
         </div>
         <div class="ms-cell">
-          <div class="ms-cell-icon">🔥</div>
+          <div class="ms-cell-icon">📱</div>
           <div>
-            <div class="ms-cell-name">연속</div>
-            <div class="ms-cell-step">백일의 독서가</div>
+            <div class="ms-cell-name">가로/세로</div>
+            <div class="ms-cell-step">자동 레이아웃 전환</div>
           </div>
         </div>
         <div class="ms-cell">
-          <div class="ms-cell-icon">💭</div>
+          <div class="ms-cell-icon">🔄</div>
           <div>
-            <div class="ms-cell-name">깊이</div>
-            <div class="ms-cell-step">메모·인생책·재독</div>
+            <div class="ms-cell-name">재진입</div>
+            <div class="ms-cell-step">라이브러리에서 한 번에</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 노트 + 통계 + 동시 독서 -->
+    <!-- 표지 + 추천 + 균형 + 페어리 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">📓</div>
+        <div class="wn-icon">🎨</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">노트 탭이 새로워졌어요</div>
-          <div class="wn-item-sub">인용구·내 생각을 티켓 이미지로 공유. 카드마다 책별 색이 들어와요</div>
+          <div class="wn-item-ttl">표지 직접 넣기</div>
+          <div class="wn-item-sub">검색에 없는 책의 표지를 사진첩에서 첨부할 수 있어요. 책 상세에서도 표지를 누르면 바꿀 수 있습니다</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">📊</div>
+        <div class="wn-icon">📚</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">통계 — 요즘 관심사 정리</div>
-          <div class="wn-item-sub">"최근 1년 자주 읽은 분야"로 라벨·동작 일치</div>
+          <div class="wn-item-ttl">다음 책 어때요? — 위시리스트 취향순</div>
+          <div class="wn-item-sub">별점 4점 이상 주신 책의 저자·태그 패턴으로 위시리스트를 다시 정렬해드립니다. 광고 없이, 본인 데이터로만</div>
         </div>
       </li>
-
-      <!-- ★ 동시 독서 — 카드 스택 형태 -->
-      <li class="wn-multi">
-        <div class="wn-multi-head">
-          <div class="wn-multi-stack" aria-hidden="true">
-            <div class="wn-multi-card wn-multi-card-1"></div>
-            <div class="wn-multi-card wn-multi-card-3"></div>
-            <div class="wn-multi-card wn-multi-card-2"></div>
-          </div>
-          <div class="wn-multi-text">
-            <div class="wn-item-ttl">여러 권 동시에 읽으세요</div>
-            <div class="wn-item-sub">홈 Now 카드를 좌우로 넘기며 책을 전환할 수 있어요</div>
-          </div>
+      <li class="wn-item">
+        <div class="wn-icon">🎯</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">장르 균형 — 통계 탭</div>
+          <div class="wn-item-sub">완독한 책의 태그 분포가 가로 막대로 보여요. 잔소리는 없습니다, 부드러운 관찰뿐</div>
         </div>
-        <div class="wn-multi-foot">
-          <span style="font-size:11px">←</span>
-          <span>SWIPE</span>
-          <span style="font-size:11px">→</span>
-          <div class="wn-multi-dots" aria-hidden="true">
-            <div class="wn-multi-dot active"></div>
-            <div class="wn-multi-dot"></div>
-            <div class="wn-multi-dot"></div>
-          </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">💝</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">설정에 응원하기</div>
+          <div class="wn-item-sub">페어리(fairy.hada.io)로 가는 길을 열었어요. 부담 없이 봐주시면 감사하겠습니다</div>
         </div>
       </li>
     </ul>
 
     <!-- 그 외 -->
     <div class="wn-misc">
-      <strong>그 외</strong> · 로그 V4-C 한 줄 정리 · 책 상세 슬림화 · 미드나잇 가독성 · 안드로이드 뒤로가기 픽스
+      <strong>그 외</strong> · 추천은 별점 4점 책 1권 이상일 때 노출 · 통계 인사이트는 완독 3권 이상일 때 · iOS PWA 안정화
     </div>
 
     <div class="wn-actions">
       <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">목표 보러 가기 ›</button>
+      <button class="wn-btn primary" id="wnGoStats">시네마 모드 켜보기 ›</button>
     </div>
   </div>
 </div>
@@ -10980,7 +11181,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.4.0</div>
+      <div class="ab-ver">version 1.5.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -14205,6 +14406,58 @@ let _visibleDoneCount = 10;
 const DONE_PAGE_SIZE = 20;
 const DONE_FULL_VIEW_THRESHOLD = 100;
 
+/* 위시리스트 정렬 모드 — 'recent' | 'rec' (취향순) */
+let _wishSortMode = 'recent';
+
+/* ═══════════════════════════════════════════════════════════
+   위시리스트 전용 렌더 — 정렬 토글 + 취향 점수 배지
+   ═══════════════════════════════════════════════════════════ */
+function renderWishlistSection(wish) {
+  if (!wish.length) return '';
+
+  const hasLikedBooks = BOOKS.some(b => b.status === 'done' && (b.rating || 0) >= 4);
+
+  let booksToRender = wish;
+  let scoreMap = {};
+  if (_wishSortMode === 'rec' && hasLikedBooks) {
+    const scored = getRecommendedWishlist();
+    if (scored.length > 0) {
+      scored.forEach(b => { scoreMap[b.id] = b._recScore; });
+      booksToRender = scored;
+    }
+  }
+
+  const sortToggle = hasLikedBooks ? `
+    <div class="wish-sort-toggle">
+      <button type="button" class="wish-sort-pill ${_wishSortMode === 'recent' ? 'on' : ''}" data-action="wish-sort" data-sort="recent">최근</button>
+      <button type="button" class="wish-sort-pill ${_wishSortMode === 'rec' ? 'on' : ''}" data-action="wish-sort" data-sort="rec">취향순 ✨</button>
+    </div>
+  ` : '';
+
+  return `
+    <div class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">위시리스트</div>
+        </div>
+        <span class="section-sub">${wish.length}권</span>
+      </div>
+      ${sortToggle}
+      <div class="book-row">
+        ${booksToRender.map((b, i) => {
+          const card = renderBookCard(b, i);
+          if (_wishSortMode === 'rec' && i < 3 && (scoreMap[b.id] || 0) > 0) {
+            return card.replace(
+              /^(<[^>]+class="book-card[^"]*"[^>]*>)/,
+              `$1<span class="wish-rec-badge" aria-label="취향 매칭 ${scoreMap[b.id]}점">★ ${scoreMap[b.id]}</span>`
+            );
+          }
+          return card;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 function renderLibraryCards() {
   const container = document.getElementById('libCards');
   if (!container) return;
@@ -14258,7 +14511,7 @@ function renderLibraryCards() {
     ${renderMonthStrip()}
     ${renderBookSection('독서중',      '', reading)}
     ${renderBookSection('완독',        doneSubLabel, done, doneTrailing)}
-    ${renderBookSection('위시리스트',  '', wish)}
+    ${renderWishlistSection(wish)}
   `;
 }
 
@@ -14293,6 +14546,15 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
         const allDone = BOOKS.filter(b => b.status === 'done')
           .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
         openDrillDown('완독한 책 전체', `총 ${allDone.length}권`, allDone);
+        return;
+      }
+      // ─── 위시리스트 정렬 토글 ───
+      if (action === 'wish-sort') {
+        const newMode = actionBtn.dataset.sort;
+        if (newMode && newMode !== _wishSortMode) {
+          _wishSortMode = newMode;
+          renderLibraryCards();
+        }
         return;
       }
     }
@@ -17866,6 +18128,7 @@ function renderAllStats() {
   try { renderCumulativeStatCard(); } catch(e) { console.error('[cumu]', e); }
   try { renderRatingStatCard();   } catch(e) { console.error('[rating]', e); }
   try { renderMonthCal();         } catch(e) { console.error('[monthcal]', e); }
+  try { renderTasteInsight();     } catch(e) { console.error('[taste]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
@@ -18122,6 +18385,175 @@ function renderMonthlyStatCard() {
 }
 
 /* ─── ⑤ 장르 (태그) 비중 도넛 ─── */
+/* ═══════════════════════════════════════════════════════════
+   📚 다음 책 추천 — 본인 데이터 기반 점수 계산
+   완독 별점 4★+ 책의 태그·저자·페이지·출판사 → 위시리스트 매칭
+   ═══════════════════════════════════════════════════════════ */
+
+function calcRecommendScore(wish, liked) {
+  if (!liked.length) return { total: 0, reasons: [] };
+  let total = 0;
+  const reasons = [];
+
+  // 1. 같은 저자 (강한 시그널)
+  const sameAuthor = liked.filter(b => b.author && wish.author && b.author === wish.author);
+  if (sameAuthor.length > 0) {
+    const avgRating = sameAuthor.reduce((s, b) => s + (b.rating || 0), 0) / sameAuthor.length;
+    const pts = Math.round(5 * (avgRating / 5) * 1.5);
+    total += pts;
+    reasons.push(`${wish.author} ★${avgRating.toFixed(1)}`);
+  }
+
+  // 2. 태그 일치 (별점 5짜리는 1.5배 가중)
+  const tagCount = {};
+  liked.forEach(b => (b.tags || []).forEach(t => {
+    tagCount[t] = (tagCount[t] || 0) + ((b.rating || 0) >= 5 ? 1.5 : 1);
+  }));
+  const matched = (wish.tags || []).filter(t => tagCount[t]);
+  let tagPts = 0;
+  matched.forEach(t => { tagPts += Math.round(3 * Math.min(tagCount[t] / 2, 2)); });
+  if (tagPts > 0) {
+    total += tagPts;
+    const tagShown = matched.slice(0, 2).map(t => '#' + t).join(' ');
+    reasons.push(`${tagShown} 취향 일치`);
+  }
+
+  // 3. 같은 출판사
+  if (wish.publisher && liked.some(b => b.publisher === wish.publisher)) {
+    total += 1;
+  }
+
+  // 4. 비슷한 페이지 수 (±100p)
+  if (wish.pages) {
+    const avgPages = liked.reduce((s, b) => s + (b.pages || 0), 0) / liked.length;
+    if (avgPages > 0 && Math.abs(wish.pages - avgPages) < 100) total += 1;
+  }
+
+  return { total, reasons };
+}
+
+function getRecommendedWishlist() {
+  if (typeof BOOKS === 'undefined' || !Array.isArray(BOOKS)) return [];
+  const liked = BOOKS.filter(b => b.status === 'done' && (b.rating || 0) >= 4);
+  const wish = BOOKS.filter(b => b.status === 'wish');
+  if (!liked.length || !wish.length) return [];
+
+  return wish.map(b => {
+    const { total, reasons } = calcRecommendScore(b, liked);
+    return { ...b, _recScore: total, _recReasons: reasons };
+  }).sort((a, b) => b._recScore - a._recScore);
+}
+
+/* 완독 책의 태그 분포 (점유율 내림차순) */
+function getTagDistribution(year) {
+  if (typeof BOOKS === 'undefined' || !Array.isArray(BOOKS)) return [];
+  let done = BOOKS.filter(b => b.status === 'done');
+  if (year != null) {
+    done = done.filter(b => {
+      if (!b.dateEnd) return false;
+      return new Date(b.dateEnd).getFullYear() === year;
+    });
+  }
+  const count = {};
+  done.forEach(b => (b.tags || []).forEach(t => { count[t] = (count[t] || 0) + 1; }));
+  const total = Object.values(count).reduce((s, v) => s + v, 0);
+  if (!total) return [];
+  return Object.entries(count)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag, n]) => ({ tag, count: n, pct: Math.round(n / total * 100) }));
+}
+
+/* 균형 코멘트 — 부드러운 관찰 톤 */
+function getBalanceComment(dist, doneCount) {
+  if (doneCount < 3) return '책이 더 쌓이면 패턴이 보일 거예요.';
+  if (dist.length === 0) return '태그를 달면 분포가 보여요.';
+  const top = dist[0];
+  if (top.pct >= 50) {
+    const others = dist.slice(1, 3).map(d => `#${d.tag}`).join(', ');
+    if (others) return `#${top.tag} 비중이 ${top.pct}%로 높아요. ${others} 쪽도 한 번 어떠세요?`;
+    return `#${top.tag} 중심이세요. 다른 태그도 시도해보세요.`;
+  }
+  if (dist.length >= 4) return `${dist.length}가지 태그를 골고루 읽으셨네요. 균형감이 좋아요.`;
+  return `#${top.tag} 중심으로 읽고 계세요. 자연스러운 흐름이에요.`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   통계 탭 — 취향 인사이트 (균형 + 추천 카드)
+   ═══════════════════════════════════════════════════════════ */
+
+const TASTE_TAG_COLORS = [
+  'var(--c-terra-700, #8B5A3C)',
+  'var(--c-sage-700, #4A7C5A)',
+  'var(--c-plum-700, #6B4A6E)',
+  'var(--c-gold-500, #C99836)',
+  '#7E8AA0',
+  '#8B6B8E',
+];
+
+function renderTasteInsight() {
+  const wrap = document.getElementById('tasteInsight');
+  if (!wrap) return;
+
+  const doneCount = BOOKS.filter(b => b.status === 'done').length;
+  const dist = getTagDistribution();
+  const recommended = getRecommendedWishlist().slice(0, 3);
+
+  if (doneCount < 3) {
+    wrap.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+
+  if (dist.length > 0) {
+    html += `<div class="taste-insight-h">🎯 장르 균형</div>`;
+    html += `<div class="taste-insight-sub">완독한 책들의 태그 분포예요</div>`;
+    html += `<div class="balance-card">`;
+    dist.slice(0, 6).forEach((d, i) => {
+      const color = TASTE_TAG_COLORS[i % TASTE_TAG_COLORS.length];
+      html += `
+        <div class="balance-bar-row">
+          <div class="balance-bar-label">#${esc(d.tag)}</div>
+          <div class="balance-bar-track"><div class="balance-bar-fill" style="width: ${d.pct}%; background: ${color};"></div></div>
+          <div class="balance-bar-pct">${d.pct}%</div>
+        </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="balance-comment">💭 ${esc(getBalanceComment(dist, doneCount))}</div>`;
+  }
+
+  if (recommended.length > 0 && recommended[0]._recScore > 0) {
+    html += `<div class="taste-insight-h">📚 다음 책 어때요?</div>`;
+    html += `<div class="taste-insight-sub">완독한 책과 비슷한 결의 위시리스트예요</div>`;
+    html += `<div class="taste-rec-row">`;
+    recommended.forEach((b, i) => {
+      const featured = i === 0;
+      const cover = b.coverUrl
+        ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='📖'">`
+        : '📖';
+      const reasonText = (b._recReasons && b._recReasons.length) ? b._recReasons[0] : `매칭 ${b._recScore}점`;
+      html += `
+        <div class="taste-rec-card${featured ? ' featured' : ''}" data-action="open-detail" data-book-id="${b.id}">
+          <div class="taste-rec-cover">${cover}</div>
+          ${featured ? '<div class="taste-rec-badge">가장 가까운 취향</div>' : ''}
+          <div class="taste-rec-title">${esc(b.title)}</div>
+          <div class="taste-rec-author">${esc(b.author || '')}</div>
+          <div class="taste-rec-reason">${esc(reasonText)}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('[data-action="open-detail"]').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = parseInt(card.dataset.bookId, 10);
+      if (id) openBookDetail(id);
+    });
+  });
+}
+
 function renderGenreDonut() {
   // 읽는중 + 완독 책의 태그를 카운트
   const counts = {};
@@ -19841,6 +20273,23 @@ document.getElementById('ctSubmit')?.addEventListener('click', async () => {
   });
 })();
 
+/* ═══ 페어리(fairy.hada.io) 후원 링크 ═══
+ * 페어리 핸들이 바뀌면 아래 URL만 수정하세요. */
+const FAIRY_SUPPORT_URL = 'https://fairy.hada.io/@-read';
+
+(function wireSupportRow() {
+  const row = document.getElementById('supportRow');
+  if (!row || row.dataset.supportWired) return;
+  row.dataset.supportWired = '1';
+  row.addEventListener('click', () => {
+    try {
+      window.open(FAIRY_SUPPORT_URL, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      location.href = FAIRY_SUPPORT_URL;
+    }
+  });
+})();
+
 /* ═══════════════════════════════════════════════════════════
    엑셀에서 가져오기 (Import)
    ═══════════════════════════════════════════════════════════ */
@@ -20757,7 +21206,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.4.0',
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.5.0',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
@@ -21230,7 +21679,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion';
 
 function openWhatsNew() {
@@ -21299,10 +21748,10 @@ function _versionLower(a, b) {
   if (goStats) {
     goStats.addEventListener('click', () => {
       closeWhatsNew();
-      // v1.4.0 — 목표 탭으로 이동 (마일스톤 강조)
+      // v1.5.0 — 라이브러리 탭으로 이동 (시네마 모드는 책 선택 → 타이머 시작)
       setTimeout(() => {
-        const goalsTab = document.querySelector('.tab-btn[data-tab="goals"]');
-        if (goalsTab) goalsTab.click();
+        const libTab = document.querySelector('.tab-btn[data-tab="library"]');
+        if (libTab) libTab.click();
       }, 320);
     });
   }
