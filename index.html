@@ -4412,6 +4412,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   vertical-align: 1px;
 }
 .result-source.kakao { background: #FEE500; color: #3C1E1E; }
+.result-source.aladin { background: #00A4E1; color: #fff; }
 .result-source.google { background: var(--c-surface-2); color: var(--c-text-2); border: 1px solid var(--c-border); }
 
 /* ═══════════════════════════════════════════════════════════
@@ -13091,10 +13092,21 @@ function _kakaoKey() { try { return atob(_KK); } catch(e){ return ''; } }
 /* 쿼리가 한글인지 빠른 판별 (한 글자라도 한글이면 true) */
 function _hasHangul(s) { return /[\uAC00-\uD7AF\u3131-\u318E]/.test(s || ''); }
 
+/* 쿼리가 ISBN으로 보이는지 — 공백·하이픈 제거 후 ISBN-10/13 패턴 */
+function _isLikelyIsbn(q) {
+  const clean = String(q || '').replace(/[-\s]/g, '');
+  // ISBN-13: 13자리 숫자 (978/979로 시작)  /  ISBN-10: 9자리 숫자 + 마지막 [0-9X]
+  return /^(?:97[89]\d{10}|\d{9}[\dX])$/i.test(clean);
+}
+
 /* Kakao Books API 호출 → 정규화된 items 배열 반환 */
 async function _searchKakao(q) {
+  // ISBN이면 target=isbn 파라미터로 정확도 ↑
+  const isbnMode = _isLikelyIsbn(q);
+  const cleanQ = isbnMode ? q.replace(/[-\s]/g, '') : q;
   const url = 'https://dapi.kakao.com/v3/search/book?' +
-    'query=' + encodeURIComponent(q) +
+    'query=' + encodeURIComponent(cleanQ) +
+    (isbnMode ? '&target=isbn' : '') +
     '&size=20&sort=accuracy';
   const res = await fetch(url, {
     headers: { 'Authorization': 'KakaoAK ' + _kakaoKey() }
@@ -13121,8 +13133,12 @@ async function _searchKakao(q) {
 
 /* Google Books API 호출 → 정규화 */
 async function _searchGoogle(q) {
+  // ISBN이면 isbn: 프리픽스로 정확도 ↑ (영문 원서 ISBN 검색 핵심)
+  const isbnMode = _isLikelyIsbn(q);
+  const cleanQ = isbnMode ? q.replace(/[-\s]/g, '') : q;
+  const finalQ = isbnMode ? `isbn:${cleanQ}` : cleanQ;
   const url = 'https://www.googleapis.com/books/v1/volumes?' +
-    'q=' + encodeURIComponent(q) +
+    'q=' + encodeURIComponent(finalQ) +
     '&maxResults=20&printType=books';
   const res = await fetch(url);
   if (!res.ok) throw new Error('Google HTTP ' + res.status);
@@ -13158,6 +13174,48 @@ async function _searchGoogle(q) {
   });
 }
 
+/* 알라딘 API 호출 (Cloudflare Worker 프록시 경유) → 정규화
+ * Worker에 /search 엔드포인트 필요 (?query= 또는 ?isbn=)
+ * 응답 형식: 알라딘 ItemSearch / ItemLookUp 그대로 패스스루
+ */
+async function _searchAladin(q) {
+  if (typeof ALADIN_PROXY_URL === 'undefined' || !ALADIN_PROXY_URL) return [];
+
+  const isbnMode = _isLikelyIsbn(q);
+  const cleanQ = isbnMode ? q.replace(/[-\s]/g, '') : q;
+  const url = isbnMode
+    ? `${ALADIN_PROXY_URL}/search?isbn=${encodeURIComponent(cleanQ)}`
+    : `${ALADIN_PROXY_URL}/search?query=${encodeURIComponent(cleanQ)}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Aladin HTTP ' + res.status);
+  const data = await res.json();
+  const items = (data && data.item) || [];
+  return items.map(it => {
+    // 알라딘 응답 필드: title, author, pubDate, publisher, cover, isbn13, itemPage, description
+    const year = it.pubDate ? String(it.pubDate).slice(0, 4) : '';
+    // itemPage는 root에 있을 수도 있고 subInfo.itemPage에 있을 수도 있음 (ItemLookUp vs ItemSearch 차이)
+    let pages = null;
+    if (typeof it.itemPage === 'number' && it.itemPage > 0) {
+      pages = it.itemPage;
+    } else if (it.subInfo && typeof it.subInfo.itemPage === 'number' && it.subInfo.itemPage > 0) {
+      pages = it.subInfo.itemPage;
+    }
+    return {
+      title: it.title || '',
+      author: it.author || '',
+      year,
+      pages,
+      publisher: it.publisher || '',
+      cover: it.cover || '',
+      language: 'ko',  // 알라딘은 국내 유통서 위주
+      isbn: it.isbn13 || it.isbn || '',
+      contents: it.description || '',
+      source: 'aladin',
+    };
+  });
+}
+
 /* ISBN 기반 중복 제거 (같은 ISBN이면 한 번만 · Kakao 우선) */
 function _dedupeByIsbn(arr) {
   const seen = new Set();
@@ -13180,36 +13238,47 @@ async function searchBooks(query) {
   renderSearchLoading();
 
   try {
-    // 한글 쿼리 → Kakao 우선, 영어 → Google 우선 (병합 시 순서)
+    // ISBN이면 정확도 모드, 한글이면 Kakao/알라딘 우선, 영어면 Google 우선
+    const isbnMode = _isLikelyIsbn(q);
     const isKorean = _hasHangul(q);
-    const [kakaoRes, googleRes] = await Promise.allSettled([
+
+    // 3종 동시 호출 (allSettled로 하나가 죽어도 나머지는 살림)
+    const [kakaoRes, googleRes, aladinRes] = await Promise.allSettled([
       _searchKakao(q),
       _searchGoogle(q),
+      _searchAladin(q),
     ]);
     if (myId !== _searchReqId) return;
 
-    const kakaoItems = kakaoRes.status === 'fulfilled' ? kakaoRes.value : [];
+    const kakaoItems  = kakaoRes.status  === 'fulfilled' ? kakaoRes.value  : [];
     const googleItems = googleRes.status === 'fulfilled' ? googleRes.value : [];
+    const aladinItems = aladinRes.status === 'fulfilled' ? aladinRes.value : [];
 
-    if (kakaoRes.status === 'rejected') {
-      console.warn('[search] Kakao 실패:', kakaoRes.reason?.message || kakaoRes.reason);
+    if (kakaoRes.status  === 'rejected') console.warn('[search] Kakao 실패:',  kakaoRes.reason?.message  || kakaoRes.reason);
+    if (googleRes.status === 'rejected') console.warn('[search] Google 실패:', googleRes.reason?.message || googleRes.reason);
+    if (aladinRes.status === 'rejected') console.warn('[search] Aladin 실패:', aladinRes.reason?.message || aladinRes.reason);
+
+    // 병합 순서 결정
+    //  - ISBN 모드: 알라딘(국내서 정확도 1위) → Kakao → Google
+    //  - 한글 쿼리: Kakao → 알라딘 → Google
+    //  - 영문 쿼리: Google → 알라딘 → Kakao (원서 검색 우선)
+    let merged;
+    if (isbnMode) {
+      merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
+    } else if (isKorean) {
+      merged = _dedupeByIsbn([...kakaoItems, ...aladinItems, ...googleItems]);
+    } else {
+      merged = _dedupeByIsbn([...googleItems, ...aladinItems, ...kakaoItems]);
     }
-    if (googleRes.status === 'rejected') {
-      console.warn('[search] Google 실패:', googleRes.reason?.message || googleRes.reason);
-    }
 
-    // 병합 순서: 한글이면 Kakao 먼저, 영어면 Google 먼저
-    const merged = isKorean
-      ? _dedupeByIsbn([...kakaoItems, ...googleItems])
-      : _dedupeByIsbn([...googleItems, ...kakaoItems]);
-
-    console.log(`[search] 결과: Kakao ${kakaoItems.length} · Google ${googleItems.length} · merged ${merged.length}`);
+    console.log(`[search] 결과: Kakao ${kakaoItems.length} · Aladin ${aladinItems.length} · Google ${googleItems.length} · merged ${merged.length}`);
 
     if (merged.length === 0) {
-      // 둘 다 실패이거나 빈 결과
-      if (kakaoRes.status === 'rejected' && googleRes.status === 'rejected') {
-        throw new Error('두 검색 서비스 모두 응답하지 않았어요');
-      }
+      // 셋 다 실패면 진짜 에러, 일부만 빈 결과면 그대로 빈 결과 표시
+      const allRejected = kakaoRes.status === 'rejected'
+                       && googleRes.status === 'rejected'
+                       && aladinRes.status === 'rejected';
+      if (allRejected) throw new Error('검색 서비스가 모두 응답하지 않았어요');
       renderSearchResults([], {});
       return;
     }
@@ -13227,7 +13296,7 @@ function renderSearchWelcome() {
     <div class="search-state">
       <div class="search-state-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-books"/></svg></div>
       <div class="search-state-ttl">책 이름이나 저자를 검색해보세요</div>
-      <div class="search-state-sub">국내서(카카오) · 원서(Google Books) 동시 검색</div>
+      <div class="search-state-sub">국내서(카카오·알라딘) · 원서(Google Books) 동시 검색</div>
     </div>`;
 }
 function renderSearchNoKey() {
@@ -13294,7 +13363,10 @@ function renderSearchResults(items, errors) {
     const isOrig = b.language && b.language !== 'ko';
     const lang = isOrig ? `<span class="lang">🌐 ${esc(b.language.toUpperCase())}</span>` : '';
     const meta = [year, pages].filter(Boolean).join(' · ');
-    const sourceBadge = b.source === 'kakao' ? '<span class="result-source kakao">K</span>' : '<span class="result-source google">G</span>';
+    const sourceBadge =
+        b.source === 'kakao'  ? '<span class="result-source kakao">K</span>'
+      : b.source === 'aladin' ? '<span class="result-source aladin">A</span>'
+      :                         '<span class="result-source google">G</span>';
 
     return `
       <div class="result-item" data-idx="${idx}">
