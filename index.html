@@ -5764,6 +5764,73 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .book-card { position: relative; }
 
+/* ═══════════════════════════════════════════════════════════
+   타이머 진행 중 표시 — 글로우 보더(A) + 시간 배지(C)
+   .book-card.timer-active : 진행 중 (골드 펄스)
+   .book-card.timer-paused : 일시정지 (회색, 정지)
+   ═══════════════════════════════════════════════════════════ */
+.book-card.timer-active .book-card-cover {
+  box-shadow:
+    0 0 0 2.5px #d4a574,
+    0 0 0 5px rgba(212, 165, 116, 0.3),
+    0 4px 14px rgba(212, 165, 116, 0.4);
+  animation: bookCardTimerGlow 2s ease-in-out infinite;
+}
+@keyframes bookCardTimerGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2.5px #d4a574,
+      0 0 0 5px rgba(212, 165, 116, 0.3),
+      0 4px 14px rgba(212, 165, 116, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2.5px #d4a574,
+      0 0 0 8px rgba(212, 165, 116, 0.15),
+      0 6px 18px rgba(212, 165, 116, 0.5);
+  }
+}
+
+/* 일시정지 상태 — 정적 회색 */
+.book-card.timer-paused .book-card-cover {
+  box-shadow:
+    0 0 0 2px var(--c-muted, #8B95A1),
+    0 4px 12px rgba(139, 149, 161, 0.25);
+  animation: none;
+}
+
+/* 시간 배지 (하단 중앙, 표지 위에 absolute) */
+.book-card-cover .timer-time-badge {
+  position: absolute;
+  left: 50%; bottom: 6px;
+  transform: translateX(-50%);
+  background: rgba(212, 165, 116, 0.95);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-feature-settings: 'tnum';
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+.book-card-cover .timer-time-badge svg {
+  width: 8px; height: 8px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+.book-card.timer-paused .timer-time-badge {
+  background: rgba(75, 85, 99, 0.9);
+}
+
 /* ═══ 통계 탭 — 취향 인사이트 섹션 ═══ */
 .taste-insight { margin-top: 14px; }
 .taste-insight-h {
@@ -5935,6 +6002,275 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ═══ 바로 읽기 알약 (제목 옆) ═══ */
+.bd-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.bd-title-row .bd-hero-title {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+.quick-read-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #d4a574;
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  letter-spacing: -.2px;
+  font-family: inherit;
+  box-shadow: 0 1px 4px rgba(212, 165, 116, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+.quick-read-pill:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+.quick-read-pill svg {
+  width: 11px; height: 11px;
+  fill: currentColor;
+}
+/* 같은 책 진행 중 — "이어 읽기" 펄스 */
+.quick-read-pill.same-book {
+  animation: quickReadPulse 2s ease-in-out infinite;
+}
+@keyframes quickReadPulse {
+  0%, 100% { box-shadow: 0 1px 4px rgba(212, 165, 116, 0.35); }
+  50% { box-shadow: 0 1px 4px rgba(212, 165, 116, 0.35), 0 0 0 4px rgba(212, 165, 116, 0.15); }
+}
+
+/* ═══ 바로 읽기 확인 다이얼로그 ═══ */
+.qr-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.qr-confirm-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+.qr-confirm-card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 22px 20px 16px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  transform: scale(0.96);
+  transition: transform 0.2s;
+}
+.qr-confirm-backdrop.open .qr-confirm-card { transform: scale(1); }
+.qr-confirm-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, #d4a574 18%, transparent);
+  color: #c08e58;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.qr-confirm-icon svg { width: 22px; height: 22px; }
+.qr-confirm-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin-bottom: 6px;
+  letter-spacing: -.3px;
+  line-height: 1.35;
+}
+.qr-confirm-body {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.qr-confirm-current {
+  padding: 11px 13px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qr-confirm-current-cover {
+  width: 36px; height: 50px;
+  border-radius: 4px;
+  background: var(--brand-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.qr-confirm-current-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.qr-confirm-current-info { flex: 1; min-width: 0; }
+.qr-confirm-current-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qr-confirm-current-time {
+  font-size: 11px;
+  color: var(--c-muted);
+  font-feature-settings: 'tnum';
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.qr-timer-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #E11D48;
+  animation: qrDotBlink 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes qrDotBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.qr-timer-dot.paused {
+  background: var(--c-muted);
+  animation: none;
+}
+
+/* 페이지 입력 필드 (선택) */
+.qr-page-field {
+  margin-bottom: 14px;
+  padding: 12px 13px;
+  background: var(--c-canvas, #FAFBFC);
+  border: 1px solid var(--c-border-2);
+  border-radius: 10px;
+}
+.qr-page-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  letter-spacing: -.2px;
+}
+.qr-page-optional {
+  color: var(--c-muted);
+  font-weight: 500;
+  font-size: 11px;
+}
+.qr-page-prev {
+  font-size: 11px;
+  color: var(--c-muted);
+  font-weight: 500;
+}
+.qr-page-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qr-page-input {
+  width: 80px; height: 38px;
+  border: 1px solid var(--c-border-2);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-family: inherit;
+  font-feature-settings: 'tnum';
+  /* 모바일에서 입력시 줌 방지 */
+  -webkit-appearance: none;
+  appearance: none;
+}
+.qr-page-input::-webkit-outer-spin-button,
+.qr-page-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.qr-page-input:focus {
+  border-color: #d4a574;
+  outline: 2px solid rgba(212, 165, 116, 0.2);
+}
+.qr-page-sep {
+  font-size: 16px;
+  color: var(--c-muted);
+  font-weight: 500;
+}
+.qr-page-total {
+  font-size: 14px;
+  color: var(--c-text-2);
+  font-weight: 600;
+}
+.qr-confirm-helper {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-top: 8px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.qr-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qr-confirm-btn {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -.2px;
+  transition: transform 0.15s;
+}
+.qr-confirm-btn.primary {
+  background: #d4a574;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(212, 165, 116, 0.3);
+}
+.qr-confirm-btn.primary:active { transform: translateY(1px); }
+.qr-confirm-btn.ghost {
+  background: transparent;
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border-2);
+}
+.qr-confirm-btn.ghost:active { background: var(--c-surface-2, #F5F6F7); }
 .bd-hero-author {
   font-family: inherit;
   font-style: normal;
@@ -10746,6 +11082,51 @@ body.cn-locked {
   </div>
 </aside>
 
+<!-- ═══════════ 바로 읽기 — 다른 책 타이머 진행 중 확인 ═══════════ -->
+<div class="qr-confirm-backdrop" id="qrConfirmBackdrop" aria-hidden="true" role="dialog">
+  <div class="qr-confirm-card">
+    <div class="qr-confirm-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+    </div>
+    <div class="qr-confirm-title" id="qrConfirmTitle">다른 책 타이머가 진행 중이에요</div>
+    <div class="qr-confirm-body" id="qrConfirmBody">진행 중인 기록을 저장하고 새로 시작할까요?</div>
+
+    <div class="qr-confirm-current">
+      <div class="qr-confirm-current-cover" id="qrConfirmCover">📖</div>
+      <div class="qr-confirm-current-info">
+        <div class="qr-confirm-current-title" id="qrConfirmCurrentTitle">—</div>
+        <div class="qr-confirm-current-time">
+          <span class="qr-timer-dot" id="qrTimerDot"></span>
+          <span id="qrConfirmCurrentTime">00:00:00</span>
+          <span id="qrConfirmCurrentLabel">진행 중</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 페이지 입력 (선택) -->
+    <div class="qr-page-field">
+      <div class="qr-page-label">
+        <span>현재 페이지 <span class="qr-page-optional">(선택)</span></span>
+        <span class="qr-page-prev" id="qrPagePrev"></span>
+      </div>
+      <div class="qr-page-row">
+        <input type="number" id="qrPageInput" class="qr-page-input" min="0" placeholder="">
+        <span class="qr-page-sep">/</span>
+        <span class="qr-page-total" id="qrPageTotal">—</span>
+      </div>
+    </div>
+
+    <div class="qr-confirm-actions">
+      <button class="qr-confirm-btn primary" id="qrConfirmSave">기록 저장하고 이 책 읽기</button>
+      <button class="qr-confirm-btn ghost" id="qrConfirmCancel">취소</button>
+    </div>
+    <div class="qr-confirm-helper">페이지를 비워두면 시간만 저장돼요</div>
+  </div>
+</div>
+
 <!-- ═══════════ 드릴다운 시트 ═══════════ -->
 <div class="dd-backdrop" id="ddBackdrop"></div>
 <aside class="dd-sheet" id="ddSheet" aria-hidden="true">
@@ -14173,10 +14554,34 @@ function renderBookCard(b, idx) {
       ? (b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : esc(b.author))
       : esc(b.author);
 
+  // 타이머 진행 중인 책인지 판정
+  const isTimerBook = (typeof TIMER !== 'undefined') && TIMER.bookId === b.id;
+  const timerPaused = isTimerBook && (typeof isTimerPaused === 'function') && isTimerPaused();
+  const timerCls = isTimerBook
+    ? (timerPaused ? ' timer-paused' : ' timer-active')
+    : '';
+
+  // 시간 배지 (타이머가 이 책에 돌아갈 때만)
+  let timerBadge = '';
+  if (isTimerBook && typeof getElapsedSec === 'function') {
+    const sec = getElapsedSec();
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const timeStr = h > 0
+      ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const icon = timerPaused
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+    timerBadge = `<div class="timer-time-badge" data-timer-badge="${b.id}">${icon}<span>${timeStr}</span></div>`;
+  }
+
   return `
-    <div class="book-card" data-book-id="${b.id}">
+    <div class="book-card${timerCls}" data-book-id="${b.id}">
       <div class="book-card-cover palette-${esc(b.palette || 'demian')}">
         ${renderBookCoverInner(b, idx + 1)}
+        ${timerBadge}
       </div>
       <div class="book-card-title">${esc(b.title)}</div>
       <div class="book-card-meta">${meta}</div>
@@ -14520,7 +14925,13 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     if (actionBtn) {
       const action = actionBtn.dataset.action;
       const id = parseInt(actionBtn.dataset.bookId, 10);
-      if (action === 'start-timer' && id) { startTimer(id); return; }
+      if (action === 'start-timer' && id) {
+        // v1.5.0 — handleQuickRead로 통합:
+        // 다른 책 타이머 진행 중이면 확인 다이얼로그 (책 이름 명시)
+        const targetBook = BOOKS.find(b => b.id === id);
+        if (targetBook) handleQuickRead(targetBook);
+        return;
+      }
       if (action === 'cinema-resume') {
         // 라이브러리 "계속 읽기" 버튼 → 현재 진행 중인 타이머의 시네마로 재진입
         if (TIMER.bookId) CINEMA.enter(TIMER.bookId);
@@ -14781,7 +15192,44 @@ function tickTimerUI() {
 function startTimerTick() {
   if (TIMER.intervalId) clearInterval(TIMER.intervalId);
   tickTimerUI();
-  TIMER.intervalId = setInterval(tickTimerUI, 1000);
+  updateBookCardTimerBadge();
+  TIMER.intervalId = setInterval(() => {
+    tickTimerUI();
+    updateBookCardTimerBadge();
+  }, 1000);
+}
+
+/* 책 카드의 시간 배지 실시간 갱신 — 시네마 영역 함수는 안 건드리고 별도로 호출 */
+function updateBookCardTimerBadge() {
+  if (!TIMER.bookId) return;
+  const sec = getElapsedSec();
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const timeStr = h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  // 같은 책의 모든 카드 (서재에 여러 위치에 노출될 수 있음 — 위시리스트는 아니지만 안전하게)
+  document.querySelectorAll(`[data-timer-badge="${TIMER.bookId}"] span`).forEach(el => {
+    el.textContent = timeStr;
+  });
+
+  // 일시정지 ↔ 진행 상태 토글 (아이콘도 같이 변경)
+  const paused = isTimerPaused();
+  document.querySelectorAll(`.book-card[data-book-id="${TIMER.bookId}"]`).forEach(card => {
+    card.classList.toggle('timer-active', !paused);
+    card.classList.toggle('timer-paused', paused);
+  });
+  // 배지 안 아이콘도 일시정지/진행에 따라 교체
+  const badge = document.querySelector(`[data-timer-badge="${TIMER.bookId}"]`);
+  if (badge) {
+    const svg = badge.querySelector('svg');
+    if (svg) {
+      svg.innerHTML = paused
+        ? '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>'
+        : '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+    }
+  }
 }
 
 function startTimer(bookId) {
@@ -15240,6 +15688,209 @@ const ModalStack = {
 window.addEventListener('popstate', () => ModalStack._handlePop());
 
 /* ─── 모달 열기/닫기 ─── */
+/* ═══════════════════════════════════════════════════════════
+   📖 바로 읽기 (Quick Read) — 책 상세에서 시네마 모드로 즉시 진입
+   상황별 분기:
+     1. 타이머 OFF → 즉시 시네마 진입
+     2. 같은 책 진행 중 → 이어서 시네마 (saveCurrent 안 함)
+     3. 다른 책 진행/일시정지 → 확인 창 → 저장 후 새로 시작
+   ═══════════════════════════════════════════════════════════ */
+
+/* 타이머 자동 저장 (UI 없이) — 정지 시트 거치지 않고 현재 시점 기록을 저장한다.
+ * saveTimerSession은 tmPageInput DOM에 의존하므로 별도로 만든다.
+ * @param opts.newPage  현재 페이지 (선택, 미입력 시 페이지 변동 없음)
+ */
+function autoSaveTimerSession(opts) {
+  opts = opts || {};
+  if (!TIMER.bookId) return false;
+  const book = BOOKS.find(b => b.id === TIMER.bookId);
+  if (!book) {
+    // 책이 없으면 타이머만 클리어
+    if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+    TIMER.bookId = null;
+    TIMER.startTime = null;
+    TIMER.intervalId = null;
+    TIMER.pausedAt = null;
+    TIMER.pausedTotal = 0;
+    STORE.set('timer', null);
+    return false;
+  }
+
+  // 일시정지 중이면 그동안 누적된 일시정지 시간도 합산
+  let pausedTotal = TIMER.pausedTotal || 0;
+  if (TIMER.pausedAt) pausedTotal += (Date.now() - TIMER.pausedAt);
+  const elapsedMs = Math.max(0, Date.now() - TIMER.startTime - pausedTotal);
+  const minutes = Math.max(1, Math.round(elapsedMs / 60000));
+
+  // 페이지 입력 검증 (선택)
+  const oldPage = book.currentPage || 0;
+  let validNewPage = oldPage;  // 기본: 변동 없음
+  if (opts.newPage != null && opts.newPage !== '') {
+    const parsed = parseInt(opts.newPage, 10);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= book.pages) {
+      validNewPage = parsed;
+    }
+  }
+  const pagesRead = Math.max(0, validNewPage - oldPage);
+
+  const sessions = [...(book.readingSessions || [])];
+  sessions.push({
+    date: new Date().toISOString().slice(0, 10),
+    minutes,
+    pages: pagesRead,
+  });
+
+  // 페이지가 변경됐으면 currentPage도 갱신
+  const update = { readingSessions: sessions };
+  if (validNewPage !== oldPage) update.currentPage = validNewPage;
+  updateBook(TIMER.bookId, update);
+
+  // 타이머 클리어
+  if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+  TIMER.bookId = null;
+  TIMER.startTime = null;
+  TIMER.intervalId = null;
+  TIMER.pendingMinutes = null;
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
+  STORE.set('timer', null);
+
+  return { minutes, pagesRead, bookTitle: book.title };
+}
+
+/* 바로 읽기 메인 핸들러 */
+function handleQuickRead(book) {
+  // 1. 타이머 OFF → 즉시 시작
+  if (!TIMER.bookId) {
+    startTimer(book.id); // startTimer가 CINEMA.enter까지 호출함
+    return;
+  }
+
+  // 2. 같은 책 진행/일시정지 → 시네마만 다시 띄우기 (타이머는 그대로)
+  if (TIMER.bookId === book.id) {
+    CINEMA.enter(book.id);
+    return;
+  }
+
+  // 3. 다른 책 진행/일시정지 → 확인 창
+  openQuickReadConfirm(book);
+}
+
+/* 확인 창 열기 */
+function openQuickReadConfirm(targetBook) {
+  const currentBook = BOOKS.find(b => b.id === TIMER.bookId);
+  if (!currentBook) {
+    // 안전장치: 진행 중 책이 사라졌으면 그냥 새로 시작
+    autoSaveTimerSession({});
+    setTimeout(() => startTimer(targetBook.id), 100);
+    return;
+  }
+
+  const paused = isTimerPaused();
+
+  // 경과 시간 계산
+  let pausedTotal = TIMER.pausedTotal || 0;
+  if (TIMER.pausedAt) pausedTotal += (Date.now() - TIMER.pausedAt);
+  const elapsedMs = Math.max(0, Date.now() - TIMER.startTime - pausedTotal);
+  const elapsedSec = Math.floor(elapsedMs / 1000);
+  const hh = Math.floor(elapsedSec / 3600);
+  const mm = Math.floor((elapsedSec % 3600) / 60);
+  const ss = elapsedSec % 60;
+  const timeStr = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+
+  // 다이얼로그 콘텐츠 채우기
+  // 한국어 조사 자동 처리 (받침 유무에 따라)
+  const lastChar = currentBook.title[currentBook.title.length - 1];
+  const code = lastChar.charCodeAt(0);
+  // 한글 음절 범위 (가~힣)
+  const hasJongseong = (code >= 0xAC00 && code <= 0xD7A3) && ((code - 0xAC00) % 28 !== 0);
+  const josaIGa = hasJongseong ? '이' : '가';
+  const josaEulReul = hasJongseong ? '을' : '를';
+
+  document.getElementById('qrConfirmTitle').textContent =
+    paused
+      ? `${currentBook.title}${josaIGa} 일시정지 상태예요`
+      : `${currentBook.title}${josaEulReul} 읽고 있는 중이에요`;
+  document.getElementById('qrConfirmBody').textContent = '진행 중인 기록을 저장하고 새로 시작할까요?';
+  document.getElementById('qrConfirmCurrentTitle').textContent = currentBook.title;
+  document.getElementById('qrConfirmCurrentTime').textContent = timeStr;
+  document.getElementById('qrConfirmCurrentLabel').textContent = paused ? '일시정지' : '진행 중';
+
+  const dot = document.getElementById('qrTimerDot');
+  if (dot) dot.classList.toggle('paused', paused);
+
+  // 표지
+  const coverEl = document.getElementById('qrConfirmCover');
+  if (coverEl) {
+    if (currentBook.coverUrl) {
+      coverEl.innerHTML = `<img src="${esc(currentBook.coverUrl)}" alt="" referrerpolicy="no-referrer">`;
+    } else {
+      coverEl.textContent = '📖';
+    }
+  }
+
+  // ═══ 페이지 입력 필드 채우기 (현재 진행 중인 책 기준) ═══
+  const pageInput = document.getElementById('qrPageInput');
+  const pagePrev = document.getElementById('qrPagePrev');
+  const pageTotal = document.getElementById('qrPageTotal');
+  if (pageInput && pageTotal) {
+    const oldPage = currentBook.currentPage || 0;
+    const totalPages = currentBook.pages || 0;
+    pageInput.value = '';  // 매번 비우고 시작 (사용자가 입력)
+    pageInput.placeholder = String(oldPage);
+    pageInput.max = String(totalPages || 9999);
+    pageTotal.textContent = totalPages ? `${totalPages}p` : '—';
+    if (pagePrev) {
+      pagePrev.textContent = oldPage > 0 ? `이전: ${oldPage}p` : '';
+    }
+  }
+
+  // 버튼 라벨
+  document.getElementById('qrConfirmSave').textContent =
+    `기록 저장하고 ${targetBook.title.length > 8 ? '이 책' : targetBook.title} 읽기`;
+
+  // 액션 바인딩 (한 번만)
+  const saveBtn = document.getElementById('qrConfirmSave');
+  const cancelBtn = document.getElementById('qrConfirmCancel');
+  const backdrop = document.getElementById('qrConfirmBackdrop');
+
+  // 기존 핸들러 제거를 위해 cloneNode로 갈아끼우기
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  const newCancel = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+  newSave.addEventListener('click', () => {
+    // 페이지 입력값 읽기 (비어있을 수 있음)
+    const newPageVal = document.getElementById('qrPageInput').value;
+    closeQuickReadConfirm();
+    const result = autoSaveTimerSession({ newPage: newPageVal });
+    if (result) {
+      const pageStr = result.pagesRead > 0 ? ` · +${result.pagesRead}p` : '';
+      showToast(`${result.bookTitle} ${result.minutes}분 기록 저장됨${pageStr} ✓`);
+    }
+    // 사용자 제스처 컨텍스트 안에서 새 시네마 시작 (fullscreen 보장)
+    setTimeout(() => startTimer(targetBook.id), 50);
+  });
+  newCancel.addEventListener('click', closeQuickReadConfirm);
+
+  // 백드롭 클릭으로도 닫기 (단, 카드 영역 클릭은 무시)
+  backdrop.onclick = (e) => {
+    if (e.target === backdrop) closeQuickReadConfirm();
+  };
+
+  backdrop.classList.add('open');
+  backdrop.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+
+function closeQuickReadConfirm() {
+  const backdrop = document.getElementById('qrConfirmBackdrop');
+  backdrop.classList.remove('open');
+  backdrop.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+
 function openBookDetail(id) {
   const book = BOOKS.find(b => b.id === id);
   if (!book) return;
@@ -15326,7 +15977,13 @@ function renderBookDetail() {
           <input type="file" id="bdCoverFileInput" accept="image/*" style="display:none">
         </button>
         <div class="bd-hero-info">
-          <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+          <div class="bd-title-row">
+            <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+            ${reading ? `<button type="button" class="quick-read-pill ${TIMER.bookId === b.id ? 'same-book' : ''}" id="bdQuickRead" aria-label="${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'} (시네마 모드)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
+            </button>` : ''}
+          </div>
           <div class="bd-hero-author">${esc(b.author)}</div>
           ${metaParts.length ? `<div class="bd-hero-meta">${metaParts.map(m => `<span>${m}</span>`).join('')}</div>` : ''}
         </div>
@@ -16056,6 +16713,12 @@ function wireBookDetailEvents() {
         e.target.value = '';
       }
     });
+  }
+
+  // ═══ 바로 읽기 알약 (제목 옆) — 시네마 모드 즉시 진입 ═══
+  const bdQuickRead = document.getElementById('bdQuickRead');
+  if (bdQuickRead) {
+    bdQuickRead.addEventListener('click', () => handleQuickRead(b));
   }
 
   // 새 태그 만들기 (책 상세)
