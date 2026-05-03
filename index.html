@@ -13166,6 +13166,99 @@ body.cn-locked {
   </button>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════
+     v1.6.0 — 하차 시트 (사유 입력 모달)
+     메인 스크립트의 IIFE에서 getElementById 가능하도록 script 위에 위치
+     ═══════════════════════════════════════════════════════════ -->
+<div class="drop-sheet-backdrop" id="dropSheetBackdrop" aria-hidden="true">
+  <div class="drop-sheet" role="dialog" aria-labelledby="dropSheetTitle">
+    <div class="drop-sheet-handle"></div>
+    <h2 class="drop-sheet-title" id="dropSheetTitle">하차 기록</h2>
+    <p class="drop-sheet-subtitle">잠시 책갈피를 꽂아두는 거예요</p>
+
+    <!-- 책 미리보기 (동적 렌더) -->
+    <div class="drop-sheet-book" id="dropSheetPreview"></div>
+
+    <!-- 사유 칩 -->
+    <div class="drop-sheet-section">
+      <h3>왜 책갈피를 꽂으셨나요? <span class="req">필수</span></h3>
+      <div class="drop-reason-chips" id="dropReasonChips"></div>
+      <div class="drop-add-chip-input-wrap" id="dropAddChipInputWrap">
+        <input type="text" class="drop-add-chip-input" id="dropAddChipInput" placeholder="예: 글씨가 너무 작아요" maxlength="30" inputmode="text">
+        <button type="button" class="drop-add-chip-confirm" id="dropAddChipConfirmBtn">추가</button>
+      </div>
+    </div>
+
+    <!-- 메모 -->
+    <div class="drop-sheet-section">
+      <h3>한 줄 메모 <span class="opt">선택</span></h3>
+      <textarea class="drop-note-input" id="dropNoteInput" placeholder="구체적인 사유나 떠오르는 생각을 적어두면 나중에 도움이 돼요" maxlength="200"></textarea>
+    </div>
+
+    <!-- 별점 -->
+    <div class="drop-sheet-section">
+      <h3>여기까지 본 평점 <span class="opt">선택</span></h3>
+      <div class="drop-rating-row" id="dropRatingRow">
+        <button type="button" class="drop-rating-star" data-star="1">★</button>
+        <button type="button" class="drop-rating-star" data-star="2">★</button>
+        <button type="button" class="drop-rating-star" data-star="3">★</button>
+        <button type="button" class="drop-rating-star" data-star="4">★</button>
+        <button type="button" class="drop-rating-star" data-star="5">★</button>
+        <span class="drop-rating-label" id="dropRatingLabel">평가 안 함</span>
+      </div>
+    </div>
+
+    <!-- 다시 읽을지 -->
+    <div class="drop-sheet-section">
+      <h3>나중에 다시 읽으실 의향은? <span class="opt">선택</span></h3>
+      <div class="drop-retry-row" id="dropRetryRow">
+        <button type="button" class="drop-retry-btn" data-val="yes">🌱 그럼요</button>
+        <button type="button" class="drop-retry-btn active" data-val="maybe">🤷 글쎄요</button>
+        <button type="button" class="drop-retry-btn" data-val="no">🙅 안 읽을래요</button>
+      </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="drop-sheet-footer">
+      <button type="button" class="drop-btn-cancel" id="dropCancelBtn">취소</button>
+      <button type="button" class="drop-btn-confirm" id="dropConfirmBtn" disabled>하차 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     v1.6.0 — 다시 도전 다이얼로그
+     ═══════════════════════════════════════════════════════════ -->
+<div class="retry-dialog-backdrop" id="retryDialogBackdrop" aria-hidden="true">
+  <div class="retry-dialog" role="dialog" aria-labelledby="retryDialogTitle">
+    <div class="retry-dialog-emoji">🌱</div>
+    <h3 class="retry-dialog-title" id="retryDialogTitle">다시 도전하기</h3>
+    <p class="retry-dialog-desc" id="retryDialogDesc">독서중 상태로 되돌릴게요.</p>
+
+    <div class="retry-dialog-options" id="retryDialogOpts">
+      <button type="button" class="retry-dialog-opt selected" data-opt="resume">
+        <div class="retry-dialog-opt-radio"></div>
+        <div class="retry-dialog-opt-content">
+          <div class="retry-dialog-opt-title" id="retryResumeTitle">📖 멈췄던 곳에서 이어 읽기</div>
+          <div class="retry-dialog-opt-desc" id="retryResumeDesc">진행률 그대로 유지</div>
+        </div>
+      </button>
+      <button type="button" class="retry-dialog-opt" data-opt="restart">
+        <div class="retry-dialog-opt-radio"></div>
+        <div class="retry-dialog-opt-content">
+          <div class="retry-dialog-opt-title">🔄 처음부터 다시</div>
+          <div class="retry-dialog-opt-desc">진행률 0%로 — 이전 하차 기록은 보존</div>
+        </div>
+      </button>
+    </div>
+
+    <div class="retry-dialog-actions">
+      <button type="button" class="drop-btn-cancel" id="retryDialogCancel">취소</button>
+      <button type="button" class="drop-btn-confirm" id="retryDialogConfirm">시작</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════
    공용 · localStorage 헬퍼 (스크립트 최상단에 선언 — 모든 IIFE에서 접근 가능)
@@ -25036,98 +25129,6 @@ function closeRetryDialog() {
 -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     v1.6.0 — 하차 시트 (사유 입력 모달)
-     ═══════════════════════════════════════════════════════════ -->
-<div class="drop-sheet-backdrop" id="dropSheetBackdrop" aria-hidden="true">
-  <div class="drop-sheet" role="dialog" aria-labelledby="dropSheetTitle">
-    <div class="drop-sheet-handle"></div>
-    <h2 class="drop-sheet-title" id="dropSheetTitle">하차 기록</h2>
-    <p class="drop-sheet-subtitle">잠시 책갈피를 꽂아두는 거예요</p>
-
-    <!-- 책 미리보기 (동적 렌더) -->
-    <div class="drop-sheet-book" id="dropSheetPreview"></div>
-
-    <!-- 사유 칩 -->
-    <div class="drop-sheet-section">
-      <h3>왜 책갈피를 꽂으셨나요? <span class="req">필수</span></h3>
-      <div class="drop-reason-chips" id="dropReasonChips"></div>
-      <div class="drop-add-chip-input-wrap" id="dropAddChipInputWrap">
-        <input type="text" class="drop-add-chip-input" id="dropAddChipInput" placeholder="예: 글씨가 너무 작아요" maxlength="30" inputmode="text">
-        <button type="button" class="drop-add-chip-confirm" id="dropAddChipConfirmBtn">추가</button>
-      </div>
-    </div>
-
-    <!-- 메모 -->
-    <div class="drop-sheet-section">
-      <h3>한 줄 메모 <span class="opt">선택</span></h3>
-      <textarea class="drop-note-input" id="dropNoteInput" placeholder="구체적인 사유나 떠오르는 생각을 적어두면 나중에 도움이 돼요" maxlength="200"></textarea>
-    </div>
-
-    <!-- 별점 -->
-    <div class="drop-sheet-section">
-      <h3>여기까지 본 평점 <span class="opt">선택</span></h3>
-      <div class="drop-rating-row" id="dropRatingRow">
-        <button type="button" class="drop-rating-star" data-star="1">★</button>
-        <button type="button" class="drop-rating-star" data-star="2">★</button>
-        <button type="button" class="drop-rating-star" data-star="3">★</button>
-        <button type="button" class="drop-rating-star" data-star="4">★</button>
-        <button type="button" class="drop-rating-star" data-star="5">★</button>
-        <span class="drop-rating-label" id="dropRatingLabel">평가 안 함</span>
-      </div>
-    </div>
-
-    <!-- 다시 읽을지 -->
-    <div class="drop-sheet-section">
-      <h3>나중에 다시 읽으실 의향은? <span class="opt">선택</span></h3>
-      <div class="drop-retry-row" id="dropRetryRow">
-        <button type="button" class="drop-retry-btn" data-val="yes">🌱 그럼요</button>
-        <button type="button" class="drop-retry-btn active" data-val="maybe">🤷 글쎄요</button>
-        <button type="button" class="drop-retry-btn" data-val="no">🙅 안 읽을래요</button>
-      </div>
-    </div>
-
-    <!-- 푸터 -->
-    <div class="drop-sheet-footer">
-      <button type="button" class="drop-btn-cancel" id="dropCancelBtn">취소</button>
-      <button type="button" class="drop-btn-confirm" id="dropConfirmBtn" disabled>하차 완료</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     v1.6.0 — 다시 도전 다이얼로그
-     ═══════════════════════════════════════════════════════════ -->
-<div class="retry-dialog-backdrop" id="retryDialogBackdrop" aria-hidden="true">
-  <div class="retry-dialog" role="dialog" aria-labelledby="retryDialogTitle">
-    <div class="retry-dialog-emoji">🌱</div>
-    <h3 class="retry-dialog-title" id="retryDialogTitle">다시 도전하기</h3>
-    <p class="retry-dialog-desc" id="retryDialogDesc">독서중 상태로 되돌릴게요.</p>
-
-    <div class="retry-dialog-options" id="retryDialogOpts">
-      <button type="button" class="retry-dialog-opt selected" data-opt="resume">
-        <div class="retry-dialog-opt-radio"></div>
-        <div class="retry-dialog-opt-content">
-          <div class="retry-dialog-opt-title" id="retryResumeTitle">📖 멈췄던 곳에서 이어 읽기</div>
-          <div class="retry-dialog-opt-desc" id="retryResumeDesc">진행률 그대로 유지</div>
-        </div>
-      </button>
-      <button type="button" class="retry-dialog-opt" data-opt="restart">
-        <div class="retry-dialog-opt-radio"></div>
-        <div class="retry-dialog-opt-content">
-          <div class="retry-dialog-opt-title">🔄 처음부터 다시</div>
-          <div class="retry-dialog-opt-desc">진행률 0%로 — 이전 하차 기록은 보존</div>
-        </div>
-      </button>
-    </div>
-
-    <div class="retry-dialog-actions">
-      <button type="button" class="drop-btn-cancel" id="retryDialogCancel">취소</button>
-      <button type="button" class="drop-btn-confirm" id="retryDialogConfirm">시작</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
