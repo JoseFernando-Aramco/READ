@@ -86,6 +86,13 @@
   --primary:          #1E3A8A;
   --primary-bg:       #E8ECF7;
 
+  /* v1.6.0 — 하차 컨셉 색상 (책갈피 메타포) */
+  --c-drop:          #8B7E72;       /* 따뜻한 회색 (메인) */
+  --c-drop-bg:       #F5F1ED;       /* 부드러운 베이지 배경 */
+  --c-drop-soft:     #E8E2DA;       /* 보더용 */
+  --c-drop-deep:     #5C5247;       /* 진한 모카 그레이 (텍스트/액티브) */
+  --c-drop-bookmark: #B8956A;       /* 북마크 액센트 (가을 단풍톤) */
+
   /* 그라데이션 제거 — flat 톤 */
   --g-hero:    #FFFFFF;
   --g-reading: #FFFFFF;
@@ -6638,15 +6645,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 4px;
 }
 .bd-hero-meta {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
   font-family: inherit;
   font-size: 12px; font-weight: 500;
   color: var(--c-label);
   letter-spacing: -0.01em;
   text-transform: none;
 }
-/* 직계 자식 span에만 점(·) 구분자 — 알약(.fmt-pill)은 제외 (내부 emoji/text 사이, fmt-pill 다음 메타 사이 모두 점 없음) */
-.bd-hero-meta > span:not(:last-child):not(.fmt-pill)::after {
+.bd-hero-meta span:not(:last-child)::after {
   content: '·';
   margin-left: 10px;
   color: var(--c-label);
@@ -10762,6 +10768,706 @@ body.cn-locked {
 }
 .settings-row-right.arrow { color: var(--c-muted); }
 
+/* ═══════════════════════════════════════════════════════════
+   v1.6.0 — 하차(dropped) 책 관리 시스템
+   ═══════════════════════════════════════════════════════════ */
+
+/* 4세그먼트 — 하차 버튼 (status-seg 안에서) */
+.status-seg-btn.dropped.active {
+  color: var(--c-drop-deep);
+}
+
+/* 책 카드 — 하차 시각 처리 */
+.book-card.dropped .book-card-cover {
+  filter: saturate(0.4) brightness(0.94);
+}
+.book-card.dropped .book-card-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(139, 126, 114, 0.22);
+  z-index: 6;
+  pointer-events: none;
+}
+/* 책갈피 (책 카드 우상단) */
+.book-card.dropped .bc-bookmark-pin {
+  position: absolute;
+  top: 0;
+  right: 9px;
+  width: 14px;
+  height: 22px;
+  background: var(--c-drop-bookmark);
+  z-index: 12;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+  pointer-events: none;
+}
+/* 하차 책 메타 (사유 1순위 라벨) */
+.book-card-drop-reason {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--c-drop);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.book-card-drop-reason::before {
+  content: '·';
+  margin-right: 1px;
+}
+/* 진행률 바 (하차 시 회색) */
+.book-card-progress.dropped { background: var(--c-drop-soft); }
+.book-card-progress.dropped > div { background: var(--c-drop) !important; }
+
+/* ─── 하차 시트 (사유 입력 모달) ─── */
+.drop-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 950;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.drop-sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.drop-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-surface);
+  border-radius: 18px 18px 0 0;
+  padding: 12px 0 28px;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.drop-sheet-backdrop.open .drop-sheet {
+  transform: translateY(0);
+}
+.drop-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--c-border-2);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.drop-sheet-title {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -0.3px;
+  margin: 0 16px 4px;
+  color: var(--c-text);
+}
+.drop-sheet-subtitle {
+  font-size: 12px;
+  color: var(--c-label);
+  text-align: center;
+  margin: 0 16px 18px;
+}
+
+/* 시트 책 미리보기 */
+.drop-sheet-book {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  margin: 0 16px 18px;
+  background: var(--c-drop-bg);
+  border-radius: 12px;
+  border: 1px solid var(--c-drop-soft);
+}
+.drop-sheet-book-cover {
+  width: 56px;
+  flex-shrink: 0;
+  aspect-ratio: 108 / 156;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--c-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.drop-sheet-book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.drop-sheet-book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+.drop-sheet-book-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+  color: var(--c-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.drop-sheet-book-author {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-top: 2px;
+}
+.drop-sheet-book-progress {
+  margin-top: 8px;
+}
+.drop-sheet-book-progress-label {
+  font-size: 11px;
+  color: var(--c-drop-deep);
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+.drop-sheet-book-progress-bar {
+  height: 4px;
+  background: var(--c-drop-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.drop-sheet-book-progress-fill {
+  height: 100%;
+  background: var(--c-drop);
+  border-radius: 2px;
+  transition: width .25s ease;
+}
+
+/* 시트 섹션 */
+.drop-sheet-section {
+  padding: 0 16px;
+  margin-bottom: 20px;
+}
+.drop-sheet-section h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-text);
+}
+.drop-sheet-section h3 .req {
+  font-size: 10px;
+  color: #F04452;
+  font-weight: 600;
+}
+.drop-sheet-section h3 .opt {
+  font-size: 10px;
+  color: var(--c-label);
+  font-weight: 500;
+}
+
+/* 사유 칩 */
+.drop-reason-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.drop-reason-chip {
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-text);
+  transition: all .12s ease;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.drop-reason-chip.active {
+  background: var(--c-drop-deep);
+  color: #fff;
+  border-color: var(--c-drop-deep);
+}
+.drop-reason-chip.add-chip {
+  border-style: dashed;
+  color: var(--c-label);
+  background: transparent;
+}
+.drop-reason-chip.add-chip svg {
+  width: 12px;
+  height: 12px;
+}
+.drop-reason-chip.user-added {
+  background: var(--c-drop-bg);
+  border-color: var(--c-drop-bookmark);
+  color: var(--c-drop-deep);
+}
+.drop-reason-chip.user-added.active {
+  background: var(--c-drop-bookmark);
+  color: #fff;
+  border-color: var(--c-drop-bookmark);
+}
+.drop-reason-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.12);
+  font-size: 10px;
+  margin-left: 2px;
+  margin-right: -4px;
+  line-height: 1;
+}
+
+.drop-add-chip-input-wrap {
+  display: none;
+  flex-direction: row;
+  gap: 6px;
+  margin-top: 10px;
+  align-items: center;
+}
+.drop-add-chip-input-wrap.show {
+  display: flex;
+}
+.drop-add-chip-input {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 18px;
+  background: var(--c-canvas);
+  border: 1.5px solid var(--c-drop-bookmark);
+  font-size: 13px;
+  min-height: 36px;
+  color: var(--c-text);
+  font-family: inherit;
+  outline: none;
+  -webkit-appearance: none;
+}
+.drop-add-chip-confirm {
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: var(--c-drop-deep);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  min-height: 36px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* 메모 textarea */
+.drop-note-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border-2);
+  font-size: 14px;
+  resize: none;
+  min-height: 56px;
+  color: var(--c-text);
+  font-family: inherit;
+  outline: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+}
+.drop-note-input:focus {
+  border-color: var(--c-drop-bookmark);
+  background: var(--c-surface);
+}
+
+/* 별점 row */
+.drop-rating-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.drop-rating-star {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--c-border-2);
+  cursor: pointer;
+  transition: color .12s;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+.drop-rating-star.filled {
+  color: #d4a574;
+}
+.drop-rating-label {
+  font-size: 12px;
+  color: var(--c-label);
+  margin-left: 8px;
+}
+
+/* 다시 읽을지 토글 */
+.drop-retry-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: var(--c-border);
+  border-radius: 10px;
+  padding: 4px;
+}
+.drop-retry-btn {
+  padding: 9px 4px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-label);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.drop-retry-btn.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+.drop-retry-btn[data-val="yes"].active   { color: #00C471; }
+.drop-retry-btn[data-val="maybe"].active { color: var(--c-mocha, #6D4C41); }
+.drop-retry-btn[data-val="no"].active    { color: var(--c-drop); }
+
+/* 시트 푸터 */
+.drop-sheet-footer {
+  padding: 8px 16px 0;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+.drop-btn-cancel {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--c-border);
+  color: var(--c-text);
+  font-weight: 700;
+  font-size: 14.5px;
+  min-height: 48px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.drop-btn-confirm {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--c-drop-deep);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14.5px;
+  min-height: 48px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s;
+}
+.drop-btn-confirm:disabled {
+  background: var(--c-border-2);
+  color: var(--c-label);
+  cursor: not-allowed;
+}
+
+/* ─── 책 상세 — 하차 책 ─── */
+.bd-cover.dropped {
+  filter: saturate(0.4) brightness(0.94);
+  position: relative;
+}
+.bd-cover.dropped::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(139, 126, 114, 0.22);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.bd-bookmark-large {
+  position: absolute;
+  top: -2px;
+  right: 14px;
+  width: 22px;
+  height: 32px;
+  background: var(--c-drop-bookmark);
+  z-index: 10;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.20));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+  pointer-events: none;
+}
+
+.bd-status-pill-dropped {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 18px;
+  background: var(--c-drop-bg);
+  border: 1px solid var(--c-drop-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-drop-deep);
+  margin-top: 8px;
+}
+.bd-status-pill-dropped svg { width: 12px; height: 12px; }
+
+/* 메타 카드 */
+.bd-drop-meta-card {
+  margin: 0 16px 14px;
+  padding: 14px 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+}
+.bd-drop-meta-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+}
+.bd-drop-meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.bd-drop-meta-row .lbl {
+  color: var(--c-label);
+}
+.bd-drop-meta-row .val {
+  font-weight: 600;
+  color: var(--c-text);
+}
+.bd-drop-meta-row.progress .val { color: var(--c-drop-deep); }
+
+.bd-drop-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.bd-drop-reason-tag {
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: var(--c-drop-bg);
+  border: 1px solid var(--c-drop-soft);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--c-drop-deep);
+}
+.bd-drop-reason-tag.user-added {
+  background: var(--c-drop-bookmark);
+  color: #fff;
+  border-color: var(--c-drop-bookmark);
+}
+
+.bd-drop-note {
+  padding: 12px 14px;
+  background: var(--c-drop-bg);
+  border-left: 3px solid var(--c-drop-bookmark);
+  border-radius: 0 10px 10px 0;
+  font-size: 13.5px;
+  color: var(--c-drop-deep);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.bd-drop-rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.bd-drop-rating .star {
+  font-size: 16px;
+  color: #d4a574;
+}
+.bd-drop-rating .star.empty {
+  color: var(--c-border-2);
+}
+.bd-drop-rating-text {
+  font-size: 12px;
+  color: var(--c-label);
+  margin-left: 8px;
+}
+
+.bd-drop-retry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.bd-drop-retry-emoji { font-size: 18px; }
+.bd-drop-retry-label { font-weight: 600; }
+.bd-drop-retry-label.yes   { color: #00C471; }
+.bd-drop-retry-label.maybe { color: var(--c-mocha, #6D4C41); }
+.bd-drop-retry-label.no    { color: var(--c-drop); }
+.bd-drop-retry-sub {
+  font-size: 12px;
+  color: var(--c-label);
+}
+
+/* 다시 도전 버튼 */
+.bd-retry-btn {
+  width: calc(100% - 32px);
+  margin: 4px 16px 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(95deg, var(--c-drop-bookmark), #9D7B58);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  box-shadow: 0 4px 12px rgba(184, 149, 106, 0.28);
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.bd-retry-btn svg { width: 18px; height: 18px; }
+.bd-retry-btn:active { transform: translateY(1px); }
+
+/* ─── 다시 도전 다이얼로그 ─── */
+.retry-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 960;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.retry-dialog-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.retry-dialog {
+  width: 100%;
+  max-width: 380px;
+  background: var(--c-surface);
+  border-radius: 18px;
+  padding: 22px 18px 18px;
+  transform: scale(0.92);
+  transition: transform .25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.retry-dialog-backdrop.open .retry-dialog {
+  transform: scale(1);
+}
+.retry-dialog-emoji {
+  text-align: center;
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.retry-dialog-title {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -0.3px;
+  margin: 0 0 6px;
+  color: var(--c-text);
+}
+.retry-dialog-desc {
+  font-size: 13px;
+  color: var(--c-label);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+.retry-dialog-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.retry-dialog-opt {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--c-surface);
+  border: 2px solid var(--c-border-2);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+}
+.retry-dialog-opt.selected {
+  border-color: var(--c-drop-bookmark);
+  background: var(--c-drop-bg);
+}
+.retry-dialog-opt-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--c-border-2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface);
+}
+.retry-dialog-opt.selected .retry-dialog-opt-radio {
+  border-color: var(--c-drop-bookmark);
+  background: var(--c-drop-bookmark);
+}
+.retry-dialog-opt.selected .retry-dialog-opt-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+.retry-dialog-opt-content { flex: 1; }
+.retry-dialog-opt-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+}
+.retry-dialog-opt-desc {
+  font-size: 11.5px;
+  color: var(--c-label);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.retry-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 8px;
+}
+.retry-dialog-actions .drop-btn-confirm {
+  background: var(--c-drop-bookmark);
+}
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -10837,6 +11543,10 @@ body.cn-locked {
   <!-- 정보 -->
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+  <!-- 하차 (v1.6.0) -->
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
 </svg>
 
 
@@ -11573,6 +12283,7 @@ body.cn-locked {
           <button class="status-seg-btn active" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
           <button class="status-seg-btn" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
           <button class="status-seg-btn" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
+          <button class="status-seg-btn dropped" data-status="dropped"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg> 하차</button>
         </div>
       </div>
 
@@ -12042,6 +12753,7 @@ body.cn-locked {
       <div class="ob-desc-list">
         <div><strong>타이머</strong> · 독서중 책에서 분 단위 기록</div>
         <div><strong>명예의 전당</strong> · 완독한 책을 ⭐로 모으기</div>
+        <div><strong>책갈피</strong> · 안 맞는 책은 하차로 사유까지 기록</div>
         <div><strong>테마</strong> · 설정에서 6가지 색감 중 선택</div>
       </div>
     </div>
@@ -12063,7 +12775,7 @@ body.cn-locked {
           <div class="ob-choice-icon">📚</div>
           <div class="ob-choice-text">
             <div class="ob-choice-ttl">샘플로 둘러보기</div>
-            <div class="ob-choice-sub">데미안 · 1984 등 10권 · 언제든 삭제 가능</div>
+            <div class="ob-choice-sub">전자책·하차 사례 포함 13권 · 언제든 삭제 가능</div>
           </div>
         </button>
         <button class="ob-choice-btn" data-choice="reset">
@@ -14948,6 +15660,7 @@ const BOOKS = [
     tags:['성장','고전','자기성찰'] },
   { id:2, title:'1984', author:'조지 오웰', palette:'1984',
     pages:326, status:'reading', dateStart:'2026-04-18', currentPage:102,
+    format:'ebook',
     readingSessions: [
       { date: '2026-04-18', minutes: 55, pages: 45 },
       { date: '2026-04-19', minutes: 40, pages: 32 },
@@ -14976,6 +15689,7 @@ const BOOKS = [
     tags:['데이터','행동심리'] },
   { id:8, title:'Atomic Habits', author:'James Clear', palette:'atomic',
     pages:320, status:'done', dateStart:'2025-12-20', dateEnd:'2026-01-05', rating:5.0,
+    format:'ebook',
     isLifeBook:true,
     rereads:[
       { dateStart:'2022-11-02', dateEnd:'2022-11-18', rating:5.0 },
@@ -14991,6 +15705,53 @@ const BOOKS = [
       { dateStart:'2021-05-03', dateEnd:'2021-05-12', rating:5.0 },
     ],
     tags:['자기성찰','철학'] },
+  /* ─── v1.6.0 — 하차 책 시드 (다양한 케이스 노출) ─── */
+  { id:11, title:'참을 수 없는 존재의 가벼움', author:'밀란 쿤데라', palette:'prince',
+    pages:384, status:'dropped', dateStart:'2026-04-12', currentPage:88,
+    format:'paper',
+    dropped: {
+      at: '2026-04-28',
+      atPage: 88,
+      reasons: ['taste', 'expectation'],
+      customReasons: ['철학 토씨가 너무 많음'],
+      note: '주제는 흥미로운데 토마시가 너무 답답해서 손이 안 잡힘',
+      rating: 3.0,
+      wouldRetry: 'maybe',
+      history: [],
+    },
+    tags:['소설','체코','철학'] },
+  { id:12, title:'율리시스', author:'제임스 조이스', palette:'1984',
+    pages:1024, status:'dropped', dateStart:'2026-03-15', currentPage:142,
+    format:'paper',
+    dropped: {
+      at: '2026-03-30',
+      atPage: 142,
+      reasons: ['hard', 'distracted'],
+      customReasons: [],
+      note: '',
+      rating: 0,
+      wouldRetry: 'maybe',
+      history: [],
+    },
+    tags:['고전','모더니즘','아일랜드'] },
+  { id:13, title:'단정함의 힘', author:'에밀리 챈', palette:'factful',
+    pages:280, status:'dropped', dateStart:'2026-02-22', currentPage:84,
+    format:'ebook',
+    dropped: {
+      at: '2026-04-15',
+      atPage: 84,
+      reasons: ['translation'],
+      customReasons: ['문장이 이상함'],
+      note: '원서로 보는 게 나을 것 같아요',
+      rating: 2.0,
+      wouldRetry: 'no',
+      history: [
+        { at: '2025-08-10', atPage: 42, reasons: ['lazy'], customReasons: [],
+          note: '나중에 다시', rating: 0, wouldRetry: 'yes',
+          retried: '2026-02-22', retriedMode: 'restart' },
+      ],
+    },
+    tags:['자기계발','원서'] },
 ];
 
 /* ─── 노트 데이터 (하이라이트·인용구·내 생각) ─── */
@@ -15058,6 +15819,16 @@ const NA = {
   if (Array.isArray(savedNotes)) {
     NOTES.length = 0;
     NOTES.push(...savedNotes);
+  }
+  // v1.6.0 — dropped 마이그레이션 (안전 기본값)
+  BOOKS.forEach(b => {
+    if (b.status === 'dropped' && (!b.dropped || typeof b.dropped !== 'object')) {
+      b.dropped = {};
+    }
+  });
+  // v1.6.0 — 첫 사용자에게 사용자 정의 사유 풀 샘플 시드 (시드 책의 customReasons와 일치)
+  if (STORE.get('dropReasons.custom', null) === null) {
+    STORE.set('dropReasons.custom', ['철학 토씨가 너무 많음', '문장이 이상함']);
   }
 })();
 
@@ -15363,8 +16134,10 @@ function renderBookCoverInner(b, number) {
 /* 북 카드 하나 (커버 + 제목 + 메타) */
 function renderBookCard(b, idx) {
   const ebookMark = isEbook(b) ? '📱 ' : '';
-  const meta =
-    b.status === 'reading' && b.pages
+  const dropped = isDropped(b);
+  const meta = dropped
+    ? (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author))
+    : b.status === 'reading' && b.pages
       ? `${esc(b.author)} · ${ebookMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
       : b.status === 'done' && b.rating
       ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}`
@@ -15372,12 +16145,27 @@ function renderBookCard(b, idx) {
       ? (b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : esc(b.author))
       : esc(b.author);
 
+  // 하차 사유 첫번째 라벨 (있으면 노출)
+  let dropReasonLine = '';
+  if (dropped) {
+    const dd = _getDropped(b) || {};
+    const firstReason = (dd.reasons && dd.reasons[0])
+      ? _dropReasonLabel(dd.reasons[0])
+      : (dd.customReasons && dd.customReasons[0])
+      ? dd.customReasons[0]
+      : '';
+    if (firstReason) {
+      dropReasonLine = `<div class="book-card-drop-reason">${esc(firstReason)}</div>`;
+    }
+  }
+
   // 타이머 진행 중인 책인지 판정
   const isTimerBook = (typeof TIMER !== 'undefined') && TIMER.bookId === b.id;
   const timerPaused = isTimerBook && (typeof isTimerPaused === 'function') && isTimerPaused();
   const timerCls = isTimerBook
     ? (timerPaused ? ' timer-paused' : ' timer-active')
     : '';
+  const droppedCls = dropped ? ' dropped' : '';
 
   // 시간 배지 (타이머가 이 책에 돌아갈 때만)
   let timerBadge = '';
@@ -15396,13 +16184,15 @@ function renderBookCard(b, idx) {
   }
 
   return `
-    <div class="book-card${timerCls}" data-book-id="${b.id}">
+    <div class="book-card${timerCls}${droppedCls}" data-book-id="${b.id}">
       <div class="book-card-cover palette-${esc(b.palette || 'demian')}">
         ${renderBookCoverInner(b, idx + 1)}
         ${timerBadge}
+        ${dropped ? '<div class="bc-bookmark-pin"></div>' : ''}
       </div>
       <div class="book-card-title">${esc(b.title)}</div>
       <div class="book-card-meta">${meta}</div>
+      ${dropReasonLine}
     </div>`;
 }
 
@@ -15684,6 +16474,13 @@ function renderLibraryCards() {
                     .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
   const done = doneAll.slice(0, _visibleDoneCount);
   const wish = BOOKS.filter(b => b.status === 'wish');
+  // v1.6.0 — 하차 책 · 하차일 최근순
+  const dropped = BOOKS.filter(b => b.status === 'dropped')
+                    .sort((a, b) => {
+                      const da = (_getDropped(a) || {}).at || '';
+                      const db = (_getDropped(b) || {}).at || '';
+                      return db.localeCompare(da);
+                    });
 
   // 빈 상태 처리
   if (!BOOKS.length) {
@@ -15728,6 +16525,7 @@ function renderLibraryCards() {
     ${renderBookSection('독서중',      '', reading)}
     ${renderBookSection('완독',        doneSubLabel, done, doneTrailing)}
     ${renderWishlistSection(wish)}
+    ${dropped.length ? renderBookSection('하차', `${dropped.length}권 · 책갈피`, dropped) : ''}
   `;
 }
 
@@ -17017,6 +17815,7 @@ function renderBookDetail() {
   const reading = b.status === 'reading';
   const done    = b.status === 'done';
   const wish    = b.status === 'wish';
+  const dropped = b.status === 'dropped';
   const reads   = getAllReads(b);
   const totalReads = reads.length;
   const progPct = reading ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
@@ -17086,6 +17885,7 @@ function renderBookDetail() {
           <button class="status-seg-btn ${wish?'active':''}" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
           <button class="status-seg-btn ${reading?'active':''}" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
           <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
+          <button class="status-seg-btn dropped ${dropped?'active':''}" data-status="dropped"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg> 하차</button>
         </div>
       </div>
       ${reading ? (isEbook(b) ? `
@@ -17335,6 +18135,106 @@ function renderBookDetail() {
   `;
 
   wireBookDetailEvents();
+
+  // v1.6.0 — 하차 책일 때 메타 카드 + 다시 도전 버튼 추가
+  if (b.status === 'dropped') {
+    const dd = _getDropped(b) || {};
+    const bdBody = document.getElementById('bdBody');
+    if (bdBody) {
+      const totalPages = b.pages || 0;
+      const atPage = dd.atPage || 0;
+      const pct = totalPages > 0 ? Math.round(atPage / totalPages * 100) : 0;
+      const fmtDate = (s) => {
+        if (!s) return '—';
+        try {
+          const d = new Date(s);
+          if (isNaN(d.getTime())) return s;
+          return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+        } catch { return s; }
+      };
+
+      // 사유 태그 (사전 + 사용자)
+      const presetTags = (dd.reasons || []).map(rid =>
+        `<span class="bd-drop-reason-tag">${esc(_dropReasonLabel(rid))}</span>`
+      ).join('');
+      const customTags = (dd.customReasons || []).map(label =>
+        `<span class="bd-drop-reason-tag user-added">${esc(label)}</span>`
+      ).join('');
+      const reasonsHtml = presetTags + customTags;
+
+      // 별점
+      const ratingHtml = (dd.rating > 0)
+        ? `<div class="bd-drop-meta-card"><h4>여기까지 본 평점</h4><div class="bd-drop-rating">${
+            [1,2,3,4,5].map(i => `<span class="star ${i <= dd.rating ? '' : 'empty'}">★</span>`).join('')
+          }<span class="bd-drop-rating-text">${dd.rating.toFixed(1)} · ${atPage}페이지까지의 평가</span></div></div>`
+        : '';
+
+      // 다시 읽을지
+      const retryMap = {
+        yes:   { emoji: '🌱', label: '그럼요',     sub: '다시 도전할 의지가 있어요' },
+        maybe: { emoji: '🤷', label: '글쎄요',     sub: '나중에 마음 바뀌면' },
+        no:    { emoji: '🙅', label: '안 읽을래요', sub: '취향이 확실히 안 맞아요' },
+      };
+      const retryInfo = retryMap[dd.wouldRetry || 'maybe'];
+      const retryHtml = `<div class="bd-drop-meta-card"><h4>다시 읽을 의향</h4>
+        <div class="bd-drop-retry">
+          <span class="bd-drop-retry-emoji">${retryInfo.emoji}</span>
+          <span class="bd-drop-retry-label ${dd.wouldRetry || 'maybe'}">${retryInfo.label}</span>
+          <span class="bd-drop-retry-sub">— ${retryInfo.sub}</span>
+        </div></div>`;
+
+      // 메모
+      const noteHtml = dd.note
+        ? `<div class="bd-drop-meta-card"><h4>한 줄 메모</h4><div class="bd-drop-note">"${esc(dd.note)}"</div></div>`
+        : '';
+
+      const droppedSection = document.createElement('div');
+      droppedSection.className = 'bd-dropped-extras';
+      droppedSection.innerHTML = `
+        <!-- 다시 도전 버튼 -->
+        <button type="button" class="bd-retry-btn" data-action="retry-dropped" data-book-id="${b.id}">
+          <svg class="ic" aria-hidden="true"><use href="#i-refresh-cw"/></svg>
+          다시 도전하기
+        </button>
+
+        <!-- 독서 기록 -->
+        <div class="bd-drop-meta-card" style="margin-top:14px">
+          <h4>독서 기록</h4>
+          <div class="bd-drop-meta-row progress">
+            <span class="lbl">멈춘 곳</span>
+            <span class="val">${atPage}p · ${pct}%</span>
+          </div>
+          ${b.dateStart ? `<div class="bd-drop-meta-row"><span class="lbl">시작일</span><span class="val">${fmtDate(b.dateStart)}</span></div>` : ''}
+          ${dd.at ? `<div class="bd-drop-meta-row"><span class="lbl">하차일</span><span class="val">${fmtDate(dd.at)}</span></div>` : ''}
+        </div>
+
+        <!-- 사유 -->
+        ${reasonsHtml ? `<div class="bd-drop-meta-card"><h4>하차 사유</h4><div class="bd-drop-reasons">${reasonsHtml}</div></div>` : ''}
+
+        <!-- 메모 -->
+        ${noteHtml}
+
+        <!-- 별점 -->
+        ${ratingHtml}
+
+        <!-- 다시 읽을지 -->
+        ${retryHtml}
+      `;
+
+      // 위치: "이 책 삭제하기" 버튼 위에 (없으면 본문 끝에)
+      const dangerBtn = document.getElementById('bdDelBtn');
+      if (dangerBtn && dangerBtn.parentNode) {
+        dangerBtn.parentNode.insertBefore(droppedSection, dangerBtn);
+      } else {
+        bdBody.appendChild(droppedSection);
+      }
+
+      // 다시 도전 버튼 클릭 핸들러
+      droppedSection.querySelector('[data-action="retry-dropped"]')?.addEventListener('click', () => {
+        openRetryDialog(b.id);
+      });
+    }
+  }
 }
 
 /* ─── 상태 변경 ─ 확인 팝업 로직 ─── */
@@ -23612,6 +24512,517 @@ function _versionLower(a, b) {
   list.appendChild(row);
 })();
 
+
+/* ═══════════════════════════════════════════════════════════
+   v1.6.0 — 하차(dropped) 책 관리 시스템
+   ═══════════════════════════════════════════════════════════ */
+
+/* 사전 정의 사유 8개 — id : 라벨 (i18n 대비) */
+const DROP_REASONS_PRESET = {
+  taste:        '취향 안 맞음',
+  boring:       '재미 없음',
+  translation:  '번역이 별로',
+  hard:         '너무 어려움',
+  expectation:  '기대와 다름',
+  distracted:   '글이 산만함',
+  urgent:       '더 급한 책 생김',
+  lazy:         '손이 안 감',
+};
+
+/* 사용자 정의 사유 풀 (autocomplete + 재사용) */
+function _getCustomDropReasons() {
+  return STORE.get('dropReasons.custom', []);
+}
+function _addCustomDropReason(label) {
+  const trimmed = String(label || '').trim();
+  if (!trimmed || trimmed.length > 30) return;
+  const pool = _getCustomDropReasons();
+  if (!pool.includes(trimmed)) {
+    pool.push(trimmed);
+    STORE.set('dropReasons.custom', pool);
+  }
+}
+
+/* 헬퍼 — 사유 라벨 변환 */
+function _dropReasonLabel(reasonId) {
+  return DROP_REASONS_PRESET[reasonId] || reasonId;
+}
+
+/* 헬퍼 — book.dropped 안전 접근 */
+function _getDropped(book) {
+  if (!book || !book.dropped || typeof book.dropped !== 'object') return null;
+  return book.dropped;
+}
+function isDropped(book) {
+  return book && book.status === 'dropped';
+}
+
+/* ═══ 하차 시트 (사유 입력 모달) ═══ */
+const DROP_SHEET = {
+  bookId: null,
+  selectedReasons: [],     // ['taste', 'translation', 'custom-{ts}-{label}']
+  customLabels: {},        // { 'custom-12345': '글씨가 작음' }  — 시트 내 임시 추가분
+  rating: 0,
+  retry: 'maybe',
+  note: '',
+};
+
+function openDropSheet(bookId) {
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) return;
+
+  // 타이머 진행 중이면 자동 정지 (시간 저장)
+  if (TIMER.bookId === bookId && TIMER.intervalId) {
+    // 타이머 화면이 열려있다면 닫기는 사용자가 결정 — 여기선 백그라운드만 정리
+    // 실제로는 saveTimerSession 흐름과 충돌 방지 위해 단순 일시정지만
+    if (typeof TIMER.pause === 'function') TIMER.pause();
+  }
+
+  DROP_SHEET.bookId = bookId;
+  DROP_SHEET.selectedReasons = [];
+  DROP_SHEET.customLabels = {};
+  DROP_SHEET.rating = 0;
+  DROP_SHEET.retry = 'maybe';
+  DROP_SHEET.note = '';
+
+  _renderDropSheet(book);
+  const bd = document.getElementById('dropSheetBackdrop');
+  if (bd) {
+    bd.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeDropSheet() {
+  const bd = document.getElementById('dropSheetBackdrop');
+  if (bd) bd.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function _renderDropSheet(book) {
+  // 책 미리보기
+  const coverHtml = book.coverUrl
+    ? `<img src="${esc(book.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px\\'>📖</div>'">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">📖</div>`;
+  const previewEl = document.getElementById('dropSheetPreview');
+  if (previewEl) {
+    const curPage = book.currentPage || 0;
+    const totalPages = book.pages || 0;
+    const pct = (totalPages > 0) ? Math.round(curPage / totalPages * 100) : 0;
+    const fmtLabel = isEbook(book) ? '전자책' : '종이책';
+    const progressLabel = isEbook(book)
+      ? `<span>${pct}%</span><span>${curPage}p / ${totalPages}p</span>`
+      : `<span>📖 ${curPage}p / ${totalPages}p</span><span>${pct}%</span>`;
+
+    previewEl.innerHTML = `
+      <div class="drop-sheet-book-cover">${coverHtml}</div>
+      <div class="drop-sheet-book-info">
+        <div>
+          <div class="drop-sheet-book-title">${esc(book.title)}</div>
+          <div class="drop-sheet-book-author">${esc(book.author || '')} · ${fmtLabel}</div>
+        </div>
+        <div class="drop-sheet-book-progress">
+          <div class="drop-sheet-book-progress-label">${progressLabel}</div>
+          <div class="drop-sheet-book-progress-bar"><div class="drop-sheet-book-progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+  }
+
+  // 사유 칩 렌더 (사전 8개 + 사용자 풀에 누적된 것)
+  const chipsEl = document.getElementById('dropReasonChips');
+  if (chipsEl) {
+    const customPool = _getCustomDropReasons();
+    const presetChips = Object.entries(DROP_REASONS_PRESET).map(([id, label]) =>
+      `<button type="button" class="drop-reason-chip" data-reason="${id}">${esc(label)}</button>`
+    ).join('');
+    const customChips = customPool.map(label =>
+      `<button type="button" class="drop-reason-chip user-added" data-reason="custom:${esc(label)}">${esc(label)} <span class="drop-reason-chip-remove" data-remove="${esc(label)}">✕</span></button>`
+    ).join('');
+    const addBtn = `<button type="button" class="drop-reason-chip add-chip" id="dropAddChipBtn"><svg class="ic" aria-hidden="true"><use href="#i-plus-circle"/></svg>직접 추가</button>`;
+    chipsEl.innerHTML = presetChips + customChips + addBtn;
+  }
+
+  // 입력 wrap 초기화
+  const inputWrap = document.getElementById('dropAddChipInputWrap');
+  if (inputWrap) inputWrap.classList.remove('show');
+  const inputEl = document.getElementById('dropAddChipInput');
+  if (inputEl) inputEl.value = '';
+
+  // 메모 초기화
+  const noteEl = document.getElementById('dropNoteInput');
+  if (noteEl) noteEl.value = '';
+
+  // 별점 초기화
+  document.querySelectorAll('#dropRatingRow .drop-rating-star').forEach(el => el.classList.remove('filled'));
+  const rl = document.getElementById('dropRatingLabel');
+  if (rl) rl.textContent = '평가 안 함';
+
+  // 다시 읽을지
+  document.querySelectorAll('#dropRetryRow .drop-retry-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === 'maybe');
+  });
+
+  _validateDropConfirm();
+}
+
+function _validateDropConfirm() {
+  const btn = document.getElementById('dropConfirmBtn');
+  if (!btn) return;
+  btn.disabled = DROP_SHEET.selectedReasons.length === 0;
+}
+
+function commitDrop() {
+  const bookId = DROP_SHEET.bookId;
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) return;
+
+  // 사용자 정의 풀에 새로 만든 칩 영구 저장
+  Object.entries(DROP_SHEET.customLabels).forEach(([_, label]) => {
+    _addCustomDropReason(label);
+  });
+
+  // 사전 사유와 사용자 사유 분리
+  const presetReasons = [];
+  const customReasons = [];
+  DROP_SHEET.selectedReasons.forEach(r => {
+    if (r.startsWith('custom:')) {
+      customReasons.push(r.slice(7));   // 'custom:글씨가 작음' → '글씨가 작음'
+    } else if (r.startsWith('temp:')) {
+      // 시트 내에서 갓 추가한 칩 — customLabels 매핑
+      const tempId = r.slice(5);
+      const label = DROP_SHEET.customLabels[tempId];
+      if (label) customReasons.push(label);
+    } else {
+      presetReasons.push(r);
+    }
+  });
+
+  // 기존 history (다중 시도 누적)
+  const prevDropped = _getDropped(book);
+  const history = (prevDropped && Array.isArray(prevDropped.history)) ? [...prevDropped.history] : [];
+  if (prevDropped && prevDropped.at) {
+    // 이전 하차 기록을 history에 누적
+    history.push({
+      at: prevDropped.at,
+      atPage: prevDropped.atPage,
+      reasons: prevDropped.reasons,
+      customReasons: prevDropped.customReasons,
+      note: prevDropped.note,
+      rating: prevDropped.rating,
+      wouldRetry: prevDropped.wouldRetry,
+    });
+  }
+
+  const droppedData = {
+    at: todayStr(),
+    atPage: book.currentPage || 0,
+    reasons: presetReasons,
+    customReasons,
+    note: DROP_SHEET.note.trim(),
+    rating: DROP_SHEET.rating,
+    wouldRetry: DROP_SHEET.retry,
+    history,
+  };
+
+  updateBook(bookId, {
+    status: 'dropped',
+    dropped: droppedData,
+  });
+
+  closeDropSheet();
+  if (typeof renderLibraryCards === 'function') renderLibraryCards();
+  if (typeof renderBookDetail === 'function' && BD && BD.book && BD.book.id === bookId) {
+    BD.book = BOOKS.find(b => b.id === bookId);
+    renderBookDetail();
+  }
+  showToast('하차 완료 · 책갈피를 꽂아뒀어요 🔖');
+}
+
+/* 다시 도전 (resume / restart) */
+function retryDroppedBook(bookId, mode) {
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) return;
+
+  // 이전 하차 기록을 history에 보존
+  const prevDropped = _getDropped(book);
+  const history = (prevDropped && Array.isArray(prevDropped.history)) ? [...prevDropped.history] : [];
+  if (prevDropped && prevDropped.at) {
+    history.push({
+      at: prevDropped.at,
+      atPage: prevDropped.atPage,
+      reasons: prevDropped.reasons,
+      customReasons: prevDropped.customReasons,
+      note: prevDropped.note,
+      rating: prevDropped.rating,
+      wouldRetry: prevDropped.wouldRetry,
+      retried: todayStr(),
+      retriedMode: mode,
+    });
+  }
+
+  const update = {
+    status: 'reading',
+    dropped: { history },   // history는 보존, 현재 하차 데이터는 비움
+  };
+
+  if (mode === 'restart') {
+    update.currentPage = 0;
+    update.dateStart = todayStr();
+  } else {
+    // resume: 페이지 그대로, dateStart 유지 (또는 없으면 오늘)
+    if (!book.dateStart) update.dateStart = todayStr();
+  }
+
+  updateBook(bookId, update);
+  if (typeof renderLibraryCards === 'function') renderLibraryCards();
+  if (typeof renderBookDetail === 'function' && BD && BD.book && BD.book.id === bookId) {
+    BD.book = BOOKS.find(b => b.id === bookId);
+    renderBookDetail();
+  }
+  showToast(mode === 'restart' ? '처음부터 다시 시작해요 🔄' : '다시 독서중으로 되돌렸어요 📖');
+}
+
+/* ═══ 하차 시트 — 이벤트 와이어링 (한 번만) ═══ */
+(function wireDropSheet() {
+  // 백드롭 클릭 → 닫기
+  const bd = document.getElementById('dropSheetBackdrop');
+  if (!bd) return;   // HTML이 아직 추가 안 됐을 수 있음 — defensive
+  bd.addEventListener('click', (e) => {
+    if (e.target === bd) closeDropSheet();
+  });
+
+  // 취소 버튼
+  const cancelBtn = document.getElementById('dropCancelBtn');
+  if (cancelBtn) cancelBtn.addEventListener('click', closeDropSheet);
+
+  // 사유 칩 (위임 — 동적 렌더링됨)
+  const chipsEl = document.getElementById('dropReasonChips');
+  if (chipsEl) {
+    chipsEl.addEventListener('click', (e) => {
+      // 사용자 칩 삭제
+      const removeBtn = e.target.closest('.drop-reason-chip-remove');
+      if (removeBtn) {
+        e.stopPropagation();
+        const label = removeBtn.dataset.remove;
+        const pool = _getCustomDropReasons().filter(l => l !== label);
+        STORE.set('dropReasons.custom', pool);
+        // 시트 다시 렌더
+        const book = BOOKS.find(b => b.id === DROP_SHEET.bookId);
+        if (book) {
+          const prevSelected = [...DROP_SHEET.selectedReasons];
+          _renderDropSheet(book);
+          // 선택 상태 복원 (삭제된 라벨은 제외)
+          DROP_SHEET.selectedReasons = prevSelected.filter(r => r !== `custom:${label}`);
+          DROP_SHEET.selectedReasons.forEach(r => {
+            const chip = chipsEl.querySelector(`.drop-reason-chip[data-reason="${r.replace(/"/g,'\\"')}"]`);
+            if (chip) chip.classList.add('active');
+          });
+          _validateDropConfirm();
+        }
+        return;
+      }
+
+      // "직접 추가" 칩
+      if (e.target.closest('#dropAddChipBtn')) {
+        const wrap = document.getElementById('dropAddChipInputWrap');
+        if (wrap) {
+          wrap.classList.add('show');
+          const inp = document.getElementById('dropAddChipInput');
+          if (inp) setTimeout(() => inp.focus(), 80);
+        }
+        return;
+      }
+
+      // 일반 칩 토글
+      const chip = e.target.closest('.drop-reason-chip:not(.add-chip)');
+      if (!chip) return;
+      const reason = chip.dataset.reason;
+      chip.classList.toggle('active');
+      if (chip.classList.contains('active')) {
+        if (!DROP_SHEET.selectedReasons.includes(reason)) DROP_SHEET.selectedReasons.push(reason);
+      } else {
+        DROP_SHEET.selectedReasons = DROP_SHEET.selectedReasons.filter(r => r !== reason);
+      }
+      _validateDropConfirm();
+    });
+  }
+
+  // 직접 추가 — 확인
+  const confirmAddBtn = document.getElementById('dropAddChipConfirmBtn');
+  const addInput = document.getElementById('dropAddChipInput');
+  function commitNewChip() {
+    if (!addInput) return;
+    const val = addInput.value.trim();
+    if (!val || val.length > 30) return;
+    // 시트 내 임시 ID 생성
+    const tempId = 'temp-' + Date.now();
+    DROP_SHEET.customLabels[tempId] = val;
+    DROP_SHEET.selectedReasons.push(`temp:${tempId}`);
+    // 칩 DOM 추가
+    const chipsEl2 = document.getElementById('dropReasonChips');
+    const addBtnEl = document.getElementById('dropAddChipBtn');
+    if (chipsEl2 && addBtnEl) {
+      const newChip = document.createElement('button');
+      newChip.type = 'button';
+      newChip.className = 'drop-reason-chip user-added active';
+      newChip.dataset.reason = `temp:${tempId}`;
+      newChip.innerHTML = `${esc(val)} <span class="drop-reason-chip-remove" data-remove-temp="${tempId}">✕</span>`;
+      chipsEl2.insertBefore(newChip, addBtnEl);
+    }
+    // 입력 초기화
+    addInput.value = '';
+    const wrap = document.getElementById('dropAddChipInputWrap');
+    if (wrap) wrap.classList.remove('show');
+    _validateDropConfirm();
+  }
+  if (confirmAddBtn) confirmAddBtn.addEventListener('click', commitNewChip);
+  if (addInput) {
+    addInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commitNewChip(); }
+      if (e.key === 'Escape') {
+        const wrap = document.getElementById('dropAddChipInputWrap');
+        if (wrap) wrap.classList.remove('show');
+        addInput.value = '';
+      }
+    });
+  }
+
+  // 시트 임시 칩 삭제 (Enter 후 추가된 즉석 칩)
+  if (chipsEl) {
+    chipsEl.addEventListener('click', (e) => {
+      const tempRemove = e.target.closest('[data-remove-temp]');
+      if (!tempRemove) return;
+      e.stopPropagation();
+      const tid = tempRemove.dataset.removeTemp;
+      const chip = tempRemove.closest('.drop-reason-chip');
+      if (chip) chip.remove();
+      DROP_SHEET.selectedReasons = DROP_SHEET.selectedReasons.filter(r => r !== `temp:${tid}`);
+      delete DROP_SHEET.customLabels[tid];
+      _validateDropConfirm();
+    }, true);
+  }
+
+  // 메모
+  const noteEl = document.getElementById('dropNoteInput');
+  if (noteEl) noteEl.addEventListener('input', () => {
+    DROP_SHEET.note = noteEl.value;
+  });
+
+  // 별점
+  const ratingTexts = ['평가 안 함','별로','아쉬움','보통','좋음','매우 좋음'];
+  document.querySelectorAll('#dropRatingRow .drop-rating-star').forEach(star => {
+    star.addEventListener('click', () => {
+      const val = parseInt(star.dataset.star, 10);
+      DROP_SHEET.rating = (DROP_SHEET.rating === val) ? 0 : val;
+      document.querySelectorAll('#dropRatingRow .drop-rating-star').forEach((s, i) => {
+        s.classList.toggle('filled', (i + 1) <= DROP_SHEET.rating);
+      });
+      const rl = document.getElementById('dropRatingLabel');
+      if (rl) rl.textContent = ratingTexts[DROP_SHEET.rating] || '평가 안 함';
+    });
+  });
+
+  // 다시 읽을지
+  document.querySelectorAll('#dropRetryRow .drop-retry-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#dropRetryRow .drop-retry-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      DROP_SHEET.retry = btn.dataset.val;
+    });
+  });
+
+  // 저장
+  const confirmBtn = document.getElementById('dropConfirmBtn');
+  if (confirmBtn) confirmBtn.addEventListener('click', () => {
+    if (DROP_SHEET.selectedReasons.length === 0) return;
+    commitDrop();
+  });
+})();
+
+/* ═══ 다시 도전 다이얼로그 ═══ */
+const RETRY_DIALOG = { bookId: null, mode: 'resume' };
+
+function openRetryDialog(bookId) {
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) return;
+  RETRY_DIALOG.bookId = bookId;
+  RETRY_DIALOG.mode = 'resume';
+
+  const dropped = _getDropped(book) || {};
+  const atPage = dropped.atPage || 0;
+  const totalPages = book.pages || 0;
+  const pct = totalPages > 0 ? Math.round(atPage / totalPages * 100) : 0;
+
+  // 옵션 라벨 갱신
+  const resumeDescEl = document.getElementById('retryResumeDesc');
+  if (resumeDescEl) resumeDescEl.textContent = `멈췄던 곳 그대로 — 진행률 ${pct}% 유지`;
+  const resumeTitleEl = document.getElementById('retryResumeTitle');
+  if (resumeTitleEl) resumeTitleEl.textContent = `📖 ${atPage}p에서 이어 읽기`;
+
+  // 책 제목
+  const descEl = document.getElementById('retryDialogDesc');
+  if (descEl) descEl.innerHTML = `<strong>"${esc(book.title)}"</strong>를<br>독서중 상태로 되돌릴게요.`;
+
+  // 기본 선택: resume
+  document.querySelectorAll('#retryDialogOpts .retry-dialog-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.opt === 'resume');
+  });
+
+  const bd = document.getElementById('retryDialogBackdrop');
+  if (bd) bd.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRetryDialog() {
+  const bd = document.getElementById('retryDialogBackdrop');
+  if (bd) bd.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+(function wireRetryDialog() {
+  const bd = document.getElementById('retryDialogBackdrop');
+  if (!bd) return;
+  bd.addEventListener('click', (e) => {
+    if (e.target === bd) closeRetryDialog();
+  });
+  const cancel = document.getElementById('retryDialogCancel');
+  if (cancel) cancel.addEventListener('click', closeRetryDialog);
+
+  // 옵션 선택
+  const optsEl = document.getElementById('retryDialogOpts');
+  if (optsEl) optsEl.addEventListener('click', (e) => {
+    const opt = e.target.closest('.retry-dialog-opt');
+    if (!opt) return;
+    document.querySelectorAll('#retryDialogOpts .retry-dialog-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    RETRY_DIALOG.mode = opt.dataset.opt;
+  });
+
+  // 확인
+  const confirm = document.getElementById('retryDialogConfirm');
+  if (confirm) confirm.addEventListener('click', () => {
+    const id = RETRY_DIALOG.bookId;
+    const mode = RETRY_DIALOG.mode || 'resume';
+    closeRetryDialog();
+    retryDroppedBook(id, mode);
+  });
+})();
+
+/* ═══ updateBookStatus / status-seg 핸들러 통합 — dropped 케이스 ═══ */
+/* 기존 핸들러는 wish/reading/done만 처리 — dropped로 변경 시 시트 열기 가로채기 */
+(function wireBdStatusSegDropped() {
+  // 책 상세 status-seg 위임 — dropped 클릭은 시트로 가로채기
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#bdStatusSeg .status-seg-btn[data-status="dropped"]');
+    if (!btn) return;
+    if (!BD || !BD.book) return;
+    if (BD.book.status === 'dropped') return;   // 이미 하차면 패스
+    e.preventDefault();
+    e.stopPropagation();
+    openDropSheet(BD.book.id);
+  }, true);
+})();
+
 </script>
 
 <!-- ═══════════ Cloudflare Web Analytics ═══════════
@@ -23625,6 +25036,98 @@ function _versionLower(a, b) {
 -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     v1.6.0 — 하차 시트 (사유 입력 모달)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="drop-sheet-backdrop" id="dropSheetBackdrop" aria-hidden="true">
+  <div class="drop-sheet" role="dialog" aria-labelledby="dropSheetTitle">
+    <div class="drop-sheet-handle"></div>
+    <h2 class="drop-sheet-title" id="dropSheetTitle">하차 기록</h2>
+    <p class="drop-sheet-subtitle">잠시 책갈피를 꽂아두는 거예요</p>
+
+    <!-- 책 미리보기 (동적 렌더) -->
+    <div class="drop-sheet-book" id="dropSheetPreview"></div>
+
+    <!-- 사유 칩 -->
+    <div class="drop-sheet-section">
+      <h3>왜 책갈피를 꽂으셨나요? <span class="req">필수</span></h3>
+      <div class="drop-reason-chips" id="dropReasonChips"></div>
+      <div class="drop-add-chip-input-wrap" id="dropAddChipInputWrap">
+        <input type="text" class="drop-add-chip-input" id="dropAddChipInput" placeholder="예: 글씨가 너무 작아요" maxlength="30" inputmode="text">
+        <button type="button" class="drop-add-chip-confirm" id="dropAddChipConfirmBtn">추가</button>
+      </div>
+    </div>
+
+    <!-- 메모 -->
+    <div class="drop-sheet-section">
+      <h3>한 줄 메모 <span class="opt">선택</span></h3>
+      <textarea class="drop-note-input" id="dropNoteInput" placeholder="구체적인 사유나 떠오르는 생각을 적어두면 나중에 도움이 돼요" maxlength="200"></textarea>
+    </div>
+
+    <!-- 별점 -->
+    <div class="drop-sheet-section">
+      <h3>여기까지 본 평점 <span class="opt">선택</span></h3>
+      <div class="drop-rating-row" id="dropRatingRow">
+        <button type="button" class="drop-rating-star" data-star="1">★</button>
+        <button type="button" class="drop-rating-star" data-star="2">★</button>
+        <button type="button" class="drop-rating-star" data-star="3">★</button>
+        <button type="button" class="drop-rating-star" data-star="4">★</button>
+        <button type="button" class="drop-rating-star" data-star="5">★</button>
+        <span class="drop-rating-label" id="dropRatingLabel">평가 안 함</span>
+      </div>
+    </div>
+
+    <!-- 다시 읽을지 -->
+    <div class="drop-sheet-section">
+      <h3>나중에 다시 읽으실 의향은? <span class="opt">선택</span></h3>
+      <div class="drop-retry-row" id="dropRetryRow">
+        <button type="button" class="drop-retry-btn" data-val="yes">🌱 그럼요</button>
+        <button type="button" class="drop-retry-btn active" data-val="maybe">🤷 글쎄요</button>
+        <button type="button" class="drop-retry-btn" data-val="no">🙅 안 읽을래요</button>
+      </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="drop-sheet-footer">
+      <button type="button" class="drop-btn-cancel" id="dropCancelBtn">취소</button>
+      <button type="button" class="drop-btn-confirm" id="dropConfirmBtn" disabled>하차 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     v1.6.0 — 다시 도전 다이얼로그
+     ═══════════════════════════════════════════════════════════ -->
+<div class="retry-dialog-backdrop" id="retryDialogBackdrop" aria-hidden="true">
+  <div class="retry-dialog" role="dialog" aria-labelledby="retryDialogTitle">
+    <div class="retry-dialog-emoji">🌱</div>
+    <h3 class="retry-dialog-title" id="retryDialogTitle">다시 도전하기</h3>
+    <p class="retry-dialog-desc" id="retryDialogDesc">독서중 상태로 되돌릴게요.</p>
+
+    <div class="retry-dialog-options" id="retryDialogOpts">
+      <button type="button" class="retry-dialog-opt selected" data-opt="resume">
+        <div class="retry-dialog-opt-radio"></div>
+        <div class="retry-dialog-opt-content">
+          <div class="retry-dialog-opt-title" id="retryResumeTitle">📖 멈췄던 곳에서 이어 읽기</div>
+          <div class="retry-dialog-opt-desc" id="retryResumeDesc">진행률 그대로 유지</div>
+        </div>
+      </button>
+      <button type="button" class="retry-dialog-opt" data-opt="restart">
+        <div class="retry-dialog-opt-radio"></div>
+        <div class="retry-dialog-opt-content">
+          <div class="retry-dialog-opt-title">🔄 처음부터 다시</div>
+          <div class="retry-dialog-opt-desc">진행률 0%로 — 이전 하차 기록은 보존</div>
+        </div>
+      </button>
+    </div>
+
+    <div class="retry-dialog-actions">
+      <button type="button" class="drop-btn-cancel" id="retryDialogCancel">취소</button>
+      <button type="button" class="drop-btn-confirm" id="retryDialogConfirm">시작</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
