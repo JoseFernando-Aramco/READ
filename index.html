@@ -15047,16 +15047,11 @@ const NA = {
   }
   const savedTags = STORE.get('tags', null);
   if (savedTags && typeof savedTags === 'object') {
-    // 저장된 태그 먼저 복사 (사용자가 바꾼 이모지·색 유지)
-    const merged = { ...TAGS, ...savedTags };
-    // 단, 기본 태그 중 저장본에 빠진 게 있으면 기본값으로 채움 (앱 업데이트로 새 태그 추가 대응)
-    // e.g. 기존 사용자에게도 "육아" 태그 자동 노출
-    Object.keys(TAGS).forEach(k => {
-      if (!(k in savedTags)) merged[k] = TAGS[k];
-    });
-    Object.keys(merged).forEach(k => { TAGS[k] = merged[k]; });
-    // 새로 추가된 기본 태그가 있으면 저장본도 업데이트
-    STORE.set('tags', TAGS);
+    // 저장본이 있으면 저장본이 진실 — 사용자가 삭제한 기본 태그는 다시 살리지 않는다.
+    // (앱 업데이트로 새 기본 태그가 추가돼도, 기존 사용자에겐 자동 노출 X.
+    //  필요하면 사용자가 직접 추가하시면 됨. 사용자 의도 침범 안 하는 게 우선)
+    Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
+    Object.keys(savedTags).forEach(k => { TAGS[k] = savedTags[k]; });
   }
   const savedNotes = STORE.get('notes', null);
   if (Array.isArray(savedNotes)) {
