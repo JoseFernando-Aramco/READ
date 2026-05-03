@@ -6638,15 +6638,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 4px;
 }
 .bd-hero-meta {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
   font-family: inherit;
   font-size: 12px; font-weight: 500;
   color: var(--c-label);
   letter-spacing: -0.01em;
   text-transform: none;
 }
-/* 직계 자식 span에만 점(·) 구분자 — 알약(.fmt-pill)은 제외 (내부 emoji/text 사이, fmt-pill 다음 메타 사이 모두 점 없음) */
-.bd-hero-meta > span:not(:last-child):not(.fmt-pill)::after {
+.bd-hero-meta span:not(:last-child)::after {
   content: '·';
   margin-left: 10px;
   color: var(--c-label);
@@ -8642,6 +8641,72 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .wn-misc strong {
   color: var(--c-text-2);
   font-weight: 600;
+}
+
+/* ───── HERO 안 검색 데모 시각화 (v1.5.1) ───── */
+.wn-search-demo {
+  background: var(--c-surface);
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid rgba(229, 192, 78, 0.25);
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+.wn-search-demo-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  margin-bottom: 8px;
+  font-feature-settings: 'tnum';
+}
+.wn-search-demo-input::before {
+  content: '🔍';
+  font-size: 11px;
+}
+.wn-search-demo-results {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.wn-search-demo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: var(--c-canvas, #FAFBFC);
+  border-radius: 6px;
+}
+.wn-src-chip {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 100px;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.wn-src-chip.k { background: #FEE500; color: #3C1E1E; }
+.wn-src-chip.a { background: #00A4E1; color: #fff; }
+.wn-src-chip.g { background: var(--c-surface-2, #F5F6F7); color: var(--c-text-2); border: 1px solid var(--c-border-2, #E5E8EB); }
+.wn-src-ttl {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wn-src-meta {
+  font-size: 10px;
+  color: var(--c-muted);
+  font-feature-settings: 'tnum';
+  flex-shrink: 0;
 }
 
 .wn-list {
@@ -11249,7 +11314,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.5.0 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.5.1 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -12033,83 +12098,62 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.5.0 · 업데이트 소식</div>
-    <div class="wn-ttl">다음 책, 함께 골라드릴게요</div>
-    <div class="wn-sub">위시리스트가 막막하셨던 분께 — 본인 별점 데이터로 정렬됩니다.</div>
+    <div class="wn-badge">v1.5.1 · 업데이트 소식</div>
+    <div class="wn-ttl">의견 주신 분들 덕분에 또 보강했어요</div>
+    <div class="wn-sub">검색·전자책·타이머 — 카페 의견에서 시작된 작업이에요</div>
 
-    <!-- ★ HERO — 다음 책 추천 -->
+    <!-- ★ HERO — 검색 3종 콜라보 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">✨</span>
-        NEW · 다음 책 추천
+        <span style="font-size:11px">🔍</span>
+        ENHANCED · 검색 강화
       </div>
-      <div class="wn-hero-ttl">위시리스트가 취향순으로 정렬돼요</div>
-      <div class="wn-hero-sub">별점 4점 이상 주신 책의 저자·태그·페이지 패턴을 분석해서 위시리스트에서 결이 맞는 책을 위로 올려드립니다</div>
-      <div class="ms-grid">
-        <div class="ms-cell">
-          <div class="ms-cell-icon">📚</div>
-          <div>
-            <div class="ms-cell-name">서재</div>
-            <div class="ms-cell-step">위시리스트 "취향순 ✨" 토글</div>
+      <div class="wn-hero-ttl">카카오 + 알라딘 + 구글북스 동시 검색</div>
+      <div class="wn-hero-sub">알라딘이 외서 ISBN도 의외로 풍부하더라구요. 굿리즈에서 보시던 영문 원서 ISBN도 한번 넣어보세요</div>
+
+      <div class="wn-search-demo">
+        <div class="wn-search-demo-input">9780735211292</div>
+        <div class="wn-search-demo-results">
+          <div class="wn-search-demo-row">
+            <span class="wn-src-chip a">A</span>
+            <span class="wn-src-ttl">Atomic Habits</span>
+            <span class="wn-src-meta">320p</span>
           </div>
-        </div>
-        <div class="ms-cell">
-          <div class="ms-cell-icon">📊</div>
-          <div>
-            <div class="ms-cell-name">통계</div>
-            <div class="ms-cell-step">다음 책 추천 카드 3장</div>
-          </div>
-        </div>
-        <div class="ms-cell">
-          <div class="ms-cell-icon">🎯</div>
-          <div>
-            <div class="ms-cell-name">균형</div>
-            <div class="ms-cell-step">장르 분포 시각화</div>
-          </div>
-        </div>
-        <div class="ms-cell">
-          <div class="ms-cell-icon">★</div>
-          <div>
-            <div class="ms-cell-name">매칭</div>
-            <div class="ms-cell-step">상위 3권 점수 배지</div>
+          <div class="wn-search-demo-row">
+            <span class="wn-src-chip g">G</span>
+            <span class="wn-src-ttl">Atomic Habits (Hardcover)</span>
+            <span class="wn-src-meta">320p</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 표지 + 균형 + 페어리 -->
+    <!-- 항목 리스트 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">🎨</div>
+        <div class="wn-icon">📱</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">표지 직접 넣기</div>
-          <div class="wn-item-sub">검색에 없는 책의 표지를 사진첩에서 첨부할 수 있어요. 책 상세에서도 표지를 누르면 바꿀 수 있습니다</div>
+          <div class="wn-item-ttl">전자책 매체 구분</div>
+          <div class="wn-item-sub">책 단위로 종이/전자 선택. 전자책은 % 입력하면 환산 페이지로 자동 보여드려요. 책 상세 알약 토글로 사후 변경도 OK</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🎯</div>
+        <div class="wn-icon">⏱</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">장르 균형 — 통계 탭</div>
-          <div class="wn-item-sub">완독한 책의 태그 분포가 가로 막대로 보여요. 잔소리는 없습니다, 부드러운 관찰뿐</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">💝</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">설정에 응원하기</div>
-          <div class="wn-item-sub">페어리(fairy.hada.io)로 가는 길을 열었어요. 부담 없이 봐주시면 감사하겠습니다</div>
+          <div class="wn-item-ttl">타이머 시간 수정 (잠든 케이스)</div>
+          <div class="wn-item-sub">정지 시트의 시간을 탭하면 직접 수정 가능. 3시간 이상이면 💤 자동 안내 + 빠른 프리셋 (15분 ~ 2시간)</div>
         </div>
       </li>
     </ul>
 
     <!-- 그 외 -->
     <div class="wn-misc">
-      <strong>그 외</strong> · 추천은 광고 없이 본인 데이터만 분석합니다 · 별점 4점짜리 책이 없으면 토글은 보이지 않아요 · 완독 3권 미만이면 통계 인사이트는 숨겨집니다
+      <strong>그 외</strong> · ISBN 13자리/10자리 자동 인식 · 입력별 우선순위 자동 조정 · 결과 카드에 K · A · G 칩 표시 · 빠른 프리셋 (10·25·50·75·90·100%)
     </div>
 
     <div class="wn-actions">
       <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">위시리스트 보러 가기 ›</button>
+      <button class="wn-btn primary" id="wnGoStats">검색 써보러 가기 ›</button>
     </div>
   </div>
 </div>
@@ -12128,7 +12172,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.5.0</div>
+      <div class="ab-ver">version 1.5.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -22995,7 +23039,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.5.0',
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.5.1',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
@@ -23468,8 +23512,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.5.0';
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v2';
+const APP_VERSION = '1.5.1';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v3';
 
 function openWhatsNew() {
   const modal = document.getElementById('wnModal');
