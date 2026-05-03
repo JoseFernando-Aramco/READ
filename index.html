@@ -16053,6 +16053,8 @@ async function _enrichMissingCovers() {
     STORE.set('books', BOOKS);
     // 서재 카드 재렌더
     try { renderLibraryCards(); } catch(e){}
+    // v1.6.0 — 통계 탭 캘린더 등도 표지 갱신
+    try { renderAllStats(); } catch(e){}
     console.log(`[cover] ${enriched}권 표지 자동 보강됨`);
   }
 }
