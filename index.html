@@ -9155,6 +9155,145 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-transform: none;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   ⏱ 타이머 시간 수정 (잠든 케이스 처리)
+   tm-time-display 클릭 → 편집 모드, 3시간 이상 자동 경고
+   ═══════════════════════════════════════════════════════════ */
+.tm-time-display {
+  cursor: pointer;
+  transition: opacity 0.15s;
+  position: relative;
+}
+.tm-time-display:active { opacity: 0.7; }
+.tm-time-display.warn .tm-time-num,
+.tm-time-display.warn .tm-time-unit {
+  color: #C04A4A;
+}
+.tm-time-edit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--c-muted);
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 50%;
+  vertical-align: middle;
+  align-self: center;
+  transition: all 0.15s;
+}
+.tm-time-display:hover .tm-time-edit-icon,
+.tm-time-display:active .tm-time-edit-icon {
+  background: #d4a574;
+  color: #fff;
+}
+
+/* 시간 편집 인풋 (시·분) */
+.tm-time-inputs {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0 0;
+}
+.tm-time-block.editing .tm-time-display { display: none; }
+.tm-time-block.editing .tm-time-inputs { display: flex; }
+
+.tm-time-input {
+  width: 72px; height: 56px;
+  border: 2px solid #d4a574;
+  border-radius: 10px;
+  padding: 0 8px;
+  font-size: 32px;
+  font-weight: 800;
+  text-align: center;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-family: inherit;
+  font-feature-settings: 'tnum';
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+.tm-time-input::-webkit-outer-spin-button,
+.tm-time-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.tm-time-input:focus {
+  border-color: #c08e58;
+  background: #FFFBF5;
+}
+.tm-time-input-label {
+  font-size: 14px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+/* 잠든 의심 경고 박스 */
+.tm-sleep-warn {
+  display: none;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFF3CC 100%);
+  border: 1px solid #F5D547;
+  border-radius: 10px;
+}
+.tm-sleep-warn.active { display: block; }
+.tm-sleep-warn-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tm-sleep-warn-icon {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #F5D547;
+  color: #5C4500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.tm-sleep-warn-ttl {
+  font-size: 13px;
+  font-weight: 800;
+  color: #5C4500;
+  letter-spacing: -.3px;
+}
+.tm-sleep-warn-body {
+  font-size: 12px;
+  color: #5C4500;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.tm-quick-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tm-quick-preset {
+  padding: 7px 12px;
+  background: var(--c-surface);
+  border: 1px solid #E5C800;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #5C4500;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -.2px;
+  transition: all 0.15s;
+}
+.tm-quick-preset:active {
+  transform: scale(0.96);
+  background: #F5D547;
+}
+
 .tm-page-field { display: flex; flex-direction: column; gap: 8px; }
 .tm-page-field label {
   font-family: inherit;
@@ -11609,9 +11748,34 @@ body.cn-locked {
   <div class="tm-body">
     <div class="tm-book-row" id="tmBookRow"></div>
 
-    <div>
+    <div class="tm-time-block" id="tmTimeBlock">
       <div class="tm-time-display" id="tmTimeDisplay"></div>
-      <div class="tm-time-sub">READING TIME</div>
+      <div class="tm-time-inputs" id="tmTimeInputs">
+        <input type="number" class="tm-time-input" id="tmHourInput" min="0" max="23" value="0" inputmode="numeric">
+        <span class="tm-time-input-label">시</span>
+        <input type="number" class="tm-time-input" id="tmMinInput" min="0" max="59" value="0" inputmode="numeric">
+        <span class="tm-time-input-label">분</span>
+      </div>
+      <div class="tm-time-sub">READING TIME · 탭하여 수정</div>
+
+      <!-- 잠든 의심 경고 (3시간 이상 자동 표시) -->
+      <div class="tm-sleep-warn" id="tmSleepWarn">
+        <div class="tm-sleep-warn-head">
+          <div class="tm-sleep-warn-icon">💤</div>
+          <div class="tm-sleep-warn-ttl">혹시 잠드셨나요?</div>
+        </div>
+        <div class="tm-sleep-warn-body">
+          기록된 시간이 평소보다 길어요. 실제 읽으신 시간으로 줄여서 저장하시겠어요?
+        </div>
+        <div class="tm-quick-presets">
+          <button type="button" class="tm-quick-preset" data-min="15">15분</button>
+          <button type="button" class="tm-quick-preset" data-min="30">30분</button>
+          <button type="button" class="tm-quick-preset" data-min="45">45분</button>
+          <button type="button" class="tm-quick-preset" data-min="60">1시간</button>
+          <button type="button" class="tm-quick-preset" data-min="90">1.5시간</button>
+          <button type="button" class="tm-quick-preset" data-min="120">2시간</button>
+        </div>
+      </div>
     </div>
 
     <!-- 종이책: 페이지 입력 -->
@@ -15900,6 +16064,89 @@ function toggleTimerPause() {
 }
 
 /* 타이머 정지 시트 열기 */
+/* 정지 시트 시간 표시 갱신 — 측정값 vs 사용자 수정값 분기
+ * 잠든 의심(180분 이상)이고 사용자가 수정 안 했으면 빨간색 경고 */
+function _renderTmTimeDisplay(minutes) {
+  const display = document.getElementById('tmTimeDisplay');
+  if (!display) return;
+  const editBadge = '<span class="tm-time-edit-icon" aria-hidden="true">✏️</span>';
+  display.innerHTML =
+    `<span class="tm-time-num">${minutes}</span><span class="tm-time-unit">분</span>${editBadge}`;
+
+  // 잠든 의심이고 사용자가 수정 안 했으면 빨간색 경고
+  const measured = TIMER.measuredMinutes || minutes;
+  const isLong = measured >= 180;
+  const edited = TIMER.timeManuallyEdited;
+  display.classList.toggle('warn', isLong && !edited);
+}
+
+/* 정지 시트 시간 편집 모드 진입 — 시·분 인풋 표시 */
+function _enterTmEditMode() {
+  const block = document.getElementById('tmTimeBlock');
+  if (!block) return;
+  block.classList.add('editing');
+
+  // 현재 시간을 인풋에 반영
+  const minutes = TIMER.pendingMinutes || 0;
+  const hourInput = document.getElementById('tmHourInput');
+  const minInput = document.getElementById('tmMinInput');
+  if (hourInput) hourInput.value = Math.floor(minutes / 60);
+  if (minInput) {
+    minInput.value = minutes % 60;
+    setTimeout(() => { minInput.focus(); minInput.select(); }, 50);
+  }
+}
+
+/* 정지 시트 시간 편집 종료 — 표시 모드로 복귀 */
+function _exitTmEditMode() {
+  const block = document.getElementById('tmTimeBlock');
+  if (block) block.classList.remove('editing');
+}
+
+/* 시·분 인풋 → TIMER.pendingMinutes 동기화 + 표시 갱신 */
+function _syncTmTimeFromInputs() {
+  const hourInput = document.getElementById('tmHourInput');
+  const minInput = document.getElementById('tmMinInput');
+  if (!hourInput || !minInput) return;
+
+  let h = parseInt(hourInput.value, 10);
+  let m = parseInt(minInput.value, 10);
+  if (isNaN(h)) h = 0;
+  if (isNaN(m)) m = 0;
+  h = Math.max(0, Math.min(23, h));
+  m = Math.max(0, Math.min(59, m));
+
+  const total = Math.max(1, h * 60 + m);  // 최소 1분
+  TIMER.pendingMinutes = total;
+  TIMER.timeManuallyEdited = true;
+
+  _renderTmTimeDisplay(total);
+}
+
+/* 빠른 프리셋 클릭 — 분 단위 시간을 바로 적용 */
+function _applyTmPreset(presetMinutes) {
+  TIMER.pendingMinutes = Math.max(1, presetMinutes);
+  TIMER.timeManuallyEdited = true;
+
+  const hourInput = document.getElementById('tmHourInput');
+  const minInput = document.getElementById('tmMinInput');
+  if (hourInput) hourInput.value = Math.floor(presetMinutes / 60);
+  if (minInput) minInput.value = presetMinutes % 60;
+
+  _renderTmTimeDisplay(presetMinutes);
+
+  // 살짝 강조 효과
+  const display = document.getElementById('tmTimeDisplay');
+  if (display) {
+    const num = display.querySelector('.tm-time-num');
+    if (num) {
+      num.style.transition = 'color 0.4s';
+      num.style.color = '#d4a574';
+      setTimeout(() => { num.style.color = ''; }, 600);
+    }
+  }
+}
+
 function openTimerStop() {
   if (!TIMER.bookId || !TIMER.startTime) return;
   const book = BOOKS.find(b => b.id === TIMER.bookId);
@@ -15908,15 +16155,34 @@ function openTimerStop() {
   const elapsedSec = getElapsedSec();
   const minutes = Math.max(1, Math.round(elapsedSec / 60));
   TIMER.pendingMinutes = minutes;
+  TIMER.measuredMinutes = minutes;  // 측정 원본 보존 (수정 비교용)
+  TIMER.timeManuallyEdited = false;
 
   document.getElementById('tmBookRow').innerHTML = `
     <div class="tm-book-title">${esc(book.title)}</div>
     <div class="tm-book-meta">${esc(book.author)}</div>
   `;
-  document.getElementById('tmTimeDisplay').innerHTML = `
-    <span class="tm-time-num">${minutes}</span>
-    <span class="tm-time-unit">분</span>
-  `;
+
+  // 시간 표시 갱신 (헬퍼 함수로 분리 — 수정 시에도 재사용)
+  _renderTmTimeDisplay(minutes);
+
+  // 편집 상태 초기화 — 매번 닫히고 새로 열림
+  const block = document.getElementById('tmTimeBlock');
+  if (block) block.classList.remove('editing');
+
+  // 시·분 인풋 값 동기화 (편집 모드 진입 시 사용)
+  const hourInput = document.getElementById('tmHourInput');
+  const minInput = document.getElementById('tmMinInput');
+  if (hourInput && minInput) {
+    hourInput.value = Math.floor(minutes / 60);
+    minInput.value = minutes % 60;
+  }
+
+  // 잠든 의심 경고 — 3시간(180분) 이상 자동 표시
+  const sleepWarn = document.getElementById('tmSleepWarn');
+  if (sleepWarn) {
+    sleepWarn.classList.toggle('active', minutes >= 180);
+  }
 
   // 매체에 따라 페이지/퍼센트 필드 분기
   const paperField = document.getElementById('tmPaperField');
@@ -15962,6 +16228,44 @@ function closeTimerStop() {
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
 }
+
+/* ═══════════════════════════════════════════════════════════
+   정지 시트 시간 편집 이벤트 — 한 번만 등록 (IIFE)
+   ═══════════════════════════════════════════════════════════ */
+(function wireTmTimeEdit() {
+  // 시간 표시 클릭 → 편집 모드 진입
+  const display = document.getElementById('tmTimeDisplay');
+  if (display) {
+    display.addEventListener('click', _enterTmEditMode);
+  }
+
+  // 시·분 인풋 변경 → 동기화
+  const hourInput = document.getElementById('tmHourInput');
+  const minInput = document.getElementById('tmMinInput');
+  [hourInput, minInput].forEach(input => {
+    if (!input) return;
+    input.addEventListener('input', _syncTmTimeFromInputs);
+    input.addEventListener('blur', () => {
+      // 다른 인풋으로 옮기는 경우엔 유지, 아니면 편집 모드 종료
+      setTimeout(() => {
+        if (document.activeElement !== hourInput && document.activeElement !== minInput) {
+          _exitTmEditMode();
+        }
+      }, 100);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') input.blur();
+    });
+  });
+
+  // 빠른 프리셋 클릭
+  document.querySelectorAll('.tm-quick-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const min = parseInt(btn.dataset.min, 10);
+      if (!isNaN(min) && min > 0) _applyTmPreset(min);
+    });
+  });
+})();
 
 /* 세션 저장 + 타이머 종료 */
 function saveTimerSession() {
@@ -16016,8 +16320,18 @@ function saveTimerSession() {
   closeTimerStop();
   renderLibraryCards();
 
+  // 토스트 — 사용자가 시간을 직접 수정한 경우 측정값과 저장값 둘 다 표시
   const pageStr = pagesRead > 0 ? ` · +${pagesRead}p` : '';
-  showToast(`${minutes}분 기록 저장됨${pageStr} ✓`);
+  const measured = TIMER.measuredMinutes;
+  const wasEdited = TIMER.timeManuallyEdited && measured && measured !== minutes;
+  const timeMsg = wasEdited
+    ? `측정 ${measured}분 → 저장 ${minutes}분`
+    : `${minutes}분 기록 저장됨`;
+  showToast(`${timeMsg}${pageStr} ✓`);
+
+  // 측정값 클리어 (다음 세션 위해)
+  TIMER.measuredMinutes = null;
+  TIMER.timeManuallyEdited = false;
 }
 
 /* 타이머 정지 시트 이벤트 바인딩 */
