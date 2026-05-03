@@ -8716,6 +8716,117 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex-shrink: 0;
 }
 
+/* v1.6.0 — 업데이트 모달 HERO: 하차 책 시각 */
+.wn-drop-demo {
+  margin-top: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--c-drop-soft);
+  border-radius: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.wn-drop-demo-cover {
+  position: relative;
+  width: 48px;
+  flex-shrink: 0;
+  aspect-ratio: 108/156;
+  background: linear-gradient(135deg, #1e40af, #15285f);
+  border-radius: 4px;
+  overflow: visible;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  filter: saturate(0.4) brightness(0.94);
+}
+.wn-drop-demo-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(139, 126, 114, 0.22);
+  border-radius: inherit;
+}
+.wn-drop-demo-pin {
+  position: absolute;
+  top: -2px;
+  right: 9px;
+  width: 14px;
+  height: 22px;
+  background: var(--c-drop-bookmark);
+  z-index: 3;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+}
+.wn-drop-demo-info {
+  flex: 1;
+  min-width: 0;
+}
+.wn-drop-demo-meta {
+  font-size: 10.5px;
+  color: var(--c-drop-deep);
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+.wn-drop-demo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.wn-drop-demo-chip {
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: var(--c-drop-deep);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.wn-drop-demo-chip.user {
+  background: var(--c-drop-bookmark);
+}
+
+/* 가치 고찰 메시지 박스 */
+.wn-philosophy {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: var(--c-drop-bg);
+  border-left: 3px solid var(--c-drop-bookmark);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--c-drop-deep);
+}
+.wn-philosophy strong {
+  font-weight: 700;
+  color: var(--c-drop-deep);
+}
+
+/* v1.5.1 통합 섹션 — 작은 박스 */
+.wn-also {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.wn-also-head {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: 0.4px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.wn-also-text {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--c-text);
+}
+.wn-also-text strong {
+  font-weight: 700;
+}
+
 .wn-list {
   list-style: none;
   padding: 0;
@@ -12124,11 +12235,19 @@ body.cn-locked {
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <button class="settings-row" id="whatsNewRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">최신 업데이트 다시보기</div>
+            <div class="settings-row-sub">v1.6.0 · 책갈피 시스템</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
         <button class="settings-row" id="aboutRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.5.1 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.6.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -12913,62 +13032,80 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.5.1 · 업데이트 소식</div>
-    <div class="wn-ttl">의견 주신 분들 덕분에 또 보강했어요</div>
-    <div class="wn-sub">검색·전자책·타이머 — 카페 의견에서 시작된 작업이에요</div>
+    <div class="wn-badge">v1.6.0 · 업데이트 소식</div>
+    <div class="wn-ttl">끝까지 못 읽은 책에도, 이야기가 있어요</div>
+    <div class="wn-sub">손이 안 가는 책을 그냥 삭제하기엔 좀 아쉬웠거든요</div>
 
-    <!-- ★ HERO — 검색 3종 콜라보 -->
+    <!-- ★ HERO — 하차 책 시각 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">🔍</span>
-        ENHANCED · 검색 강화
+        <span style="font-size:11px">🔖</span>
+        BOOKMARK · 책갈피 시스템
       </div>
-      <div class="wn-hero-ttl">카카오 + 알라딘 + 구글북스 동시 검색</div>
-      <div class="wn-hero-sub">알라딘이 외서 ISBN도 의외로 풍부하더라구요. 굿리즈에서 보시던 영문 원서 ISBN도 한번 넣어보세요</div>
+      <div class="wn-hero-ttl">하차한 책도 한 자리 마련했어요</div>
+      <div class="wn-hero-sub">왜 손에서 놓았는지 한 줄 메모와 사유 칩까지 — 다음 책 고를 때 의외로 큰 단서가 됩니다</div>
 
-      <div class="wn-search-demo">
-        <div class="wn-search-demo-input">9780735211292</div>
-        <div class="wn-search-demo-results">
-          <div class="wn-search-demo-row">
-            <span class="wn-src-chip a">A</span>
-            <span class="wn-src-ttl">Atomic Habits</span>
-            <span class="wn-src-meta">320p</span>
-          </div>
-          <div class="wn-search-demo-row">
-            <span class="wn-src-chip g">G</span>
-            <span class="wn-src-ttl">Atomic Habits (Hardcover)</span>
-            <span class="wn-src-meta">320p</span>
+      <!-- 하차 책 미니어처 데모 -->
+      <div class="wn-drop-demo">
+        <div class="wn-drop-demo-cover">
+          <div class="wn-drop-demo-pin"></div>
+        </div>
+        <div class="wn-drop-demo-info">
+          <div class="wn-drop-demo-meta">88p · 23%에서 멈춤</div>
+          <div class="wn-drop-demo-chips">
+            <span class="wn-drop-demo-chip">취향 안 맞음</span>
+            <span class="wn-drop-demo-chip">기대와 다름</span>
+            <span class="wn-drop-demo-chip user">철학 토씨…</span>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 가치 고찰 메시지 -->
+    <div class="wn-philosophy">
+      읽다가 만 책을 삭제 버튼 한 번에 지워버리기엔 좀 아쉽잖아요. <br>
+      <strong>"왜 그만뒀는지"</strong> 한 줄 남기는 게, 나중에 비슷한 책을 만났을 때 꽤 도움이 되더라구요. <br>
+      취향이 또렷해지는 가장 좋은 방법이에요.
     </div>
 
     <!-- 항목 리스트 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">📱</div>
+        <div class="wn-icon">🔖</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">전자책 매체 구분</div>
-          <div class="wn-item-sub">책 단위로 종이/전자 선택. 전자책은 % 입력하면 환산 페이지로 자동 보여드려요. 책 상세 알약 토글로 사후 변경도 OK</div>
+          <div class="wn-item-ttl">하차 + 사유 기록</div>
+          <div class="wn-item-sub">사유 칩 8가지 + <strong>직접 추가</strong> · 한 줄 메모 · 본 만큼의 별점 · 다시 읽을 의향까지</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">⏱</div>
+        <div class="wn-icon">🌱</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">타이머 시간 수정 (잠든 케이스)</div>
-          <div class="wn-item-sub">정지 시트의 시간을 탭하면 직접 수정 가능. 3시간 이상이면 💤 자동 안내 + 빠른 프리셋 (15분 ~ 2시간)</div>
+          <div class="wn-item-ttl">다시 도전</div>
+          <div class="wn-item-sub">멈췄던 곳에서 이어 읽기 / 처음부터 다시 — 부활하는 흐름. 이전 시도 기록도 함께 보존돼요</div>
+        </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">📊</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">통계 — 책갈피 분석</div>
+          <div class="wn-item-sub">완독 vs 하차 비율 · 사유 도넛 차트 · "평균 32% 지점에서 책갈피를 꽂으셨어요" 같은 셀프 코칭</div>
         </div>
       </li>
     </ul>
 
-    <!-- 그 외 -->
-    <div class="wn-misc">
-      <strong>그 외</strong> · ISBN 13자리/10자리 자동 인식 · 입력별 우선순위 자동 조정 · 결과 카드에 K · A · G 칩 표시 · 빠른 프리셋 (10·25·50·75·90·100%)
+    <!-- v1.5.1 함께 들어왔어요 -->
+    <div class="wn-also">
+      <div class="wn-also-head">함께 들어온 v1.5.1 변화</div>
+      <div class="wn-also-text">
+        <strong>📱 전자책 매체 구분</strong> · % 입력 → 환산 페이지 자동 계산 ·&nbsp;
+        <strong>⏱ 타이머 시간 수정</strong> · 잠든 케이스 보정 가능 ·&nbsp;
+        <strong>🔍 검색 3종 콜라보</strong> · Kakao + 알라딘 + 구글북스 동시 검색
+      </div>
     </div>
 
     <div class="wn-actions">
       <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">검색 써보러 가기 ›</button>
+      <button class="wn-btn primary" id="wnGoStats">통계로 가서 보기 ›</button>
     </div>
   </div>
 </div>
@@ -12987,7 +13124,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.5.1</div>
+      <div class="ab-ver">version 1.6.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -23086,6 +23223,19 @@ document.addEventListener('keydown', (e) => {
   });
 })();
 
+/* v1.6.0 — 설정에서 "최신 업데이트 다시보기" 행 클릭 → 업데이트 모달 */
+(function wireWhatsNewRow() {
+  const row = document.getElementById('whatsNewRow');
+  if (!row || row.dataset.wnWired) return;
+  row.dataset.wnWired = '1';
+  row.addEventListener('click', () => {
+    closeSettings();
+    setTimeout(() => {
+      if (typeof openWhatsNew === 'function') openWhatsNew();
+    }, 280);
+  });
+})();
+
 /* ═══════════ 문의하기 모달 ═══════════ */
 const CONTACT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzPDLGGp86LXe11-Tn_bZ75XeTvNtSCwXfOjb-YXDyEaaCJZ18fbDhGEb7LxmmQ-h7vUw/exec';
 let _contactType = '기능 제안';  // 기본값
@@ -24121,7 +24271,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.5.1',
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.6.0',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
@@ -24594,8 +24744,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.5.1';
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v3';
+const APP_VERSION = '1.6.0';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v4';
 
 function openWhatsNew() {
   const modal = document.getElementById('wnModal');
@@ -25200,11 +25350,17 @@ function renderDropStatCard() {
 
   // ─── 사유 도넛 ───
   // 모든 하차 책의 reasons + customReasons 합산
+  // 인라인 라벨 매핑 (외부 const TDZ 회피 — renderAllStats가 선언 전 호출됨)
+  const PRESET_LABELS = {
+    taste: '취향 안 맞음', boring: '재미 없음', translation: '번역이 별로',
+    hard: '너무 어려움', expectation: '기대와 다름', distracted: '글이 산만함',
+    urgent: '더 급한 책 생김', lazy: '손이 안 감',
+  };
   const reasonCounts = {};
   dropped.forEach(b => {
     const dd = (b.dropped && typeof b.dropped === 'object') ? b.dropped : {};
     (dd.reasons || []).forEach(rid => {
-      const label = _dropReasonLabel(rid);
+      const label = PRESET_LABELS[rid] || rid;
       reasonCounts[label] = (reasonCounts[label] || 0) + 1;
     });
     (dd.customReasons || []).forEach(label => {
