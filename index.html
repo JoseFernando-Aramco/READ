@@ -5766,6 +5766,221 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .book-card { position: relative; }
 
 /* ═══════════════════════════════════════════════════════════
+   📕📱 매체 토글 (종이책 / 전자책)
+   ═══════════════════════════════════════════════════════════ */
+.format-toggle {
+  display: flex;
+  gap: 0;
+  padding: 3px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.format-toggle button {
+  flex: 1;
+  padding: 9px 0;
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  border-radius: 7px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.format-toggle button:active { transform: scale(0.97); }
+.format-toggle button.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.format-toggle button .fmt-emoji { font-size: 13px; }
+
+/* 전자책 % 입력 */
+.ebook-pct-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ebook-pct-input {
+  width: 100px; height: 50px;
+  border: 1px solid var(--c-border-2);
+  border-radius: 10px;
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+  background: var(--c-surface);
+  font-family: inherit;
+  font-feature-settings: 'tnum';
+  color: #6D4C41;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ebook-pct-input::-webkit-outer-spin-button,
+.ebook-pct-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.ebook-pct-input:focus {
+  outline: none;
+  border-color: #6D4C41;
+  box-shadow: 0 0 0 3px rgba(109, 76, 65, 0.12);
+}
+.ebook-pct-input.compact {
+  width: 80px; height: 40px;
+  font-size: 18px;
+}
+.ebook-pct-unit {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6D4C41;
+}
+.ebook-pct-unit.compact { font-size: 16px; }
+
+.ebook-pct-converted {
+  margin-left: auto;
+  text-align: right;
+}
+.ebook-pct-converted-label {
+  font-size: 10px;
+  color: var(--c-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.ebook-pct-converted-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  font-feature-settings: 'tnum';
+  margin-top: 1px;
+}
+
+/* 빠른 % 프리셋 */
+.ebook-pct-presets {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.ebook-pct-preset {
+  flex: 1;
+  min-width: calc(16.66% - 5px);
+  padding: 8px 4px;
+  background: #FAF5F0;
+  border: 1px solid #E5DACA;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #6D4C41;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.1s;
+}
+.ebook-pct-preset:active {
+  background: #6D4C41;
+  color: #fff;
+  transform: scale(0.95);
+}
+
+/* 전자책 진행률 바 톤 */
+.progress-bar-fill.ebook {
+  background: #6D4C41;
+}
+
+/* 매체 배지 (책 카드/책 상세에 작게 표시) */
+.format-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  letter-spacing: -.1px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  user-select: none;
+}
+.format-badge:active { transform: scale(0.94); opacity: 0.85; }
+.format-badge.ebook {
+  background: #FAF5F0;
+  color: #6D4C41;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📱 매체 알약 토글 (segmented) — 변형 B (매체별 색상)
+   책 상세 메타 줄에서 사용
+   ═══════════════════════════════════════════════════════════ */
+.fmt-pill {
+  display: inline-flex;
+  background: var(--c-surface-2, #F0F0F2);
+  border-radius: 100px;
+  padding: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.fmt-pill button {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--c-muted, #8B95A1);
+  cursor: pointer;
+  border-radius: 100px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.3;
+  letter-spacing: -.2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.fmt-pill button .fmt-pill-emoji {
+  font-size: 12px;
+  filter: grayscale(0.4);
+  opacity: 0.7;
+  transition: filter 0.2s, opacity 0.2s;
+}
+.fmt-pill button.active .fmt-pill-emoji {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+/* 종이책 활성 — 흰 알약 */
+.fmt-pill button.active[data-fmt="paper"] {
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #191F28);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.04);
+}
+
+/* 전자책 활성 — 모카 알약 */
+.fmt-pill button.active[data-fmt="ebook"] {
+  background: #6D4C41;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(109, 76, 65, 0.3);
+}
+.fmt-pill button.active[data-fmt="ebook"] .fmt-pill-emoji {
+  filter: brightness(1.2);
+}
+
+/* 누를 때 살짝 줄어듦 */
+.fmt-pill button:active { transform: scale(0.96); }
+
+/* ═══════════════════════════════════════════════════════════
    타이머 진행 중 표시 — 글로우 보더(A) + 시간 배지(C)
    .book-card.timer-active : 진행 중 (골드 펄스)
    .book-card.timer-paused : 일시정지 (회색, 정지)
@@ -6243,6 +6458,149 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-align: center;
   line-height: 1.5;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   📱 전자책 % 입력 시스템
+   ═══════════════════════════════════════════════════════════ */
+
+/* 매체 토글 (책 추가 폼 + 책 상세) */
+.format-toggle {
+  display: flex;
+  gap: 0;
+  padding: 3px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.format-toggle button {
+  flex: 1;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  border-radius: 7px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+  letter-spacing: -.2px;
+}
+.format-toggle button.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.format-toggle .fmt-emoji { font-size: 14px; }
+
+/* 전자책 매체 배지 (책 상세 / 책 카드) */
+.format-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  letter-spacing: -.1px;
+}
+.format-badge.ebook {
+  background: #FAF5F0;
+  color: #6D4C41;
+}
+
+/* % 입력 블록 */
+.pct-input-block {
+  margin-bottom: 14px;
+}
+.pct-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pct-input {
+  width: 110px; height: 48px;
+  border: 1px solid var(--c-border-2);
+  border-radius: 10px;
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+  background: var(--c-surface);
+  font-family: inherit;
+  font-feature-settings: 'tnum';
+  -webkit-appearance: none;
+  appearance: none;
+  color: #6D4C41;
+}
+.pct-input:focus {
+  outline: none;
+  border-color: #6D4C41;
+  box-shadow: 0 0 0 3px rgba(109, 76, 65, 0.1);
+}
+.pct-input::-webkit-outer-spin-button,
+.pct-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pct-input-unit {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6D4C41;
+}
+.pct-input-converted {
+  margin-left: auto;
+  text-align: right;
+}
+.pct-input-converted-label {
+  font-size: 10px;
+  color: var(--c-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.pct-input-converted-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  font-feature-settings: 'tnum';
+  margin-top: 2px;
+}
+
+/* % 빠른 프리셋 */
+.pct-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pct-preset {
+  flex: 1;
+  min-width: calc(100% / 6 - 5px);
+  padding: 8px 4px;
+  background: #FAF5F0;
+  border: 1px solid #E5DACA;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #6D4C41;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  letter-spacing: -.2px;
+}
+.pct-preset:active {
+  background: #6D4C41;
+  color: #fff;
+  transform: scale(0.97);
+}
+
+/* 전자책 진행률 바 색상 */
+.progress-fill.ebook { background: #6D4C41; }
 
 .qr-confirm-actions {
   display: flex;
@@ -10841,6 +11199,20 @@ body.cn-locked {
           <label class="form-label">저자 <span class="req">*</span></label>
           <input class="form-input" type="text" name="author" required maxlength="80" placeholder="예: 헤르만 헤세">
         </div>
+        <!-- 매체 (종이/전자) -->
+        <div class="form-field">
+          <label class="form-label">매체</label>
+          <div class="format-toggle" id="manualFormatToggle">
+            <button type="button" class="active" data-fmt="paper">
+              <span class="fmt-emoji">📕</span>
+              <span>종이책</span>
+            </button>
+            <button type="button" data-fmt="ebook">
+              <span class="fmt-emoji">📱</span>
+              <span>전자책</span>
+            </button>
+          </div>
+        </div>
         <div class="form-field-row">
           <div class="form-field">
             <label class="form-label">페이지 수 <span class="req">*</span></label>
@@ -10971,6 +11343,21 @@ body.cn-locked {
           <span class="pages-unit">p</span>
         </div>
         <div class="pages-hint" id="pagesHint"></div>
+      </div>
+
+      <!-- 매체 (종이/전자) -->
+      <div class="confirm-section">
+        <div class="confirm-section-lbl">매체</div>
+        <div class="format-toggle" id="confirmFormatToggle">
+          <button type="button" class="active" data-fmt="paper">
+            <span class="fmt-emoji">📕</span>
+            <span>종이책</span>
+          </button>
+          <button type="button" data-fmt="ebook">
+            <span class="fmt-emoji">📱</span>
+            <span>전자책</span>
+          </button>
+        </div>
       </div>
 
       <!-- 상태 선택 -->
@@ -11227,12 +11614,32 @@ body.cn-locked {
       <div class="tm-time-sub">READING TIME</div>
     </div>
 
-    <div class="tm-page-field">
+    <!-- 종이책: 페이지 입력 -->
+    <div class="tm-page-field" id="tmPaperField">
       <label>현재 페이지 <span class="subct">(선택)</span></label>
       <div class="tm-page-row">
         <input type="number" id="tmPageInput" class="tm-page-input" min="0">
         <span class="tm-page-sep">/</span>
         <span class="tm-page-total" id="tmPageTotal">—</span>
+      </div>
+    </div>
+
+    <!-- 전자책: % 입력 -->
+    <div class="tm-page-field" id="tmEbookField" style="display:none;">
+      <label>현재 진행률 <span class="subct">(선택)</span> <span style="color:var(--c-muted); font-weight:500; font-size:11px;" id="tmEbookPrev"></span></label>
+      <div class="ebook-pct-row" style="margin-bottom: 8px;">
+        <input type="number" id="tmEbookPctInput" class="ebook-pct-input compact" min="0" max="100" inputmode="numeric">
+        <span class="ebook-pct-unit compact">%</span>
+        <div class="ebook-pct-converted">
+          <div class="ebook-pct-converted-label">≈ 환산</div>
+          <div class="ebook-pct-converted-value" id="tmEbookConverted">— / —</div>
+        </div>
+      </div>
+      <div class="ebook-pct-presets">
+        <button type="button" class="ebook-pct-preset" data-tm-pct="25">25%</button>
+        <button type="button" class="ebook-pct-preset" data-tm-pct="50">50%</button>
+        <button type="button" class="ebook-pct-preset" data-tm-pct="75">75%</button>
+        <button type="button" class="ebook-pct-preset" data-tm-pct="100">100%</button>
       </div>
     </div>
 
@@ -12446,6 +12853,7 @@ const BA = {
   rating: 0,            // 완독 등록 시 별점 (0~5)
   tagEditMode: false,   // 태그 편집(삭제) 모드
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
+  manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook')
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -12460,6 +12868,83 @@ function pickPalette(str) {
 /* ─── 이스케이프 ─── */
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📕📱 매체(종이책/전자책) 헬퍼
+   - b.format: 'paper' (default) | 'ebook'
+   - 전자책은 진행률을 % 단위로 입력하고, 페이지는 환산해서 저장
+   - 기존 책은 format 없음 → 'paper'로 처리
+   ═══════════════════════════════════════════════════════════ */
+
+/* 책의 매체 반환 ('paper' | 'ebook') — 기존 데이터는 'paper'로 처리 */
+function getBookFormat(book) {
+  return (book && book.format === 'ebook') ? 'ebook' : 'paper';
+}
+
+/* 전자책 여부 */
+function isEbook(book) {
+  return getBookFormat(book) === 'ebook';
+}
+
+/* 매체 라벨 (UI 표시용) */
+function formatLabel(fmt) {
+  return fmt === 'ebook' ? '📱 전자책' : '📕 종이책';
+}
+
+/* 매체 짧은 라벨 (작은 배지) */
+function formatLabelShort(fmt) {
+  return fmt === 'ebook' ? '📱 전자' : '📕 종이';
+}
+
+/* % → 환산 페이지 (반올림) */
+function pctToPages(pct, totalPages) {
+  if (!totalPages || totalPages <= 0) return 0;
+  const p = Math.max(0, Math.min(100, Number(pct) || 0));
+  return Math.round(totalPages * p / 100);
+}
+
+/* 페이지 → % (반올림) */
+function pagesToPct(currentPage, totalPages) {
+  if (!totalPages || totalPages <= 0) return 0;
+  const p = Math.max(0, Math.min(totalPages, Number(currentPage) || 0));
+  return Math.round(p / totalPages * 100);
+}
+
+/* 책의 현재 진행률 (%) — 매체 무관 */
+function getBookProgressPct(book) {
+  if (!book) return 0;
+  return pagesToPct(book.currentPage || 0, book.pages || 0);
+}
+
+/* 책의 진행률을 표시용 문자열로 — 매체에 따라 형식 다름
+ * 종이책: "154 / 416p · 37%"
+ * 전자책: "37% · ≈ 154p"
+ */
+function formatProgressDisplay(book) {
+  if (!book) return '';
+  const cp = book.currentPage || 0;
+  const tp = book.pages || 0;
+  const pct = pagesToPct(cp, tp);
+  if (isEbook(book)) {
+    return tp > 0 ? `${pct}% · ≈ ${cp}p` : `${pct}%`;
+  }
+  return tp > 0 ? `${cp} / ${tp}p · ${pct}%` : `${cp}p`;
+}
+
+/* 책 카드 메타 표시 — 매체 따라 형식 다름 (저자 포함)
+ * 종이책 reading: "리처드 탈러 · 37%"
+ * 전자책 reading: "리처드 탈러 · 📱 37%"  (배지로 매체 표시)
+ */
+function formatBookCardMeta(book) {
+  if (!book) return '';
+  const author = book.author || '';
+  if (book.status === 'reading' && book.pages) {
+    const pct = getBookProgressPct(book);
+    const fmtIcon = isEbook(book) ? '📱 ' : '';
+    return `${author} · ${fmtIcon}${pct}%`;
+  }
+  return author;
 }
 
 /* ─── 아이콘 헬퍼 (SVG 스프라이트) ─── */
@@ -12490,6 +12975,7 @@ function closeBookAdd() {
   BA.tagsSelected = [];
   BA.tagEditMode = false;
   BA.manualCover = '';
+  BA.manualFormat = 'paper';  // 매체 기본값으로 리셋
   document.getElementById('bookSearchInput').value = '';
   document.getElementById('manualForm').reset();
   // 표지 미리보기 초기화
@@ -12497,6 +12983,13 @@ function closeBookAdd() {
   if (prev) prev.innerHTML = '<svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg>';
   const clearBtn = document.getElementById('coverClearBtn');
   if (clearBtn) clearBtn.style.display = 'none';
+  // 매체 토글 UI 초기화 (paper 활성)
+  const fmtToggle = document.getElementById('manualFormatToggle');
+  if (fmtToggle) {
+    fmtToggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.fmt === 'paper');
+    });
+  }
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
 }
 function goToStage(stage) {
@@ -12930,6 +13423,7 @@ async function _autoAddBookFromScan(normalizedBook) {
     publisher: normalizedBook.publisher || '',
     isLifeBook: false,
     rereads: [],
+    format: normalizedBook.format || 'paper',  // 매체 (paper | ebook)
   };
 
   BOOKS.unshift(newBook);
@@ -13631,6 +14125,7 @@ function submitManual() {
     isbn: '',
     language: 'ko',
     source: 'manual',
+    format: BA.manualFormat || 'paper',
   };
   BA.pagesFromApi = true;  // 사용자가 직접 입력했으므로 신뢰
   BA.tagsSelected = [];
@@ -13642,6 +14137,17 @@ function submitManual() {
 function renderConfirm() {
   const b = BA.selected;
   if (!b) return;
+
+  // 매체 기본값 — 검색 결과에는 format 필드가 없으므로 'paper'로 초기화
+  if (!b.format) b.format = 'paper';
+
+  // 매체 토글 UI 동기화
+  const fmtToggle = document.getElementById('confirmFormatToggle');
+  if (fmtToggle) {
+    fmtToggle.querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.fmt === b.format);
+    });
+  }
 
   // 미리보기
   const preview = document.getElementById('confirmPreview');
@@ -13991,6 +14497,7 @@ function confirmAddBook() {
     publisher: b.publisher || '',
     isLifeBook: status === 'done' ? !!BA.isLifeBook : false,
     rereads: [],
+    format: (b.format === 'ebook' || b.format === 'paper') ? b.format : (BA.manualFormat || 'paper'),  // 매체 (paper | ebook) — 검색 결과면 BA.selected.format, 직접 입력이면 BA.manualFormat
   };
 
   if (status === 'reading') {
@@ -14094,6 +14601,39 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
     '<svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg>';
   document.getElementById('coverClearBtn').style.display = 'none';
 });
+
+// ─── 매체 토글 (직접 입력 폼) ───
+(function wireManualFormatToggle() {
+  const toggle = document.getElementById('manualFormatToggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-fmt]');
+    if (!btn) return;
+    const fmt = btn.dataset.fmt;
+    if (fmt !== 'paper' && fmt !== 'ebook') return;
+    BA.manualFormat = fmt;
+    toggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.fmt === fmt);
+    });
+  });
+})();
+
+/* 검색 결과 → 확인 단계 매체 토글 (Stage 2)
+ * BA.selected.format에 저장 — 책 추가 시 그 값이 newBook.format으로 들어감 */
+(function wireConfirmFormatToggle() {
+  const toggle = document.getElementById('confirmFormatToggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-fmt]');
+    if (!btn) return;
+    const fmt = btn.dataset.fmt;
+    if (fmt !== 'paper' && fmt !== 'ebook') return;
+    if (BA.selected) BA.selected.format = fmt;
+    toggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.fmt === fmt);
+    });
+  });
+})();
 
 // 상태 세그먼트
 document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
@@ -14617,9 +15157,10 @@ function renderBookCoverInner(b, number) {
 
 /* 북 카드 하나 (커버 + 제목 + 메타) */
 function renderBookCard(b, idx) {
+  const ebookMark = isEbook(b) ? '📱 ' : '';
   const meta =
     b.status === 'reading' && b.pages
-      ? `${esc(b.author)} · ${Math.round((b.currentPage || 0) / b.pages * 100)}%`
+      ? `${esc(b.author)} · ${ebookMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
       : b.status === 'done' && b.rating
       ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}`
       : b.status === 'done'
@@ -15376,10 +15917,38 @@ function openTimerStop() {
     <span class="tm-time-num">${minutes}</span>
     <span class="tm-time-unit">분</span>
   `;
-  const pageInput = document.getElementById('tmPageInput');
-  pageInput.value = book.currentPage || 0;
-  pageInput.max = book.pages;
-  document.getElementById('tmPageTotal').textContent = `${book.pages} p`;
+
+  // 매체에 따라 페이지/퍼센트 필드 분기
+  const paperField = document.getElementById('tmPaperField');
+  const ebookField = document.getElementById('tmEbookField');
+  const ebook = isEbook(book);
+
+  if (paperField) paperField.style.display = ebook ? 'none' : '';
+  if (ebookField) ebookField.style.display = ebook ? '' : 'none';
+
+  if (ebook) {
+    // 전자책 — % 입력
+    const pctInput = document.getElementById('tmEbookPctInput');
+    const oldPct = pagesToPct(book.currentPage || 0, book.pages || 0);
+    if (pctInput) {
+      pctInput.value = oldPct;
+      pctInput.max = 100;
+    }
+    const conv = document.getElementById('tmEbookConverted');
+    if (conv) {
+      conv.textContent = `${book.currentPage || 0}p / ${book.pages || 0}p`;
+    }
+    const prevLbl = document.getElementById('tmEbookPrev');
+    if (prevLbl) {
+      prevLbl.textContent = oldPct > 0 ? `이전: ${oldPct}%` : '';
+    }
+  } else {
+    // 종이책 — 페이지 입력
+    const pageInput = document.getElementById('tmPageInput');
+    pageInput.value = book.currentPage || 0;
+    pageInput.max = book.pages;
+    document.getElementById('tmPageTotal').textContent = `${book.pages} p`;
+  }
 
   document.getElementById('tmBackdrop').classList.add('open');
   const sheet = document.getElementById('tmSheet');
@@ -15400,9 +15969,23 @@ function saveTimerSession() {
   if (!book) { closeTimerStop(); return; }
 
   const minutes = TIMER.pendingMinutes || 1;
-  const newPage = parseInt(document.getElementById('tmPageInput').value, 10);
   const oldPage = book.currentPage || 0;
-  const validNewPage = !isNaN(newPage) && newPage >= 0 && newPage <= book.pages ? newPage : oldPage;
+  let validNewPage = oldPage;
+
+  if (isEbook(book)) {
+    // 전자책: % 입력 → 환산 페이지
+    const pctVal = parseInt(document.getElementById('tmEbookPctInput').value, 10);
+    if (!isNaN(pctVal) && pctVal >= 0 && pctVal <= 100) {
+      validNewPage = pctToPages(pctVal, book.pages || 0);
+    }
+  } else {
+    // 종이책: 페이지 입력
+    const newPage = parseInt(document.getElementById('tmPageInput').value, 10);
+    if (!isNaN(newPage) && newPage >= 0 && newPage <= book.pages) {
+      validNewPage = newPage;
+    }
+  }
+
   const pagesRead = Math.max(0, validNewPage - oldPage);
 
   const sessions = [...(book.readingSessions || [])];
@@ -15441,6 +16024,34 @@ function saveTimerSession() {
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
 document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+
+// 정지 시트 — 전자책 % 입력 실시간 환산 + 프리셋
+(function wireTimerEbookInputs() {
+  const pctInput = document.getElementById('tmEbookPctInput');
+  if (pctInput) {
+    pctInput.addEventListener('input', () => {
+      if (!TIMER.bookId) return;
+      const book = BOOKS.find(b => b.id === TIMER.bookId);
+      if (!book) return;
+      let pct = parseInt(pctInput.value, 10);
+      if (isNaN(pct) || pct < 0) pct = 0;
+      if (pct > 100) pct = 100;
+      const conv = document.getElementById('tmEbookConverted');
+      if (conv) conv.textContent = `${pctToPages(pct, book.pages || 0)}p / ${book.pages || 0}p`;
+    });
+  }
+  // 프리셋 버튼
+  document.querySelectorAll('[data-tm-pct]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pct = parseInt(btn.dataset.tmPct, 10);
+      if (isNaN(pct)) return;
+      if (pctInput) {
+        pctInput.value = pct;
+        pctInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
+})();
 
 /* ═══════════════════════════════════════════════════════════
    🎬 CINEMA 모듈 — 가로/세로 풀스크린 몰입 타이머
@@ -15901,19 +16512,38 @@ function openQuickReadConfirm(targetBook) {
     }
   }
 
-  // ═══ 페이지 입력 필드 채우기 (현재 진행 중인 책 기준) ═══
+  // ═══ 페이지/% 입력 필드 채우기 (현재 진행 중인 책 기준, 매체에 따라 분기) ═══
   const pageInput = document.getElementById('qrPageInput');
   const pagePrev = document.getElementById('qrPagePrev');
   const pageTotal = document.getElementById('qrPageTotal');
+  const pageLabel = document.querySelector('.qr-page-label > span:first-child');
+  const pageSep = document.querySelector('.qr-page-row .qr-page-sep');
+
+  const ebookMode = isEbook(currentBook);
+
   if (pageInput && pageTotal) {
     const oldPage = currentBook.currentPage || 0;
     const totalPages = currentBook.pages || 0;
-    pageInput.value = '';  // 매번 비우고 시작 (사용자가 입력)
-    pageInput.placeholder = String(oldPage);
-    pageInput.max = String(totalPages || 9999);
-    pageTotal.textContent = totalPages ? `${totalPages}p` : '—';
-    if (pagePrev) {
-      pagePrev.textContent = oldPage > 0 ? `이전: ${oldPage}p` : '';
+    const oldPct = pagesToPct(oldPage, totalPages);
+
+    pageInput.value = '';
+
+    if (ebookMode) {
+      // 전자책 모드 — % 입력
+      pageInput.placeholder = String(oldPct);
+      pageInput.max = '100';
+      pageTotal.textContent = '%';
+      if (pageSep) pageSep.style.display = 'none';
+      if (pageLabel) pageLabel.innerHTML = '현재 진행률 <span class="qr-page-optional">(선택)</span>';
+      if (pagePrev) pagePrev.textContent = oldPct > 0 ? `이전: ${oldPct}%` : '';
+    } else {
+      // 종이책 모드 — 페이지 입력
+      pageInput.placeholder = String(oldPage);
+      pageInput.max = String(totalPages || 9999);
+      pageTotal.textContent = totalPages ? `${totalPages}p` : '—';
+      if (pageSep) pageSep.style.display = '';
+      if (pageLabel) pageLabel.innerHTML = '현재 페이지 <span class="qr-page-optional">(선택)</span>';
+      if (pagePrev) pagePrev.textContent = oldPage > 0 ? `이전: ${oldPage}p` : '';
     }
   }
 
@@ -15934,11 +16564,23 @@ function openQuickReadConfirm(targetBook) {
 
   newSave.addEventListener('click', () => {
     // 페이지 입력값 읽기 (비어있을 수 있음)
-    const newPageVal = document.getElementById('qrPageInput').value;
+    const inputVal = document.getElementById('qrPageInput').value;
     closeQuickReadConfirm();
-    const result = autoSaveTimerSession({ newPage: newPageVal });
+
+    // 전자책이면 입력값을 %로 받았으므로 환산 페이지로 변환
+    let newPageForSave = inputVal;
+    if (ebookMode && inputVal !== '') {
+      const pctNum = parseInt(inputVal, 10);
+      if (!isNaN(pctNum) && pctNum >= 0 && pctNum <= 100) {
+        newPageForSave = String(pctToPages(pctNum, currentBook.pages || 0));
+      }
+    }
+
+    const result = autoSaveTimerSession({ newPage: newPageForSave });
     if (result) {
-      const pageStr = result.pagesRead > 0 ? ` · +${result.pagesRead}p` : '';
+      const pageStr = result.pagesRead > 0
+        ? (ebookMode ? ` · +${result.pagesRead}p (≈)` : ` · +${result.pagesRead}p`)
+        : '';
       showToast(`${result.bookTitle} ${result.minutes}분 기록 저장됨${pageStr} ✓`);
     }
     // 사용자 제스처 컨텍스트 안에서 새 시네마 시작 (fullscreen 보장)
@@ -16057,7 +16699,30 @@ function renderBookDetail() {
             </button>` : ''}
           </div>
           <div class="bd-hero-author">${esc(b.author)}</div>
-          ${metaParts.length ? `<div class="bd-hero-meta">${metaParts.map(m => `<span>${m}</span>`).join('')}</div>` : ''}
+          ${metaParts.length ? `<div class="bd-hero-meta">
+            <span class="fmt-pill" id="bdFmtPill">
+              <button type="button" class="${!isEbook(b) ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
+                <span class="fmt-pill-emoji">📕</span>
+                <span>종이</span>
+              </button>
+              <button type="button" class="${isEbook(b) ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
+                <span class="fmt-pill-emoji">📱</span>
+                <span>전자</span>
+              </button>
+            </span>
+            ${metaParts.map(m => `<span>${m}</span>`).join('')}
+          </div>` : `<div class="bd-hero-meta">
+            <span class="fmt-pill" id="bdFmtPill">
+              <button type="button" class="${!isEbook(b) ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
+                <span class="fmt-pill-emoji">📕</span>
+                <span>종이</span>
+              </button>
+              <button type="button" class="${isEbook(b) ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
+                <span class="fmt-pill-emoji">📱</span>
+                <span>전자</span>
+              </button>
+            </span>
+          </div>`}
         </div>
       </div>
       <!-- 상태 세그먼트 (히어로 내부) -->
@@ -16068,8 +16733,25 @@ function renderBookDetail() {
           <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
         </div>
       </div>
-      ${reading ? `
-      <!-- 진행률 (히어로 내부) -->
+      ${reading ? (isEbook(b) ? `
+      <!-- 진행률 (전자책 — % 입력) -->
+      <div class="bd-hero-prog">
+        <div class="ebook-pct-row">
+          <input type="number" class="ebook-pct-input compact" id="bdEbookPctInput"
+                 value="${getBookProgressPct(b)}" min="0" max="100" inputmode="numeric">
+          <span class="ebook-pct-unit compact">%</span>
+          <div class="ebook-pct-converted">
+            <div class="ebook-pct-converted-label">≈ 환산 페이지</div>
+            <div class="ebook-pct-converted-value" id="bdEbookConverted">${b.currentPage || 0}p / ${b.pages}p</div>
+          </div>
+        </div>
+        <div class="bd-progress-bar">
+          <div class="bd-progress-fill ebook" id="bdProgressFill" style="width:${getBookProgressPct(b)}%; background:#6D4C41;"></div>
+        </div>
+        <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
+      </div>
+      ` : `
+      <!-- 진행률 (종이책 — 페이지 입력) -->
       <div class="bd-hero-prog">
         <div class="bd-hero-prog-row">
           <input type="number" class="bd-progress-input" id="bdProgressInput"
@@ -16085,7 +16767,7 @@ function renderBookDetail() {
         </div>
         <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
       </div>
-      ` : `
+      `) : `
       <!-- 페이지 수 편집 (위시/완독) -->
       <div class="bd-hero-pages">
         <span class="bd-hero-pages-lbl">페이지 수</span>
@@ -16521,6 +17203,28 @@ function wireBookDetailEvents() {
     progInput.addEventListener('blur', applyProgress);
   }
 
+  // 전자책 % 입력 — 입력값으로 currentPage 환산해서 저장
+  const ebookPctInput = document.getElementById('bdEbookPctInput');
+  if (ebookPctInput) {
+    const applyEbookPct = () => {
+      let pct = parseInt(ebookPctInput.value, 10);
+      if (isNaN(pct) || pct < 0) pct = 0;
+      if (pct > 100) pct = 100;
+      const newCurrentPage = pctToPages(pct, b.pages || 0);
+      updateBook(b.id, { currentPage: newCurrentPage });
+      // 표시 업데이트
+      const fill = document.getElementById('bdProgressFill');
+      if (fill) fill.style.width = pct + '%';
+      const conv = document.getElementById('bdEbookConverted');
+      if (conv) conv.textContent = `${newCurrentPage}p / ${b.pages || 0}p`;
+      ebookPctInput.value = pct;
+    };
+    ebookPctInput.addEventListener('change', applyEbookPct);
+    ebookPctInput.addEventListener('blur', applyEbookPct);
+  }
+
+  // (책 상세 매체 배지 클릭 핸들러는 알약 토글로 대체됨 — 아래 wireBdFormatPill 참조)
+
   // 총 페이지 입력 (모든 상태에서 노출 · 독서중이면 진행률 행, 그 외엔 페이지 수 행)
   const totalInput = document.getElementById('bdTotalPagesInput');
   if (totalInput) {
@@ -16791,6 +17495,48 @@ function wireBookDetailEvents() {
   const bdQuickRead = document.getElementById('bdQuickRead');
   if (bdQuickRead) {
     bdQuickRead.addEventListener('click', () => handleQuickRead(b));
+  }
+
+  // ═══ 매체 알약 토글 (segmented) — 종이/전자 사후 변경 ═══
+  const fmtPill = document.getElementById('bdFmtPill');
+  if (fmtPill) {
+    fmtPill.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-fmt]');
+      if (!btn) return;
+      e.stopPropagation();
+      const newFmt = btn.dataset.fmt;
+      if (newFmt !== 'paper' && newFmt !== 'ebook') return;
+      const cur = getBookFormat(b);
+      if (cur === newFmt) return; // 이미 같은 매체면 무시
+
+      updateBook(b.id, { format: newFmt });
+      showToast(newFmt === 'ebook' ? '📱 전자책으로 변경했어요' : '📕 종이책으로 변경했어요');
+      // 입력 UI 자체가 매체에 따라 다르므로 전체 재렌더
+      renderBookDetail();
+      renderLibraryCards();
+    });
+  }
+
+  // ═══ 전자책 % 입력 → 환산 페이지 자동 갱신 + 저장 ═══
+  const bdEbookPctInput = document.getElementById('bdEbookPctInput');
+  if (bdEbookPctInput) {
+    let ebookSaveTimer = null;
+    bdEbookPctInput.addEventListener('input', () => {
+      let pct = parseInt(bdEbookPctInput.value, 10);
+      if (isNaN(pct)) pct = 0;
+      pct = Math.max(0, Math.min(100, pct));
+      const newPage = pctToPages(pct, b.pages || 0);
+      // UI 즉시 갱신
+      const conv = document.getElementById('bdEbookConverted');
+      if (conv) conv.textContent = `${newPage}p / ${b.pages}p`;
+      const fill = document.getElementById('bdProgressFill');
+      if (fill) fill.style.width = pct + '%';
+      // 저장 디바운스 (500ms)
+      if (ebookSaveTimer) clearTimeout(ebookSaveTimer);
+      ebookSaveTimer = setTimeout(() => {
+        updateBook(b.id, { currentPage: newPage });
+      }, 500);
+    });
   }
 
   // 새 태그 만들기 (책 상세)
