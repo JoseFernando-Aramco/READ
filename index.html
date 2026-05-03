@@ -11398,6 +11398,163 @@ body.cn-locked {
   background: var(--c-drop-bookmark);
 }
 
+/* ─── 하차 통계 카드 (통계 탭) ─── */
+.drop-stat-card {
+  margin: 14px 16px;
+  padding: 18px 18px 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+}
+.drop-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.drop-stat-bar {
+  width: 4px;
+  height: 18px;
+  background: var(--c-drop-bookmark);
+  border-radius: 2px;
+}
+.drop-stat-ttl {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--c-text);
+}
+.drop-stat-sub {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+}
+
+.drop-stat-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.drop-stat-summary-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-align: left;
+}
+.drop-stat-summary-item.done {
+  background: linear-gradient(135deg, #F0F8F4, #E0F2EA);
+  border: 1px solid #C8E6D5;
+}
+.drop-stat-summary-item.dropped {
+  background: linear-gradient(135deg, var(--c-drop-bg), #EFEBE3);
+  border: 1px solid var(--c-drop-soft);
+}
+.drop-stat-summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.3px;
+}
+.drop-stat-summary-item.done .drop-stat-summary-label { color: #1B7548; }
+.drop-stat-summary-item.dropped .drop-stat-summary-label { color: var(--c-drop-deep); }
+.drop-stat-summary-label svg { width: 12px; height: 12px; }
+.drop-stat-summary-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-top: 2px;
+  font-feature-settings: 'tnum';
+}
+.drop-stat-summary-item.done .drop-stat-summary-value { color: #00C471; }
+.drop-stat-summary-item.dropped .drop-stat-summary-value { color: var(--c-drop-deep); }
+.drop-stat-summary-sub {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-top: 2px;
+}
+
+/* 도넛 */
+.drop-stat-donut-wrap {
+  margin-bottom: 12px;
+}
+.drop-stat-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+.drop-stat-donut {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+.drop-stat-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  min-width: 0;
+}
+.drop-stat-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.drop-stat-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.drop-stat-legend-label {
+  flex: 1;
+  font-weight: 600;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.drop-stat-legend-pct {
+  color: var(--c-label);
+  font-feature-settings: 'tnum';
+  font-weight: 600;
+}
+
+/* 인사이트 카드 */
+.drop-stat-insight {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #FFF8E1, #FFF3CC);
+  border: 1px solid #F5D547;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+}
+.drop-stat-insight-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #F5D547;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.drop-stat-insight-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #5C4A0E;
+  flex: 1;
+}
+.drop-stat-insight-text strong {
+  font-weight: 800;
+  color: #3D2F00;
+}
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11706,6 +11863,22 @@ body.cn-locked {
 
     <!-- ═══ 취향 인사이트 (균형 + 추천) ═══ -->
     <div class="taste-insight" id="tasteInsight"></div>
+
+    <!-- ═══ v1.6.0 — 하차 통계 (책갈피 책 분석) ═══ -->
+    <!-- 하차 책이 0권이면 JS에서 display:none 처리 -->
+    <div class="drop-stat-card" id="dropStatCard" style="display:none">
+      <div class="drop-stat-head">
+        <div class="drop-stat-bar"></div>
+        <div class="drop-stat-ttl">🔖 책갈피</div>
+        <span class="drop-stat-sub" id="dropStatSub">—</span>
+      </div>
+      <!-- 요약: 완독 vs 하차 -->
+      <div class="drop-stat-summary" id="dropStatSummary"></div>
+      <!-- 사유 도넛 -->
+      <div class="drop-stat-donut-wrap" id="dropStatDonutWrap"></div>
+      <!-- 인사이트 -->
+      <div class="drop-stat-insight" id="dropStatInsight"></div>
+    </div>
 
   </section>
 
@@ -20868,6 +21041,7 @@ function renderAllStats() {
   try { renderRatingStatCard();   } catch(e) { console.error('[rating]', e); }
   try { renderMonthCal();         } catch(e) { console.error('[monthcal]', e); }
   try { renderTasteInsight();     } catch(e) { console.error('[taste]', e); }
+  try { renderDropStatCard();     } catch(e) { console.error('[drop-stat]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
@@ -24979,6 +25153,143 @@ function closeRetryDialog() {
     openDropSheet(BD.book.id);
   }, true);
 })();
+
+/* ═══ 통계 — 하차 카드 렌더링 ═══ */
+function renderDropStatCard() {
+  const card = document.getElementById('dropStatCard');
+  if (!card) return;
+
+  const dropped = BOOKS.filter(b => b.status === 'dropped');
+  const done    = BOOKS.filter(b => b.status === 'done');
+
+  // 하차 0권 → 카드 숨김
+  if (dropped.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+
+  const total = done.length + dropped.length;
+  const dropPct = total > 0 ? (dropped.length / total * 100) : 0;
+
+  // ─── 서브타이틀 ───
+  const sub = document.getElementById('dropStatSub');
+  if (sub) sub.textContent = `${dropped.length}권 · 완독 대비 ${dropPct.toFixed(1)}%`;
+
+  // ─── 요약 (완독 vs 하차) ───
+  const summary = document.getElementById('dropStatSummary');
+  if (summary) {
+    summary.innerHTML = `
+      <div class="drop-stat-summary-item done">
+        <div class="drop-stat-summary-label">
+          <svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg>완독
+        </div>
+        <div class="drop-stat-summary-value">${done.length}</div>
+        <div class="drop-stat-summary-sub">전체의 ${total > 0 ? (done.length / total * 100).toFixed(1) : 0}%</div>
+      </div>
+      <div class="drop-stat-summary-item dropped">
+        <div class="drop-stat-summary-label">
+          <svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>하차
+        </div>
+        <div class="drop-stat-summary-value">${dropped.length}</div>
+        <div class="drop-stat-summary-sub">완독 대비 ${dropPct.toFixed(1)}%</div>
+      </div>`;
+  }
+
+  // ─── 사유 도넛 ───
+  // 모든 하차 책의 reasons + customReasons 합산
+  const reasonCounts = {};
+  dropped.forEach(b => {
+    const dd = (b.dropped && typeof b.dropped === 'object') ? b.dropped : {};
+    (dd.reasons || []).forEach(rid => {
+      const label = _dropReasonLabel(rid);
+      reasonCounts[label] = (reasonCounts[label] || 0) + 1;
+    });
+    (dd.customReasons || []).forEach(label => {
+      reasonCounts[label] = (reasonCounts[label] || 0) + 1;
+    });
+  });
+
+  const sortedReasons = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]);
+  const top = sortedReasons.slice(0, 4);
+  const rest = sortedReasons.slice(4);
+  const restSum = rest.reduce((s, [, v]) => s + v, 0);
+  const slices = [...top];
+  if (restSum > 0) slices.push(['기타', restSum]);
+
+  const totalCount = slices.reduce((s, [, v]) => s + v, 0);
+  const COLORS = ['#5C5247', '#B8956A', '#A1887F', '#D4C5B5', '#E5E8EB'];
+
+  const donutWrap = document.getElementById('dropStatDonutWrap');
+  if (donutWrap) {
+    if (totalCount === 0) {
+      donutWrap.innerHTML = '';
+    } else {
+      // SVG 도넛 (stroke-dasharray 방식)
+      let offset = 25; // 12시 방향 시작
+      const circles = slices.map(([_, v], i) => {
+        const pct = (v / totalCount) * 100;
+        const dash = pct;
+        const gap = 100 - pct;
+        const c = `<circle cx="21" cy="21" r="15.915" fill="transparent" stroke="${COLORS[i] || '#E5E8EB'}" stroke-width="6" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" transform="rotate(-90 21 21)"/>`;
+        offset = (offset - pct) % 100;
+        if (offset < -100) offset += 100;
+        return c;
+      }).join('');
+
+      const legend = slices.map(([label, v], i) => {
+        const pct = ((v / totalCount) * 100).toFixed(0);
+        return `<div class="drop-stat-legend-item">
+          <span class="drop-stat-legend-dot" style="background:${COLORS[i] || '#E5E8EB'}"></span>
+          <span class="drop-stat-legend-label">${esc(label)}</span>
+          <span class="drop-stat-legend-pct">${pct}%</span>
+        </div>`;
+      }).join('');
+
+      donutWrap.innerHTML = `
+        <div class="drop-stat-donut-row">
+          <svg class="drop-stat-donut" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#F2F4F6" stroke-width="6"/>
+            ${circles}
+            <text x="21" y="20" text-anchor="middle" font-size="6.5" font-weight="800" fill="var(--c-text)">${dropped.length}권</text>
+            <text x="21" y="26" text-anchor="middle" font-size="3" fill="var(--c-label)">하차 사유</text>
+          </svg>
+          <div class="drop-stat-legend">${legend}</div>
+        </div>`;
+    }
+  }
+
+  // ─── 인사이트 ───
+  const insight = document.getElementById('dropStatInsight');
+  if (insight) {
+    // 평균 멈춤 지점 계산
+    const pcts = dropped
+      .filter(b => b.pages > 0)
+      .map(b => {
+        const dd = b.dropped || {};
+        return ((dd.atPage || 0) / b.pages) * 100;
+      });
+    const avgStopPct = pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : null;
+
+    // 가장 흔한 사유
+    const topReason = sortedReasons[0] ? sortedReasons[0][0] : null;
+
+    let insightText = '';
+    if (avgStopPct !== null && topReason) {
+      insightText = `평균 <strong>${avgStopPct}% 지점</strong>에서 책갈피를 꽂으셨어요. 가장 많은 사유는 <strong>"${esc(topReason)}"</strong>입니다.`;
+    } else if (avgStopPct !== null) {
+      insightText = `평균 <strong>${avgStopPct}% 지점</strong>에서 책갈피를 꽂으셨어요.`;
+    } else if (topReason) {
+      insightText = `가장 많은 사유는 <strong>"${esc(topReason)}"</strong>입니다.`;
+    } else {
+      insightText = `하차 ${dropped.length}권을 책갈피해두셨어요.`;
+    }
+
+    insight.innerHTML = `
+      <div class="drop-stat-insight-icon">💡</div>
+      <div class="drop-stat-insight-text">${insightText}</div>`;
+  }
+}
 
 </script>
 
