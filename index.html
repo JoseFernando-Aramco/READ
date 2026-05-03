@@ -6638,14 +6638,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 4px;
 }
 .bd-hero-meta {
-  display: flex; flex-wrap: wrap; gap: 4px 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
   font-family: inherit;
   font-size: 12px; font-weight: 500;
   color: var(--c-label);
   letter-spacing: -0.01em;
   text-transform: none;
 }
-.bd-hero-meta span:not(:last-child)::after {
+/* 직계 자식 span에만 점(·) 구분자 — 알약(.fmt-pill)은 제외 (내부 emoji/text 사이, fmt-pill 다음 메타 사이 모두 점 없음) */
+.bd-hero-meta > span:not(:last-child):not(.fmt-pill)::after {
   content: '·';
   margin-left: 10px;
   color: var(--c-label);
