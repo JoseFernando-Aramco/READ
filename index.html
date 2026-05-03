@@ -12283,7 +12283,6 @@ body.cn-locked {
           <button class="status-seg-btn active" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
           <button class="status-seg-btn" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
           <button class="status-seg-btn" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
-          <button class="status-seg-btn dropped" data-status="dropped"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg> 하차</button>
         </div>
       </div>
 
@@ -15528,7 +15527,7 @@ function confirmAddBook() {
   BOOKS.unshift(newBook);
   STORE.set('books', BOOKS);
 
-  const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
+  const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독', dropped: '하차' }[status];
   const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
   const ratingMsg = (status === 'done' && newBook.rating > 0) ? ` · ${'★'.repeat(newBook.rating)}` : '';
   closeBookAdd();
