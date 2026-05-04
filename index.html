@@ -7028,35 +7028,81 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-radius: 9px;
 }
 
-/* 별점 에디터 */
+/* 별점 에디터 — 드래그 슬라이더 (v1.7.0) */
 .bd-stars {
   display: flex; gap: 4px;
   align-items: center;
+  /* 드래그 친화적: 풀 너비, 충분한 padding, 터치 스크롤 차단 */
+  width: 100%;
+  padding: 6px 4px;
+  background: var(--c-surface, #F5F5F7);
+  border-radius: 12px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
 }
+.bd-stars.dragging { cursor: grabbing; }
 .bd-star-btn {
-  width: 40px; height: 40px;
+  /* 풀 너비를 동등하게 분배하여 드래그 영역 최대화 */
+  flex: 1 1 0;
+  min-width: 36px;
+  max-width: 56px;
+  height: 40px;
   border-radius: 10px;
-  background: var(--c-border);
+  background: transparent;
   border: none;
-  font-size: 20px; font-weight: 600;
+  font-size: 26px; font-weight: 600;
   color: var(--c-border-2);
-  transition: all .15s;
+  transition: color .08s, background .08s;
   display: flex; align-items: center; justify-content: center;
   line-height: 1;
+  /* 컨테이너에서 모든 pointer 이벤트 처리 */
+  pointer-events: none;
 }
 .bd-star-btn.active {
   color: var(--c-gold-500);
-  background: var(--c-gold-50);
+  background: transparent;
   border: none;
 }
-.bd-star-btn:active { transform: scale(.9); }
+/* 별의 좌측 절반만 골드로 채움 (반점 표시) */
+.bd-star-btn.half {
+  color: transparent;
+  background: linear-gradient(90deg, var(--c-gold-500) 50%, var(--c-border-2) 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.bd-stars.dragging .bd-star-btn.active,
+.bd-stars.dragging .bd-star-btn.half {
+  filter: drop-shadow(0 0 2px rgba(229, 192, 78, 0.5));
+}
 .bd-stars-val {
-  margin-left: 12px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  margin-right: 4px;
   font-family: inherit;
   font-style: normal;
   font-size: 14px; font-weight: 600;
   color: var(--c-gold-700);
   letter-spacing: -0.01em;
+  min-width: 36px;
+  text-align: right;
+}
+/* 드래그 안내 문구 (별 영역 아래 작게) */
+.bd-stars-hint {
+  font-size: 11px;
+  color: var(--c-text-3, #8e8e93);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+.bd-stars-hint .arrow-icn {
+  font-size: 12px;
+  opacity: 0.6;
 }
 
 /* 삭제 구역 */
@@ -12528,13 +12574,14 @@ body.cn-locked {
       <div class="confirm-section" id="ratingSection" style="display:none">
         <div class="confirm-section-lbl">별점</div>
         <div class="bd-stars" id="confirmStars">
-          <button class="bd-star-btn" data-star="1" type="button">★</button>
-          <button class="bd-star-btn" data-star="2" type="button">★</button>
-          <button class="bd-star-btn" data-star="3" type="button">★</button>
-          <button class="bd-star-btn" data-star="4" type="button">★</button>
-          <button class="bd-star-btn" data-star="5" type="button">★</button>
+          <button class="bd-star-btn" type="button">★</button>
+          <button class="bd-star-btn" type="button">★</button>
+          <button class="bd-star-btn" type="button">★</button>
+          <button class="bd-star-btn" type="button">★</button>
+          <button class="bd-star-btn" type="button">★</button>
           <span class="bd-stars-val" id="confirmStarsVal"></span>
         </div>
+        <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점을 매겨주세요 · 0.5점 단위</div>
         <div class="rating-hint" id="ratingHint">한 줄 감상 · 인상 깊은 문장은 나중에 상세 화면에서 기록할 수 있어요</div>
       </div>
 
@@ -15538,14 +15585,110 @@ function updateRatingSection() {
   _renderConfirmStars(BA.rating || 0);
 }
 
-/* 별 버튼 UI 상태 반영 */
+/* 별 버튼 UI 상태 반영 (0.5 단위 지원) */
 function _renderConfirmStars(rating) {
-  document.querySelectorAll('#confirmStars .bd-star-btn').forEach(btn => {
-    const n = parseInt(btn.dataset.star, 10);
-    btn.classList.toggle('active', n <= rating);
-  });
+  const el = document.getElementById('confirmStars');
+  // drag wire가 이미 부착되어 있으면 setValue 사용 (wire 내부 value도 동기화)
+  if (el && el._dragWired) {
+    el._dragWired.setValue(rating);
+  } else {
+    _renderStars(el, rating);
+  }
   const valEl = document.getElementById('confirmStarsVal');
-  if (valEl) valEl.textContent = rating > 0 ? `${rating}.0` : '';
+  if (valEl) valEl.textContent = rating > 0 ? rating.toFixed(1) : '';
+}
+
+/* ─── 통합 별점 렌더 (0.5 단위) ─── */
+function _renderStars(rowEl, rating) {
+  if (!rowEl) return;
+  rowEl.querySelectorAll('.bd-star-btn').forEach((btn, i) => {
+    btn.classList.remove('active', 'half');
+    const n = i + 1;
+    if (rating >= n) btn.classList.add('active');
+    else if (rating >= n - 0.5) btn.classList.add('half');
+  });
+}
+
+/* ─── 드래그 별점 슬라이더 헬퍼 (v1.7.0)
+   .bd-stars 컨테이너에 pointer 드래그 + 탭 동작을 부착.
+   options:
+     initial: 시작 값 (기본 0)
+     onLive(v):  드래그 중 매 프레임 (DOM 업데이트만, 데이터 저장 X)
+     onCommit(v): 드래그 떼는 순간 (데이터 저장 + 필요시 re-render)
+   리턴: { setValue, getValue }
+─── */
+function _wireDragRating(rowEl, options) {
+  if (!rowEl) return null;
+  // 같은 element에 중복 wire 방지 (re-render 시 새 element니까 문제 없음)
+  if (rowEl._dragWired) return rowEl._dragWired;
+
+  options = options || {};
+  let value = options.initial || 0;
+  let liveValue = value;
+  let isDragging = false;
+
+  function calcFromX(clientX) {
+    const rect = rowEl.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const ratio = rect.width > 0 ? x / rect.width : 0;
+    if (ratio <= 0) return 0;
+    if (ratio >= 1) return 5;
+    // 0.5 단위 스냅
+    return Math.min(10, Math.ceil(ratio * 10)) / 2;
+  }
+
+  function applyVisual(v) {
+    _renderStars(rowEl, v);
+    const valEl = rowEl.querySelector('.bd-stars-val');
+    if (valEl) {
+      // 데이터 표시: 책 상세("★ 4.5")와 그 외("4.5")의 포맷 차이는 onLive에서 처리하지 않고
+      // 기본 포맷으로 통일. 필요시 onLive에서 덮어쓰기.
+      valEl.textContent = v > 0 ? v.toFixed(1) : '';
+    }
+    if (options.onLive) options.onLive(v);
+  }
+
+  rowEl.addEventListener('pointerdown', e => {
+    isDragging = true;
+    rowEl.classList.add('dragging');
+    try { rowEl.setPointerCapture(e.pointerId); } catch (_) {}
+    liveValue = calcFromX(e.clientX);
+    applyVisual(liveValue);
+    e.preventDefault();
+  });
+
+  rowEl.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+    liveValue = calcFromX(e.clientX);
+    applyVisual(liveValue);
+  });
+
+  function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    rowEl.classList.remove('dragging');
+    value = liveValue;
+    if (options.onCommit) options.onCommit(value);
+  }
+
+  rowEl.addEventListener('pointerup', endDrag);
+  rowEl.addEventListener('pointercancel', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    rowEl.classList.remove('dragging');
+    // 취소 시 이전 값 복원
+    applyVisual(value);
+  });
+
+  // 초기 시각화
+  applyVisual(value);
+
+  const handle = {
+    setValue(v) { value = v; liveValue = v; applyVisual(v); },
+    getValue() { return value; },
+  };
+  rowEl._dragWired = handle;
+  return handle;
 }
 
 /* ─── 인생책 토글 상태 업데이트 (상태·체크 변경 시 호출) ─── */
@@ -15763,7 +15906,7 @@ function confirmAddBook() {
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
   const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
-  const ratingMsg = (status === 'done' && newBook.rating > 0) ? ` · ${'★'.repeat(newBook.rating)}` : '';
+  const ratingMsg = (status === 'done' && newBook.rating > 0) ? ` · ★ ${newBook.rating.toFixed(1)}` : '';
   closeBookAdd();
   showToast(`${statusLabel}에 추가됐어요${ratingMsg}${lifebookMsg} · "${newBook.title}"`);
 
@@ -15899,14 +16042,16 @@ document.querySelectorAll('#statusSeg .status-seg-btn').forEach(btn => {
   document.getElementById(id)?.addEventListener('change', updateDatesSection);
 });
 
-// 별점 버튼
-document.querySelectorAll('#confirmStars .bd-star-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const n = parseInt(btn.dataset.star, 10);
-    // 같은 별 다시 누르면 해제 (데미안→데미안 클릭 시 5→0)
-    BA.rating = (BA.rating === n) ? 0 : n;
-    _renderConfirmStars(BA.rating);
-  });
+// 별점 (드래그 슬라이더 v1.7.0)
+_wireDragRating(document.getElementById('confirmStars'), {
+  initial: 0,
+  onLive: (v) => {
+    const valEl = document.getElementById('confirmStarsVal');
+    if (valEl) valEl.textContent = v > 0 ? v.toFixed(1) : '';
+  },
+  onCommit: (v) => {
+    BA.rating = v;
+  },
 });
 
 // 인생책 토글
@@ -16684,10 +16829,10 @@ function renderHallOfFame() {
     return;
   }
 
-  // 별점별 그룹
+  // 별점별 그룹 (0.5 단위는 가까운 정수로 묶음: 4.5→5, 3.5→4)
   const byRating = {};
   lifeBooks.forEach(b => {
-    const r = b.rating || 0;
+    const r = Math.round(b.rating || 0);
     if (!byRating[r]) byRating[r] = [];
     byRating[r].push(b);
   });
@@ -18324,9 +18469,10 @@ function renderBookDetail() {
                   <div class="bd-read-form-field">
                     <label class="bd-read-form-lbl">별점</label>
                     <div class="bd-stars" id="bdReadEditStars">
-                      ${[1,2,3,4,5].map(k => `<button type="button" class="bd-star-btn${r.rating && k <= Math.round(r.rating) ? ' active' : ''}" data-rating="${k}">★</button>`).join('')}
+                      ${[1,2,3,4,5].map(() => `<button type="button" class="bd-star-btn">★</button>`).join('')}
                       <span class="bd-stars-val">${r.rating ? r.rating.toFixed(1) : ''}</span>
                     </div>
+                    <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점 · 0.5점 단위</div>
                   </div>
                   ` : ''}
                   <div class="bd-read-form-actions">
@@ -18368,8 +18514,10 @@ function renderBookDetail() {
           <div class="bd-read-form-field">
             <label class="bd-read-form-lbl">별점</label>
             <div class="bd-stars" id="bdRrStars">
-              ${[1,2,3,4,5].map(n => `<button type="button" class="bd-star-btn" data-rating="${n}">★</button>`).join('')}
+              ${[1,2,3,4,5].map(() => `<button type="button" class="bd-star-btn">★</button>`).join('')}
+              <span class="bd-stars-val"></span>
             </div>
+            <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점 · 0.5점 단위</div>
           </div>
           <div class="bd-read-form-actions">
             <button class="btn-secondary" id="bdRrCancel">취소</button>
@@ -18387,9 +18535,10 @@ function renderBookDetail() {
     <div class="bd-section">
       <div class="bd-section-lbl">별점</div>
       <div class="bd-stars" id="bdStars">
-        ${[1,2,3,4,5].map(n => `<button class="bd-star-btn ${(b.rating||0) >= n ? 'active' : ''}" data-rating="${n}">★</button>`).join('')}
+        ${[1,2,3,4,5].map(() => `<button class="bd-star-btn" type="button">★</button>`).join('')}
         <span class="bd-stars-val">${b.rating ? `★ ${b.rating.toFixed(1)}` : '미평가'}</span>
       </div>
+      <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점을 매겨주세요 · 0.5점 단위</div>
     </div>
     ` : ''}
 
@@ -18828,13 +18977,18 @@ function wireBookDetailEvents() {
     totalInput.addEventListener('change', applyTotal);
   }
 
-  // 별점 수정 (본 독서 별점)
-  document.querySelectorAll('#bdStars .bd-star-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const r = parseFloat(btn.dataset.rating);
-      updateBook(b.id, { rating: r });
+  // 별점 수정 (본 독서 별점) — 드래그 슬라이더 v1.7.0
+  _wireDragRating(document.getElementById('bdStars'), {
+    initial: b.rating || 0,
+    onLive: (v) => {
+      // 드래그 중에는 데이터 저장 X, DOM 텍스트만 임시 갱신
+      const valEl = document.querySelector('#bdStars .bd-stars-val');
+      if (valEl) valEl.textContent = v > 0 ? `★ ${v.toFixed(1)}` : '미평가';
+    },
+    onCommit: (v) => {
+      updateBook(b.id, { rating: v > 0 ? v : null });
       renderBookDetail();
-    });
+    },
   });
 
   // 재독 기록 추가 버튼
@@ -18855,15 +19009,11 @@ function wireBookDetailEvents() {
     });
   }
 
-  // 재독 폼 · 별점 선택
+  // 재독 폼 · 별점 (드래그 슬라이더 v1.7.0)
   let newRereadRating = 0;
-  document.querySelectorAll('#bdRrStars .bd-star-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      newRereadRating = parseFloat(btn.dataset.rating);
-      document.querySelectorAll('#bdRrStars .bd-star-btn').forEach((b2, i) => {
-        b2.classList.toggle('active', i + 1 <= newRereadRating);
-      });
-    });
+  _wireDragRating(document.getElementById('bdRrStars'), {
+    initial: 0,
+    onCommit: (v) => { newRereadRating = v; },
   });
 
   // 재독 폼 저장
@@ -18910,28 +19060,26 @@ function wireBookDetailEvents() {
     });
   });
 
-  // 편집 폼 — 별점 버튼
-  document.querySelectorAll('#bdReadEditStars .bd-star-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const rating = parseInt(btn.dataset.rating, 10);
-      // 같은 별 다시 누르면 해제
-      const current = BD._editRating;
-      if (current === undefined) {
-        // 초기값을 읽어와야 함
+  // 편집 폼 — 별점 (드래그 슬라이더 v1.7.0)
+  {
+    const editStarsEl = document.getElementById('bdReadEditStars');
+    if (editStarsEl) {
+      // 초기값: BD._editRating 우선, 없으면 현재 편집 중인 read의 rating
+      let init;
+      if (BD._editRating !== undefined) {
+        init = BD._editRating;
+      } else {
         const reads = getAllReads(b);
         const target = reads.find(r => r.index === BD.editingReadIdx);
-        BD._editRating = target && target.rating ? Math.round(target.rating) : 0;
+        init = (target && target.rating) ? target.rating : 0;
+        BD._editRating = init;
       }
-      BD._editRating = (BD._editRating === rating) ? 0 : rating;
-      // 별 UI 갱신
-      document.querySelectorAll('#bdReadEditStars .bd-star-btn').forEach(b2 => {
-        const n = parseInt(b2.dataset.rating, 10);
-        b2.classList.toggle('active', n <= BD._editRating);
+      _wireDragRating(editStarsEl, {
+        initial: init,
+        onCommit: (v) => { BD._editRating = v; },
       });
-      const valEl = document.querySelector('#bdReadEditStars .bd-stars-val');
-      if (valEl) valEl.textContent = BD._editRating > 0 ? BD._editRating.toFixed(1) : '';
-    });
-  });
+    }
+  }
 
   // 편집 폼 — 취소
   const editCancelBtn = document.getElementById('bdReadEditCancel');
