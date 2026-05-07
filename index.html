@@ -4971,6 +4971,72 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   letter-spacing: .5px;
 }
 
+/* 검색 결과 빠른 추가 버튼 (v1.6.1) */
+.result-quick-add {
+  flex-shrink: 0;
+  align-self: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: 1.5px solid var(--c-border);
+  color: var(--c-text-2);
+  font-size: 22px;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .12s, background .15s, border-color .15s, color .15s;
+  padding: 0;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.result-quick-add:hover {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+.result-quick-add:active { transform: scale(.9); }
+.result-quick-add svg { width: 18px; height: 18px; stroke-width: 2.5; }
+
+/* 빠른 추가 완료 상태 — 카드 살짝 dim + 버튼 ✓ */
+.result-item.added { opacity: .6; }
+.result-item.added .result-quick-add {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+  cursor: default;
+}
+.result-item.added .result-quick-add:hover { transform: none; }
+.result-item.added:active { transform: none; background: var(--c-surface); }
+
+/* 이미 서재에 있는 책 — 약하게 흐림 + 버튼 disabled 톤 */
+.result-item.exists { opacity: .55; }
+.result-item.exists .result-quick-add {
+  background: var(--c-surface-2);
+  border-color: var(--c-border);
+  color: var(--c-muted);
+  cursor: default;
+}
+.result-item.exists .result-quick-add:hover {
+  background: var(--c-surface-2);
+  border-color: var(--c-border);
+  color: var(--c-muted);
+  transform: none;
+}
+.result-status-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 1px 7px;
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: .3px;
+  border-radius: 99px;
+  background: var(--c-surface-2);
+  color: var(--c-muted);
+  border: 1px solid var(--c-border);
+  vertical-align: 2px;
+}
+
 /* 검색 상태 (loading / empty / welcome) */
 .search-state {
   padding: 40px 20px;
@@ -8826,6 +8892,165 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-drop-bookmark);
 }
 
+/* ───── HERO 시각 (v1.6.1) — 시리즈 일괄 추가 데모 ───── */
+.wn-quickadd-demo {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wn-qa-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--c-surface-2, #F5F6F7);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.wn-qa-search::before { content: '🔍'; font-size: 11px; }
+.wn-qa-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  background: var(--c-canvas);
+  border-radius: 7px;
+  border: 1px solid var(--c-border);
+  transition: opacity .3s;
+}
+.wn-qa-row.added { opacity: 0.5; }
+.wn-qa-cover {
+  width: 22px; height: 30px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #1E3A8A, #15285F);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.wn-qa-cover::after {
+  content: '';
+  position: absolute;
+  inset: 4px 3px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), transparent 60%);
+  border-radius: 1px;
+}
+.wn-qa-cover.c2 { background: linear-gradient(135deg, #6D4C41, #4E342E); }
+.wn-qa-cover.c3 { background: linear-gradient(135deg, #5C7E48, #3E5A30); }
+.wn-qa-info { flex: 1; min-width: 0; }
+.wn-qa-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wn-qa-author {
+  font-size: 9.5px;
+  color: var(--c-muted);
+  margin-top: 1px;
+  font-weight: 600;
+}
+.wn-qa-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: 1.5px solid var(--c-border);
+  color: var(--c-text-2);
+  font-size: 16px;
+  font-weight: 400;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.wn-qa-btn.done {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+.wn-qa-btn.done svg { width: 13px; height: 13px; stroke-width: 3; }
+.wn-qa-btn.fresh {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* ───── 년도 표시 데모 박스 (v1.6.1) ───── */
+.wn-year-box {
+  margin-top: 4px;
+  padding: 12px 14px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.wn-year-head {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.wn-year-head .lbl {
+  font-size: 9.5px;
+  color: var(--c-muted);
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.wn-year-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 4px;
+  font-size: 11.5px;
+  color: var(--c-text);
+  font-feature-settings: 'tnum';
+  border-bottom: 1px dashed var(--c-border);
+}
+.wn-year-row:last-child { border-bottom: none; }
+.wn-year-num {
+  width: 18px; height: 18px;
+  border-radius: 5px;
+  background: var(--brand-primary);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.wn-year-date {
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+.wn-year-date .y {
+  color: var(--brand-primary);
+  font-weight: 800;
+}
+.wn-year-days {
+  font-size: 9.5px;
+  color: var(--c-muted);
+  font-weight: 700;
+  background: var(--c-surface-2);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+.wn-year-rating {
+  margin-left: auto;
+  color: var(--c-gold-700, #C26900);
+  font-weight: 700;
+  font-size: 10.5px;
+}
+
 /* 가치 고찰 메시지 박스 */
 .wn-philosophy {
   margin-bottom: 16px;
@@ -12280,7 +12505,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">최신 업데이트 다시보기</div>
-            <div class="settings-row-sub">v1.6.0 · 책갈피 시스템</div>
+            <div class="settings-row-sub">v1.6.1 · 카페 댓글 반영</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -12288,7 +12513,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.6.0 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.6.1 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -13074,80 +13299,101 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.6.0 · 업데이트 소식</div>
-    <div class="wn-ttl">끝까지 못 읽은 책에도, 이야기가 있어요</div>
-    <div class="wn-sub">손이 안 가는 책을 그냥 삭제하기엔 좀 아쉬웠거든요</div>
+    <div class="wn-badge">v1.6.1 · 업데이트 소식</div>
+    <div class="wn-ttl">카페 댓글에서 시작된 두 가지</div>
+    <div class="wn-sub">독자분들이 들려주신 작은 갈증, 이번에 같이 풀었어요</div>
 
-    <!-- ★ HERO — 하차 책 시각 -->
+    <!-- ★ HERO — 시리즈 일괄 추가 데모 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">🔖</span>
-        BOOKMARK · 책갈피 시스템
+        <span style="font-size:11px">➕</span>
+        SERIES · 한 번 누르면 위시에
       </div>
-      <div class="wn-hero-ttl">하차한 책도 한 자리 마련했어요</div>
-      <div class="wn-hero-sub">왜 손에서 놓았는지 한 줄 메모와 사유 칩까지 — 다음 책 고를 때 의외로 큰 단서가 됩니다</div>
+      <div class="wn-hero-ttl">시리즈물도 한 묶음에</div>
+      <div class="wn-hero-sub">검색 결과 옆 작은 + 버튼 한 번이면 위시에 바로 — 페이지를 떠나지 않아요</div>
 
-      <!-- 하차 책 미니어처 데모 -->
-      <div class="wn-drop-demo">
-        <div class="wn-drop-demo-cover">
-          <div class="wn-drop-demo-pin"></div>
-        </div>
-        <div class="wn-drop-demo-info">
-          <div class="wn-drop-demo-meta">88p · 23%에서 멈춤</div>
-          <div class="wn-drop-demo-chips">
-            <span class="wn-drop-demo-chip">취향 안 맞음</span>
-            <span class="wn-drop-demo-chip">기대와 다름</span>
-            <span class="wn-drop-demo-chip user">철학 토씨…</span>
+      <div class="wn-quickadd-demo">
+        <div class="wn-qa-search">해리포터 시리즈</div>
+        <div class="wn-qa-row added">
+          <div class="wn-qa-cover"></div>
+          <div class="wn-qa-info">
+            <div class="wn-qa-ttl">해리 포터와 마법사의 돌</div>
+            <div class="wn-qa-author">J.K. 롤링</div>
+          </div>
+          <div class="wn-qa-btn done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           </div>
         </div>
+        <div class="wn-qa-row added">
+          <div class="wn-qa-cover c2"></div>
+          <div class="wn-qa-info">
+            <div class="wn-qa-ttl">해리 포터와 비밀의 방</div>
+            <div class="wn-qa-author">J.K. 롤링</div>
+          </div>
+          <div class="wn-qa-btn done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+        </div>
+        <div class="wn-qa-row">
+          <div class="wn-qa-cover c3"></div>
+          <div class="wn-qa-info">
+            <div class="wn-qa-ttl">해리 포터와 아즈카반의 죄수</div>
+            <div class="wn-qa-author">J.K. 롤링</div>
+          </div>
+          <div class="wn-qa-btn fresh">+</div>
+        </div>
       </div>
-    </div>
-
-    <!-- 가치 고찰 메시지 -->
-    <div class="wn-philosophy">
-      읽다가 만 책을 삭제 버튼 한 번에 지워버리기엔 좀 아쉽잖아요. <br>
-      <strong>"왜 그만뒀는지"</strong> 한 줄 남기는 게, 나중에 비슷한 책을 만났을 때 꽤 도움이 되더라구요. <br>
-      취향이 또렷해지는 가장 좋은 방법이에요.
     </div>
 
     <!-- 항목 리스트 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">🔖</div>
+        <div class="wn-icon">➕</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">하차 + 사유 기록</div>
-          <div class="wn-item-sub">사유 칩 8가지 + <strong>직접 추가</strong> · 한 줄 메모 · 본 만큼의 별점 · 다시 읽을 의향까지</div>
+          <div class="wn-item-ttl">검색 결과 빠른 추가</div>
+          <div class="wn-item-sub">카드 옆 + 버튼 → 위시에 즉시 등록 · 모달은 안 닫혀요 · 이미 서재에 있는 책은 자동으로 ✓ 표시</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🌱</div>
+        <div class="wn-icon">📅</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">다시 도전</div>
-          <div class="wn-item-sub">멈췄던 곳에서 이어 읽기 / 처음부터 다시 — 부활하는 흐름. 이전 시도 기록도 함께 보존돼요</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">📊</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">통계 — 책갈피 분석</div>
-          <div class="wn-item-sub">완독 vs 하차 비율 · 사유 도넛 차트 · "평균 32% 지점에서 책갈피를 꽂으셨어요" 같은 셀프 코칭</div>
+          <div class="wn-item-ttl">독서 기록에 년도 표시</div>
+          <div class="wn-item-sub">올해 기록은 그대로 깔끔하게 · 과거 또는 해 걸침 기록은 자동으로 년도가 보여요</div>
         </div>
       </li>
     </ul>
 
-    <!-- v1.5.1 함께 들어왔어요 -->
+    <!-- 년도 표시 데모 박스 -->
+    <div class="wn-year-box">
+      <div class="wn-year-head">
+        <span>📚 독서 기록 미리보기</span>
+        <span class="lbl">2회 독서</span>
+      </div>
+      <div class="wn-year-row">
+        <div class="wn-year-num">2</div>
+        <div class="wn-year-date">05.05 – 05.06</div>
+        <div class="wn-year-days">1일</div>
+        <div class="wn-year-rating">★ 2.5</div>
+      </div>
+      <div class="wn-year-row">
+        <div class="wn-year-num">1</div>
+        <div class="wn-year-date"><span class="y">2024.</span>10.12 – 10.18</div>
+        <div class="wn-year-days">6일</div>
+        <div class="wn-year-rating">★ 3.5</div>
+      </div>
+    </div>
+
+    <!-- 감사 인사 -->
     <div class="wn-also">
-      <div class="wn-also-head">함께 들어온 v1.5.1 변화</div>
+      <div class="wn-also-head">고마워요</div>
       <div class="wn-also-text">
-        <strong>📱 전자책 매체 구분</strong> · % 입력 → 환산 페이지 자동 계산 ·&nbsp;
-        <strong>⏱ 타이머 시간 수정</strong> · 잠든 케이스 보정 가능 ·&nbsp;
-        <strong>🔍 검색 3종 콜라보</strong> · Kakao + 알라딘 + 구글북스 동시 검색
+        카페에서 들려주신 한 마디가 다음 패치예요. 작은 불편이라도 편하게 남겨주세요 🙏
       </div>
     </div>
 
     <div class="wn-actions">
       <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">통계로 가서 보기 ›</button>
+      <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
     </div>
   </div>
 </div>
@@ -13166,7 +13412,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.6.0</div>
+      <div class="ab-ver">version 1.6.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -15199,24 +15445,52 @@ function renderSearchResults(items, errors, ctx) {
       : b.source === 'aladin' ? '<span class="result-source aladin">A</span>'
       :                         '<span class="result-source google">G</span>';
 
+    // v1.6.1 — 이미 서재에 있는지 체크 (ISBN 우선, fallback 제목+저자)
+    const existing = _findExistingBookFromSearch(b);
+    const stateClass = existing ? ' exists' : '';
+    const statusBadge = existing
+      ? `<span class="result-status-badge">${ {wish:'위시', reading:'독서중', done:'완독', dropped:'하차'}[existing.status] || '서재' }</span>`
+      : '';
+    const quickBtn = existing
+      ? `<button class="result-quick-add" type="button" disabled aria-label="이미 서재에 있어요">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+         </button>`
+      : `<button class="result-quick-add" type="button" data-quick-idx="${idx}" aria-label="위시리스트에 추가">+</button>`;
+
     return `
-      <div class="result-item" data-idx="${idx}">
+      <div class="result-item${stateClass}" data-idx="${idx}">
         ${b.cover
           ? `<img class="result-cover" src="${esc(b.cover)}" alt="" loading="lazy"
                 onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
           : `<div class="result-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
         <div class="result-info">
-          <div class="result-title">${title}${sourceBadge}</div>
+          <div class="result-title">${title}${sourceBadge}${statusBadge}</div>
           <div class="result-author">${authors}</div>
           <div class="result-meta">${meta}${lang}</div>
         </div>
+        ${quickBtn}
       </div>`;
   }).join('');
 
   container.innerHTML = errorBanner + resultsHtml;
 
+  // 카드 본체 클릭 → 기존 selectBook (이미 추가된 카드도 선택해서 상세 볼 수 있게)
   container.querySelectorAll('.result-item').forEach(el => {
-    el.addEventListener('click', () => selectBook(items[+el.dataset.idx]));
+    el.addEventListener('click', (e) => {
+      // 빠른 추가 버튼 클릭은 위에서 stopPropagation으로 처리됨
+      if (e.target.closest('.result-quick-add')) return;
+      selectBook(items[+el.dataset.idx]);
+    });
+  });
+
+  // 빠른 추가 버튼 핸들러 (v1.6.1)
+  container.querySelectorAll('.result-quick-add[data-quick-idx]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const idx = +btn.dataset.quickIdx;
+      quickAddToWish(idx, btn);
+    });
   });
 }
 
@@ -15341,6 +15615,97 @@ async function _enrichPages(book) {
 }
 
 /* ─── 책 선택 → Stage 2 ─── */
+/* ═══════════════════════════════════════════════════════════
+   v1.6.1 — 검색 결과 빠른 위시 추가 (시리즈물 일괄 등록)
+   ═══════════════════════════════════════════════════════════ */
+
+/* 검색 결과 항목이 이미 서재에 있는지 매칭 — ISBN 우선, fallback 제목+저자 */
+function _findExistingBookFromSearch(item) {
+  if (!item) return null;
+  // 1순위: ISBN 매치 (가장 정확)
+  if (item.isbn) {
+    const cleanIsbn = String(item.isbn).replace(/[-\s]/g, '');
+    if (cleanIsbn) {
+      const byIsbn = BOOKS.find(b => b.isbn && String(b.isbn).replace(/[-\s]/g, '') === cleanIsbn);
+      if (byIsbn) return byIsbn;
+    }
+  }
+  // 2순위: 제목 + 저자 정확 매치 (대소문자 무시)
+  const tt = (item.title || '').trim().toLowerCase();
+  const aa = (item.author || '').trim().toLowerCase();
+  if (!tt) return null;
+  return BOOKS.find(b =>
+    (b.title || '').trim().toLowerCase() === tt &&
+    (b.author || '').trim().toLowerCase() === aa
+  ) || null;
+}
+
+/* 빠른 위시 추가 — confirm 스테이지 우회, 모달 유지 */
+async function quickAddToWish(idx, btnEl) {
+  const item = _lastSearchItems && _lastSearchItems[idx];
+  if (!item) return;
+
+  // 중복 체크 (UI 라벨로는 막혀있지만 한 번 더)
+  const existing = _findExistingBookFromSearch(item);
+  if (existing) {
+    const lbl = { wish:'위시리스트', reading:'독서중', done:'완독', dropped:'하차' }[existing.status] || '서재';
+    showToast(`이미 ${lbl}에 있어요`);
+    return;
+  }
+
+  // BOOKS에 위시로 추가
+  const palette = pickPalette((item.title || '') + (item.author || ''));
+  const newBook = {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    title: item.title || '',
+    author: item.author || '',
+    pages: item.pages || 0,
+    palette,
+    status: 'wish',
+    tags: [],
+    isbn: item.isbn || '',
+    language: item.language || 'ko',
+    coverUrl: item.cover || '',
+    publisher: item.publisher || '',
+    isLifeBook: false,
+    rereads: [],
+    format: (item.format === 'ebook' || item.format === 'paper') ? item.format : 'paper',
+  };
+  BOOKS.unshift(newBook);
+  STORE.set('books', BOOKS);
+
+  // 카드 시각 상태 갱신 (added)
+  const card = btnEl ? btnEl.closest('.result-item') : null;
+  if (card && btnEl) {
+    card.classList.add('added');
+    btnEl.disabled = true;
+    btnEl.removeAttribute('data-quick-idx');
+    btnEl.setAttribute('aria-label', '위시에 추가됨');
+    btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  }
+
+  showToast(`위시에 추가됐어요 ✓ · "${newBook.title}"`);
+
+  // 페이지 수 없으면 백그라운드 보강 (위시는 필수 아니라 비차단)
+  if (!newBook.pages) {
+    _enrichPages(item).then(result => {
+      if (result && result.pages) {
+        const i = BOOKS.findIndex(b => b.id === newBook.id);
+        if (i >= 0) {
+          BOOKS[i].pages = result.pages;
+          STORE.set('books', BOOKS);
+        }
+      }
+    }).catch(() => {});
+  }
+
+  // UI 리렌더 (카드/통계/태그 레이더)
+  try { renderTagRadar(); } catch(e){}
+  try { renderLogList(); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+  try { renderLibraryCards(); } catch(e){}
+}
+
 async function selectBook(normalizedBook) {
   let pages = normalizedBook.pages;
   let pagesFromApi = !!pages;
@@ -16471,6 +16836,22 @@ function getSeason(dateStr) {
 const seasonKey = s => `${s.year}-${s.order}`;
 const pad2 = n => String(n).padStart(2, '0');
 const formatDate = d => { const x = new Date(d); return `${pad2(x.getMonth()+1)}.${pad2(x.getDate())}`; };
+/* 독서 기록용 날짜 범위 포맷터 (v1.6.1)
+ * - 올해 기록: 'MM.DD – MM.DD' (그대로)
+ * - 과거 같은 해: 'YYYY.MM.DD – MM.DD'
+ * - 다른 해 걸침: 'YYYY.MM.DD – YYYY.MM.DD'
+ * - 진행중: dateEnd 없을 때 '… – 진행중'
+ */
+function formatReadDateRange(dateStart, dateEnd) {
+  if (!dateStart) return '';
+  const currentYear = new Date().getFullYear();
+  const startY = new Date(dateStart).getFullYear();
+  const startStr = (startY === currentYear) ? formatDate(dateStart) : `${startY}.${formatDate(dateStart)}`;
+  if (!dateEnd) return `${startStr} – 진행중`;
+  const endY = new Date(dateEnd).getFullYear();
+  const endStr = (endY === startY) ? formatDate(dateEnd) : `${endY}.${formatDate(dateEnd)}`;
+  return `${startStr} – ${endStr}`;
+}
 const daysBetween = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 86400000));
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -18528,7 +18909,7 @@ function renderBookDetail() {
             <div class="bd-read-item ${r.isCurrent ? 'current' : ''}">
               <div class="bd-read-num">${n}</div>
               <div class="bd-read-dates">
-                ${formatDate(r.dateStart)}${r.dateEnd ? ` – ${formatDate(r.dateEnd)}` : ' – 진행중'}
+                ${formatReadDateRange(r.dateStart, r.dateEnd)}
                 ${days ? `<span class="days">${days}일</span>` : ''}
               </div>
               <div class="bd-read-rating">${r.rating ? `★ ${r.rating.toFixed(1)}` : '—'}</div>
@@ -19503,9 +19884,9 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
       list.innerHTML = sorted.map(b => {
         const pal = esc(b.palette || 'demian');
         const initial = (b.title || '?').charAt(0);
-        const dateStr = b.dateEnd
-          ? `${formatDate(b.dateStart)} – ${formatDate(b.dateEnd)}`
-          : b.dateStart ? `${formatDate(b.dateStart)} – 진행중` : '미독';
+        const dateStr = (b.dateStart || b.dateEnd)
+          ? formatReadDateRange(b.dateStart, b.dateEnd)
+          : '미독';
         const val = valFormatter ? valFormatter(b) : '';
         return `
           <div class="dd-item" data-book-id="${b.id}">
@@ -24461,7 +24842,7 @@ function exportDataAsJson() {
     const data = {
       meta: {
         app: 'READ',
-        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.6.0',
+        version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '1.6.1',
         exportedAt: new Date().toISOString(),
       },
       books: BOOKS,
@@ -24934,7 +25315,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v4';
 
 function openWhatsNew() {
@@ -25001,14 +25382,8 @@ function _versionLower(a, b) {
   if (later) later.addEventListener('click', closeWhatsNew);
   if (backdrop) backdrop.addEventListener('click', closeWhatsNew);
   if (goStats) {
-    goStats.addEventListener('click', () => {
-      closeWhatsNew();
-      // v1.5.0 — 라이브러리 탭으로 이동 (시네마 모드는 책 선택 → 타이머 시작)
-      setTimeout(() => {
-        const libTab = document.querySelector('.tab-btn[data-tab="library"]');
-        if (libTab) libTab.click();
-      }, 320);
-    });
+    // v1.6.1 — 단순 닫기 (확인했어요)
+    goStats.addEventListener('click', closeWhatsNew);
   }
 })();
 
