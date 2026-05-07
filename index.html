@@ -6279,27 +6279,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: color-mix(in srgb, #E11D48 18%, transparent);
 }
 
-/* ═══ v1.7.0 - 클라우드 동기화 (카카오 로그인) ═══ */
-.kakao-login-btn {
-  background: #FEE500 !important;
-}
-.kakao-login-btn:active {
-  background: #F2DA00 !important;
-}
-.kakao-login-btn .settings-row-ttl,
-.kakao-login-btn .settings-row-sub,
-.kakao-login-btn .settings-row-right {
-  color: #181600 !important;
-}
-.kakao-login-btn .settings-row-sub {
-  color: rgba(24, 22, 0, 0.6) !important;
-}
-.kakao-login-btn .kakao-icon {
-  background: rgba(0, 0, 0, 0.06);
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ═══ v1.7.0 - 클라우드 동기화 ═══ */
+.cloud-sync-notice {
+  font-size: 12.5px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  padding: 0 16px 12px;
+  letter-spacing: -0.01em;
 }
 
 .bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
@@ -12038,6 +12024,8 @@ body.cn-locked {
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1.41-8.78A6 6 0 0 0 5.16 13.39 4 4 0 0 0 6 21h11.5z"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <!-- 카카오톡 말풍선 (로그인용) -->
+  <symbol id="i-kakao" viewBox="0 0 20 20"><path d="M10 3C5.58 3 2 5.86 2 9.39c0 2.27 1.5 4.27 3.78 5.4l-.96 3.51c-.07.27.22.49.46.34l4.21-2.78c.17.01.34.02.51.02 4.42 0 8-2.86 8-6.39C18 5.86 14.42 3 10 3z"/></symbol>
 </svg>
 
 
@@ -12486,6 +12474,9 @@ body.cn-locked {
       <div class="settings-section-head">
         <div class="settings-section-lbl">CLOUD SYNC</div>
         <div class="settings-section-ttl">기기 간 동기화</div>
+      </div>
+      <div class="cloud-sync-notice">
+        📱 로그인 안 해도 모든 기능을 쓸 수 있어요. 폰·PC 등 여러 기기에서 같이 쓰고 싶을 때만 로그인하세요.
       </div>
       <div class="settings-list" id="cloudSyncBody">
         <!-- READ_AUTH.refreshUI()가 동적으로 채움 -->
@@ -13942,6 +13933,221 @@ const READ_AUTH = {
     return fetch(url, Object.assign({}, opts, { headers }));
   },
 
+  /* ═══════════════ 동기화 메서드 (Phase B) ═══════════════ */
+
+  /* 기기 ID 생성 — 충돌 해결 시 어디서 푸시했는지 식별 */
+  _getDeviceId() {
+    let id = localStorage.getItem('read.auth.deviceId');
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem('read.auth.deviceId', id);
+    }
+    return id;
+  },
+
+  /* 마지막 푸시 시점의 서버 updatedAt (충돌 검증용) */
+  _getBaseUpdatedAt() {
+    const v = localStorage.getItem('read.auth.baseUpdatedAt');
+    return v ? parseInt(v, 10) : null;
+  },
+  _setBaseUpdatedAt(ts) {
+    if (ts) localStorage.setItem('read.auth.baseUpdatedAt', String(ts));
+    else localStorage.removeItem('read.auth.baseUpdatedAt');
+  },
+
+  /* 현재 로컬 데이터를 동기화 가능한 형태로 직렬화
+     - 첨부 표지(base64 data:image)는 제외 (용량 + Phase A 정책) */
+  _buildSyncPayload() {
+    const goals = (typeof getGoals === 'function') ? getGoals() : { annual: 50 };
+
+    // BOOKS에서 첨부 표지 제거 사본 만들기
+    const attachedCovers = [];
+    const booksClean = (BOOKS || []).map(b => {
+      const cover = b.coverUrl || '';
+      if (cover.startsWith('data:')) {
+        // 첨부 표지 → 제외, 통계용 카운트
+        attachedCovers.push(b.id);
+        const { coverUrl, ...rest } = b;
+        return { ...rest, coverUrl: '' };
+      }
+      return b;
+    });
+
+    return {
+      payload: {
+        meta: {
+          app: 'READ',
+          version: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '',
+          syncedAt: new Date().toISOString(),
+        },
+        books: booksClean,
+        notes: NOTES || [],
+        tags: TAGS || {},
+        goals,
+      },
+      attachedCoverCount: attachedCovers.length,
+    };
+  },
+
+  /* 클라우드에 백업 (push) */
+  async backupToCloud(options) {
+    options = options || {};
+    if (!this.isLoggedIn()) {
+      if (typeof showToast === 'function') showToast('로그인 후 사용해주세요');
+      return { ok: false };
+    }
+
+    const { payload, attachedCoverCount } = this._buildSyncPayload();
+    const deviceId = this._getDeviceId();
+    const baseUpdatedAt = this._getBaseUpdatedAt();
+
+    try {
+      const res = await this.authFetch(ALADIN_PROXY_URL + '/sync/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: payload,
+          deviceId,
+          baseUpdatedAt,
+          force: !!options.force,
+        }),
+      });
+
+      if (res.status === 409) {
+        // 충돌 — 서버에 더 새 데이터가 있음
+        const conflict = await res.json().catch(() => ({}));
+        return { ok: false, conflict: true, serverUpdatedAt: conflict.serverUpdatedAt };
+      }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (typeof showToast === 'function') {
+          showToast(err.message || '백업 실패 · 다시 시도해주세요');
+        }
+        return { ok: false };
+      }
+
+      const { updatedAt } = await res.json();
+      this._setBaseUpdatedAt(updatedAt);
+
+      const bookCount = (BOOKS || []).length;
+      let msg = `☁️ 백업 완료 · ${bookCount}권의 기록`;
+      if (attachedCoverCount > 0) {
+        msg += ` · 첨부 표지 ${attachedCoverCount}권은 제외됨`;
+      }
+      if (typeof showToast === 'function') showToast(msg);
+
+      this.refreshUI();
+      return { ok: true, updatedAt };
+    } catch (e) {
+      console.error('[sync] backup error', e);
+      if (typeof showToast === 'function') showToast('네트워크 오류');
+      return { ok: false };
+    }
+  },
+
+  /* 클라우드에서 복원 (pull) */
+  async restoreFromCloud() {
+    if (!this.isLoggedIn()) {
+      if (typeof showToast === 'function') showToast('로그인 후 사용해주세요');
+      return { ok: false };
+    }
+
+    try {
+      const res = await this.authFetch(ALADIN_PROXY_URL + '/sync/pull');
+      if (!res.ok) {
+        if (typeof showToast === 'function') showToast('복원 실패 · 다시 시도해주세요');
+        return { ok: false };
+      }
+
+      const body = await res.json();
+      if (!body.data) {
+        if (typeof showToast === 'function') showToast('클라우드에 백업된 데이터가 없어요');
+        return { ok: false, empty: true };
+      }
+
+      // 로컬 데이터 덮어쓰기
+      const data = body.data;
+      if (Array.isArray(data.books)) {
+        BOOKS.length = 0;
+        BOOKS.push(...data.books);
+        STORE.set('books', BOOKS);
+      }
+      if (Array.isArray(data.notes)) {
+        NOTES.length = 0;
+        NOTES.push(...data.notes);
+        STORE.set('notes', NOTES);
+      }
+      if (data.tags && typeof data.tags === 'object') {
+        Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
+        Object.assign(TAGS, data.tags);
+        STORE.set('tags', TAGS);
+      }
+      if (data.goals && typeof saveGoals === 'function') {
+        try { saveGoals(data.goals); } catch(e){}
+      }
+
+      this._setBaseUpdatedAt(body.updatedAt);
+
+      const bookCount = (BOOKS || []).length;
+      if (typeof showToast === 'function') {
+        showToast(`☁️ 복원 완료 · ${bookCount}권 불러옴`);
+      }
+
+      // 모든 화면 다시 그리기
+      try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+      try { renderAllStats && renderAllStats(); } catch(e){}
+      try { renderNotes && renderNotes(); } catch(e){}
+      try { renderTags && renderTags(); } catch(e){}
+
+      this.refreshUI();
+      return { ok: true };
+    } catch (e) {
+      console.error('[sync] restore error', e);
+      if (typeof showToast === 'function') showToast('네트워크 오류');
+      return { ok: false };
+    }
+  },
+
+  /* 백업 버튼 핸들러 — 충돌 시 다이얼로그 띄우기 */
+  async onBackupClick() {
+    const btn = document.getElementById('cloudBackupBtn');
+    if (btn) btn.classList.add('busy');
+
+    const result = await this.backupToCloud();
+
+    if (result.conflict) {
+      // 충돌 다이얼로그
+      const date = result.serverUpdatedAt ? new Date(result.serverUpdatedAt) : null;
+      const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}시` : '최근';
+      const ok = confirm(
+        `⚠️ 충돌 발생\n\n` +
+        `다른 기기(${dateStr})에서 더 최근에 백업한 데이터가 있어요.\n\n` +
+        `이 기기 데이터로 덮어쓸까요? (다른 기기 백업은 사라져요)`
+      );
+      if (ok) {
+        await this.backupToCloud({ force: true });
+      }
+    }
+
+    if (btn) btn.classList.remove('busy');
+  },
+
+  /* 복원 버튼 핸들러 — 확인 후 실행 */
+  async onRestoreClick() {
+    const localCount = (BOOKS || []).length;
+    let msg = '☁️ 클라우드에서 복원할까요?';
+    if (localCount > 0) {
+      msg = `⚠️ 이 기기의 ${localCount}권의 데이터가\n클라우드 데이터로 덮어써집니다.\n\n계속할까요?`;
+    }
+    if (!confirm(msg)) return;
+
+    const btn = document.getElementById('cloudRestoreBtn');
+    if (btn) btn.classList.add('busy');
+    await this.restoreFromCloud();
+    if (btn) btn.classList.remove('busy');
+  },
+
   /* 설정 탭의 클라우드 섹션 다시 그리기 */
   refreshUI() {
     const section = document.getElementById('cloudSyncBody');
@@ -13952,14 +14158,43 @@ const READ_AUTH = {
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
     if (user) {
+      // 마지막 백업 시각
+      const baseTs = this._getBaseUpdatedAt();
+      let lastSyncText = '아직 백업한 적 없어요';
+      if (baseTs) {
+        const d = new Date(baseTs);
+        const now = Date.now();
+        const diff = now - baseTs;
+        if (diff < 60000) lastSyncText = '방금 백업됨';
+        else if (diff < 3600000) lastSyncText = `${Math.floor(diff/60000)}분 전 백업`;
+        else if (diff < 86400000) lastSyncText = `${Math.floor(diff/3600000)}시간 전 백업`;
+        else lastSyncText = `${d.getMonth()+1}/${d.getDate()} 백업`;
+      }
+
       section.innerHTML = `
         <div class="settings-row" style="cursor: default;">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-user"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">${escape(user.nickname)}</div>
-            <div class="settings-row-sub">카카오 계정으로 로그인됨</div>
+            <div class="settings-row-sub">${lastSyncText}</div>
           </div>
         </div>
+        <button class="settings-row" id="cloudBackupBtn" onclick="READ_AUTH.onBackupClick()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-upload"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">클라우드에 백업</div>
+            <div class="settings-row-sub">현재 데이터를 서버에 저장</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+        <button class="settings-row" id="cloudRestoreBtn" onclick="READ_AUTH.onRestoreClick()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-download"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">클라우드에서 복원</div>
+            <div class="settings-row-sub">서버 데이터로 이 기기 덮어쓰기</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
         <button class="settings-row" onclick="READ_AUTH.logout()">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-log-out"/></svg></div>
           <div class="settings-row-main">
@@ -13971,8 +14206,8 @@ const READ_AUTH = {
       `;
     } else {
       section.innerHTML = `
-        <button class="settings-row kakao-login-btn" onclick="READ_AUTH.startKakaoLogin()">
-          <div class="settings-row-icon kakao-icon">💬</div>
+        <button class="settings-row" onclick="READ_AUTH.startKakaoLogin()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-kakao"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">카카오로 로그인</div>
             <div class="settings-row-sub">기기 간 동기화 사용 (선택)</div>
