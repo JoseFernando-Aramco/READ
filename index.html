@@ -6279,6 +6279,29 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: color-mix(in srgb, #E11D48 18%, transparent);
 }
 
+/* ═══ v1.7.0 - 클라우드 동기화 (카카오 로그인) ═══ */
+.kakao-login-btn {
+  background: #FEE500 !important;
+}
+.kakao-login-btn:active {
+  background: #F2DA00 !important;
+}
+.kakao-login-btn .settings-row-ttl,
+.kakao-login-btn .settings-row-sub,
+.kakao-login-btn .settings-row-right {
+  color: #181600 !important;
+}
+.kakao-login-btn .settings-row-sub {
+  color: rgba(24, 22, 0, 0.6) !important;
+}
+.kakao-login-btn .kakao-icon {
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
 .bd-hero-title {
   font-family: inherit;
@@ -12011,6 +12034,10 @@ body.cn-locked {
   <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
   <symbol id="i-refresh-cw" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
   <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <!-- v1.7.0 - 클라우드 동기화 -->
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1.41-8.78A6 6 0 0 0 5.16 13.39 4 4 0 0 0 6 21h11.5z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
 </svg>
 
 
@@ -12451,6 +12478,17 @@ body.cn-locked {
       </div>
       <div class="theme-grid" id="themeGrid">
         <!-- 테마 8개 — JS로 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- v1.7.0 - 클라우드 동기화 -->
+    <div class="settings-section">
+      <div class="settings-section-head">
+        <div class="settings-section-lbl">CLOUD SYNC</div>
+        <div class="settings-section-ttl">기기 간 동기화</div>
+      </div>
+      <div class="settings-list" id="cloudSyncBody">
+        <!-- READ_AUTH.refreshUI()가 동적으로 채움 -->
       </div>
     </div>
 
@@ -13788,6 +13826,177 @@ const STORE = {
   get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
   set(key, v)  { try { localStorage.setItem('read.' + key, JSON.stringify(v)); } catch {} },
 };
+
+/* ═══════════════════════════════════════════════════════════
+   ☁️ 클라우드 인증 (v1.7.0)
+   카카오 OAuth 2.0 Authorization Code Grant 흐름
+   - client_id로는 카카오 REST API 키를 사용 (이미 _KK에 박혀있음, 재활용)
+   - Worker가 토큰 교환 + JWT 발급
+   - JWT를 localStorage에 저장 (read.auth.token)
+   ═══════════════════════════════════════════════════════════ */
+const READ_AUTH = {
+  TOKEN_KEY: 'read.auth.token',
+  USER_KEY:  'read.auth.user',
+
+  getToken() { return localStorage.getItem(this.TOKEN_KEY); },
+  getUser()  {
+    try { return JSON.parse(localStorage.getItem(this.USER_KEY) || 'null'); }
+    catch { return null; }
+  },
+  isLoggedIn() { return !!this.getToken(); },
+
+  setSession(token, user) {
+    localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+  },
+  clearSession() {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+  },
+
+  /* 카카오 OAuth 시작 — 카카오 인가 페이지로 리다이렉트 */
+  startKakaoLogin() {
+    const clientId = (typeof _kakaoKey === 'function') ? _kakaoKey() : '';
+    if (!clientId) {
+      if (typeof showToast === 'function') showToast('카카오 키 설정 오류');
+      return;
+    }
+    const redirectUri = window.location.origin + window.location.pathname;
+    const url = 'https://kauth.kakao.com/oauth/authorize?' +
+      'client_id=' + encodeURIComponent(clientId) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&response_type=code';
+    window.location.href = url;
+  },
+
+  /* 페이지 로드 시 자동 호출 — URL에 ?code= 있으면 토큰 교환 */
+  async handleCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const error = params.get('error');
+
+    if (error) {
+      this._cleanUrl();
+      if (typeof showToast === 'function') showToast('로그인 취소됨');
+      return false;
+    }
+    if (!code) return false;
+
+    // 새로고침 등으로 같은 code 재사용 방지
+    const usedCode = sessionStorage.getItem('read.auth.usedCode');
+    if (usedCode === code) {
+      this._cleanUrl();
+      return false;
+    }
+    sessionStorage.setItem('read.auth.usedCode', code);
+
+    try {
+      const redirectUri = window.location.origin + window.location.pathname;
+      const res = await fetch(ALADIN_PROXY_URL + '/auth/kakao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('[auth] callback failed', errBody);
+        if (typeof showToast === 'function') showToast('로그인 실패 · 다시 시도해주세요');
+        this._cleanUrl();
+        return false;
+      }
+
+      const { token, user } = await res.json();
+      this.setSession(token, user);
+      this._cleanUrl();
+      if (typeof showToast === 'function') showToast(`${user.nickname}님 환영해요!`);
+      this.refreshUI();
+      return true;
+    } catch (e) {
+      console.error('[auth] callback error', e);
+      if (typeof showToast === 'function') showToast('로그인 중 오류 발생');
+      this._cleanUrl();
+      return false;
+    }
+  },
+
+  /* URL의 ?code= 등 OAuth 파라미터 제거 (히스토리에 안 남게) */
+  _cleanUrl() {
+    const cleanUrl = window.location.origin + window.location.pathname + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+  },
+
+  /* 로그아웃 — 로컬 토큰만 제거 (서버는 stateless) */
+  logout() {
+    this.clearSession();
+    if (typeof showToast === 'function') showToast('로그아웃됨');
+    this.refreshUI();
+  },
+
+  /* Authorization 헤더 자동 추가하는 fetch 래퍼 */
+  async authFetch(url, options) {
+    const opts = options || {};
+    const token = this.getToken();
+    const headers = Object.assign({}, opts.headers || {});
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    return fetch(url, Object.assign({}, opts, { headers }));
+  },
+
+  /* 설정 탭의 클라우드 섹션 다시 그리기 */
+  refreshUI() {
+    const section = document.getElementById('cloudSyncBody');
+    if (!section) return;
+
+    const user = this.getUser();
+    const escape = (s) => String(s || '').replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+    if (user) {
+      section.innerHTML = `
+        <div class="settings-row" style="cursor: default;">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-user"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">${escape(user.nickname)}</div>
+            <div class="settings-row-sub">카카오 계정으로 로그인됨</div>
+          </div>
+        </div>
+        <button class="settings-row" onclick="READ_AUTH.logout()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-log-out"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">로그아웃</div>
+            <div class="settings-row-sub">이 기기에서 로그아웃</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+      `;
+    } else {
+      section.innerHTML = `
+        <button class="settings-row kakao-login-btn" onclick="READ_AUTH.startKakaoLogin()">
+          <div class="settings-row-icon kakao-icon">💬</div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">카카오로 로그인</div>
+            <div class="settings-row-sub">기기 간 동기화 사용 (선택)</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+      `;
+    }
+  }
+};
+
+/* 페이지 로드 시 자동 초기화 — DOMContentLoaded 타이밍 이슈 회피 패턴 */
+(function _initAuth() {
+  const init = () => {
+    try { READ_AUTH.handleCallback(); } catch(e) { console.warn('[auth] callback init', e); }
+    try { READ_AUTH.refreshUI(); } catch(e) { console.warn('[auth] ui init', e); }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // 이미 DOM 준비됨 → 다음 tick에 실행 (현재 스크립트 평가 후)
+    setTimeout(init, 0);
+  }
+})();
 
 /* ═══════════════════════════════════════════════════════════
    테마 시스템
