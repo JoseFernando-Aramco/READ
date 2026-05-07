@@ -12072,6 +12072,8 @@ body.cn-locked {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <!-- SheetJS + 스타일 지원(xlsx-js-style) for Excel import/export -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8d71de34e7ba4435b6019de0d5ee05da"}'></script>
 </head>
 <body>
 
@@ -16079,6 +16081,23 @@ function _extractPagesFromContents(contents) {
 /* ─── 알라딘 프록시 (Cloudflare Worker) URL ─── */
 /* 설정 방법: WORKER_SETUP.md 참고. 비어있으면 이 전략은 자동 스킵됨. */
 const ALADIN_PROXY_URL = 'https://read.jych0116.workers.dev';
+
+/* ═══════════════════════════════════════════════════════════
+   v1.7.0 — 익명 방문 추적 (어드민 통계용)
+   - 페이지 로드 시 1회 호출
+   - sendBeacon 우선 (탭 종료에도 보장), fallback fetch
+   - IP·UA 해시만 저장, 개인정보 X
+   ═══════════════════════════════════════════════════════════ */
+(function _trackVisit() {
+  try {
+    const url = ALADIN_PROXY_URL + '/track';
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url);
+    } else {
+      fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true }).catch(() => {});
+    }
+  } catch(e) { /* silent */ }
+})();
 
 /* ─── 알라딘 프록시로 페이지 수 조회 (국내서 최우선) ─── */
 async function _fetchPagesFromAladin({ isbn, title }) {
