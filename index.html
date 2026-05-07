@@ -9085,6 +9085,132 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border: 1px solid var(--c-border);
   border-radius: 10px;
 }
+
+/* ───── HERO 시각 (v1.7.0) — 기기 간 동기화 데모 ───── */
+.wn-sync-demo {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.wn-sync-device {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  position: relative;
+}
+.wn-sync-device-lbl {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+.wn-sync-device-stack {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  height: 38px;
+}
+.wn-sync-device-stack > div {
+  width: 16px;
+  height: 22px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #C4A484 0%, #8B6F47 100%);
+  margin-top: 8px;
+}
+.wn-sync-device-stack > div:nth-child(2) {
+  background: linear-gradient(180deg, #6B7A8F 0%, #3F4A5F 100%);
+  height: 26px; margin-top: 4px;
+}
+.wn-sync-device-stack > div:nth-child(3) {
+  background: linear-gradient(180deg, #A04545 0%, #6B2828 100%);
+  height: 24px; margin-top: 6px;
+}
+.wn-sync-cloud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  position: relative;
+}
+.wn-sync-cloud-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--c-terra-100);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-terra-900);
+  font-size: 18px;
+}
+.wn-sync-cloud-line {
+  position: absolute;
+  top: 18px;
+  width: 100%;
+  height: 1px;
+  border-top: 1px dashed var(--c-border);
+  z-index: -1;
+}
+.wn-sync-status {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+.wn-sync-status .dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin-right: 4px;
+  vertical-align: middle;
+  animation: wn-sync-pulse 1.6s ease-in-out infinite;
+}
+@keyframes wn-sync-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ───── 개발자 노트 박스 (v1.7.0) ───── */
+.wn-devnote {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  padding: 13px 15px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.wn-devnote-head {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--c-text-2);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.wn-devnote-q {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 6px;
+  letter-spacing: -0.1px;
+}
+.wn-devnote-a {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--c-text-2);
+  letter-spacing: -0.05px;
+}
+.wn-devnote-a strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
 .wn-also-head {
   font-size: 10.5px;
   font-weight: 700;
@@ -12534,7 +12660,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">최신 업데이트 다시보기</div>
-            <div class="settings-row-sub">v1.6.1 · 카페 댓글 반영</div>
+            <div class="settings-row-sub">v1.7.0 · 기기 간 동기화</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -12542,7 +12668,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub">1.6.1 · Made by Locadomingo</div>
+            <div class="settings-row-sub">1.7.0 · Made by Locadomingo</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -13328,87 +13454,76 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.6.1 · 업데이트 소식</div>
-    <div class="wn-ttl">카페 댓글에서 시작된 두 가지</div>
-    <div class="wn-sub">독자분들이 들려주신 작은 갈증, 이번에 같이 풀었어요</div>
+    <div class="wn-badge">v1.7.0 · 업데이트 소식</div>
+    <div class="wn-ttl">가장 많이 받은 요청, 드디어</div>
+    <div class="wn-sub">"여러 기기에서 같이 쓰고 싶어요" — 그 이야기들에 답해서 만들었어요</div>
 
-    <!-- ★ HERO — 시리즈 일괄 추가 데모 -->
+    <!-- ★ HERO — 기기 간 동기화 데모 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">➕</span>
-        SERIES · 한 번 누르면 위시에
+        <span style="font-size:11px">☁️</span>
+        SYNC · 폰과 PC에서 같은 기록
       </div>
-      <div class="wn-hero-ttl">시리즈물도 한 묶음에</div>
-      <div class="wn-hero-sub">검색 결과 옆 작은 + 버튼 한 번이면 위시에 바로 — 페이지를 떠나지 않아요</div>
+      <div class="wn-hero-ttl">기기 간 동기화</div>
+      <div class="wn-hero-sub">로그인 한 번이면 폰·태블릿·PC 어디서든 같은 독서 기록을 보고 쓸 수 있어요</div>
 
-      <div class="wn-quickadd-demo">
-        <div class="wn-qa-search">해리포터 시리즈</div>
-        <div class="wn-qa-row added">
-          <div class="wn-qa-cover"></div>
-          <div class="wn-qa-info">
-            <div class="wn-qa-ttl">해리 포터와 마법사의 돌</div>
-            <div class="wn-qa-author">J.K. 롤링</div>
-          </div>
-          <div class="wn-qa-btn done">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="wn-sync-demo">
+        <div class="wn-sync-device">
+          <div class="wn-sync-device-lbl">📱 폰</div>
+          <div class="wn-sync-device-stack">
+            <div></div><div></div><div></div>
           </div>
         </div>
-        <div class="wn-qa-row added">
-          <div class="wn-qa-cover c2"></div>
-          <div class="wn-qa-info">
-            <div class="wn-qa-ttl">해리 포터와 비밀의 방</div>
-            <div class="wn-qa-author">J.K. 롤링</div>
-          </div>
-          <div class="wn-qa-btn done">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <div class="wn-sync-cloud">
+          <div class="wn-sync-cloud-line"></div>
+          <div class="wn-sync-cloud-icon">☁️</div>
+        </div>
+        <div class="wn-sync-device">
+          <div class="wn-sync-device-lbl">💻 PC</div>
+          <div class="wn-sync-device-stack">
+            <div></div><div></div><div></div>
           </div>
         </div>
-        <div class="wn-qa-row">
-          <div class="wn-qa-cover c3"></div>
-          <div class="wn-qa-info">
-            <div class="wn-qa-ttl">해리 포터와 아즈카반의 죄수</div>
-            <div class="wn-qa-author">J.K. 롤링</div>
-          </div>
-          <div class="wn-qa-btn fresh">+</div>
-        </div>
+      </div>
+      <div class="wn-sync-status">
+        <span class="dot"></span> 방금 동기화됨 · 12권의 기록
       </div>
     </div>
 
     <!-- 항목 리스트 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">➕</div>
+        <div class="wn-icon">☁️</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">검색 결과 빠른 추가</div>
-          <div class="wn-item-sub">카드 옆 + 버튼 → 위시에 즉시 등록 · 모달은 안 닫혀요 · 이미 서재에 있는 책은 자동으로 ✓ 표시</div>
+          <div class="wn-item-ttl">카카오 로그인 + 클라우드 백업</div>
+          <div class="wn-item-sub">설정 탭의 "카카오로 로그인" → 닉네임만 받아요 (이메일·전화번호 X) · 백업/복원은 원할 때 수동으로</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">📅</div>
+        <div class="wn-icon">🔓</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">독서 기록에 년도 표시</div>
-          <div class="wn-item-sub">올해 기록은 그대로 깔끔하게 · 과거 또는 해 걸침 기록은 자동으로 년도가 보여요</div>
+          <div class="wn-item-ttl">로그인은 절대 필수가 아니에요</div>
+          <div class="wn-item-sub">지금까지처럼 로그인 없이도 모든 기능 그대로 써요 · 한 기기에서만 쓸 거면 로그인 안 해도 됩니다</div>
+        </div>
+      </li>
+      <li class="wn-item">
+        <div class="wn-icon">🔒</div>
+        <div class="wn-text">
+          <div class="wn-item-ttl">로컬 우선, 자동 동기화 X</div>
+          <div class="wn-item-sub">데이터는 항상 이 기기에 먼저 저장돼요 · 클라우드는 사용자가 "백업/복원" 누를 때만 동기화</div>
         </div>
       </li>
     </ul>
 
-    <!-- 년도 표시 데모 박스 -->
-    <div class="wn-year-box">
-      <div class="wn-year-head">
-        <span>📚 독서 기록 미리보기</span>
-        <span class="lbl">2회 독서</span>
+    <!-- 개발자 노트 — 국외이전 사정 -->
+    <div class="wn-devnote">
+      <div class="wn-devnote-head">
+        <span>🛠</span> 개발자 노트
       </div>
-      <div class="wn-year-row">
-        <div class="wn-year-num">2</div>
-        <div class="wn-year-date">05.05 – 05.06</div>
-        <div class="wn-year-days">1일</div>
-        <div class="wn-year-rating">★ 2.5</div>
-      </div>
-      <div class="wn-year-row">
-        <div class="wn-year-num">1</div>
-        <div class="wn-year-date"><span class="y">2024.</span>10.12 – 10.18</div>
-        <div class="wn-year-days">6일</div>
-        <div class="wn-year-rating">★ 3.5</div>
+      <div class="wn-devnote-q">로그인할 때 "개인정보 국외이전 동의"가 뜨는 이유</div>
+      <div class="wn-devnote-a">
+        호스팅 서버로 <strong>Cloudflare(미국)</strong>를 쓰고 있어요. 1인 개발 사이드 프로젝트라 무료로 쓸 수 있는 곳을 골랐거든요. 국내 클라우드는 매월 수만 원~의 비용이 들어가서, 솔직히 부담이 컸어요.<br><br>
+        이전되는 정보는 <strong>닉네임과 회원번호뿐</strong>이고, 모든 통신은 암호화돼요. 그래도 부담스러우면 <strong>로그인 없이 그대로 쓰셔도 되니</strong> 부담 가지지 마세요. 진심으로요.
       </div>
     </div>
 
@@ -13416,7 +13531,7 @@ body.cn-locked {
     <div class="wn-also">
       <div class="wn-also-head">고마워요</div>
       <div class="wn-also-text">
-        카페에서 들려주신 한 마디가 다음 패치예요. 작은 불편이라도 편하게 남겨주세요 🙏
+        "동기화 해주세요"라고 꾸준히 메시지 남겨주셔서 만들 수 있었어요. 다음에도 작은 불편이 생기면 언제든 알려주세요 🙏
       </div>
     </div>
 
@@ -13441,7 +13556,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.6.1</div>
+      <div class="ab-ver">version 1.7.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -25759,8 +25874,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.6.1';
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v4';
+const APP_VERSION = '1.7.0';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v5';
 
 function openWhatsNew() {
   const modal = document.getElementById('wnModal');
