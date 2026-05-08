@@ -5839,7 +5839,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .book-card { position: relative; }
 
 /* ═══════════════════════════════════════════════════════════
-   📕📱 매체 토글 (종이책 / 전자책)
+   📕📱🎧 매체 토글 (종이책 / 전자책 / 오디오북)
    ═══════════════════════════════════════════════════════════ */
 .format-toggle {
   display: flex;
@@ -5909,12 +5909,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 80px; height: 40px;
   font-size: 18px;
 }
+/* 오디오북 — 틸 색상 */
+.ebook-pct-input.audio {
+  color: #0F766E;
+}
+.ebook-pct-input.audio:focus {
+  border-color: #0F766E;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
 .ebook-pct-unit {
   font-size: 22px;
   font-weight: 700;
   color: #6D4C41;
 }
 .ebook-pct-unit.compact { font-size: 16px; }
+.ebook-pct-unit.audio { color: #0F766E; }
 
 .ebook-pct-converted {
   margin-left: auto;
@@ -5964,6 +5973,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .progress-bar-fill.ebook {
   background: #6D4C41;
 }
+/* 오디오북 진행률 바 톤 */
+.progress-bar-fill.audio {
+  background: #0F766E;
+}
 
 /* 매체 배지 (책 카드/책 상세에 작게 표시) */
 .format-badge {
@@ -5986,6 +5999,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .format-badge.ebook {
   background: #FAF5F0;
   color: #6D4C41;
+}
+.format-badge.audio {
+  background: #E6F5F1;
+  color: #0F766E;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -6047,6 +6064,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   box-shadow: 0 1px 4px rgba(109, 76, 65, 0.3);
 }
 .fmt-pill button.active[data-fmt="ebook"] .fmt-pill-emoji {
+  filter: brightness(1.2);
+}
+
+/* 오디오북 활성 — 틸 알약 */
+.fmt-pill button.active[data-fmt="audio"] {
+  background: #0F766E;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(15, 118, 110, 0.3);
+}
+.fmt-pill button.active[data-fmt="audio"] .fmt-pill-emoji {
   filter: brightness(1.2);
 }
 
@@ -6596,6 +6624,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: #FAF5F0;
   color: #6D4C41;
 }
+.format-badge.audio {
+  background: #E6F5F1;
+  color: #0F766E;
+}
 
 /* % 입력 블록 */
 .pct-input-block {
@@ -6683,6 +6715,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 전자책 진행률 바 색상 */
 .progress-fill.ebook { background: #6D4C41; }
+/* 오디오북 진행률 바 색상 */
+.progress-fill.audio { background: #0F766E; }
 
 .qr-confirm-actions {
   display: flex;
@@ -6887,6 +6921,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-radius: 3px;
   transition: width .3s ease;
 }
+/* 매체별 진행률 바 색상 */
+.bd-progress-fill.ebook { background: #6D4C41; }
+.bd-progress-fill.audio { background: #0F766E; }
 
 /* 독서 기록 리스트 — V2 슬림 라인 */
 .bd-reads {
@@ -12772,6 +12809,10 @@ body.cn-locked {
               <span class="fmt-emoji">📱</span>
               <span>전자책</span>
             </button>
+            <button type="button" data-fmt="audio">
+              <span class="fmt-emoji">🎧</span>
+              <span>오디오북</span>
+            </button>
           </div>
         </div>
         <div class="form-field-row">
@@ -12917,6 +12958,10 @@ body.cn-locked {
           <button type="button" data-fmt="ebook">
             <span class="fmt-emoji">📱</span>
             <span>전자책</span>
+          </button>
+          <button type="button" data-fmt="audio">
+            <span class="fmt-emoji">🎧</span>
+            <span>오디오북</span>
           </button>
         </div>
       </div>
@@ -14952,7 +14997,7 @@ const BA = {
   rating: 0,            // 완독 등록 시 별점 (0~5)
   tagEditMode: false,   // 태그 편집(삭제) 모드
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
-  manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook')
+  manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio')
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -14970,15 +15015,17 @@ function esc(s) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   📕📱 매체(종이책/전자책) 헬퍼
-   - b.format: 'paper' (default) | 'ebook'
-   - 전자책은 진행률을 % 단위로 입력하고, 페이지는 환산해서 저장
+   📕📱🎧 매체(종이책/전자책/오디오북) 헬퍼
+   - b.format: 'paper' (default) | 'ebook' | 'audio'
+   - 전자책/오디오북은 진행률을 % 단위로 입력하고, 페이지는 환산해서 저장
    - 기존 책은 format 없음 → 'paper'로 처리
    ═══════════════════════════════════════════════════════════ */
 
-/* 책의 매체 반환 ('paper' | 'ebook') — 기존 데이터는 'paper'로 처리 */
+/* 책의 매체 반환 ('paper' | 'ebook' | 'audio') — 기존 데이터는 'paper'로 처리 */
 function getBookFormat(book) {
-  return (book && book.format === 'ebook') ? 'ebook' : 'paper';
+  if (book && book.format === 'ebook') return 'ebook';
+  if (book && book.format === 'audio') return 'audio';
+  return 'paper';
 }
 
 /* 전자책 여부 */
@@ -14986,14 +15033,37 @@ function isEbook(book) {
   return getBookFormat(book) === 'ebook';
 }
 
+/* 오디오북 여부 */
+function isAudio(book) {
+  return getBookFormat(book) === 'audio';
+}
+
+/* 디지털 매체 여부 (전자책 또는 오디오북) — % 입력을 사용하는 매체 */
+function isDigital(book) {
+  const f = getBookFormat(book);
+  return f === 'ebook' || f === 'audio';
+}
+
+/* 매체별 이모지 prefix (책 카드/메타용) — 종이책은 무 */
+function mediaIcon(book) {
+  const f = getBookFormat(book);
+  if (f === 'ebook') return '📱 ';
+  if (f === 'audio') return '🎧 ';
+  return '';
+}
+
 /* 매체 라벨 (UI 표시용) */
 function formatLabel(fmt) {
-  return fmt === 'ebook' ? '📱 전자책' : '📕 종이책';
+  if (fmt === 'ebook') return '📱 전자책';
+  if (fmt === 'audio') return '🎧 오디오북';
+  return '📕 종이책';
 }
 
 /* 매체 짧은 라벨 (작은 배지) */
 function formatLabelShort(fmt) {
-  return fmt === 'ebook' ? '📱 전자' : '📕 종이';
+  if (fmt === 'ebook') return '📱 전자';
+  if (fmt === 'audio') return '🎧 오디오';
+  return '📕 종이';
 }
 
 /* % → 환산 페이지 (반올림) */
@@ -15018,14 +15088,14 @@ function getBookProgressPct(book) {
 
 /* 책의 진행률을 표시용 문자열로 — 매체에 따라 형식 다름
  * 종이책: "154 / 416p · 37%"
- * 전자책: "37% · ≈ 154p"
+ * 전자책 / 오디오북: "37% · ≈ 154p"
  */
 function formatProgressDisplay(book) {
   if (!book) return '';
   const cp = book.currentPage || 0;
   const tp = book.pages || 0;
   const pct = pagesToPct(cp, tp);
-  if (isEbook(book)) {
+  if (isDigital(book)) {
     return tp > 0 ? `${pct}% · ≈ ${cp}p` : `${pct}%`;
   }
   return tp > 0 ? `${cp} / ${tp}p · ${pct}%` : `${cp}p`;
@@ -15033,15 +15103,15 @@ function formatProgressDisplay(book) {
 
 /* 책 카드 메타 표시 — 매체 따라 형식 다름 (저자 포함)
  * 종이책 reading: "리처드 탈러 · 37%"
- * 전자책 reading: "리처드 탈러 · 📱 37%"  (배지로 매체 표시)
+ * 전자책 reading: "리처드 탈러 · 📱 37%"
+ * 오디오북 reading: "리처드 탈러 · 🎧 37%"
  */
 function formatBookCardMeta(book) {
   if (!book) return '';
   const author = book.author || '';
   if (book.status === 'reading' && book.pages) {
     const pct = getBookProgressPct(book);
-    const fmtIcon = isEbook(book) ? '📱 ' : '';
-    return `${author} · ${fmtIcon}${pct}%`;
+    return `${author} · ${mediaIcon(book)}${pct}%`;
   }
   return author;
 }
@@ -16249,7 +16319,7 @@ async function quickAddToWish(idx, btnEl) {
     publisher: item.publisher || '',
     isLifeBook: false,
     rereads: [],
-    format: (item.format === 'ebook' || item.format === 'paper') ? item.format : 'paper',
+    format: (item.format === 'ebook' || item.format === 'paper' || item.format === 'audio') ? item.format : 'paper',
   };
   BOOKS.unshift(newBook);
   STORE.set('books', BOOKS);
@@ -16875,7 +16945,7 @@ function confirmAddBook() {
     publisher: b.publisher || '',
     isLifeBook: status === 'done' ? !!BA.isLifeBook : false,
     rereads: [],
-    format: (b.format === 'ebook' || b.format === 'paper') ? b.format : (BA.manualFormat || 'paper'),  // 매체 (paper | ebook) — 검색 결과면 BA.selected.format, 직접 입력이면 BA.manualFormat
+    format: (b.format === 'ebook' || b.format === 'paper' || b.format === 'audio') ? b.format : (BA.manualFormat || 'paper'),  // 매체 (paper | ebook | audio) — 검색 결과면 BA.selected.format, 직접 입력이면 BA.manualFormat
   };
 
   if (status === 'reading') {
@@ -16988,7 +17058,7 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
     const btn = e.target.closest('button[data-fmt]');
     if (!btn) return;
     const fmt = btn.dataset.fmt;
-    if (fmt !== 'paper' && fmt !== 'ebook') return;
+    if (fmt !== 'paper' && fmt !== 'ebook' && fmt !== 'audio') return;
     BA.manualFormat = fmt;
     toggle.querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.fmt === fmt);
@@ -17005,7 +17075,7 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
     const btn = e.target.closest('button[data-fmt]');
     if (!btn) return;
     const fmt = btn.dataset.fmt;
-    if (fmt !== 'paper' && fmt !== 'ebook') return;
+    if (fmt !== 'paper' && fmt !== 'ebook' && fmt !== 'audio') return;
     if (BA.selected) BA.selected.format = fmt;
     toggle.querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.fmt === fmt);
@@ -17609,12 +17679,12 @@ function renderBookCoverInner(b, number) {
 
 /* 북 카드 하나 (커버 + 제목 + 메타) */
 function renderBookCard(b, idx) {
-  const ebookMark = isEbook(b) ? '📱 ' : '';
+  const fmtMark = mediaIcon(b);
   const isDropped = b.status === 'dropped';
   const meta = isDropped
     ? (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author))
     : b.status === 'reading' && b.pages
-      ? `${esc(b.author)} · ${ebookMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
+      ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
       : b.status === 'done' && b.rating
       ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}`
       : b.status === 'done'
@@ -18503,13 +18573,13 @@ function openTimerStop() {
   // 매체에 따라 페이지/퍼센트 필드 분기
   const paperField = document.getElementById('tmPaperField');
   const ebookField = document.getElementById('tmEbookField');
-  const ebook = isEbook(book);
+  const digital = isDigital(book);
 
-  if (paperField) paperField.style.display = ebook ? 'none' : '';
-  if (ebookField) ebookField.style.display = ebook ? '' : 'none';
+  if (paperField) paperField.style.display = digital ? 'none' : '';
+  if (ebookField) ebookField.style.display = digital ? '' : 'none';
 
-  if (ebook) {
-    // 전자책 — % 입력
+  if (digital) {
+    // 전자책 / 오디오북 — % 입력
     const pctInput = document.getElementById('tmEbookPctInput');
     const oldPct = pagesToPct(book.currentPage || 0, book.pages || 0);
     if (pctInput) {
@@ -18592,8 +18662,8 @@ function saveTimerSession() {
   const oldPage = book.currentPage || 0;
   let validNewPage = oldPage;
 
-  if (isEbook(book)) {
-    // 전자책: % 입력 → 환산 페이지
+  if (isDigital(book)) {
+    // 전자책 / 오디오북: % 입력 → 환산 페이지
     const pctVal = parseInt(document.getElementById('tmEbookPctInput').value, 10);
     if (!isNaN(pctVal) && pctVal >= 0 && pctVal <= 100) {
       validNewPage = pctToPages(pctVal, book.pages || 0);
@@ -19149,7 +19219,7 @@ function openQuickReadConfirm(targetBook) {
   const pageLabel = document.querySelector('.qr-page-label > span:first-child');
   const pageSep = document.querySelector('.qr-page-row .qr-page-sep');
 
-  const ebookMode = isEbook(currentBook);
+  const ebookMode = isDigital(currentBook);
 
   if (pageInput && pageTotal) {
     const oldPage = currentBook.currentPage || 0;
@@ -19159,7 +19229,7 @@ function openQuickReadConfirm(targetBook) {
     pageInput.value = '';
 
     if (ebookMode) {
-      // 전자책 모드 — % 입력
+      // 전자책 / 오디오북 모드 — % 입력
       pageInput.placeholder = String(oldPct);
       pageInput.max = '100';
       pageTotal.textContent = '%';
@@ -19332,25 +19402,33 @@ function renderBookDetail() {
           <div class="bd-hero-author">${esc(b.author)}</div>
           ${metaParts.length ? `<div class="bd-hero-meta">
             <span class="fmt-pill" id="bdFmtPill">
-              <button type="button" class="${!isEbook(b) ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
+              <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
                 <span class="fmt-pill-emoji">📕</span>
                 <span>종이</span>
               </button>
-              <button type="button" class="${isEbook(b) ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
+              <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
                 <span class="fmt-pill-emoji">📱</span>
                 <span>전자</span>
+              </button>
+              <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
+                <span class="fmt-pill-emoji">🎧</span>
+                <span>오디오</span>
               </button>
             </span>
             ${metaParts.map(m => `<span>${m}</span>`).join('')}
           </div>` : `<div class="bd-hero-meta">
             <span class="fmt-pill" id="bdFmtPill">
-              <button type="button" class="${!isEbook(b) ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
+              <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
                 <span class="fmt-pill-emoji">📕</span>
                 <span>종이</span>
               </button>
-              <button type="button" class="${isEbook(b) ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
+              <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
                 <span class="fmt-pill-emoji">📱</span>
                 <span>전자</span>
+              </button>
+              <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
+                <span class="fmt-pill-emoji">🎧</span>
+                <span>오디오</span>
               </button>
             </span>
           </div>`}
@@ -19365,22 +19443,22 @@ function renderBookDetail() {
           <button class="status-seg-btn dropped ${dropped?'active':''}" data-status="dropped"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg> 하차</button>
         </div>
       </div>
-      ${reading ? (isEbook(b) ? `
-      <!-- 진행률 (전자책 — % 입력) -->
+      ${reading ? (isDigital(b) ? `
+      <!-- 진행률 (전자책 / 오디오북 — % 입력) -->
       <div class="bd-hero-prog">
         <div class="ebook-pct-row">
-          <input type="number" class="ebook-pct-input compact" id="bdEbookPctInput"
+          <input type="number" class="ebook-pct-input compact ${getBookFormat(b)}" id="bdEbookPctInput"
                  value="${getBookProgressPct(b)}" min="0" max="100" inputmode="numeric">
-          <span class="ebook-pct-unit compact">%</span>
+          <span class="ebook-pct-unit compact ${getBookFormat(b)}">%</span>
           <div class="ebook-pct-converted">
             <div class="ebook-pct-converted-label">≈ 환산 페이지</div>
             <div class="ebook-pct-converted-value" id="bdEbookConverted">${b.currentPage || 0}p / ${b.pages}p</div>
           </div>
         </div>
         <div class="bd-progress-bar">
-          <div class="bd-progress-fill ebook" id="bdProgressFill" style="width:${getBookProgressPct(b)}%; background:#6D4C41;"></div>
+          <div class="bd-progress-fill ${getBookFormat(b)}" id="bdProgressFill" style="width:${getBookProgressPct(b)}%;"></div>
         </div>
-        <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
+        <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 ${isAudio(b) ? '듣는' : '읽는'} 중</div>
       </div>
       ` : `
       <!-- 진행률 (종이책 — 페이지 입력) -->
@@ -20225,7 +20303,7 @@ function wireBookDetailEvents() {
     bdQuickRead.addEventListener('click', () => handleQuickRead(b));
   }
 
-  // ═══ 매체 알약 토글 (segmented) — 종이/전자 사후 변경 ═══
+  // ═══ 매체 알약 토글 (segmented) — 종이/전자/오디오 사후 변경 ═══
   const fmtPill = document.getElementById('bdFmtPill');
   if (fmtPill) {
     fmtPill.addEventListener('click', (e) => {
@@ -20233,12 +20311,15 @@ function wireBookDetailEvents() {
       if (!btn) return;
       e.stopPropagation();
       const newFmt = btn.dataset.fmt;
-      if (newFmt !== 'paper' && newFmt !== 'ebook') return;
+      if (newFmt !== 'paper' && newFmt !== 'ebook' && newFmt !== 'audio') return;
       const cur = getBookFormat(b);
       if (cur === newFmt) return; // 이미 같은 매체면 무시
 
       updateBook(b.id, { format: newFmt });
-      showToast(newFmt === 'ebook' ? '📱 전자책으로 변경했어요' : '📕 종이책으로 변경했어요');
+      const toastMsg = newFmt === 'ebook' ? '📱 전자책으로 변경했어요'
+                     : newFmt === 'audio' ? '🎧 오디오북으로 변경했어요'
+                     : '📕 종이책으로 변경했어요';
+      showToast(toastMsg);
       // 입력 UI 자체가 매체에 따라 다르므로 전체 재렌더
       renderBookDetail();
       renderLibraryCards();
@@ -26075,9 +26156,13 @@ function _renderDropSheet(book) {
     const curPage = book.currentPage || 0;
     const totalPages = book.pages || 0;
     const pct = (totalPages > 0) ? Math.round(curPage / totalPages * 100) : 0;
-    const fmtLabel = (typeof isEbook === 'function' && isEbook(book)) ? '전자책' : '종이책';
-    const progressLabel = (typeof isEbook === 'function' && isEbook(book))
-      ? `<span>${pct}%</span><span>${curPage}p / ${totalPages}p</span>`
+    const fmtLabel = (typeof getBookFormat === 'function')
+      ? (getBookFormat(book) === 'ebook' ? '전자책' : getBookFormat(book) === 'audio' ? '오디오북' : '종이책')
+      : '종이책';
+    const isDigitalBook = (typeof isDigital === 'function') && isDigital(book);
+    const audioMark = (typeof isAudio === 'function') && isAudio(book) ? '🎧 ' : '';
+    const progressLabel = isDigitalBook
+      ? `<span>${audioMark}${pct}%</span><span>${curPage}p / ${totalPages}p</span>`
       : `<span>📖 ${curPage}p / ${totalPages}p</span><span>${pct}%</span>`;
 
     previewEl.innerHTML = `
