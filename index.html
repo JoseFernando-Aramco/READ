@@ -12583,6 +12583,198 @@ body.cn-locked {
 }
 .audio-hint b { font-weight: 700; }
 
+/* ═══════════════════════════════════════════════════════════
+   v1.8.0 — 노트 추가 책 선택 (인라인 검색 + 그룹 리스트)
+   200권+ 사용자를 위한 검색형 UI
+   ═══════════════════════════════════════════════════════════ */
+
+.book-picker {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bp-search-wrap {
+  position: relative;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+.bp-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--c-border-2);
+  border-radius: 8px;
+  background: var(--c-canvas);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--c-text);
+  outline: none;
+  transition: border-color .15s;
+}
+.bp-search-input:focus { border-color: var(--c-coin-2); }
+.bp-search-input::placeholder { color: var(--c-muted); }
+.bp-search-icon {
+  position: absolute;
+  left: 22px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-muted);
+  pointer-events: none;
+  width: 14px; height: 14px;
+}
+.bp-search-clear {
+  position: absolute;
+  right: 22px; top: 50%;
+  transform: translateY(-50%);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--c-border-2);
+  border: none;
+  cursor: pointer;
+  display: none;
+  place-items: center;
+  color: var(--c-text-2);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.bp-search-clear.show { display: grid; }
+
+.bp-list {
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 8px 0;
+  -webkit-overflow-scrolling: touch;
+}
+.bp-list::-webkit-scrollbar { width: 0; }
+
+.bp-group-head {
+  padding: 8px 14px 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--c-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bp-group-head .badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0;
+}
+
+.bp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background .12s;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.bp-item:hover { background: var(--c-surface-2); }
+.bp-item.selected {
+  background: linear-gradient(135deg, #FFF8EE, #FFEDD0);
+  border-left-color: var(--c-coin-2);
+}
+
+.bp-radio {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--c-border-2);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: all .15s;
+}
+.bp-radio::after {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--c-coin-deep);
+  transform: scale(0);
+  transition: transform .15s;
+}
+.bp-item.selected .bp-radio { border-color: var(--c-coin-deep); }
+.bp-item.selected .bp-radio::after { transform: scale(1); }
+
+.bp-cover {
+  width: 28px; height: 40px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(50, 35, 25, 0.15);
+  overflow: hidden;
+  background: var(--c-border-2);
+}
+.bp-cover-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bp-cover-fallback {
+  width: 100%; height: 100%;
+  background: linear-gradient(140deg, #6D4C41, #4E342E);
+  color: white;
+  padding: 3px 2px;
+  font-size: 7px;
+  line-height: 1.1;
+  font-weight: 700;
+  display: flex;
+  align-items: flex-end;
+  text-align: left;
+  word-break: keep-all;
+  overflow: hidden;
+}
+
+.bp-info { flex: 1; min-width: 0; }
+.bp-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1.3;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-meta {
+  font-size: 11px;
+  color: var(--c-muted);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bp-list-foot {
+  padding: 12px 14px;
+  font-size: 11px;
+  color: var(--c-muted);
+  text-align: center;
+  background: var(--c-canvas);
+  border-top: 1px dashed var(--c-border-2);
+  line-height: 1.5;
+}
+.bp-list-foot b { color: var(--c-text-2); font-weight: 600; }
+
+.bp-empty {
+  padding: 40px 20px 36px;
+  text-align: center;
+  color: var(--c-muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.bp-empty .emoji { font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.5; }
+.bp-empty b { color: var(--c-text-2); font-weight: 700; display: block; margin-bottom: 4px; }
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -13820,9 +14012,15 @@ body.cn-locked {
   <div class="na-body">
     <div class="na-field">
       <label class="na-lbl">책</label>
-      <select class="na-select" id="naBook">
-        <option value="">— 책 선택 —</option>
-      </select>
+      <div class="book-picker" id="naBookPicker">
+        <div class="bp-search-wrap">
+          <svg class="bp-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="bp-search-input" id="bpSearch" placeholder="책 검색..." autocomplete="off">
+          <button class="bp-search-clear" id="bpClear" type="button" aria-label="검색어 지우기">×</button>
+        </div>
+        <div class="bp-list" id="bpList"></div>
+        <div class="bp-list-foot" id="bpFoot"></div>
+      </div>
     </div>
 
     <div class="na-field">
@@ -24552,28 +24750,114 @@ function resetNA(defaults = {}) {
   NA.favorite = !!defaults.favorite;
 }
 
-function populateBookSelect() {
-  const sel = document.getElementById('naBook');
-  // 읽는중·완독 책 우선
-  const sortedBooks = [...BOOKS]
-    .filter(b => b.status !== 'wish')
-    .sort((a, b) => {
-      const order = { reading: 0, done: 1 };
-      return (order[a.status] || 2) - (order[b.status] || 2);
+/* v1.8.0 — 노트 책 선택 picker (검색형 + 그룹 리스트) */
+const BOOK_PICKER_RECENT_DONE = 5;  // 검색어 없을 때 최근 완독 노출 개수
+
+function _bpItemHtml(b) {
+  const isSel = String(NA.bookId) === String(b.id);
+  const cover = b.coverUrl
+    ? `<img class="bp-cover-img" src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\'bp-cover-fallback\'>'+(${JSON.stringify(esc((b.title || '?').slice(0, 4)))})+'</div>'">`
+    : `<div class="bp-cover-fallback">${esc((b.title || '?').slice(0, 4))}</div>`;
+
+  let meta = b.author ? esc(b.author) : '';
+  if (b.status === 'reading' && b.pages && b.currentPage != null && b.currentPage >= 0) {
+    const pct = Math.min(100, Math.round((b.currentPage / b.pages) * 100));
+    meta += (meta ? ' · ' : '') + `${b.currentPage}/${b.pages}p · ${pct}%`;
+  } else if (b.status === 'done' && b.dateEnd) {
+    meta += (meta ? ' · ' : '') + esc(b.dateEnd) + ' 완독';
+  }
+
+  return `
+    <div class="bp-item ${isSel ? 'selected' : ''}" data-id="${esc(b.id)}">
+      <div class="bp-radio"></div>
+      <div class="bp-cover">${cover}</div>
+      <div class="bp-info">
+        <div class="bp-title">${esc(b.title)}</div>
+        <div class="bp-meta">${meta || '&nbsp;'}</div>
+      </div>
+    </div>`;
+}
+
+function renderBookPicker(query) {
+  const list = document.getElementById('bpList');
+  const foot = document.getElementById('bpFoot');
+  if (!list) return;
+
+  const q = (query || '').trim().toLowerCase().replace(/\s+/g, '');
+  // wish 제외 — 노트는 읽는중/완독/하차한 책에만
+  const eligible = (BOOKS || []).filter(b => b.status !== 'wish');
+
+  if (q) {
+    // 검색 모드 — 제목/저자 부분 일치 (공백·대소문자 무시)
+    const matched = eligible.filter(b => {
+      const t = (b.title || '').toLowerCase().replace(/\s+/g, '');
+      const a = (b.author || '').toLowerCase().replace(/\s+/g, '');
+      return t.includes(q) || a.includes(q);
     });
-  sel.innerHTML = '<option value="">— 책 선택 —</option>' + 
-    sortedBooks.map(b => {
-      const badge = b.status === 'reading' ? ' · 📖' : b.status === 'done' ? ' · ✅' : '';
-      return `<option value="${b.id}">${esc(b.title)}${badge}</option>`;
-    }).join('');
+
+    if (matched.length === 0) {
+      list.innerHTML = `
+        <div class="bp-empty">
+          <span class="emoji">🔍</span>
+          <b>"${esc(query)}"에 맞는 책이 없어요</b>
+          제목이나 저자 일부를 다시 확인해주세요.
+        </div>`;
+      foot.style.display = 'none';
+      return;
+    }
+    let html = `<div class="bp-group-head">🔍 매칭 <span class="badge">${matched.length}건</span></div>`;
+    html += matched.map(b => _bpItemHtml(b)).join('');
+    list.innerHTML = html;
+    foot.style.display = 'none';
+  } else {
+    // 기본 모드 — 읽는중 (전부) + 최근 완독 N권
+    const reading = eligible.filter(b => b.status === 'reading');
+    const doneBooks = eligible
+      .filter(b => b.status === 'done')
+      .sort((a, b) => {
+        const da = a.dateEnd || a.dateStart || '';
+        const db = b.dateEnd || b.dateStart || '';
+        return String(db).localeCompare(String(da));
+      })
+      .slice(0, BOOK_PICKER_RECENT_DONE);
+
+    let html = '';
+    if (reading.length > 0) {
+      html += `<div class="bp-group-head">📖 읽는 중 <span class="badge">${reading.length}</span></div>`;
+      html += reading.map(b => _bpItemHtml(b)).join('');
+    }
+    if (doneBooks.length > 0) {
+      html += `<div class="bp-group-head">✅ 최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
+      html += doneBooks.map(b => _bpItemHtml(b)).join('');
+    }
+
+    if (html === '') {
+      list.innerHTML = `
+        <div class="bp-empty">
+          <span class="emoji">📚</span>
+          <b>아직 추가한 책이 없어요</b>
+          서재에서 책을 먼저 추가해주세요.
+        </div>`;
+      foot.style.display = 'none';
+    } else {
+      const shown = reading.length + doneBooks.length;
+      const total = eligible.length;
+      list.innerHTML = html;
+      foot.innerHTML = total > shown
+        ? `${total}권 중 ${shown}권 표시 · <b>다른 책은 검색해주세요</b>`
+        : `${total}권 전체 표시`;
+      foot.style.display = '';
+    }
+  }
 }
 
 function renderNA() {
-  populateBookSelect();
+  // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
+  const searchInput = document.getElementById('bpSearch');
+  const currentQuery = searchInput ? searchInput.value : '';
+  renderBookPicker(currentQuery);
 
   document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
-
-  document.getElementById('naBook').value = NA.bookId ? String(NA.bookId) : '';
 
   document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.type === NA.type);
@@ -24696,10 +24980,45 @@ function deleteNote(id) {
 document.getElementById('naBackdrop').addEventListener('click', closeNoteSheet);
 document.getElementById('naClose').addEventListener('click', closeNoteSheet);
 
-document.getElementById('naBook').addEventListener('change', (e) => {
-  NA.bookId = e.target.value ? parseInt(e.target.value, 10) : null;
-  updateNASaveBtn();
-});
+/* v1.8.0 — 책 선택 (위임 패턴, picker 클릭 / 검색 입력) */
+(function wireBookPicker() {
+  const picker = document.getElementById('naBookPicker');
+  if (!picker || picker.dataset.bpWired) return;
+  picker.dataset.bpWired = '1';
+
+  // 아이템 클릭 → NA.bookId 설정
+  picker.addEventListener('click', (e) => {
+    const item = e.target.closest('.bp-item');
+    if (item) {
+      const id = item.dataset.id;
+      // 같은 책 다시 누르면 선택 해제 (저장 버튼 비활성화)
+      const numId = isNaN(+id) ? id : +id;
+      NA.bookId = (String(NA.bookId) === String(id)) ? null : numId;
+      renderBookPicker(document.getElementById('bpSearch').value);
+      updateNASaveBtn();
+      return;
+    }
+    const clr = e.target.closest('#bpClear');
+    if (clr) {
+      const inp = document.getElementById('bpSearch');
+      if (inp) { inp.value = ''; inp.focus(); }
+      document.getElementById('bpClear').classList.remove('show');
+      renderBookPicker('');
+      return;
+    }
+  });
+
+  // 검색 입력 → 필터
+  const searchInput = document.getElementById('bpSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value;
+      const clearBtn = document.getElementById('bpClear');
+      if (clearBtn) clearBtn.classList.toggle('show', q.length > 0);
+      renderBookPicker(q);
+    });
+  }
+})();
 
 document.getElementById('naTypeSeg').addEventListener('click', (e) => {
   const btn = e.target.closest('.status-seg-btn');
