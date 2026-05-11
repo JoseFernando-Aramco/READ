@@ -13199,6 +13199,99 @@ body.cn-locked {
   opacity: 0.7;
 }
 
+/* v1.8.x — Android 노트 저장/공유 선택 시트 */
+.share-choice-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20, 14, 10, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.share-choice-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+.share-choice-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-canvas);
+  border-radius: 20px 20px 0 0;
+  padding: 8px 16px 24px;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+.share-choice-backdrop.open .share-choice-sheet {
+  transform: translateY(0);
+}
+.share-choice-handle {
+  width: 36px; height: 4px;
+  background: var(--c-border-2);
+  border-radius: 2px;
+  margin: 8px auto 16px;
+}
+.share-choice-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-muted);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+.share-choice-btn {
+  width: 100%;
+  padding: 16px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  transition: all .15s;
+  text-align: left;
+}
+.share-choice-btn:hover, .share-choice-btn:active {
+  background: var(--c-surface-2);
+  border-color: var(--c-coin-2);
+  transform: translateY(-1px);
+}
+.share-choice-btn:last-of-type { margin-bottom: 0; }
+.share-choice-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FFF8EE, #FFEDD0);
+  display: grid; place-items: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.share-choice-text { flex: 1; }
+.share-choice-text-main { font-size: 14.5px; font-weight: 700; color: var(--c-text); margin-bottom: 2px; }
+.share-choice-text-sub { font-size: 11.5px; color: var(--c-muted); font-weight: 500; line-height: 1.35; }
+.share-choice-cancel {
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  border-radius: 12px;
+}
+.share-choice-cancel:hover { background: var(--c-surface-2); }
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -24903,6 +24996,38 @@ function toggleNoteFavorite(id) {
    상단 컬러 바 + 본문 + perforation + 시리얼 + 바코드
    월별 리더스 티켓과 같은 디자인 언어로 시리즈 응집력 유지
    ═══════════════════════════════════════════════════════════ */
+/* v1.8.x — Android 노트 저장/공유 선택 시트 헬퍼 */
+function _showShareChoice(opts) {
+  const bd = document.getElementById('shareChoiceBackdrop');
+  const saveBtn = document.getElementById('shareChoiceSave');
+  const shareBtn = document.getElementById('shareChoiceShare');
+  const cancelBtn = document.getElementById('shareChoiceCancel');
+  if (!bd || !saveBtn || !shareBtn || !cancelBtn) return;
+
+  function close() {
+    bd.classList.remove('open');
+    bd.setAttribute('aria-hidden', 'true');
+    saveBtn.onclick = null;
+    shareBtn.onclick = null;
+    cancelBtn.onclick = null;
+    bd.onclick = null;
+  }
+
+  saveBtn.onclick = () => {
+    close();
+    if (typeof opts.onSave === 'function') opts.onSave();
+  };
+  shareBtn.onclick = () => {
+    close();
+    if (typeof opts.onShare === 'function') opts.onShare();
+  };
+  cancelBtn.onclick = close;
+  bd.onclick = (e) => { if (e.target === bd) close(); };
+
+  bd.setAttribute('aria-hidden', 'false');
+  bd.classList.add('open');
+}
+
 async function shareNoteCard(id, btnEl) {
   if (typeof html2canvas === 'undefined') {
     showToast('네트워크 확인 후 다시 시도해주세요');
@@ -25102,8 +25227,38 @@ async function shareNoteCard(id, btnEl) {
     const filename = `READ-note-${safeTitle}-${id}.png`;
     const file = new File([blob], filename, { type: 'image/png' });
 
-    // Web Share Level 2 우선, 안 되면 다운로드
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    // v1.8.x — Android에서는 "사진에 저장 / 공유" 선택 시트 먼저
+    const _isAndroid = /Android/i.test(navigator.userAgent);
+    const _canWebShare = navigator.canShare && navigator.canShare({ files: [file] });
+
+    if (_isAndroid && _canWebShare && typeof _showShareChoice === 'function') {
+      _showShareChoice({
+        onSave: () => {
+          if (typeof _downloadCanvas === 'function') {
+            _downloadCanvas(canvas, filename);
+            showToast('갤러리 또는 다운로드 폴더에 저장됐어요');
+          }
+        },
+        onShare: async () => {
+          try {
+            await navigator.share({
+              files: [file],
+              title: book.title + ' · 노트',
+              text: isQuote ? '인용구' : '내 생각',
+            });
+          } catch (e) {
+            if (e.name !== 'AbortError' && typeof _downloadCanvas === 'function') {
+              _downloadCanvas(canvas, filename);
+              showToast('다운로드했어요');
+            }
+          }
+        },
+      });
+      return;
+    }
+
+    // 그 외 (iOS, 데스크탑 등) — 기존 Web Share Level 2 우선
+    if (_canWebShare) {
       try {
         await navigator.share({
           files: [file],
@@ -28951,6 +29106,29 @@ function renderDropStatCard() {
 -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
+
+<!-- v1.8.x — Android 노트 저장/공유 선택 시트 -->
+<div class="share-choice-backdrop" id="shareChoiceBackdrop" aria-hidden="true">
+  <div class="share-choice-sheet" role="dialog" aria-modal="true" aria-labelledby="shareChoiceTitle">
+    <div class="share-choice-handle"></div>
+    <div class="share-choice-title" id="shareChoiceTitle">어떻게 할까요?</div>
+    <button class="share-choice-btn" id="shareChoiceSave" type="button">
+      <div class="share-choice-icon">📷</div>
+      <div class="share-choice-text">
+        <div class="share-choice-text-main">사진에 저장</div>
+        <div class="share-choice-text-sub">갤러리로 바로 받기</div>
+      </div>
+    </button>
+    <button class="share-choice-btn" id="shareChoiceShare" type="button">
+      <div class="share-choice-icon">📤</div>
+      <div class="share-choice-text">
+        <div class="share-choice-text-main">공유하기</div>
+        <div class="share-choice-text-sub">카톡·인스타·드라이브 등</div>
+      </div>
+    </button>
+    <button class="share-choice-cancel" id="shareChoiceCancel" type="button">취소</button>
+  </div>
+</div>
 
 </body>
 </html>
