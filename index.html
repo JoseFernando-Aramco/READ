@@ -26846,14 +26846,21 @@ function _renderPriceCard(b) {
       const prevTotal = (typeof _calcSpend === 'function') ? _calcSpend().grandTotal : 0;
 
       // 저장 (메모리 #11 — 빈 입력은 명시 null로 저장, 합계에서 제외됨)
+      console.log('[price save] before:', { id: book.id, list, sale, listRaw, saleRaw });
       book.priceList = list;
       book.priceSales = sale;
       book.priceSource = (list != null || sale != null) ? 'manual' : null;
-      try { STORE.set('books', BOOKS); } catch (e) {}
+      let storeOK = false;
+      try { STORE.set('books', BOOKS); storeOK = true; } catch (e) { console.error('[price save] STORE.set failed', e); }
+      console.log('[price save] after:', { storeOK, priceList: book.priceList, priceSales: book.priceSales, priceSource: book.priceSource });
 
       card.classList.remove('editing');
-      // 카드 재렌더 (저장값 반영)
-      _renderPriceCard(book);
+
+      // 카드 재렌더 (저장값 반영) — BD 컨텍스트 있을 때만 (책 상세 페이지)
+      // 모달 안 책 행은 아래 _renderSpendModal로 재렌더됨
+      if (typeof BD !== 'undefined' && BD.book && String(BD.book.id) === String(book.id)) {
+        _renderPriceCard(book);
+      }
 
       // 토스트 (저장 결과) — 짧은 토스트
       if (typeof showToast === 'function') {
