@@ -12873,6 +12873,330 @@ body.cn-locked {
   border-style: solid;
 }
 
+/* ═══════════ v1.8.0 — Bookflex 풀세트 ═══════════ */
+.bookflex-mark {
+  font-size: 30px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  background: linear-gradient(135deg, #D4A574, #B8956A 50%, #8B6D3D);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 3px rgba(139, 109, 61, 0.2));
+  margin: 0;
+  display: inline-block;
+}
+.sp-head { align-items: center !important; }
+
+/* 모달 높이 — PWA 상단 버튼 손 닿게 */
+.spend-sheet { max-height: 88vh !important; will-change: transform; }
+.spend-sheet.dragging { transition: none !important; animation: none !important; }
+.spend-sheet.closing { transition: transform .25s ease-out !important; transform: translateY(100%) !important; }
+
+/* 쓸어내리기 드래그존 */
+.sp-drag-zone {
+  padding: 10px 0 6px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sp-drag-zone:active { cursor: grabbing; }
+.sp-handle { transition: background .15s, width .15s; pointer-events: none; }
+.spend-sheet.dragging .sp-handle {
+  background: var(--c-coin-2);
+  width: 44px;
+}
+
+/* 매체 카드 — 탭하면 필터 */
+.media-bar { cursor: pointer; transition: all .2s cubic-bezier(.2, .8, .2, 1); position: relative; }
+.media-bar:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.02);
+}
+.media-bar.selected {
+  border-width: 2px;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(139, 109, 61, 0.18);
+}
+.media-bar.paper.selected { border-color: #6D4C41; }
+.media-bar.ebook.selected { border-color: #4E342E; }
+.media-bar.audio.selected { border-color: #0F766E; }
+.media-bar.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 6px; right: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.sec-hint {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-coin-2);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+.sp-books-empty {
+  padding: 24px 16px;
+  background: var(--c-surface);
+  border: 1px dashed var(--c-border-2);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  line-height: 1.5;
+}
+
+/* 마일스톤 — C 톤 (미니멀 화이트, 메인 섹션) */
+.bf-milestone {
+  margin: 0 20px 22px;
+  padding: 20px 16px 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+}
+.bfm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.bfm-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--c-coin-deep);
+  text-transform: uppercase;
+}
+.bfm-remain {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.bfm-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.bfm-step {
+  text-align: center;
+  padding: 10px 2px 11px;
+  background: #FAFAFA;
+  border: 1px solid #F0EDE8;
+  border-radius: 8px;
+  transition: all .3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bfm-step.reached {
+  background: var(--c-surface);
+  border-color: rgba(184, 149, 106, 0.3);
+}
+.bfm-step.current {
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-coin-deep);
+  box-shadow: 0 4px 12px rgba(139, 109, 61, 0.12);
+  transform: translateY(-2px);
+}
+.bfm-stack {
+  width: 32px; height: 30px;
+  display: block;
+}
+.bfm-step:not(.reached):not(.current) .bfm-stack { opacity: 0.32; }
+.bfm-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+.bfm-step:not(.reached):not(.current) .bfm-name { color: #B8B0A8; }
+.bfm-progress {
+  margin-top: 12px;
+  height: 4px;
+  background: #F0EDE8;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bfm-progress-fill {
+  height: 100%;
+  background: var(--c-coin-deep);
+  border-radius: 2px;
+  transition: width .8s cubic-bezier(.2, .8, .2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v1.8.0 — Bookflex 마일스톤 메인 카드 (C 톤 미니멀 화이트) +
+            매체 카드 그리드 (탭하면 필터)
+   ═══════════════════════════════════════════════════════════ */
+
+.bf-milestone {
+  margin: 0 20px 20px;
+  padding: 20px 16px 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  position: relative;
+}
+.bfm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.bfm-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--c-coin-deep);
+  text-transform: uppercase;
+}
+.bfm-remain {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.bfm-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.bfm-step {
+  text-align: center;
+  padding: 10px 2px 11px;
+  background: #FAFAFA;
+  border: 1px solid #F0EDE8;
+  border-radius: 8px;
+  transition: all .3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bfm-step.reached {
+  background: var(--c-surface);
+  border-color: rgba(184, 149, 106, 0.3);
+}
+.bfm-step.current {
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-coin-deep);
+  box-shadow: 0 4px 12px rgba(139, 109, 61, 0.12);
+  transform: translateY(-2px);
+}
+.bfm-stack {
+  width: 32px;
+  height: 30px;
+  display: block;
+}
+.bfm-step:not(.reached):not(.current) .bfm-stack { opacity: 0.32; }
+.bfm-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--c-text-2);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+.bfm-step:not(.reached):not(.current) .bfm-name { color: #B8B0A8; }
+.bfm-progress {
+  margin-top: 12px;
+  height: 4px;
+  background: #F0EDE8;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bfm-progress-fill {
+  height: 100%;
+  background: var(--c-coin-deep);
+  border-radius: 2px;
+  transition: width .8s cubic-bezier(.2, .8, .2, 1);
+}
+
+/* 매체 카드 그리드 */
+.media-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.media-card-v2 {
+  position: relative;
+  padding: 14px 10px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.2, .8, .2, 1);
+}
+.media-card-v2:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+.media-card-v2::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
+  pointer-events: none;
+}
+.media-card-v2.paper { background: linear-gradient(160deg, #FAF5F0, #EDE0D0); border: 1px solid #D8C7B0; }
+.media-card-v2.ebook { background: linear-gradient(160deg, #F5EDE8, #E5D5C8); border: 1px solid #C7AC95; }
+.media-card-v2.audio { background: linear-gradient(160deg, #E6F5F1, #C8E5DC); border: 1px solid #95C0B5; }
+.media-card-v2.selected {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(139, 109, 61, 0.22);
+  border-width: 2px;
+  padding: 13px 9px 11px;
+}
+.media-card-v2.selected.paper { border-color: #6D4C41; }
+.media-card-v2.selected.ebook { border-color: #4E342E; }
+.media-card-v2.selected.audio { border-color: #0F766E; }
+.media-card-v2.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.5);
+}
+.media-card-v2-emoji { font-size: 22px; margin-bottom: 3px; pointer-events: none; }
+.media-card-v2-name { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--c-text-2); margin-bottom: 6px; pointer-events: none; }
+.media-card-v2-amount {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+  pointer-events: none;
+}
+.media-card-v2.paper .media-card-v2-amount { color: #5D3A28; }
+.media-card-v2.ebook .media-card-v2-amount { color: #4B2E20; }
+.media-card-v2.audio .media-card-v2-amount { color: #0E5C56; }
+.media-card-v2-count { font-size: 10.5px; color: var(--c-muted); font-weight: 600; pointer-events: none; }
+
+/* 섹션 타이틀 옆 힌트 */
+.sec-hint {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-coin-2);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -13469,7 +13793,7 @@ body.cn-locked {
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
             <div class="settings-row-ttl">최신 업데이트 다시보기</div>
-            <div class="settings-row-sub">v1.7.0 · 기기 간 동기화</div>
+            <div class="settings-row-sub">v1.8.0 · Bookflex</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -14277,76 +14601,64 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.7.0 · 업데이트 소식</div>
-    <div class="wn-ttl">가장 많이 받은 요청, 드디어</div>
-    <div class="wn-sub">"여러 기기에서 같이 쓰고 싶어요" — 그 이야기들에 답해서 만들었어요</div>
+    <div class="wn-badge">v1.8.0 · 업데이트 소식</div>
+    <div class="wn-ttl">올해 책에 얼마나 썼는지<br>한눈에 보세요</div>
+    <div class="wn-sub">완독한 책의 정가가 자동으로 쌓여요 · 매체별·책별로 보고 직접 수정도 가능해요</div>
 
-    <!-- ★ HERO — 기기 간 동기화 데모 -->
+    <!-- HERO — Bookflex -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">☁️</span>
-        SYNC · 폰과 PC에서 같은 기록
+        <span style="font-size:11px">🪙</span>
+        NEW · 종이값 카운터
       </div>
-      <div class="wn-hero-ttl">기기 간 동기화</div>
-      <div class="wn-hero-sub">로그인 한 번이면 폰·태블릿·PC 어디서든 같은 독서 기록을 보고 쓸 수 있어요</div>
+      <div class="wn-hero-ttl" style="font-style:italic;background:linear-gradient(135deg,#D4A574,#B8956A 50%,#8B6D3D);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">Bookflex</div>
+      <div class="wn-hero-sub">올해 완독한 책의 정가가 자동으로 쌓여요 · 10만 / 30만 / 50만 / 100만 / 150만 마일스톤도 추적</div>
 
-      <div class="wn-sync-demo">
-        <div class="wn-sync-device">
-          <div class="wn-sync-device-lbl">📱 폰</div>
-          <div class="wn-sync-device-stack">
-            <div></div><div></div><div></div>
-          </div>
-        </div>
-        <div class="wn-sync-cloud">
-          <div class="wn-sync-cloud-line"></div>
-          <div class="wn-sync-cloud-icon">☁️</div>
-        </div>
-        <div class="wn-sync-device">
-          <div class="wn-sync-device-lbl">💻 PC</div>
-          <div class="wn-sync-device-stack">
-            <div></div><div></div><div></div>
-          </div>
-        </div>
+      <div style="margin-top:18px;padding:16px;background:rgba(255,255,255,0.6);border-radius:12px;border:1px solid rgba(212,165,116,0.3);text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;color:#8B6D3D;text-transform:uppercase;margin-bottom:6px;">올해의 종이값</div>
+        <div style="font-size:32px;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#8B6D3D,#5C4520);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-variant-numeric:tabular-nums;line-height:1;">₩1,268,300</div>
+        <div style="font-size:11px;color:#6B5430;margin-top:6px;">완독 16권 · 종이·전자·오디오 모두</div>
       </div>
-      <div class="wn-sync-status">
-        <span class="dot"></span> 방금 동기화됨 · 12권의 기록
+      <div class="wn-sync-status" style="margin-top:14px;">
+        <span class="dot"></span> 헤더에 동전 아이콘 새로 생겼어요
       </div>
     </div>
 
     <!-- 항목 리스트 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">☁️</div>
+        <div class="wn-icon">🪙</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">카카오 로그인 + 클라우드 백업</div>
-          <div class="wn-item-sub">설정 탭의 "카카오로 로그인" → 닉네임만 받아요 (이메일·전화번호 X) · 백업/복원은 원할 때 수동으로</div>
+          <div class="wn-item-ttl">Bookflex — 책에 쓴 돈 카운터</div>
+          <div class="wn-item-sub">헤더 동전 누르면 모달 열림 · 매체 카드 탭하면 해당 매체만 필터 · 책별 가격은 ✏️로 직접 수정</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🔓</div>
+        <div class="wn-icon">🎧</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">로그인은 절대 필수가 아니에요</div>
-          <div class="wn-item-sub">지금까지처럼 로그인 없이도 모든 기능 그대로 써요 · 한 기기에서만 쓸 거면 로그인 안 해도 됩니다</div>
+          <div class="wn-item-ttl">오디오북 매체 지원</div>
+          <div class="wn-item-sub">책 추가할 때 종이/전자/오디오 선택 가능 · 통계와 Bookflex 합산에 모두 반영</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🔒</div>
+        <div class="wn-icon">🔍</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">로컬 우선, 자동 동기화 X</div>
-          <div class="wn-item-sub">데이터는 항상 이 기기에 먼저 저장돼요 · 클라우드는 사용자가 "백업/복원" 누를 때만 동기화</div>
+          <div class="wn-item-ttl">노트 추가 — 검색형 책 선택</div>
+          <div class="wn-item-sub">책이 많아져도 단숨에 찾아요 · 읽는 중 + 최근 완독 5권은 자동으로 위에 노출</div>
         </div>
       </li>
     </ul>
 
-    <!-- 개발자 노트 — 국외이전 사정 -->
+    <!-- 개발자 노트 — Bookflex 컨셉 -->
     <div class="wn-devnote">
       <div class="wn-devnote-head">
         <span>🛠</span> 개발자 노트
       </div>
-      <div class="wn-devnote-q">로그인할 때 "개인정보 국외이전 동의"가 뜨는 이유</div>
+      <div class="wn-devnote-q">"종이값" — 결제 금액이 아니라 정가 합계예요</div>
       <div class="wn-devnote-a">
-        호스팅 서버로 <strong>Cloudflare(미국)</strong>를 쓰고 있어요. 1인 개발 사이드 프로젝트라 무료로 쓸 수 있는 곳을 골랐거든요. 국내 클라우드는 매월 수만 원~의 비용이 들어가서, 솔직히 부담이 컸어요.<br><br>
-        이전되는 정보는 <strong>닉네임과 회원번호뿐</strong>이고, 모든 통신은 암호화돼요. 그래도 부담스러우면 <strong>로그인 없이 그대로 쓰셔도 되니</strong> 부담 가지지 마세요. 진심으로요.
+        도서관에서 빌렸든, 선물받았든, 구독으로 봤든 — <strong>그 책 한 권이 시장에서 얼마짜리인지</strong>를 세요. 
+        그래서 "올해 내가 만난 책의 무게" 같은 거예요. 가격이 부담스러우면 <strong>빈칸으로 두면 합계에서 빠져요</strong>.<br><br>
+        Netflix는 매달 빠져나가는데, 책은 한 번 사면 평생 내 거잖아요. 그 차이를 보여주고 싶었어요.
       </div>
     </div>
 
@@ -14354,7 +14666,7 @@ body.cn-locked {
     <div class="wn-also">
       <div class="wn-also-head">고마워요</div>
       <div class="wn-also-text">
-        "동기화 해주세요"라고 꾸준히 메시지 남겨주셔서 만들 수 있었어요. 다음에도 작은 불편이 생기면 언제든 알려주세요 🙏
+        "한 해 동안 책에 얼마나 썼나" 궁금하다는 메시지가 많았어요. 그 호기심에서 시작한 작은 기능이에요 🙏
       </div>
     </div>
 
@@ -14379,7 +14691,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.7.0</div>
+      <div class="ab-ver">version 1.8.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -14747,15 +15059,138 @@ body.cn-locked {
   </div>
 </div>
 
+<!-- v1.8.0 — Bookflex 마일스톤 동전 stack SVG -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="bfCoin-top" cx="35%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#E8C896"/>
+      <stop offset="50%" stop-color="#B8956A"/>
+      <stop offset="100%" stop-color="#6B5230"/>
+    </radialGradient>
+    <symbol id="bf-stack-1" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="25" rx="12" ry="2.5" fill="rgba(0,0,0,0.15)"/>
+      <ellipse cx="20" cy="24" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="22" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-2" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="27" rx="12" ry="2" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="25" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="23" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="19" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="17" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-3" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="28" rx="12" ry="2" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="26" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="24" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="20" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="18" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="14" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="12" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-5" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="29" rx="12" ry="1.8" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="27" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="25.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="22" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="20.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="17" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="15.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="12" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="10.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="7" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="5.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-7" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="29" rx="15" ry="1.6" fill="rgba(0,0,0,0.14)"/>
+      <ellipse cx="18" cy="27" rx="12" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="18" cy="25.7" rx="12" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="22" cy="27" rx="12" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="22" cy="25.7" rx="12" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="23" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="21.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="19" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="17.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="15" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="13.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="11" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="9.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="7" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="5.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ═══════════ v1.8.0 Bookflex SVG defs (마일스톤 동전 stack) ═══════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="bfCoin-top" cx="35%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#E8C896"/>
+      <stop offset="50%" stop-color="#B8956A"/>
+      <stop offset="100%" stop-color="#6B5230"/>
+    </radialGradient>
+    <symbol id="bf-stack-1" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="25" rx="12" ry="2.5" fill="rgba(0,0,0,0.15)"/>
+      <ellipse cx="20" cy="24" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="22" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-2" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="27" rx="12" ry="2" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="25" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="23" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="19" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="17" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-3" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="28" rx="12" ry="2" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="26" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="24" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="20" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="18" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="14" rx="13" ry="3.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="12" rx="13" ry="3.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-5" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="29" rx="12" ry="1.8" fill="rgba(0,0,0,0.12)"/>
+      <ellipse cx="20" cy="27" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="25.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="22" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="20.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="17" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="15.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="12" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="10.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="7" rx="13" ry="3" fill="#6B5230"/>
+      <ellipse cx="20" cy="5.5" rx="13" ry="3" fill="url(#bfCoin-top)"/>
+    </symbol>
+    <symbol id="bf-stack-7" viewBox="0 0 40 30">
+      <ellipse cx="20" cy="29" rx="15" ry="1.6" fill="rgba(0,0,0,0.14)"/>
+      <ellipse cx="18" cy="27" rx="12" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="18" cy="25.7" rx="12" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="22" cy="27" rx="12" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="22" cy="25.7" rx="12" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="23" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="21.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="19" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="17.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="15" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="13.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="11" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="9.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+      <ellipse cx="20" cy="7" rx="13" ry="2.5" fill="#6B5230"/>
+      <ellipse cx="20" cy="5.7" rx="13" ry="2.5" fill="url(#bfCoin-top)"/>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ═══════════ v1.8.0 종이값 모달 ═══════════ -->
 <div class="spend-backdrop" id="spendBackdrop" aria-hidden="true">
   <div class="spend-sheet" role="dialog" aria-labelledby="spendTitle" aria-modal="true">
-    <div class="sp-handle"></div>
+    <div class="sp-drag-zone" id="spendDragZone">
+      <div class="sp-handle"></div>
+    </div>
     <div class="sp-head">
-      <div class="sp-title" id="spendTitle">
-        종이값
-        <span class="sp-title-mini" id="spendYear">2026</span>
-      </div>
+      <div class="bookflex-mark" id="spendTitle">Bookflex 2026</div>
       <button class="sp-close" id="spendClose" aria-label="닫기">×</button>
     </div>
     <div id="spendBody"></div>
@@ -25503,18 +25938,20 @@ document.addEventListener('keydown', (e) => {
    ═══════════════════════════════════════════════════════════ */
 
 const SPEND_MILESTONES = [
-  { value: 100000,  label: '한 짐' },
-  { value: 500000,  label: '한 칸' },
-  { value: 1000000, label: '한 책장' },
-  { value: 2000000, label: '두 책장' },
+  { value: 100000,  label: '10만',  stack: 1 },
+  { value: 300000,  label: '30만',  stack: 2 },
+  { value: 500000,  label: '50만',  stack: 3 },
+  { value: 1000000, label: '100만', stack: 5 },
+  { value: 1500000, label: '150만', stack: 7 },
 ];
 
 /* 마일스톤 도달 시 표시할 메시지 (값별로 톤이 다름) */
 const _MILESTONE_TOAST = {
-  100000:  '🎒 첫 한 짐. 종이가 슬슬 무게가 있어요',
-  500000:  '📚 책장 한 칸 채움. 한 권씩 쌓아온 결과예요',
-  1000000: '🏠 책장 하나 완성! 다음은 두 책장이에요',
-  2000000: '🎩 두 책장째 — 책 부자 인정',
+  100000:  '🪙 첫 10만 통과',
+  300000:  '📚 30만 도달',
+  500000:  '📖 50만 통과',
+  1000000: '🏠 100만 — 한 책장 완성',
+  1500000: '🎩 150만 — 책 부자 인정',
 };
 
 /* 이미 도달 알림한 마일스톤 (1회만 알림 — 중복 방지) */
@@ -25602,6 +26039,20 @@ function _coinDataUri() {
   return img ? img.src : '';
 }
 
+/* 모달 매체 카드 그리드 — 탭하면 책별 필터링 */
+function _renderMediaCard(fmt, icon, name, info) {
+  const isSelected = _SPEND_SELECTED_FORMAT === fmt;
+  const amount = info.total.toLocaleString('ko-KR');
+  return (
+    '<div class="media-card-v2 ' + fmt + (isSelected ? ' selected' : '') + '" data-format="' + fmt + '">' +
+      '<div class="media-card-v2-emoji">' + icon + '</div>' +
+      '<div class="media-card-v2-name">' + name + '</div>' +
+      '<div class="media-card-v2-amount">\u20A9' + amount + '</div>' +
+      '<div class="media-card-v2-count">' + info.count + '권</div>' +
+    '</div>'
+  );
+}
+
 /* 모달 안 책별 종이값 행 — .price-card 재활용 (위임 편집 핸들러 그대로 작동) */
 function _renderSpendBookRow(b) {
   const fmt = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
@@ -25657,16 +26108,15 @@ function _renderSpendBookRow(b) {
 
 /* 모달 안 책별 리스트 토글 상태 — 5권 초과 시 더보기 */
 let _SPEND_SHOW_ALL = false;
+let _SPEND_SELECTED_FORMAT = null;
 const SPEND_BOOKS_PREVIEW = 5;
 
 /* 매체 분포 막대 한 줄 */
 function _renderMediaBar(cls, icon, name, info, foot, maxAmount) {
   const fillPct = info.total > 0 ? (info.total / maxAmount) * 100 : 0;
-  const amountHtml = info.total > 0
-    ? '\u20A9' + info.total.toLocaleString('ko-KR')
-    : '<span class="media-amount zero">미등록</span>';
+  const sel = (_SPEND_SELECTED_FORMAT === cls) ? ' selected' : '';
   return (
-    '<div class="media-bar ' + cls + '">' +
+    '<div class="media-bar ' + cls + sel + '" data-format="' + cls + '">' +
       '<div class="media-bar-head">' +
         '<div class="media-name"><span class="media-icon">' + icon + '</span> ' + name + ' ' + info.count + '권</div>' +
         '<div class="media-amount' + (info.total === 0 ? ' zero' : '') + '">' + (info.total > 0 ? '\u20A9' + info.total.toLocaleString('ko-KR') : '미등록') + '</div>' +
@@ -25684,7 +26134,8 @@ function _renderSpendModal() {
 
   const s = _calcSpend();
   const year = new Date().getFullYear();
-  document.getElementById('spendYear').textContent = year;
+  const titleEl = document.getElementById('spendTitle');
+  if (titleEl) titleEl.textContent = 'Bookflex ' + year;
 
   if (s.grandCount === 0) {
     body.innerHTML =
@@ -25756,47 +26207,90 @@ function _renderSpendModal() {
     '<span class="' + (s.grandTotal >= m.value ? 'active' : '') + '">' + m.label + '</span>'
   ).join('');
 
+  // 마일스톤 메인 섹션 HTML 빌드
+  const _msSteps = SPEND_MILESTONES.map(function(mil, i) {
+    var cls = '';
+    var currentIdx = SPEND_MILESTONES.filter(function(mm) { return s.grandTotal >= mm.value; }).length;
+    if (i < currentIdx) cls = 'reached';
+    else if (i === currentIdx || (currentIdx === SPEND_MILESTONES.length && i === SPEND_MILESTONES.length - 1)) cls = 'current';
+    return '<div class="bfm-step ' + cls + '">' +
+      '<svg class="bfm-stack"><use href="#bf-stack-' + mil.stack + '"/></svg>' +
+      '<div class="bfm-name">' + mil.label + '</div>' +
+    '</div>';
+  }).join('');
+  const _msLabel = ms.next ? ('다음은 ' + ms.next.label) : '두 책장 완성';
+  const _msRemain = ms.next
+    ? ('\u20A9' + milestoneRemain.toLocaleString('ko-KR') + ' 남음')
+    : '모든 단계 통과 \uD83C\uDF89';
+
   body.innerHTML =
     '<div class="sp-hero">' +
       '<img class="sp-hero-coin" src="' + _coinDataUri() + '" alt="">' +
       '<div class="sp-hero-label">올해의 종이값</div>' +
       '<div class="sp-hero-num">\u20A9' + s.grandTotal.toLocaleString('ko-KR') + '</div>' +
       '<div class="sp-hero-meta">' +
-        '완독한 <b>' + s.grandCount + '권</b>의 합 \u00B7 종이\u00B7전자\u00B7오디오 모두<br>' +
+        '올해 완독한 <b>' + s.grandCount + '권</b>의 합산값' +
         (s.grandRegistered < s.grandCount
-          ? (s.grandCount - s.grandRegistered) + '권은 빈칸 \u2014 합계 X'
-          : '모두 가격 입력됨') +
+          ? '<br>' + (s.grandCount - s.grandRegistered) + '권은 가격 비워두셔서 제외됨'
+          : '') +
       '</div>' +
     '</div>' +
 
+    '<div class="bf-milestone">' +
+      '<div class="bfm-head">' +
+        '<div class="bfm-label">' + _msLabel + '</div>' +
+        '<div class="bfm-remain">' + _msRemain + '</div>' +
+      '</div>' +
+      '<div class="bfm-row">' + _msSteps + '</div>' +
+      '<div class="bfm-progress"><div class="bfm-progress-fill" style="width: ' + ms.pct + '%"></div></div>' +
+    '</div>' +
+
     '<div class="sp-section">' +
-      '<div class="sp-sec-title">어디에 쌓였나</div>' +
-      '<div class="media-bars">' +
-        _renderMediaBar('paper', '\uD83D\uDCD5', '종이책', s.paper, paperFoot, maxAmount) +
-        _renderMediaBar('ebook', '\uD83D\uDCF1', '전자책', s.ebook, ebookFoot, maxAmount) +
-        _renderMediaBar('audio', '\uD83C\uDFA7', '오디오북', s.audio, audioFoot, maxAmount) +
+      '<div class="sp-sec-title">어디에 쌓였나' +
+        (_SPEND_SELECTED_FORMAT ? ' <span class="sec-hint">\u00B7 탭하면 해제</span>' : ' <span class="sec-hint">\u00B7 탭하면 필터</span>') +
+      '</div>' +
+      '<div class="media-cards-grid">' +
+        _renderMediaCard('paper', '\uD83D\uDCD5', '종이책', s.paper) +
+        _renderMediaCard('ebook', '\uD83D\uDCF1', '전자책', s.ebook) +
+        _renderMediaCard('audio', '\uD83C\uDFA7', '오디오북', s.audio) +
       '</div>' +
     '</div>' +
 
     (function() {
-      // 완독 + 가격 있는 책만 (가격 큰 순)
-      const priced = (BOOKS || [])
-        .filter(b => b.status === 'done' && typeof b.priceSales === 'number' && b.priceSales > 0)
-        .sort((a, b) => b.priceSales - a.priceSales);
-      const empty = (BOOKS || [])
-        .filter(b => b.status === 'done' && !(typeof b.priceSales === 'number' && b.priceSales > 0));
+      const fmt = _SPEND_SELECTED_FORMAT;
+      const eligible = (BOOKS || []).filter(function(b) {
+        if (b.status !== 'done') return false;
+        if (!fmt) return true;
+        var bf = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
+        return bf === fmt;
+      });
 
-      if (priced.length === 0 && empty.length === 0) return '';
+      const priced = eligible
+        .filter(function(b) { return typeof b.priceSales === 'number' && b.priceSales > 0; })
+        .sort(function(a, b) { return b.priceSales - a.priceSales; });
+      const empty = eligible
+        .filter(function(b) { return !(typeof b.priceSales === 'number' && b.priceSales > 0); });
+      const allBooks = priced.concat(empty);
+
+      const fmtIcon = fmt === 'paper' ? '\uD83D\uDCD5' : fmt === 'ebook' ? '\uD83D\uDCF1' : fmt === 'audio' ? '\uD83C\uDFA7' : '';
+      const fmtName = fmt === 'paper' ? '종이책' : fmt === 'ebook' ? '전자책' : fmt === 'audio' ? '오디오북' : '';
+      const sectionTitle = fmt ? (fmtIcon + ' ' + fmtName + ' \u00B7 ' + allBooks.length + '권') : '책별 종이값';
+
+      if (allBooks.length === 0) {
+        return '<div class="sp-books-section">' +
+          '<div class="sp-sec-title">' + sectionTitle + '</div>' +
+          '<div class="sp-books-empty">완독한 ' + fmtName + '이 아직 없어요</div>' +
+        '</div>';
+      }
 
       const showAll = _SPEND_SHOW_ALL;
-      const allBooks = priced.concat(empty);
       const visible = showAll ? allBooks : allBooks.slice(0, SPEND_BOOKS_PREVIEW);
       const remaining = allBooks.length - visible.length;
 
       let html = '<div class="sp-books-section">' +
-        '<div class="sp-sec-title">책별 종이값</div>' +
+        '<div class="sp-sec-title">' + sectionTitle + '</div>' +
         '<div class="sp-books-list">' +
-          visible.map(b => _renderSpendBookRow(b)).join('') +
+          visible.map(function(b) { return _renderSpendBookRow(b); }).join('') +
         '</div>';
 
       if (remaining > 0) {
@@ -25811,8 +26305,8 @@ function _renderSpendModal() {
     })() +
 
     '<div class="sp-notice">' +
-      '<b>"내가 결제한 금액"이 아니라 그 책의 정가 카운터예요.</b> ' +
-      '도서관\u00B7구독\u00B7선물받은 책은 비워두시고, 알라딘에서 자동 잡힌 값은 책 상세에서 \u270F\uFE0F로 언제든 고칠 수 있어요.' +
+      '<b>결제 금액이 아닌 그 책의 정가 합계예요.</b> ' +
+      '도서관\u00B7구독\u00B7선물받은 책은 비워두시면 합계에서 빠져요. 알라딘 자동값은 \u270F\uFE0F로 언제든 고칠 수 있어요.' +
     '</div>' +
 
     '<div class="sp-expand-row">' +
@@ -25834,17 +26328,6 @@ function _renderSpendModal() {
               '<div class="sp-detail-card-sub">' + (s.grandCount - s.grandRegistered) + '권은 빈칸</div>' +
             '</div>' +
             highestHtml + lowestHtml +
-            '<div class="sp-detail-card sp-milestone-card">' +
-              '<div class="sp-detail-card-label">' + (ms.next ? '다음 ' + ms.next.label + '까지' : '마일스톤') + '</div>' +
-              '<div class="sp-detail-card-val">' +
-                (ms.next ? '\u20A9' + milestoneRemain.toLocaleString('ko-KR') + ' 남음' : '모두 도달 \u2728') +
-              '</div>' +
-              '<div class="sp-detail-card-sub">' + milestoneSub + '</div>' +
-              '<div class="sp-milestone-line">' +
-                '<div class="sp-milestone-fill" style="width: ' + ms.pct + '%"></div>' +
-              '</div>' +
-              '<div class="sp-milestone-ticks">' + ticksHtml + '</div>' +
-            '</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -25865,6 +26348,15 @@ function _renderSpendModal() {
       _renderSpendModal();
     });
   }
+  // 매체 카드 — 탭하면 필터 토글
+  document.querySelectorAll('#spendBody .media-bar[data-format]').forEach(card => {
+    card.addEventListener('click', () => {
+      const fmt = card.dataset.format;
+      _SPEND_SELECTED_FORMAT = (_SPEND_SELECTED_FORMAT === fmt) ? null : fmt;
+      _SPEND_SHOW_ALL = false;
+      _renderSpendModal();
+    });
+  });
 }
 
 /* 열기 / 닫기 */
@@ -25872,6 +26364,7 @@ function openSpendModal() {
   const bd = document.getElementById('spendBackdrop');
   if (!bd) return;
   _SPEND_SHOW_ALL = false;
+  _SPEND_SELECTED_FORMAT = null;
   _renderSpendModal();
   bd.classList.add('open');
   bd.setAttribute('aria-hidden', 'false');
@@ -25884,6 +26377,65 @@ function closeSpendModal() {
   bd.setAttribute('aria-hidden', 'true');
   if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
 }
+
+/* v1.8.0 — 모달 쓸어내려 닫기 (핸들 + 헤더 영역 드래그) */
+(function wireDragToClose() {
+  const sheet = document.querySelector('.spend-sheet');
+  if (!sheet || sheet.dataset.dragWired) return;
+  sheet.dataset.dragWired = '1';
+
+  let startY = null;
+  let delta = 0;
+  let dragging = false;
+
+  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+
+  function start(e) {
+    // 본문 콘텐츠/버튼 영역에선 드래그 X
+    if (e.target.closest('.book-edit-pane, .price-input, .book-edit-btn, .price-btn, .sp-more-btn, .media-bar[data-format], .sp-close, .sp-expand-btn')) return;
+    // 핸들 + 헤더 영역만 드래그 허용
+    if (!e.target.closest('#spendDragZone, .sp-head')) return;
+
+    startY = getY(e);
+    delta = 0;
+    dragging = true;
+    sheet.classList.add('dragging');
+    if (e.cancelable) e.preventDefault();
+  }
+  function move(e) {
+    if (!dragging) return;
+    delta = Math.max(0, getY(e) - startY);
+    sheet.style.transform = 'translateY(' + delta + 'px)';
+    if (e.cancelable) e.preventDefault();
+  }
+  function end() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.classList.remove('dragging');
+    if (delta > 100) {
+      sheet.classList.add('closing');
+      setTimeout(function() {
+        closeSpendModal();
+        sheet.classList.remove('closing');
+        sheet.style.transform = '';
+      }, 250);
+    } else {
+      sheet.style.transition = 'transform .25s ease-out';
+      sheet.style.transform = '';
+      setTimeout(function() { sheet.style.transition = ''; }, 250);
+    }
+    startY = null;
+    delta = 0;
+  }
+
+  sheet.addEventListener('touchstart', start, { passive: false });
+  sheet.addEventListener('touchmove', move, { passive: false });
+  sheet.addEventListener('touchend', end);
+  sheet.addEventListener('touchcancel', end);
+  sheet.addEventListener('mousedown', start);
+  document.addEventListener('mousemove', function(e) { if (dragging) move(e); });
+  document.addEventListener('mouseup', end);
+})();
 
 /* 닫기 핸들러 — backdrop 클릭 + X + ESC */
 (function wireSpendClose() {
@@ -25905,6 +26457,70 @@ function closeSpendModal() {
       if (bd2 && bd2.classList.contains('open')) closeSpendModal();
     }
   });
+})();
+
+/* v1.8.0 — 쓸어내려 닫기 (핸들 + 헤더 영역 드래그) */
+(function wireDragToClose() {
+  const sheet = document.querySelector('.spend-sheet');
+  if (!sheet || sheet.dataset.dragWired) return;
+  sheet.dataset.dragWired = '1';
+
+  let startY = null;
+  let delta = 0;
+  let dragging = false;
+
+  function getY(e) {
+    return e.touches ? e.touches[0].clientY : e.clientY;
+  }
+  function start(e) {
+    // 콘텐츠/버튼/카드 영역 시작 드래그는 무시
+    if (e.target.closest('.book-edit-pane, .price-input, .book-edit-btn, .price-btn, .more-btn, .sp-more-btn, .media-card-v2[data-format], .media-card[data-format], .media-bar[data-format], .sp-close, .sp-row-card, .price-card')) return;
+    // 핸들 zone이나 헤더 영역만
+    const inDragArea = e.target.closest('#spendDragZone, .sp-head');
+    if (!inDragArea) return;
+
+    startY = getY(e);
+    delta = 0;
+    dragging = true;
+    sheet.classList.add('dragging');
+    if (e.cancelable) e.preventDefault();
+  }
+  function move(e) {
+    if (!dragging) return;
+    const y = getY(e);
+    delta = Math.max(0, y - startY);
+    sheet.style.transform = 'translateY(' + delta + 'px)';
+    if (e.cancelable) e.preventDefault();
+  }
+  function end() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.classList.remove('dragging');
+    if (delta > 100) {
+      // 닫기
+      sheet.classList.add('closing');
+      setTimeout(function() {
+        closeSpendModal();
+        sheet.classList.remove('closing');
+        sheet.style.transform = '';
+      }, 250);
+    } else {
+      // 원위치
+      sheet.style.transition = 'transform .25s ease-out';
+      sheet.style.transform = '';
+      setTimeout(function() { sheet.style.transition = ''; }, 250);
+    }
+    startY = null;
+    delta = 0;
+  }
+
+  sheet.addEventListener('touchstart', start, { passive: false });
+  sheet.addEventListener('touchmove', move, { passive: false });
+  sheet.addEventListener('touchend', end);
+  sheet.addEventListener('touchcancel', end);
+  sheet.addEventListener('mousedown', start);
+  document.addEventListener('mousemove', function(e) { if (dragging) move(e); });
+  document.addEventListener('mouseup', end);
 })();
 
 /* ═══════════════════════════════════════════════════════════
@@ -26019,6 +26635,18 @@ function _renderPriceCard(b) {
   });
 
   document.addEventListener('click', (e) => {
+    // v1.8.0 — 매체 카드 클릭 → 책별 필터 토글
+    const mediaCard = e.target.closest('.media-card-v2[data-format]');
+    if (mediaCard) {
+      const bd = document.getElementById('spendBackdrop');
+      if (bd && bd.classList.contains('open')) {
+        const fmt = mediaCard.dataset.format;
+        _SPEND_SELECTED_FORMAT = (_SPEND_SELECTED_FORMAT === fmt) ? null : fmt;
+        _SPEND_SHOW_ALL = false;
+        _renderSpendModal();
+      }
+      return;
+    }
     const editBtn = e.target.closest('.price-edit-btn');
     if (editBtn) {
       const card = editBtn.closest('.price-card');
@@ -26068,11 +26696,11 @@ function _renderPriceCard(b) {
       // 토스트 (저장 결과) — 짧은 토스트
       if (typeof showToast === 'function') {
         if (sale != null) {
-          showToast('종이값 저장 ✓ · ' + sale.toLocaleString('ko-KR') + '원');
+          showToast('저장됨 · \u20A9' + sale.toLocaleString('ko-KR'));
         } else if (list != null) {
-          showToast('정가만 저장 ✓ · 합계 제외');
+          showToast('정가만 저장 · 합계 제외');
         } else {
-          showToast('비워두셔서 종이값에서 빠져요');
+          showToast('비워두셔서 합계에서 빠짐');
         }
       }
 
@@ -27605,8 +28233,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.7.0';
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v5';
+const APP_VERSION = '1.8.0';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v6';
 
 function openWhatsNew() {
   const modal = document.getElementById('wnModal');
