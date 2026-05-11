@@ -6139,25 +6139,26 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
    .book-card.timer-paused : 일시정지 (회색, 정지)
    ═══════════════════════════════════════════════════════════ */
 .book-card.timer-active .book-card-cover {
+  position: relative;
   box-shadow:
     0 0 0 2.5px #d4a574,
     0 0 0 5px rgba(212, 165, 116, 0.3),
     0 4px 14px rgba(212, 165, 116, 0.4);
-  animation: bookCardTimerGlow 2s ease-in-out infinite;
 }
-@keyframes bookCardTimerGlow {
-  0%, 100% {
-    box-shadow:
-      0 0 0 2.5px #d4a574,
-      0 0 0 5px rgba(212, 165, 116, 0.3),
-      0 4px 14px rgba(212, 165, 116, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 0 0 2.5px #d4a574,
-      0 0 0 8px rgba(212, 165, 116, 0.15),
-      0 6px 18px rgba(212, 165, 116, 0.5);
-  }
+/* 발열 절약 — box-shadow 애니메이션 대신 opacity 펄스 (GPU 가속) */
+.book-card.timer-active .book-card-cover::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid rgba(212, 165, 116, 0.4);
+  pointer-events: none;
+  animation: timerGlowPulse 2s ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes timerGlowPulse {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
 }
 
 /* 일시정지 상태 — 정적 회색 */
@@ -9728,10 +9729,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-color: rgba(212, 165, 116, 0.7) !important;
 }
 @keyframes cinemaPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.32),
-                        inset 0 0 0 0 rgba(212, 165, 116, 0); }
-  50%      { box-shadow: 0 0 0 8px rgba(212, 165, 116, 0),
-                        inset 0 0 24px 0 rgba(212, 165, 116, 0.08); }
+  /* 발열 절약 — box-shadow 애니메이션 대신 정적 border + opacity 펄스로 ::before 사용 */
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.85; }
 }
 
 /* 타이머 정지 시트 */
@@ -19762,12 +19762,16 @@ function tickTimerUI() {
   // 시네마 일시정지 배지
   const overlay = document.getElementById('cnOverlay');
   if (overlay) overlay.classList.toggle('cn-paused', paused);
-  // 일시정지/재개 버튼 라벨 동기화
+  // 일시정지/재개 버튼 라벨 동기화 — 상태 바뀔 때만 innerHTML 교체 (발열 절약)
   const pauseBtn = document.getElementById('cnCtrlPause');
   if (pauseBtn) {
-    pauseBtn.innerHTML = paused
-      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg><span>재개</span>`
-      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><span>일시정지</span>`;
+    const currentState = paused ? 'paused' : 'playing';
+    if (pauseBtn.dataset.lastState !== currentState) {
+      pauseBtn.dataset.lastState = currentState;
+      pauseBtn.innerHTML = paused
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg><span>재개</span>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><span>일시정지</span>`;
+    }
   }
 }
 
@@ -19802,14 +19806,18 @@ function updateBookCardTimerBadge() {
     card.classList.toggle('timer-active', !paused);
     card.classList.toggle('timer-paused', paused);
   });
-  // 배지 안 아이콘도 일시정지/진행에 따라 교체
+  // 배지 안 아이콘 — 상태 바뀔 때만 SVG 교체 (발열 절약)
   const badge = document.querySelector(`[data-timer-badge="${TIMER.bookId}"]`);
   if (badge) {
     const svg = badge.querySelector('svg');
     if (svg) {
-      svg.innerHTML = paused
-        ? '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>'
-        : '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+      const state = paused ? 'paused' : 'playing';
+      if (svg.dataset.lastState !== state) {
+        svg.dataset.lastState = state;
+        svg.innerHTML = paused
+          ? '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>'
+          : '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+      }
     }
   }
 }
