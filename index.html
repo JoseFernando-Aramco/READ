@@ -12775,6 +12775,102 @@ body.cn-locked {
 .bp-empty .emoji { font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.5; }
 .bp-empty b { color: var(--c-text-2); font-weight: 700; display: block; margin-bottom: 4px; }
 
+/* v1.8.0 — 모달 안 책별 종이값 행 (.price-card 재활용, 가로 행 형태) */
+.sp-books-section { margin: 22px 20px 0; }
+.sp-books-list { display: flex; flex-direction: column; gap: 6px; }
+
+.sp-row-card {
+  padding: 0 !important;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all .15s;
+}
+.sp-row-card:hover:not(.editing) {
+  border-color: var(--c-coin-2);
+  box-shadow: 0 2px 8px rgba(50, 35, 25, 0.05);
+}
+.sp-row-card .price-display {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.sp-row-fmt {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.sp-row-fmt.paper { background: #FAF5F0; }
+.sp-row-fmt.ebook { background: #F5EDE8; }
+.sp-row-fmt.audio { background: #E6F5F1; }
+.sp-row-info { flex: 1; min-width: 0; }
+.sp-row-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1.3;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-row-author {
+  font-size: 11px;
+  color: var(--c-muted);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-row-price {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--c-coin-deep);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+.sp-row-price.empty {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+.sp-row-card .price-edit-btn {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+}
+.sp-row-card .price-edit-pane {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--c-border);
+}
+.sp-row-card.editing .price-edit-pane {
+  padding-top: 12px;
+}
+.sp-more-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed var(--c-border-2);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.sp-more-btn:hover {
+  border-color: var(--c-coin-2);
+  color: var(--c-coin-deep);
+  border-style: solid;
+}
+
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -17689,12 +17785,12 @@ function confirmAddBook() {
 
 /* ─── 토스트 ─── */
 let _toastTimer = null;
-function showToast(msg) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), duration || 2800);
 }
 
 /* ─── 이벤트 바인딩 ─── */
@@ -18180,6 +18276,14 @@ async function _enrichMissingPrices() {
       }
     } catch(e){}
     console.log(`[price] ${enriched}권 종이값 자동 보강됨`);
+
+    // 마일스톤 체크 — 자동 보강으로 합계가 처음 채워질 때 도달 알림
+    // (보강 시작 시점엔 prevTotal === 0이라 첫 사용자에겐 모든 마일스톤 알림 가능)
+    try {
+      const newTotal = _calcSpend().grandTotal;
+      // 첫 도달 마킹이 안 된 사용자만 알림 (이미 도달 기록 있으면 skip)
+      _checkAndCelebrateMilestone(0, newTotal);
+    } catch(e) { /* 무시 */ }
   }
 }
 setTimeout(_enrichMissingPrices, 2500);  // 표지 보강 끝난 후 (표지=1초 + 13권×150ms ≈ 3초)
@@ -25403,6 +25507,47 @@ const SPEND_MILESTONES = [
   { value: 2000000, label: '두 책장' },
 ];
 
+/* 마일스톤 도달 시 표시할 메시지 (값별로 톤이 다름) */
+const _MILESTONE_TOAST = {
+  100000:  '🎒 첫 한 짐. 종이가 슬슬 무게가 있어요',
+  500000:  '📚 책장 한 칸 채움. 한 권씩 쌓아온 결과예요',
+  1000000: '🏠 책장 하나 완성! 다음은 두 책장이에요',
+  2000000: '🎩 두 책장째 — 책 부자 인정',
+};
+
+/* 이미 도달 알림한 마일스톤 (1회만 알림 — 중복 방지) */
+function _wasMilestoneReached(value) {
+  const reached = STORE.get('milestoneReached', []);
+  return Array.isArray(reached) && reached.includes(value);
+}
+function _markMilestoneReached(value) {
+  const reached = STORE.get('milestoneReached', []);
+  const arr = Array.isArray(reached) ? reached : [];
+  if (!arr.includes(value)) {
+    arr.push(value);
+    STORE.set('milestoneReached', arr);
+  }
+}
+
+/* 합산 전/후 비교 → 새로 도달한 마일스톤만 알림 */
+function _checkAndCelebrateMilestone(prevTotal, newTotal) {
+  if (newTotal <= prevTotal) return;  // 줄어든 경우 알림 X
+  // prevTotal < m.value <= newTotal 이고 아직 기록 안 된 것
+  const newlyReached = SPEND_MILESTONES.filter(m =>
+    prevTotal < m.value && newTotal >= m.value && !_wasMilestoneReached(m.value)
+  );
+  if (newlyReached.length === 0) return;
+
+  // 여러 마일스톤 동시 도달 (한 번에 큰 값 입력) — 가장 높은 것만 알림
+  // 낮은 마일스톤들은 같이 마킹해서 다시 안 알리도록
+  const top = newlyReached[newlyReached.length - 1];
+  newlyReached.forEach(m => _markMilestoneReached(m.value));
+
+  const msg = _MILESTONE_TOAST[top.value] || `🎉 ${top.label} 달성!`;
+  if (typeof showToast === 'function') showToast(msg, 4500);  // 토스트 좀 더 오래 (2.8s → 4.5s)
+  console.log('[milestone] 도달:', top.label, '·', newTotal);
+}
+
 /* 매체별 합산 — 완독 책만, priceSales 있는 책만 */
 function _calcSpend() {
   const all = (BOOKS || []).filter(b => b.status === 'done');
@@ -25454,6 +25599,63 @@ function _coinDataUri() {
   const img = document.querySelector('#coinBtn .coin-img');
   return img ? img.src : '';
 }
+
+/* 모달 안 책별 종이값 행 — .price-card 재활용 (위임 편집 핸들러 그대로 작동) */
+function _renderSpendBookRow(b) {
+  const fmt = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
+  const fmtIcon = fmt === 'audio' ? '\uD83C\uDFA7' : fmt === 'ebook' ? '\uD83D\uDCF1' : '\uD83D\uDCD5';
+  const list = (typeof b.priceList === 'number' && b.priceList > 0) ? b.priceList : null;
+  const sale = (typeof b.priceSales === 'number' && b.priceSales > 0) ? b.priceSales : null;
+  const editList = list != null ? list.toLocaleString('ko-KR') : '';
+  const editSale = sale != null ? sale.toLocaleString('ko-KR') : '';
+
+  const priceHtml = (sale != null)
+    ? '<div class="sp-row-price">\u20A9' + sale.toLocaleString('ko-KR') + '</div>'
+    : '<div class="sp-row-price empty">빈칸</div>';
+
+  return (
+    '<div class="price-card sp-row-card" data-book-id="' + _spEsc(b.id) + '">' +
+      '<div class="price-display">' +
+        '<div class="sp-row-fmt ' + fmt + '">' + fmtIcon + '</div>' +
+        '<div class="sp-row-info">' +
+          '<div class="sp-row-title">' + _spEsc(b.title) + '</div>' +
+          '<div class="sp-row-author">' + _spEsc(b.author || '') + '</div>' +
+        '</div>' +
+        priceHtml +
+        '<button class="price-edit-btn" type="button" aria-label="수정">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
+            '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' +
+          '</svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="price-edit-pane">' +
+        '<div class="price-edit-grid">' +
+          '<div class="price-input-block">' +
+            '<label>정가</label>' +
+            '<div class="price-input-wrap">' +
+              '<input class="price-input" type="text" inputmode="numeric" data-field="list" value="' + editList + '" placeholder="0">' +
+            '</div>' +
+          '</div>' +
+          '<div class="price-input-block">' +
+            '<label>판매가</label>' +
+            '<div class="price-input-wrap">' +
+              '<input class="price-input" type="text" inputmode="numeric" data-field="sale" value="' + editSale + '" placeholder="0">' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="price-edit-actions">' +
+          '<button class="price-btn cancel" type="button">취소</button>' +
+          '<button class="price-btn save" type="button">저장</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+/* 모달 안 책별 리스트 토글 상태 — 5권 초과 시 더보기 */
+let _SPEND_SHOW_ALL = false;
+const SPEND_BOOKS_PREVIEW = 5;
 
 /* 매체 분포 막대 한 줄 */
 function _renderMediaBar(cls, icon, name, info, foot, maxAmount) {
@@ -25574,6 +25776,38 @@ function _renderSpendModal() {
       '</div>' +
     '</div>' +
 
+    (function() {
+      // 완독 + 가격 있는 책만 (가격 큰 순)
+      const priced = (BOOKS || [])
+        .filter(b => b.status === 'done' && typeof b.priceSales === 'number' && b.priceSales > 0)
+        .sort((a, b) => b.priceSales - a.priceSales);
+      const empty = (BOOKS || [])
+        .filter(b => b.status === 'done' && !(typeof b.priceSales === 'number' && b.priceSales > 0));
+
+      if (priced.length === 0 && empty.length === 0) return '';
+
+      const showAll = _SPEND_SHOW_ALL;
+      const allBooks = priced.concat(empty);
+      const visible = showAll ? allBooks : allBooks.slice(0, SPEND_BOOKS_PREVIEW);
+      const remaining = allBooks.length - visible.length;
+
+      let html = '<div class="sp-books-section">' +
+        '<div class="sp-sec-title">책별 종이값</div>' +
+        '<div class="sp-books-list">' +
+          visible.map(b => _renderSpendBookRow(b)).join('') +
+        '</div>';
+
+      if (remaining > 0) {
+        html += '<button class="sp-more-btn" type="button" id="spendMoreBtn">' +
+          allBooks.length + '권 전체 보기 (' + remaining + '권 더)' +
+        '</button>';
+      } else if (showAll && allBooks.length > SPEND_BOOKS_PREVIEW) {
+        html += '<button class="sp-more-btn" type="button" id="spendMoreBtn">접기</button>';
+      }
+      html += '</div>';
+      return html;
+    })() +
+
     '<div class="sp-notice">' +
       '<b>"내가 결제한 금액"이 아니라 그 책의 정가 카운터예요.</b> ' +
       '도서관\u00B7구독\u00B7선물받은 책은 비워두시고, 알라딘에서 자동 잡힌 값은 책 상세에서 \u270F\uFE0F로 언제든 고칠 수 있어요.' +
@@ -25621,12 +25855,21 @@ function _renderSpendModal() {
       document.getElementById('spendExpand').classList.toggle('open');
     });
   }
+  // 책별 리스트 더보기 / 접기
+  const moreBtn = document.getElementById('spendMoreBtn');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      _SPEND_SHOW_ALL = !_SPEND_SHOW_ALL;
+      _renderSpendModal();
+    });
+  }
 }
 
 /* 열기 / 닫기 */
 function openSpendModal() {
   const bd = document.getElementById('spendBackdrop');
   if (!bd) return;
+  _SPEND_SHOW_ALL = false;
   _renderSpendModal();
   bd.classList.add('open');
   bd.setAttribute('aria-hidden', 'false');
@@ -25807,6 +26050,9 @@ function _renderPriceCard(b) {
       const list = listRaw ? parseInt(listRaw, 10) : null;
       const sale = saleRaw ? parseInt(saleRaw, 10) : null;
 
+      // v1.8.0 마일스톤 — 저장 전 합계 캡처
+      const prevTotal = (typeof _calcSpend === 'function') ? _calcSpend().grandTotal : 0;
+
       // 저장 (메모리 #11 — 빈 입력은 명시 null로 저장, 합계에서 제외됨)
       book.priceList = list;
       book.priceSales = sale;
@@ -25816,7 +26062,8 @@ function _renderPriceCard(b) {
       card.classList.remove('editing');
       // 카드 재렌더 (저장값 반영)
       _renderPriceCard(book);
-      // 토스트
+
+      // 토스트 (저장 결과) — 짧은 토스트
       if (typeof showToast === 'function') {
         if (sale != null) {
           showToast('종이값 저장 ✓ · ' + sale.toLocaleString('ko-KR') + '원');
@@ -25826,6 +26073,21 @@ function _renderPriceCard(b) {
           showToast('비워두셔서 종이값에서 빠져요');
         }
       }
+
+      // 모달 열려있으면 재렌더 (책별 행 + 합계 즉시 갱신)
+      try {
+        const bd = document.getElementById('spendBackdrop');
+        if (bd && bd.classList.contains('open') && typeof _renderSpendModal === 'function') {
+          _renderSpendModal();
+        }
+      } catch (e) {}
+
+      // 마일스톤 체크 (저장 후 합계와 비교) — 새로 도달한 게 있으면 4.5s 토스트로 덮어씀
+      try {
+        const newTotal = _calcSpend().grandTotal;
+        // 짧은 지연 — 저장 토스트 잠깐 보이고 마일스톤 토스트로 자연 전환
+        setTimeout(() => _checkAndCelebrateMilestone(prevTotal, newTotal), 600);
+      } catch (e) { /* 합계 계산 실패해도 저장 자체는 OK */ }
       return;
     }
   });
