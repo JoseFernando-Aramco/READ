@@ -26816,7 +26816,7 @@ function _renderPriceCard(b) {
       if (card) {
         card.classList.remove('editing');
         // 편집 폼 초기값 복원 — BD.book 현재 값 기준으로 다시 렌더
-        if (typeof BD !== 'undefined' && BD.book && card.dataset.bookId === BD.book.id) {
+        if (typeof BD !== 'undefined' && BD.book && String(card.dataset.bookId) === String(BD.book.id)) {
           _renderPriceCard(BD.book);
         }
       }
@@ -26827,8 +26827,13 @@ function _renderPriceCard(b) {
       const card = saveBtn.closest('.price-card');
       if (!card) return;
       const bookId = card.dataset.bookId;
-      const book = (BOOKS || []).find(b => b.id === bookId);
-      if (!book) return;
+      // 타입 무관 비교 (시드 책=number, 수동 책=string ID 혼재)
+      const book = (BOOKS || []).find(b => String(b.id) === String(bookId));
+      if (!book) {
+        console.error('[price save] book not found · bookId:', bookId, 'BOOKS sample id:', BOOKS && BOOKS[0] && BOOKS[0].id);
+        if (typeof showToast === 'function') showToast('저장 실패 — 책을 찾을 수 없어요');
+        return;
+      }
 
       const listInput = card.querySelector('.price-input[data-field="list"]');
       const saleInput = card.querySelector('.price-input[data-field="sale"]');
