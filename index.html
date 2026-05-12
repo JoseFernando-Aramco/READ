@@ -16436,6 +16436,30 @@ const READ_AUTH = {
         </div>
       `;
     }
+
+    // 햄버거 메뉴 로그인 카드도 같이 동기화
+    const card = document.getElementById('kbmLoginCard') || document.querySelector('.kbm-login-card');
+    if (card) {
+      if (user) {
+        card.innerHTML = `
+          <div class="kbm-login-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="kbm-login-main">
+            <div class="kbm-login-name">${escape(user.nickname)}</div>
+            <div class="kbm-login-sub">카카오 로그인 중 · 클라우드 동기화</div>
+          </div>
+          <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.logout === 'function') READ_AUTH.logout(); }, 220)">로그아웃</button>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="kbm-login-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="kbm-login-main">
+            <div class="kbm-login-name">로그인 안 됨</div>
+            <div class="kbm-login-sub">기기에만 저장 중</div>
+          </div>
+          <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
+        `;
+      }
+    }
   }
 };
 
