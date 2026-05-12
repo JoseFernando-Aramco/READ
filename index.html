@@ -14477,7 +14477,7 @@ body.cn-locked {
         <div class="kbm-login-name">로그인 안 됨</div>
         <div class="kbm-login-sub">기기에만 저장 중</div>
       </div>
-      <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(window.READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
+      <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
     </div>
 
     <!-- Bookflex (눈에 띄게) -->
