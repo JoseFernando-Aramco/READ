@@ -26,87 +26,87 @@
    디자인 톤: Toss Blue (산뜻한 fintech-clean)
    ══════════════════════════════════════════════════════════ */
 :root {
-  /* ─── Toss Blue 기본 ─── */
-  --c-canvas:    #F9FAFB;
-  --c-surface:   #FFFFFF;
-  --c-surface-2: #F5F6F7;
-  --c-border:    #F2F4F6;
-  --c-border-2:  #E5E8EB;
-  --c-text:      #191F28;
-  --c-text-2:    #4E5968;
-  --c-label:     #8B95A1;
-  --c-muted:     #8B95A1;
+  /* ─── keepbook 딥잉크 + 그레이 톤 (기본 = 서재의 밤) ─── */
+  --c-canvas:    #F3F3F0;
+  --c-surface:   #FCFCFA;
+  --c-surface-2: #E8E8E4;
+  --c-border:    #DCDCD8;
+  --c-border-2:  #C8C8C2;
+  --c-text:      #15110D;
+  --c-text-2:    #3A3A35;
+  --c-label:     #7A7A75;
+  --c-muted:     #7A7A75;
 
-  /* 레거시 alias — 기존 CSS 호환용 */
-  --c-dark:       #191F28;
-  --c-dark-2:     #333D4B;
-  --c-cream:      #FFFFFF;
-  --c-cream-2:    #F9FAFB;
-  --c-gold-glow:  #1E3A8A;
-  --c-gold-warm:  #1E3A8A;
-  --c-gold-mid:   #15285F;
-  --c-gold-deep:  #15285F;
-  --c-oxblood:    #F04452;
-  --c-rule:       #E5E8EB;
+  /* 레거시 alias — 기존 CSS 호환용 (잉크 + 그레이) */
+  --c-dark:       #15110D;
+  --c-dark-2:     #2E2E28;
+  --c-cream:      #FCFCFA;
+  --c-cream-2:    #F3F3F0;
+  --c-gold-glow:  #4A4A45;
+  --c-gold-warm:  #6E6E68;
+  --c-gold-mid:   #2E2E28;
+  --c-gold-deep:  #15110D;
+  --c-oxblood:    #9B4A52;
+  --c-rule:       #DCDCD8;
 
-  /* ─── MAIN (현재 읽는 책) → Ink Navy ─── */
-  --c-terra-900: #0F1F4F;
-  --c-terra-700: #15285F;
-  --c-terra-500: #1E3A8A;
-  --c-terra-400: #4A5FAB;
-  --c-terra-100: #E8ECF7;
-  --c-terra-50:  #F4F6FB;
+  /* ─── MAIN (현재 읽는 책) → Ink + Gray ─── */
+  --c-terra-900: #15110D;
+  --c-terra-700: #2E2E28;
+  --c-terra-500: #4A4A45;
+  --c-terra-400: #6E6E68;
+  --c-terra-100: #DCDCD8;
+  --c-terra-50:  #ECECE8;
 
-  /* ─── DONE (완독) → Toss Green ─── */
-  --c-sage-900:  #0E5632;
-  --c-sage-700:  #00A659;
-  --c-sage-500:  #00C471;
-  --c-sage-400:  #2EE696;
-  --c-sage-100:  #D1F7E2;
-  --c-sage-50:   #E8FBEE;
+  /* ─── DONE (완독) → 차분한 그레이 그린 ─── */
+  --c-sage-900:  #2A332A;
+  --c-sage-700:  #455045;
+  --c-sage-500:  #5F6B5F;
+  --c-sage-400:  #818D81;
+  --c-sage-100:  #D5DBD3;
+  --c-sage-50:   #E8ECE6;
 
-  /* ─── STAR (별점·하이라이트) → Amber ─── */
-  --c-gold-900:  #8B4F00;
-  --c-gold-700:  #C26900;
-  --c-gold-500:  #FF9D00;
-  --c-gold-400:  #FFB84D;
-  --c-gold-100:  #FFF1D6;
-  --c-gold-50:   #FFF8E8;
+  /* ─── STAR (별점·하이라이트) → 차분한 그레이 ─── */
+  --c-gold-900:  #2E2E28;
+  --c-gold-700:  #4A4A45;
+  --c-gold-500:  #6E6E68;
+  --c-gold-400:  #9C9C95;
+  --c-gold-100:  #DCDCD8;
+  --c-gold-50:   #ECECE8;
 
-  /* ─── WISH (읽고 싶은 책) → Violet ─── */
-  --c-plum-900:  #3B2A7F;
-  --c-plum-700:  #5B45C6;
-  --c-plum-500:  #7461E3;
-  --c-plum-100:  #E8E5F7;
-  --c-plum-50:   #F3F1FB;
+  /* ─── WISH (읽고 싶은 책) → 더스티 그레이 플럼 ─── */
+  --c-plum-900:  #3D3640;
+  --c-plum-700:  #5C5260;
+  --c-plum-500:  #7B7080;
+  --c-plum-100:  #D8D3DC;
+  --c-plum-50:   #ECE8EE;
 
   /* 시맨틱 */
-  --brand-primary:    #1E3A8A;
-  --brand-primary-dk: #15285F;
-  --primary:          #1E3A8A;
-  --primary-bg:       #E8ECF7;
+  --brand-primary:    #15110D;
+  --brand-primary-dk: #000000;
+  --primary:          #15110D;
+  --primary-bg:       #DCDCD8;
 
   /* 그라데이션 제거 — flat 톤 */
-  --g-hero:    #FFFFFF;
-  --g-reading: #FFFFFF;
-  --g-done:    #FFFFFF;
-  --g-wish:    #FFFFFF;
-  --g-gold:    linear-gradient(95deg, #1E3A8A, #15285F);
-  --g-done-bar:linear-gradient(95deg, #00C471, #00A659);
-  --g-main-bar:linear-gradient(95deg, #1E3A8A, #15285F);
+  --g-hero:    #FCFCFA;
+  --g-reading: #FCFCFA;
+  --g-done:    #FCFCFA;
+  --g-wish:    #FCFCFA;
+  --g-gold:    linear-gradient(95deg, #15110D, #2E2E28);
+  --g-done-bar:linear-gradient(95deg, #5F6B5F, #455045);
+  --g-main-bar:linear-gradient(95deg, #15110D, #2E2E28);
 
   /* v1.6.0 — 하차 컨셉 색상 (책갈피 메타포) */
-  --c-drop:          #8B7E72;       /* 따뜻한 회색 (메인) */
-  --c-drop-bg:       #F5F1ED;       /* 부드러운 베이지 배경 */
-  --c-drop-soft:     #E8E2DA;       /* 보더용 */
-  --c-drop-deep:     #5C5247;       /* 진한 모카 그레이 (텍스트/액티브) */
-  --c-drop-bookmark: #B8956A;       /* 북마크 액센트 (가을 단풍톤) */
+  --c-drop:          #8B847E;       /* 차분한 회색 */
+  --c-drop-bg:       #E8E8E4;       /* 회백 배경 */
+  --c-drop-soft:     #DCDCD8;       /* 보더용 */
+  --c-drop-deep:     #3A3A35;       /* 다크 그레이 */
+  --c-drop-bookmark: #6E6E68;       /* 그레이 액센트 */
 
-  /* v1.8.0 — 종이값 컨셉 색상 (동전 골드, 시네마 #d4a574와 톤 충돌 X) */
-  --c-coin-1:    #D4A574;           /* 동전 골드 라이트 */
-  --c-coin-2:    #B8956A;           /* 동전 골드 딥 */
-  --c-coin-deep: #8B6D3D;           /* 텍스트용 진한 골드 */
-  --c-coin-glow: rgba(212, 165, 116, 0.45);  /* 펄스 글로우 */
+  /* v1.8.0 — 종이값 컨셉 색상 (동전 톤, 그레이 베이스) */
+  --c-coin-1:    #B5B5AF;
+  --c-coin-2:    #8E8E88;
+  --c-coin-deep: #3A3A35;
+  --c-coin-glow: rgba(60, 60, 55, 0.25);
 }
 
 /* ═══════════ 테마 2 · 카페 라떼 [웜 브라운 + 크림] ═══════════ */
@@ -247,39 +247,6 @@
   --c-gold-glow: #C9D7FF;
 }
 
-/* ═══════════ 테마 8 · 모노 에디션 [순수 그레이 · 뉴트럴] ═══════════ */
-[data-theme="mono"] {
-  --c-canvas:    #F2F2F3;
-  --c-surface:   #FFFFFF;
-  --c-surface-2: #E8E8EA;
-  --c-border:    #DCDCDE;
-  --c-border-2:  #BEBEC2;
-
-  --c-text:   #0F0F10;
-  --c-text-2: #3C3C43;
-  --c-label:  #86868B;
-  --c-muted:  #86868B;
-
-  --primary:          #1C1C1E;
-  --primary-bg:       #E0E0E3;
-  --brand-primary:    #1C1C1E;
-  --brand-primary-dk: #000000;
-
-  --c-terra-900: #000000;
-  --c-terra-700: #0F0F10;
-  --c-terra-500: #1C1C1E;
-  --c-terra-400: #48484A;
-  --c-terra-100: #E0E0E3;
-  --c-terra-50:  #F2F2F3;
-
-  --g-main-bar: linear-gradient(95deg, #1C1C1E, #000000);
-  --g-gold:     linear-gradient(95deg, #1C1C1E, #000000);
-
-  --c-gold-warm: #48484A;
-  --c-gold-deep: #1C1C1E;
-  --c-gold-glow: #8E8E93;
-}
-
 /* ═══════════ 미드나잇 다크모드 · 컴포넌트 대비 보정 ═══════════ */
 /* FAB: 기본 `background:var(--c-text)`(밝은색) + `color:#fff` 조합이라
    다크모드에선 흰색 위 흰글자가 됨 → primary 블루로 치환 */
@@ -355,12 +322,27 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-canvas);
   /* iOS PWA 노치/Dynamic Island 영역 회피 */
   padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   border-bottom: none;
   transition: none;
 }
+.app-header > .app-brand { justify-self: center; }
+.app-header > .header-actions { justify-self: end; }
+.app-header > .header-menu-btn { justify-self: start; }
+.header-menu-btn {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  color: var(--c-text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background .12s;
+}
+.header-menu-btn:active { background: var(--c-border); }
+.header-menu-btn svg { width: 22px; height: 22px; }
 .app-header::after { display: none; }
 .app-header.scrolled { border-bottom-color: transparent; }
 .app-brand {
@@ -370,7 +352,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .app-logo { display: none; }
 .app-mark {
   display: inline-flex;
-  width: 22px;
+  width: 14px;
   height: 22px;
   flex-shrink: 0;
 }
@@ -378,6 +360,24 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   height: 100%;
   display: block;
+}
+.kb-logo {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+.read-mark {
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--c-text);
+}
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 .app-name {
   font-family: 'Pretendard Variable', Pretendard, inherit;
@@ -455,7 +455,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .header-actions { display: flex; gap: 2px; }
 .header-btn {
   width: 40px; height: 40px;
-  border-radius: 10px;
+  border-radius: 5px;
   background: transparent;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -471,7 +471,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 24px; height: 24px;
   object-fit: contain;
   pointer-events: none;
-  filter: drop-shadow(0 1px 2px rgba(139, 109, 61, 0.3));
+  filter: saturate(0.75) drop-shadow(0 1px 2px rgba(139, 109, 61, 0.25));
   display: block;
 }
 .coin-btn.unseen::before {
@@ -628,7 +628,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   padding: 13px 16px;
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-surface);
   color: var(--c-text-2);
   font-family: inherit;
@@ -669,7 +669,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-surface);
   color: var(--c-text);
   border: none;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 22px 20px 20px;
   position: relative;
   overflow: hidden;
@@ -822,7 +822,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 3px;
   letter-spacing: 0;
   flex-shrink: 0;
   border: 1px solid var(--c-border);
@@ -843,7 +843,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border: 1px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
   color: var(--c-text-2);
   cursor: pointer;
@@ -925,7 +925,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .now-body { display: flex; gap: 14px; margin-bottom: 18px; }
 .now-cover {
   width: 68px; height: 96px; flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 3px;
   box-shadow: 0 4px 12px rgba(25,31,40,0.12);
   overflow: hidden;
   position: relative;
@@ -982,7 +982,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .now-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0; }
 .now-btn {
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -1016,7 +1016,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .strip-cell {
   background: var(--c-surface);
   border: none;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 16px 14px;
   text-align: left;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -1064,7 +1064,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .book-card-cover {
   width: 100%;
   aspect-ratio: 108 / 156;
-  border-radius: 6px;
+  border-radius: 3px;
   box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.05);
   overflow: hidden;
   position: relative;
@@ -1211,7 +1211,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .annual-hero {
   background: linear-gradient(135deg, var(--primary) 0%, #1a5fcc 100%);
   color: #fff;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 22px 22px 20px;
   margin-bottom: 14px;
   box-shadow: 0 2px 10px rgba(49,130,246,0.18);
@@ -1376,7 +1376,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .stats-fold {
   background: var(--c-surface);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -1417,7 +1417,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .fold-icon {
   width: 32px; height: 32px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--c-surface-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px;
@@ -1513,7 +1513,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .stat-card {
   background: var(--c-surface);
   border: none;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 20px 20px 22px;
   margin-bottom: 12px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -1824,7 +1824,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .annual-hero {
   position: relative;
   background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%);
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 26px 22px 22px;
   color: #fff;
   overflow: hidden;
@@ -1943,7 +1943,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* ── 이번 달 목표 카드 ── */
 .monthly-card {
   background: var(--c-surface);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 18px 18px 16px;
   margin-top: 10px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -2005,7 +2005,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 0;
   align-items: center;
   background: var(--c-surface);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 18px 8px;
   margin-top: 10px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -2047,7 +2047,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .heatmap-card {
   background: var(--c-surface);
   border: none;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 20px 18px 18px;
   margin-top: 10px;
   overflow: hidden;
@@ -2145,7 +2145,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .note-search {
   background: var(--c-surface);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 11px 14px;
   display: flex; align-items: center; gap: 10px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -2169,12 +2169,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .note-type-seg {
   display: inline-flex;
   background: var(--c-border);
-  border-radius: 9px;
+  border-radius: 5px;
   padding: 2px;
 }
 .note-type-seg-btn {
   padding: 5px 11px;
-  border-radius: 7px;
+  border-radius: 4px;
   font-family: inherit;
   font-size: 12px; font-weight: 500;
   color: var(--c-text-2);
@@ -2195,7 +2195,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .note-fav-toggle {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 5px 10px;
-  border-radius: 7px;
+  border-radius: 4px;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
   font-family: inherit;
@@ -2239,7 +2239,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   z-index: 30;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: 0 6px 20px rgba(25,31,40,0.12);
   padding: 4px;
   min-width: 140px;
@@ -2250,7 +2250,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; align-items: center; justify-content: space-between;
   width: 100%;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 3px;
   background: transparent;
   border: none;
   font-family: inherit;
@@ -2275,7 +2275,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; gap: 7px;
   overflow-x: auto;
   margin: 14px -16px 14px;
-  padding: 2px 16px 8px;
+  padding: 8px 16px 8px;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
@@ -2387,7 +2387,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .note-card {
   background: var(--c-surface);
   border: none;
-  border-radius: 14px;
+  border-radius: 8px;
   border-left: 3px solid var(--c-border-2);
   padding: 13px 16px 11px;
   position: relative;
@@ -2599,7 +2599,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%; max-width: 480px;
   max-height: 84vh;
   background: var(--c-surface);
-  border-radius: 16px 16px 0 0;
+  border-radius: 10px 10px 0 0;
   z-index: 81;
   box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
   display: flex; flex-direction: column;
@@ -2652,7 +2652,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .note-book-sheet-search {
   background: var(--c-bg);
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 9px 13px;
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 10px;
@@ -2671,12 +2671,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .note-book-sheet-sort {
   display: inline-flex;
   background: var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 2px;
 }
 .note-book-sheet-sort-btn {
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: 3px;
   font-family: inherit;
   font-size: 11.5px; font-weight: 500;
   color: var(--c-text-2);
@@ -2821,7 +2821,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: inline-flex;
   background: var(--c-border);
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 3px;
   margin: 4px 0 16px;
 }
@@ -2839,7 +2839,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .vt-btn {
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: inherit;
   font-size: 14px; font-weight: 500;
   color: var(--c-label);
@@ -2867,7 +2867,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 60px 20px;
   text-align: center;
   background: var(--c-surface);
-  border-radius: 16px;
+  border-radius: 10px;
   margin-top: 8px;
 }
 .hall-empty-icon {
@@ -2895,7 +2895,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 히어로 카드 */
 .hall-hero {
   background: var(--c-surface);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 22px 20px 20px;
   margin-bottom: 20px;
   position: relative;
@@ -2975,7 +2975,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tag-radar {
   background: var(--c-surface);
   border: none;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 20px 20px 18px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
@@ -3069,7 +3069,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 16px;
   background: var(--primary);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 14px;
   box-shadow: 0 4px 14px rgba(25,31,40,0.15);
 }
@@ -3164,7 +3164,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 계절을 각각 독립 카드 블록으로 — 사이에 캔버스 배경 보임 */
 .season-group {
   background: var(--c-surface);
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
   margin-bottom: 16px;
   padding: 14px 0 0;
@@ -3350,7 +3350,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 8.5px;
   font-weight: 700;
   padding: 3px 8px;
-  border-radius: 12px;
+  border-radius: 6px;
   margin-left: 6px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -3388,7 +3388,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 11px;
+  border-radius: 6px;
   cursor: pointer;
   transition: border-color .15s, background .15s;
   user-select: none;
@@ -3404,7 +3404,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .lifebook-toggle-check {
   width: 20px; height: 20px;
-  border-radius: 6px;
+  border-radius: 3px;
   border: 1.5px solid var(--c-border-2);
   background: transparent;
   display: flex; align-items: center; justify-content: center;
@@ -3554,7 +3554,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 10px 12px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 11.5px; font-weight: 600;
   color: var(--c-text-2); line-height: 1.5;
 }
@@ -3573,7 +3573,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 10px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   text-align: center;
 }
 .pace-cell.main {
@@ -3636,7 +3636,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .stat-card-v2 {
   background: var(--c-surface);
   border: 0.5px solid var(--c-border-2);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 16px;
   margin-top: 8px;
 }
@@ -3912,7 +3912,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-align: center;
   letter-spacing: -0.01em;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
   transition: background .15s ease;
@@ -3946,7 +3946,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 500;
   color: var(--c-label);
   background: var(--c-surface-2);
-  border-radius: 6px;
+  border-radius: 3px;
   position: relative;
   transition: transform .15s ease;
 }
@@ -3978,7 +3978,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .month-cal-cell.has-cover .mc-cv {
   position: absolute;
   inset: 0;
-  border-radius: 6px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--c-surface-2);
   box-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.18);
@@ -4017,7 +4017,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .goal-strip {
   background: var(--c-surface);
   border: 0.5px solid var(--c-border-2);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 14px 16px;
   margin-top: 8px;
   display: flex;
@@ -4099,7 +4099,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .achv-card {
   background: var(--c-surface);
   border: 0.5px solid var(--c-border-2);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 16px;
   margin-top: 8px;
 }
@@ -4167,7 +4167,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: color-mix(in srgb, var(--c-gold-deep, #B8860B) 6%, transparent);
   border: 0.5px solid color-mix(in srgb, var(--c-gold-deep, #B8860B) 22%, transparent);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .achv-trophies-head {
   display: flex;
@@ -4199,7 +4199,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 4px 9px;
   background: var(--c-surface);
   border: 0.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   color: var(--c-text);
@@ -4335,7 +4335,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 6px;
   padding: 5px 10px;
   background: color-mix(in srgb, var(--c-terra-700) 9%, transparent);
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
   color: var(--c-terra-700);
@@ -4363,7 +4363,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .api-key-item {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 14px;
   margin-bottom: 10px;
 }
@@ -4379,7 +4379,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-text); letter-spacing: -.2px;
 }
 .api-key-flag {
-  width: 26px; height: 26px; border-radius: 7px;
+  width: 26px; height: 26px; border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
   font-size: 13px;
   flex-shrink: 0;
@@ -4418,7 +4418,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 10px 12px;
   background: var(--c-surface-2);
   border: 1.5px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 12px; font-weight: 500;
   color: var(--c-text);
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -4433,7 +4433,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 0 14px;
   background: var(--c-text);
   color: #fff;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 11.5px; font-weight: 800;
   letter-spacing: -.1px;
   flex-shrink: 0;
@@ -4513,7 +4513,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .cd-inner {
   background: var(--c-surface);
-  border-radius: 18px;
+  border-radius: 10px;
   padding: 22px 22px 16px;
   box-shadow:
     0 20px 48px rgba(0, 0, 0, 0.22),
@@ -4544,7 +4544,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   padding: 11px 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -4590,7 +4590,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%; max-width: 480px;
   height: 90vh;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 100;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -4619,7 +4619,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 10px;
 }
 .bas-back {
-  width: 40px; height: 40px; border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 5px;
   background: transparent;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -4635,7 +4635,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   line-height: 1;
 }
 .bas-close {
-  width: 40px; height: 40px; border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 5px;
   background: transparent;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -4663,7 +4663,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 14px;
   border: 1.5px solid var(--c-border-2);
   background: color-mix(in srgb, var(--primary) 4%, var(--c-surface));
-  border-radius: 14px;
+  border-radius: 8px;
   cursor: pointer;
   text-align: left;
   transition: transform .12s, background .15s, border-color .15s;
@@ -4745,7 +4745,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: absolute;
   width: 32px; height: 32px;
   border: 3px solid rgba(255, 255, 255, 0.9);
-  border-radius: 6px;
+  border-radius: 3px;
 }
 .scan-frame-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 10px; }
 .scan-frame-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 10px; }
@@ -4852,7 +4852,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--primary);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14.5px; font-weight: 700;
   cursor: pointer;
@@ -4929,7 +4929,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 15px; font-weight: 500;
   color: var(--c-text);
   font-family: inherit;
@@ -4946,7 +4946,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 0 20px;
   background: var(--primary);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -4964,7 +4964,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px;
   background: var(--c-surface);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all .15s;
   align-items: flex-start;
@@ -4974,7 +4974,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .result-cover {
   width: 48px; height: 68px;
-  border-radius: 6px;
+  border-radius: 3px;
   flex-shrink: 0;
   object-fit: cover;
   background: var(--c-border-2);
@@ -4982,7 +4982,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .result-cover-fallback {
   width: 48px; height: 68px;
-  border-radius: 6px;
+  border-radius: 3px;
   flex-shrink: 0;
   background: var(--c-border);
   display: flex; align-items: center; justify-content: center;
@@ -5131,7 +5131,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 12.5px; font-weight: 700;
   color: var(--c-text-2); letter-spacing: -.2px;
   display: flex; align-items: center; justify-content: center;
@@ -5166,7 +5166,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 11px 13px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 13.5px; font-weight: 500;
   color: var(--c-text);
   font-family: inherit;
@@ -5181,7 +5181,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px;
   background: var(--c-text);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 13.5px; font-weight: 800;
   letter-spacing: -.2px;
   box-shadow: 0 4px 14px rgba(0,0,0,.15);
@@ -5198,7 +5198,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 72px;
   flex-shrink: 0;
   aspect-ratio: 4 / 6;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
@@ -5261,13 +5261,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 16px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   margin-bottom: 18px;
   align-items: flex-start;
 }
 .confirm-cover {
   width: 68px; height: 96px;
-  border-radius: 6px;
+  border-radius: 3px;
   flex-shrink: 0;
   object-fit: cover;
   background: var(--c-border-2);
@@ -5275,7 +5275,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .confirm-cover-fallback {
   width: 68px; height: 96px;
-  border-radius: 6px;
+  border-radius: 3px;
   flex-shrink: 0;
   background: var(--c-border);
   display: flex; align-items: center; justify-content: center;
@@ -5340,7 +5340,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 11px 12px;
   border: 1.5px solid var(--c-border-2);
   background: var(--c-surface);
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -5378,7 +5378,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 11px 12px;
   border: 1.5px solid var(--c-border-2);
   background: var(--c-surface);
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -5415,11 +5415,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 3px;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .status-seg-btn {
   padding: 11px 4px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: inherit;
   font-size: 14px; font-weight: 500;
   color: var(--c-text-2);
@@ -5435,13 +5435,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   box-shadow: none;
 }
 
+/* 노트 추가 모달의 타입 토글은 버튼 2개 → 반반 차지 */
+#naTypeSeg.status-seg {
+  grid-template-columns: 1fr 1fr;
+}
+
 /* 태그 에디터 */
 .tag-chips-all {
   display: flex; flex-wrap: wrap; gap: 6px;
   padding: 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   min-height: 80px;
   max-height: 220px;
   overflow-y: auto;
@@ -5459,7 +5464,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tag-cat-tabs::-webkit-scrollbar { display: none; }
 .tag-cat-tab {
   padding: 7px 11px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   border: 1px solid transparent;
   font-family: inherit;
@@ -5520,7 +5525,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 8px;
   margin-bottom: 8px;
   padding: 9px 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 11.5px;
   color: var(--c-text-2);
   line-height: 1.4;
@@ -5813,7 +5818,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 11px 14px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 14px; font-weight: 500;
   color: var(--c-text);
@@ -5825,7 +5830,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 0 16px;
   background: var(--primary);
   color: #fff;
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 14px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -5844,7 +5849,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-border);
   color: var(--c-text);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -5855,7 +5860,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px;
   background: var(--primary);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -5879,7 +5884,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 22px;
   background: var(--c-text);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 500;
   letter-spacing: -0.01em;
@@ -5909,7 +5914,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 18px;
   background: var(--c-text);
   color: #fff;
-  border-radius: 14px;
+  border-radius: 8px;
   box-shadow: 0 10px 30px rgba(25,31,40,.3);
   display: flex;
   gap: 12px;
@@ -6001,7 +6006,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%; max-width: 480px;
   height: 92vh;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 110;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -6028,6 +6033,101 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 0 0 32px;
 }
 
+/* 책 상세 모달 — 노트 뷰 영역 */
+.bd-notes-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px 32px;
+  background: var(--c-canvas);
+}
+.bd-notes-count {
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  padding-bottom: 12px;
+}
+.bd-notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+.bd-notes-head .bd-notes-count {
+  padding-bottom: 0;
+}
+.bd-notes-add-btn {
+  padding: 7px 13px;
+  background: var(--c-text);
+  color: var(--c-canvas);
+  border: none;
+  border-radius: 4px;
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity .15s;
+}
+.bd-notes-add-btn:active {
+  opacity: 0.85;
+}
+.bd-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bd-notes-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+.bd-notes-empty-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-muted);
+}
+.bd-notes-empty-ttl {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.bd-notes-empty-sub {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  letter-spacing: -0.005em;
+  line-height: 1.5;
+}
+.bd-notes-empty-btn {
+  margin-top: 22px;
+  padding: 11px 22px;
+  background: var(--c-text);
+  color: var(--c-canvas);
+  border: none;
+  border-radius: 5px;
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: opacity .15s;
+  display: inline-flex;
+  align-items: center;
+}
+.bd-notes-empty-btn:active {
+  opacity: 0.85;
+}
+
 /* Hero — 커버 + 정보 (기본 구조) */
 .bd-hero {
   padding: 20px 20px 18px;
@@ -6048,7 +6148,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bd-hero-cover {
   width: 76px; height: 108px;
-  border-radius: 8px;
+  border-radius: 4px;
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(25,31,40,0.12);
   overflow: hidden;
@@ -6124,7 +6224,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 700;
   background: color-mix(in srgb, var(--c-gold-500, #C99836) 18%, transparent);
   color: var(--c-gold-500, #B5862E);
-  border-radius: 5px;
+  border-radius: 3px;
   z-index: 2;
   pointer-events: none;
   letter-spacing: -.2px;
@@ -6139,7 +6239,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 0;
   padding: 3px;
   background: var(--c-surface-2, #F5F6F7);
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 14px;
 }
 .format-toggle button {
@@ -6151,7 +6251,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 600;
   color: var(--c-muted);
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 4px;
   font-family: inherit;
   display: flex;
   align-items: center;
@@ -6177,7 +6277,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .ebook-pct-input {
   width: 100px; height: 50px;
   border: 1px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 26px;
   font-weight: 800;
   text-align: center;
@@ -6246,9 +6346,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   min-width: calc(16.66% - 5px);
   padding: 8px 4px;
-  background: #FAF5F0;
+  background: #F1EADB;
   border: 1px solid #E5DACA;
-  border-radius: 7px;
+  border-radius: 4px;
   font-size: 11.5px;
   font-weight: 700;
   color: #6D4C41;
@@ -6290,11 +6390,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .format-badge:active { transform: scale(0.94); opacity: 0.85; }
 .format-badge.ebook {
-  background: #FAF5F0;
+  background: #F1EADB;
   color: #6D4C41;
 }
 .format-badge.audio {
-  background: #E6F5F1;
+  background: #E0EAE5;
   color: #0F766E;
 }
 
@@ -6465,7 +6565,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 10px;
 }
 .balance-bar-row {
@@ -6502,7 +6602,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .balance-comment {
   padding: 11px 13px;
   background: color-mix(in srgb, var(--c-gold-500, #C99836) 10%, transparent);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--c-text);
@@ -6524,7 +6624,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 11px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -6535,7 +6635,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .taste-rec-cover {
   width: 100%;
   height: 80px;
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--c-border-2);
   display: flex;
   align-items: center;
@@ -6694,7 +6794,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .qr-confirm-card {
   background: var(--c-surface);
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 22px 20px 16px;
   width: 100%;
   max-width: 360px;
@@ -6731,7 +6831,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .qr-confirm-current {
   padding: 11px 13px;
   background: var(--c-surface-2, #F5F6F7);
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -6793,7 +6893,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 13px;
   background: var(--c-canvas, #FAFBFC);
   border: 1px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .qr-page-label {
   font-size: 12px;
@@ -6823,7 +6923,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .qr-page-input {
   width: 80px; height: 38px;
   border: 1px solid var(--c-border-2);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 0 10px;
   font-size: 15px;
   font-weight: 700;
@@ -6873,7 +6973,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 0;
   padding: 3px;
   background: var(--c-surface-2, #F5F6F7);
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 14px;
 }
 .format-toggle button {
@@ -6885,7 +6985,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-weight: 600;
   color: var(--c-muted);
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 4px;
   font-family: inherit;
   display: flex;
   align-items: center;
@@ -6915,11 +7015,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   letter-spacing: -.1px;
 }
 .format-badge.ebook {
-  background: #FAF5F0;
+  background: #F1EADB;
   color: #6D4C41;
 }
 .format-badge.audio {
-  background: #E6F5F1;
+  background: #E0EAE5;
   color: #0F766E;
 }
 
@@ -6936,7 +7036,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .pct-input {
   width: 110px; height: 48px;
   border: 1px solid var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 26px;
   font-weight: 800;
   text-align: center;
@@ -6990,9 +7090,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   min-width: calc(100% / 6 - 5px);
   padding: 8px 4px;
-  background: #FAF5F0;
+  background: #F1EADB;
   border: 1px solid #E5DACA;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 11.5px;
   font-weight: 700;
   color: #6D4C41;
@@ -7019,7 +7119,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .qr-confirm-btn {
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   font-size: 13.5px;
   font-weight: 700;
@@ -7163,7 +7263,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 8px 10px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px; font-weight: 700;
   text-align: center;
   color: var(--c-text);
@@ -7233,7 +7333,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: none;
 }
 .bd-read-item + .bd-read-item {
@@ -7244,14 +7344,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border: none;
   background: color-mix(in srgb, var(--primary) 5%, var(--c-surface));
   box-shadow: none;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 .bd-read-item.current + .bd-read-item {
   border-top: 1px solid var(--c-border);
 }
 .bd-read-num {
   width: 22px; height: 22px;
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--c-surface-2);
   color: var(--c-text-2);
   display: flex; align-items: center; justify-content: center;
@@ -7275,7 +7375,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bd-read-del {
   width: 24px; height: 24px;
-  border-radius: 6px;
+  border-radius: 3px;
   background: transparent;
   color: var(--c-muted);
   display: flex; align-items: center; justify-content: center;
@@ -7290,7 +7390,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 편집 버튼 (연필) · 삭제와 같은 크기·정렬 */
 .bd-read-edit {
   width: 24px; height: 24px;
-  border-radius: 6px;
+  border-radius: 3px;
   background: transparent;
   color: var(--c-muted);
   border: none;
@@ -7349,7 +7449,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
 }
 .bd-read-edit-form .bd-read-form-actions .btn-secondary {
@@ -7369,14 +7469,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 32px;
   height: 32px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 .bd-read-add {
   width: 100%;
   padding: 13px;
   background: var(--c-surface-2);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 600;
   color: var(--primary);
@@ -7397,7 +7497,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px;
   background: var(--c-surface);
   border: 1.5px solid var(--brand-primary);
-  border-radius: 12px;
+  border-radius: 6px;
   display: flex; flex-direction: column;
   gap: 10px;
 }
@@ -7414,7 +7514,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 8px 10px;
   background: var(--c-surface-2);
   border: 1.5px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px; font-weight: 500;
   color: var(--c-text);
   font-family: inherit;
@@ -7426,7 +7526,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   padding: 10px;
   font-size: 12px; font-weight: 800;
-  border-radius: 9px;
+  border-radius: 5px;
 }
 
 /* 별점 에디터 — 드래그 슬라이더 (v1.7.0) */
@@ -7437,7 +7537,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   padding: 6px 4px;
   background: var(--c-surface, #F5F5F7);
-  border-radius: 12px;
+  border-radius: 6px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -7450,7 +7550,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   min-width: 36px;
   max-width: 56px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 5px;
   background: transparent;
   border: none;
   font-size: 26px; font-weight: 600;
@@ -7514,7 +7614,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 11px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
@@ -7569,7 +7669,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .ct-modal.open { opacity: 1; pointer-events: auto; }
 .ct-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 400px;
   max-height: 92vh;
@@ -7601,7 +7701,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ct-icon {
   width: 56px; height: 56px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-surface-2);
   color: var(--primary);
   display: flex; align-items: center; justify-content: center;
@@ -7658,7 +7758,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-bg);
   color: var(--c-text);
   font-family: inherit;
@@ -7681,7 +7781,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 8px;
   padding: 10px 12px;
   background: var(--c-bg);
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -7702,7 +7802,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ct-email-copy {
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: 3px;
   border: 1px solid var(--c-border);
   background: var(--c-surface);
   color: var(--c-text-2);
@@ -7717,7 +7817,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-text);
   color: var(--c-surface);
   font-family: inherit;
@@ -7760,7 +7860,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .im-modal.open { opacity: 1; pointer-events: auto; }
 .im-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 440px;
   max-height: 92vh;
@@ -7799,7 +7899,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .im-icon {
   width: 56px; height: 56px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-surface-2);
   color: var(--primary);
   display: flex; align-items: center; justify-content: center;
@@ -7830,7 +7930,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 8px;
   padding: 32px 20px;
   border: 2px dashed var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-bg);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -7858,7 +7958,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-top: 16px;
   padding: 12px 14px;
   background: var(--c-bg);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .im-template-txt { flex: 1; min-width: 0; }
 .im-template-ttl {
@@ -7873,7 +7973,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .im-template-btn {
   padding: 8px 12px;
   border: 1px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--c-surface);
   color: var(--c-text-2);
   font-family: inherit;
@@ -7895,7 +7995,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 10px;
   padding: 10px 12px;
   background: var(--c-bg);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .im-map-field {
   flex: 0 0 90px;
@@ -7909,7 +8009,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   min-width: 0;
   padding: 7px 10px;
   border: 1px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--c-surface);
   color: var(--c-text);
   font-family: inherit;
@@ -7928,7 +8028,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 10px;
   padding: 10px 12px;
   background: var(--c-bg);
-  border-radius: 8px;
+  border-radius: 4px;
   align-items: baseline;
 }
 .im-preview-idx {
@@ -7965,7 +8065,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-top: 14px;
   padding: 10px 12px;
   background: var(--c-bg);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .im-opt {
   display: flex; align-items: center; gap: 8px;
@@ -7980,7 +8080,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border: 1px solid #f4d8a3;
   background: #fef6e4;
   color: #9a6b1c;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 11px;
   line-height: 1.6;
   max-height: 100px;
@@ -7997,7 +8097,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .im-btn-primary, .im-btn-ghost {
   padding: 13px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 700;
   cursor: pointer;
@@ -8054,7 +8154,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .rs-modal.open { opacity: 1; pointer-events: auto; }
 .rs-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 420px;
   max-height: 92vh;
@@ -8106,7 +8206,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 16px;
   border: 1px solid rgba(226, 75, 74, 0.25);
   background: rgba(226, 75, 74, 0.04);
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 18px;
 }
 .rs-warn-ttl {
@@ -8167,7 +8267,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   background: var(--c-bg);
   color: var(--c-text);
   font-family: inherit;
@@ -8185,7 +8285,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .rs-btn-ghost, .rs-btn-danger {
   padding: 13px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 700;
   cursor: pointer;
@@ -8224,7 +8324,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .ab-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 400px;
   max-height: 92vh;
@@ -8258,7 +8358,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ab-icon {
   width: 56px; height: 56px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-surface-2);
   color: var(--primary);
   display: flex; align-items: center; justify-content: center;
@@ -8343,7 +8443,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .ex-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 400px;
   max-height: 92vh;
@@ -8375,7 +8475,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ex-icon {
   width: 56px; height: 56px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-surface-2);
   color: var(--primary);
   display: flex; align-items: center; justify-content: center;
@@ -8399,12 +8499,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 4px;
   padding: 3px;
   background: var(--c-surface-2);
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 16px;
 }
 .ex-tab {
   padding: 9px 4px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   border: none;
   font-family: inherit;
@@ -8463,7 +8563,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-top: 12px;
   padding: 10px 12px;
   background: var(--c-surface-2);
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 11.5px;
   color: var(--c-label);
   line-height: 1.5;
@@ -8493,7 +8593,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border);
-  border-radius: 11px;
+  border-radius: 6px;
   text-align: left;
   cursor: pointer;
   transition: all .15s;
@@ -8531,7 +8631,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 13px; font-weight: 700;
   letter-spacing: -0.01em;
@@ -8577,7 +8677,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .ob-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 380px;
   max-height: 90vh;
@@ -8621,7 +8721,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 20px;
   display: flex; align-items: center; justify-content: center;
   background: var(--c-surface-2);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--primary);
 }
 .ob-art > svg { width: 64px; height: 64px; }
@@ -8667,7 +8767,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 8px;
   height: 104px;               /* 고정 높이 — 세로 긴 직사각형 */
   background: var(--c-surface);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--c-text-2);
   font-size: 12px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -8695,7 +8795,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; align-items: center; justify-content: center;
   height: 104px;               /* ob-tab과 동일 */
   background: var(--c-surface);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--primary);
   border: 1px solid var(--c-border);
 }
@@ -8734,7 +8834,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 20px;
   padding: 14px 16px;
   background: var(--c-surface-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 13px;
   color: var(--c-text-2);
   line-height: 1.5;
@@ -8761,7 +8861,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 14px;
+  border-radius: 8px;
   text-align: left;
   cursor: pointer;
   transition: all .15s;
@@ -8775,7 +8875,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ob-choice-icon {
   width: 44px; height: 44px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-surface-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 22px;
@@ -8820,7 +8920,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 700;
   letter-spacing: -0.01em;
@@ -8863,7 +8963,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .wn-card {
   background: var(--c-surface);
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 380px;
   max-height: 88vh;
@@ -8924,7 +9024,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .wn-hero {
   background: linear-gradient(135deg, #FAF6ED 0%, #FFF7E0 100%);
   border: 1.5px solid #E5C04E;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 16px 14px 14px;
   margin-bottom: 12px;
   position: relative;
@@ -8976,7 +9076,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .ms-cell {
   background: rgba(255,255,255,0.7);
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 9px 10px;
   display: flex;
   align-items: center;
@@ -9006,7 +9106,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* ───── 동시 독서 카드 스택 (v1.4.0) ───── */
 .wn-multi {
   background: var(--c-surface-2);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 12px 12px 14px;
 }
 .wn-multi-head {
@@ -9100,7 +9200,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* ───── HERO 안 검색 데모 시각화 (v1.5.1) ───── */
 .wn-search-demo {
   background: var(--c-surface);
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 10px;
   border: 1px solid rgba(229, 192, 78, 0.25);
   margin-top: 12px;
@@ -9113,7 +9213,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 6px;
   padding: 6px 10px;
   background: var(--c-surface-2, #F5F6F7);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 11.5px;
   color: var(--c-text-2);
   margin-bottom: 8px;
@@ -9134,7 +9234,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 6px;
   padding: 5px 8px;
   background: var(--c-canvas, #FAFBFC);
-  border-radius: 6px;
+  border-radius: 3px;
 }
 .wn-src-chip {
   font-size: 9px;
@@ -9169,7 +9269,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--c-drop-soft);
-  border-radius: 10px;
+  border-radius: 5px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -9221,7 +9321,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .wn-drop-demo-chip {
   padding: 3px 9px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-drop-deep);
   color: #fff;
   font-size: 10.5px;
@@ -9238,7 +9338,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -9249,7 +9349,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 6px;
   padding: 6px 10px;
   background: var(--c-surface-2, #F5F6F7);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 11px;
   color: var(--c-text-2);
   font-weight: 600;
@@ -9262,7 +9362,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 9px;
   padding: 7px 9px;
   background: var(--c-canvas);
-  border-radius: 7px;
+  border-radius: 4px;
   border: 1px solid var(--c-border);
   transition: opacity .3s;
 }
@@ -9330,7 +9430,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .wn-year-head {
   font-size: 11px;
@@ -9360,7 +9460,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .wn-year-row:last-child { border-bottom: none; }
 .wn-year-num {
   width: 18px; height: 18px;
-  border-radius: 5px;
+  border-radius: 3px;
   background: var(--brand-primary);
   color: #fff;
   display: flex; align-items: center; justify-content: center;
@@ -9397,7 +9497,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 16px;
   background: var(--c-drop-bg);
   border-left: 3px solid var(--c-drop-bookmark);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 5px 5px 0;
   font-size: 13px;
   line-height: 1.65;
   color: var(--c-drop-deep);
@@ -9414,7 +9514,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 10px 14px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 /* ───── HERO 시각 (v1.7.0) — 기기 간 동기화 데모 ───── */
@@ -9428,7 +9528,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .wn-sync-device {
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 10px 8px;
   text-align: center;
   position: relative;
@@ -9514,7 +9614,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px 15px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .wn-devnote-head {
   font-size: 10.5px;
@@ -9573,7 +9673,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 12px;
   padding: 12px 12px;
   background: var(--c-surface-2);
-  border-radius: 12px;
+  border-radius: 6px;
   transition: background .15s;
 }
 .wn-item-highlight {
@@ -9583,7 +9683,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .wn-icon {
   width: 36px; height: 36px;
-  border-radius: 10px;
+  border-radius: 5px;
   background: var(--c-surface);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
@@ -9619,7 +9719,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .wn-btn {
   flex: 1;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -9646,7 +9746,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: transparent;
   color: var(--c-oxblood);
   border: 1.5px solid var(--c-oxblood);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -9659,7 +9759,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 16px;
   background: rgba(240,68,82,0.06);
   border: 1.5px solid var(--c-oxblood);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .bd-danger-confirm-ttl {
   font-family: inherit;
@@ -9674,7 +9774,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px;
   font-family: inherit;
   font-size: 14px; font-weight: 600;
-  border-radius: 10px;
+  border-radius: 5px;
   letter-spacing: -0.01em;
 }
 .bd-danger-actions .btn-cancel {
@@ -9702,7 +9802,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 15px;
   line-height: 1;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: 3px;
   color: var(--c-border-2);
   transition: all .15s;
   filter: grayscale(1);
@@ -9762,7 +9862,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%; max-width: 480px;
   height: 88vh;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 111;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -9792,7 +9892,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 9px 18px;
   background: var(--primary);
   color: #fff;
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 14px; font-weight: 600;
   letter-spacing: -0.01em;
@@ -9839,7 +9939,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 500;
   color: var(--c-text);
@@ -9870,7 +9970,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 14px; font-weight: 500;
   color: var(--c-text-2);
@@ -9907,7 +10007,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: transparent;
   color: var(--c-terra-700);
   border: 1.5px solid color-mix(in srgb, var(--c-terra-500) 40%, var(--c-border));
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 12.5px; font-weight: 800;
   letter-spacing: -.1px;
   transition: all .15s;
@@ -9920,7 +10020,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 14px;
   background: color-mix(in srgb, var(--c-terra-500) 10%, var(--c-surface));
   border: 1.5px solid var(--c-terra-700);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .na-delete-confirm-ttl {
   font-size: 12px; font-weight: 800;
@@ -9936,7 +10036,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .na-delete-actions button {
   padding: 10px;
   font-size: 12px; font-weight: 800;
-  border-radius: 9px;
+  border-radius: 5px;
 }
 .na-delete-actions .cancel {
   background: var(--c-surface);
@@ -9991,7 +10091,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   transform: translate(-50%, 100%);
   width: 100%; max-width: 480px;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 120;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -10020,7 +10120,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-align: center;
   padding: 14px 16px;
   background: var(--c-surface);
-  border-radius: 12px;
+  border-radius: 6px;
   border: none;
   box-shadow: 0 1px 3px rgba(25,31,40,0.04);
 }
@@ -10118,7 +10218,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tm-time-input {
   width: 72px; height: 56px;
   border: 2px solid #d4a574;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 0 8px;
   font-size: 32px;
   font-weight: 800;
@@ -10154,7 +10254,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: linear-gradient(135deg, #FFF8E1 0%, #FFF3CC 100%);
   border: 1px solid #F5D547;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 .tm-sleep-warn.active { display: block; }
 .tm-sleep-warn-head {
@@ -10236,7 +10336,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 13px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 18px; font-weight: 700;
   color: var(--c-text);
@@ -10267,7 +10367,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tm-actions .btn-primary {
   padding: 14px;
   font-size: 15px;
-  border-radius: 12px;
+  border-radius: 6px;
   letter-spacing: -0.01em;
 }
 
@@ -10277,7 +10377,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding: 12px 14px;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c-terra-500) 5%, var(--c-surface)), var(--c-surface));
   border: 1px solid color-mix(in srgb, var(--c-terra-500) 20%, var(--c-border));
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .pace-timer-head {
   display: flex; align-items: center; gap: 6px;
@@ -10682,7 +10782,7 @@ body.cn-locked {
   width: 100%; max-width: 480px;
   height: 75vh;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 112;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -10735,12 +10835,46 @@ body.cn-locked {
   padding: 12px 14px;
   background: var(--c-surface);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all .15s;
   box-shadow: 0 1px 2px rgba(25,31,40,0.04);
 }
 .dd-item:active { transform: scale(.995); background: var(--c-surface-2); }
+
+/* DAY 뷰 분리 렌더용 — 읽는 중 / 그 외 섹션 라벨 + 더 보기 */
+.dd-section-lbl {
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  padding: 14px 4px 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+.dd-section-lbl::after {
+  content: ""; flex: 1; height: 1px;
+  background: var(--c-border);
+}
+.dd-section-lbl:first-child { padding-top: 4px; }
+
+.dd-more-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  border-radius: 5px;
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  cursor: pointer;
+  transition: background .12s;
+}
+.dd-more-btn:active { background: var(--c-surface-2); }
 .dd-item-cover {
   width: 32px; height: 46px;
   border-radius: 4px;
@@ -10829,7 +10963,7 @@ body.cn-locked {
 /* 티켓 본체 — 순백 카드 */
 .dd-ticket {
   background: #FFFFFF;
-  border-radius: 6px;
+  border-radius: 3px;
   position: relative;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
@@ -10852,7 +10986,7 @@ body.cn-locked {
   padding: 14px 8px;
   border-right: 1.5px dashed rgba(255, 255, 255, 0.4);
   position: relative;
-  border-radius: 6px 0 0 6px;
+  border-radius: 3px 0 0 3px;
 }
 .dd-ticket-stub > .dd-stub-vtext:first-child { align-self: start; }
 .dd-ticket-stub > .dd-stub-vtext:last-child { align-self: end; }
@@ -11034,7 +11168,7 @@ body.cn-locked {
   justify-content: center;
   gap: 6px;
   padding: 12px 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -11262,7 +11396,7 @@ body.cn-locked {
   display: flex; align-items: center;
   background: color-mix(in srgb, var(--c-text) 5%, var(--c-surface));
   border: 1.5px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 0 10px 0 12px;
   transition: border-color .15s, background .15s;
 }
@@ -11448,7 +11582,7 @@ body.cn-locked {
   width: 100%; max-width: 480px;
   max-height: 85vh;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   z-index: 100;
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -11482,7 +11616,7 @@ body.cn-locked {
   line-height: 1;
 }
 .settings-close {
-  width: 40px; height: 40px; border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 5px;
   background: transparent;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -11529,7 +11663,7 @@ body.cn-locked {
 .theme-card {
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 14px 14px 12px;
   text-align: left;
   transition: all .2s;
@@ -11555,7 +11689,7 @@ body.cn-locked {
   grid-template-columns: repeat(4, 1fr);
   gap: 3px;
   height: 36px;
-  border-radius: 7px;
+  border-radius: 4px;
   overflow: hidden;
   margin-bottom: 10px;
 }
@@ -11576,7 +11710,7 @@ body.cn-locked {
 .settings-list {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
 }
 .settings-row {
@@ -11590,7 +11724,7 @@ body.cn-locked {
 .settings-row:last-child { border-bottom: none; }
 .settings-row:active { background: var(--c-surface-2); }
 .settings-row-icon {
-  width: 32px; height: 32px; border-radius: 9px;
+  width: 32px; height: 32px; border-radius: 5px;
   background: var(--c-surface-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0;
@@ -11679,7 +11813,7 @@ body.cn-locked {
   width: 100%;
   max-width: 480px;
   background: var(--c-surface);
-  border-radius: 18px 18px 0 0;
+  border-radius: 10px 10px 0 0;
   padding: 12px 0 28px;
   transform: translateY(100%);
   transition: transform .32s cubic-bezier(0.32, 0.72, 0, 1);
@@ -11717,7 +11851,7 @@ body.cn-locked {
   padding: 14px;
   margin: 0 16px 18px;
   background: var(--c-drop-bg);
-  border-radius: 12px;
+  border-radius: 6px;
   border: 1px solid var(--c-drop-soft);
 }
 .drop-sheet-book-cover {
@@ -11811,7 +11945,7 @@ body.cn-locked {
 }
 .drop-reason-chip {
   padding: 8px 12px;
-  border-radius: 18px;
+  border-radius: 10px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border-2);
   font-size: 12.5px;
@@ -11871,7 +12005,7 @@ body.cn-locked {
 .drop-add-chip-input {
   flex: 1;
   padding: 9px 12px;
-  border-radius: 18px;
+  border-radius: 10px;
   background: var(--c-canvas);
   border: 1.5px solid var(--c-drop-bookmark);
   font-size: 13px;
@@ -11883,7 +12017,7 @@ body.cn-locked {
 }
 .drop-add-chip-confirm {
   padding: 9px 14px;
-  border-radius: 18px;
+  border-radius: 10px;
   background: var(--c-drop-deep);
   color: #fff;
   font-size: 12.5px;
@@ -11897,7 +12031,7 @@ body.cn-locked {
 .drop-note-input {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border-2);
   font-size: 14px;
@@ -11946,12 +12080,12 @@ body.cn-locked {
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   background: var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 4px;
 }
 .drop-retry-btn {
   padding: 9px 4px;
-  border-radius: 7px;
+  border-radius: 4px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--c-label);
@@ -11982,7 +12116,7 @@ body.cn-locked {
 }
 .drop-btn-cancel {
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-border);
   color: var(--c-text);
   font-weight: 700;
@@ -11994,7 +12128,7 @@ body.cn-locked {
 }
 .drop-btn-confirm {
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-drop-deep);
   color: #fff;
   font-weight: 700;
@@ -12017,7 +12151,7 @@ body.cn-locked {
   padding: 14px 16px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .bd-drop-meta-card h4 {
   font-size: 13px;
@@ -12046,7 +12180,7 @@ body.cn-locked {
 }
 .bd-drop-reason-tag {
   padding: 4px 10px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--c-drop-bg);
   border: 1px solid var(--c-drop-soft);
   font-size: 11.5px;
@@ -12063,7 +12197,7 @@ body.cn-locked {
   padding: 12px 14px;
   background: var(--c-drop-bg);
   border-left: 3px solid var(--c-drop-bookmark);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 5px 5px 0;
   font-size: 13.5px;
   color: var(--c-drop-deep);
   font-style: italic;
@@ -12104,7 +12238,7 @@ body.cn-locked {
   width: calc(100% - 32px);
   margin: 4px 16px 0;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: linear-gradient(95deg, var(--c-drop-bookmark), #9D7B58);
   color: #fff;
   font-weight: 700;
@@ -12144,7 +12278,7 @@ body.cn-locked {
   width: 100%;
   max-width: 380px;
   background: var(--c-surface);
-  border-radius: 18px;
+  border-radius: 10px;
   padding: 22px 18px 18px;
   transform: scale(0.92);
   transition: transform .25s cubic-bezier(0.32, 0.72, 0, 1);
@@ -12180,7 +12314,7 @@ body.cn-locked {
 }
 .retry-dialog-opt {
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--c-surface);
   border: 2px solid var(--c-border-2);
   text-align: left;
@@ -12242,11 +12376,11 @@ body.cn-locked {
 
 /* ─── 하차 통계 카드 (통계 탭) ─── */
 .drop-stat-card {
-  margin: 14px 16px;
+  margin: 14px 0;
   padding: 18px 18px 16px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
 }
 .drop-stat-head {
   display: flex;
@@ -12281,7 +12415,7 @@ body.cn-locked {
 }
 .drop-stat-summary-item {
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 5px;
   text-align: left;
 }
 .drop-stat-summary-item.done {
@@ -12371,7 +12505,7 @@ body.cn-locked {
   padding: 12px 14px;
   background: linear-gradient(135deg, #FFF8E1, #FFF3CC);
   border: 1px solid #F5D547;
-  border-radius: 10px;
+  border-radius: 5px;
   display: flex;
   gap: 10px;
 }
@@ -12419,7 +12553,7 @@ body.cn-locked {
   max-width: 600px;
   max-height: 92vh;
   background: var(--c-canvas);
-  border-radius: 24px 24px 0 0;
+  border-radius: 8px 8px 0 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -12458,32 +12592,34 @@ body.cn-locked {
   margin: 0 20px 18px;
   padding: 28px 22px 24px;
   background:
-    radial-gradient(ellipse at top right, rgba(212, 165, 116, 0.18), transparent 60%),
-    linear-gradient(160deg, #FFF8EE, #FFE8C2);
-  border-radius: 18px;
-  border: 1px solid #F0DCB4;
+    radial-gradient(ellipse at top right, rgba(140, 106, 60, 0.07), transparent 60%),
+    linear-gradient(160deg, var(--c-surface), var(--c-border-2));
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
   position: relative; overflow: hidden;
 }
 .sp-hero-coin {
   position: absolute; top: -10px; right: -10px;
-  width: 80px; height: 80px; opacity: 0.18;
+  width: 80px; height: 80px; opacity: 0.1;
   transform: rotate(-12deg); pointer-events: none;
+  filter: grayscale(0.85);
 }
 .sp-hero-label {
-  font-size: 11.5px; font-weight: 600;
-  letter-spacing: 0.1em; color: var(--c-coin-deep);
+  font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.18em; color: var(--c-muted);
   margin-bottom: 8px; text-transform: uppercase;
 }
 .sp-hero-num {
-  font-size: 38px; font-weight: 900;
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 38px; font-weight: 800;
   letter-spacing: -0.04em; line-height: 1;
-  background: linear-gradient(135deg, #8B6D3D, #5C4520);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--c-text);
+  background: none;
+  -webkit-text-fill-color: currentColor;
   margin-bottom: 8px; font-variant-numeric: tabular-nums;
 }
-.sp-hero-meta { font-size: 12.5px; color: #6B5430; line-height: 1.6; }
-.sp-hero-meta b { font-weight: 700; color: var(--c-coin-deep); }
+.sp-hero-meta { font-size: 12.5px; color: var(--c-text-2); line-height: 1.6; }
+.sp-hero-meta b { font-weight: 700; color: var(--c-text); }
 
 .sp-section { margin: 22px 20px 0; }
 .sp-sec-title {
@@ -12496,7 +12632,7 @@ body.cn-locked {
 .media-bar {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px; padding: 12px 14px;
+  border-radius: 6px; padding: 12px 14px;
 }
 .media-bar-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -12507,12 +12643,12 @@ body.cn-locked {
   display: flex; align-items: center; gap: 6px;
 }
 .media-bar .media-icon {
-  width: 22px; height: 22px; border-radius: 6px;
+  width: 22px; height: 22px; border-radius: 3px;
   display: grid; place-items: center; font-size: 11px;
 }
-.media-bar.paper .media-icon { background: #FAF5F0; color: #6D4C41; }
-.media-bar.ebook .media-icon { background: #F5EDE8; color: #4E342E; }
-.media-bar.audio .media-icon { background: #E6F5F1; color: #0F766E; }
+.media-bar.paper .media-icon { background: #F1EADB; color: #6D4C41; }
+.media-bar.ebook .media-icon { background: #ECE6DA; color: #4E342E; }
+.media-bar.audio .media-icon { background: #E0EAE5; color: #0F766E; }
 
 .media-amount {
   font-size: 13.5px; font-weight: 700; color: var(--c-text);
@@ -12539,7 +12675,7 @@ body.cn-locked {
   padding: 12px 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 6px;
   border-left: 3px solid var(--c-coin-2);
   font-size: 11.5px; color: var(--c-text-2); line-height: 1.6;
 }
@@ -12550,7 +12686,7 @@ body.cn-locked {
   width: 100%; padding: 12px 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: inherit; font-size: 12.5px; font-weight: 600;
   color: var(--c-text-2); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -12572,7 +12708,7 @@ body.cn-locked {
 .sp-detail-card {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 12px; padding: 14px;
+  border-radius: 6px; padding: 14px;
 }
 .sp-detail-card-label {
   font-size: 10.5px; font-weight: 600;
@@ -12589,8 +12725,8 @@ body.cn-locked {
 }
 .sp-milestone-card {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #FFF8EE, #FFEDD0);
-  border-color: #F0DCB4;
+  background: var(--c-surface);
+  border-color: var(--c-border);
 }
 .sp-milestone-line {
   margin-top: 10px; height: 6px;
@@ -12599,7 +12735,7 @@ body.cn-locked {
 }
 .sp-milestone-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--c-coin-1), var(--c-coin-2));
+  background: var(--c-text);
   border-radius: 3px;
   transition: width .6s cubic-bezier(.2,.8,.2,1);
 }
@@ -12608,7 +12744,7 @@ body.cn-locked {
   display: flex; justify-content: space-between;
   font-size: 10px; color: var(--c-muted); font-weight: 600;
 }
-.sp-milestone-ticks span.active { color: var(--c-coin-deep); font-weight: 800; }
+.sp-milestone-ticks span.active { color: var(--c-text); font-weight: 800; }
 
 .sp-empty {
   margin: 20px;
@@ -12616,7 +12752,7 @@ body.cn-locked {
   text-align: center;
   background: var(--c-surface);
   border: 1px dashed var(--c-border-2);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--c-muted); font-size: 13px; line-height: 1.6;
 }
 .sp-empty b { color: var(--c-text-2); font-weight: 700; display: block; margin-bottom: 4px; }
@@ -12632,7 +12768,7 @@ body.cn-locked {
 .price-card {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 16px 16px 14px;
   position: relative;
 }
@@ -12702,7 +12838,7 @@ body.cn-locked {
   background: #FFE8DC;
   color: #B85024;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 
 .price-chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -12751,7 +12887,7 @@ body.cn-locked {
   width: 100%;
   padding: 10px 12px 10px 24px;
   border: 1.5px solid var(--c-border-2);
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -12780,7 +12916,7 @@ body.cn-locked {
   line-height: 1.55;
   background: var(--c-surface-2);
   padding: 9px 11px;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 .price-edit-hint b { color: var(--c-text-2); font-weight: 600; }
 
@@ -12792,7 +12928,7 @@ body.cn-locked {
 .price-btn {
   flex: 1;
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -12815,8 +12951,8 @@ body.cn-locked {
 .audio-hint {
   margin-top: 12px;
   padding: 10px 12px;
-  background: #E6F5F1;
-  border-radius: 9px;
+  background: #E0EAE5;
+  border-radius: 5px;
   border-left: 3px solid #0F766E;
   font-size: 11px;
   color: #115E5A;
@@ -12832,7 +12968,7 @@ body.cn-locked {
 .book-picker {
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-radius: 12px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
@@ -12845,7 +12981,7 @@ body.cn-locked {
   width: 100%;
   padding: 8px 12px 8px 32px;
   border: 1px solid var(--c-border-2);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--c-canvas);
   font-family: inherit;
   font-size: 13px;
@@ -13024,7 +13160,7 @@ body.cn-locked {
   padding: 0 !important;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
+  border-radius: 5px;
   overflow: hidden;
   transition: all .15s;
 }
@@ -13040,15 +13176,15 @@ body.cn-locked {
 }
 .sp-row-fmt {
   width: 22px; height: 22px;
-  border-radius: 5px;
+  border-radius: 3px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   font-size: 11px;
 }
-.sp-row-fmt.paper { background: #FAF5F0; }
-.sp-row-fmt.ebook { background: #F5EDE8; }
-.sp-row-fmt.audio { background: #E6F5F1; }
+.sp-row-fmt.paper { background: #F1EADB; }
+.sp-row-fmt.ebook { background: #ECE6DA; }
+.sp-row-fmt.audio { background: #E0EAE5; }
 .sp-row-info { flex: 1; min-width: 0; }
 .sp-row-title {
   font-size: 13px;
@@ -13100,7 +13236,7 @@ body.cn-locked {
   padding: 10px;
   background: transparent;
   border: 1px dashed var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -13116,20 +13252,25 @@ body.cn-locked {
 
 /* ═══════════ v1.8.0 — Bookflex 풀세트 ═══════════ */
 .bookflex-mark {
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
   font-size: 24px;
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: -0.025em;
-  line-height: 1.25;
-  background: linear-gradient(135deg, #D4A574, #B8956A 50%, #8B6D3D);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+  color: var(--c-text);
   margin: 0;
   padding: 4px 10px 4px 2px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   overflow: visible;
   white-space: nowrap;
+}
+.bookflex-mark svg {
+  width: 14px;
+  height: auto;
+  flex-shrink: 0;
 }
 .sp-head { align-items: center !important; }
 
@@ -13189,7 +13330,7 @@ body.cn-locked {
   padding: 24px 16px;
   background: var(--c-surface);
   border: 1px dashed var(--c-border-2);
-  border-radius: 10px;
+  border-radius: 5px;
   text-align: center;
   font-size: 12.5px;
   color: var(--c-muted);
@@ -13202,7 +13343,7 @@ body.cn-locked {
   padding: 20px 16px 16px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
+  border-radius: 5px;
 }
 .bfm-head {
   display: flex;
@@ -13213,8 +13354,8 @@ body.cn-locked {
 .bfm-label {
   font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--c-coin-deep);
+  letter-spacing: 0.18em;
+  color: var(--c-muted);
   text-transform: uppercase;
 }
 .bfm-remain {
@@ -13234,7 +13375,7 @@ body.cn-locked {
   padding: 10px 2px 11px;
   background: #FAFAFA;
   border: 1px solid #F0EDE8;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all .3s;
   display: flex;
   flex-direction: column;
@@ -13243,12 +13384,12 @@ body.cn-locked {
 }
 .bfm-step.reached {
   background: var(--c-surface);
-  border-color: rgba(184, 149, 106, 0.3);
+  border-color: rgba(20, 17, 13, 0.18);
 }
 .bfm-step.current {
   background: var(--c-surface);
-  border: 1.5px solid var(--c-coin-deep);
-  box-shadow: 0 4px 12px rgba(139, 109, 61, 0.12);
+  border: 1.5px solid var(--c-text);
+  box-shadow: 0 4px 12px rgba(20, 17, 13, 0.10);
   transform: translateY(-2px);
 }
 .bfm-stack {
@@ -13273,7 +13414,7 @@ body.cn-locked {
 }
 .bfm-progress-fill {
   height: 100%;
-  background: var(--c-coin-deep);
+  background: var(--c-text);
   border-radius: 2px;
   transition: width .8s cubic-bezier(.2, .8, .2, 1);
 }
@@ -13288,7 +13429,7 @@ body.cn-locked {
   padding: 20px 16px 16px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
+  border-radius: 5px;
   position: relative;
 }
 .bfm-head {
@@ -13300,8 +13441,8 @@ body.cn-locked {
 .bfm-label {
   font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--c-coin-deep);
+  letter-spacing: 0.18em;
+  color: var(--c-muted);
   text-transform: uppercase;
 }
 .bfm-remain {
@@ -13321,7 +13462,7 @@ body.cn-locked {
   padding: 10px 2px 11px;
   background: #FAFAFA;
   border: 1px solid #F0EDE8;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all .3s;
   display: flex;
   flex-direction: column;
@@ -13330,12 +13471,12 @@ body.cn-locked {
 }
 .bfm-step.reached {
   background: var(--c-surface);
-  border-color: rgba(184, 149, 106, 0.3);
+  border-color: rgba(20, 17, 13, 0.18);
 }
 .bfm-step.current {
   background: var(--c-surface);
-  border: 1.5px solid var(--c-coin-deep);
-  box-shadow: 0 4px 12px rgba(139, 109, 61, 0.12);
+  border: 1.5px solid var(--c-text);
+  box-shadow: 0 4px 12px rgba(20, 17, 13, 0.10);
   transform: translateY(-2px);
 }
 .bfm-stack {
@@ -13361,7 +13502,7 @@ body.cn-locked {
 }
 .bfm-progress-fill {
   height: 100%;
-  background: var(--c-coin-deep);
+  background: var(--c-text);
   border-radius: 2px;
   transition: width .8s cubic-bezier(.2, .8, .2, 1);
 }
@@ -13375,7 +13516,7 @@ body.cn-locked {
 .media-card-v2 {
   position: relative;
   padding: 14px 10px 12px;
-  border-radius: 12px;
+  border-radius: 6px;
   overflow: hidden;
   text-align: center;
   cursor: pointer;
@@ -13461,7 +13602,7 @@ body.cn-locked {
   width: 100%;
   max-width: 480px;
   background: var(--c-canvas);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   padding: 8px 16px 24px;
   transform: translateY(100%);
   transition: transform .3s cubic-bezier(.2, .8, .2, 1);
@@ -13488,7 +13629,7 @@ body.cn-locked {
   padding: 16px 14px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
+  border-radius: 8px;
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -13509,7 +13650,7 @@ body.cn-locked {
 .share-choice-btn:last-of-type { margin-bottom: 0; }
 .share-choice-icon {
   width: 38px; height: 38px;
-  border-radius: 10px;
+  border-radius: 5px;
   background: linear-gradient(135deg, #FFF8EE, #FFEDD0);
   display: grid; place-items: center;
   font-size: 20px;
@@ -13529,9 +13670,290 @@ body.cn-locked {
   font-weight: 600;
   color: var(--c-muted);
   cursor: pointer;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .share-choice-cancel:hover { background: var(--c-surface-2); }
+
+/* ═══════════ keepbook 사이드 메뉴 (햄버거) ═══════════ */
+.kbm-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20, 17, 13, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 88;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.kbm-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.kbm-panel {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 86%; max-width: 320px;
+  background: var(--c-canvas);
+  z-index: 89;
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(20,17,13,.04), 8px 0 32px rgba(20,17,13,.18);
+}
+.kbm-panel.open { transform: translateX(0); }
+
+.kbm-panel::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(600px 400px at 0% 0%, rgba(140,106,60,.05), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.27  0 0 0 0 0.15  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: .5;
+  z-index: 0;
+}
+
+.kbm-head {
+  position: relative; z-index: 1;
+  padding: calc(22px + env(safe-area-inset-top)) 22px 18px;
+  border-bottom: 1px solid var(--c-border);
+}
+.kbm-brand {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -.045em;
+  line-height: 1;
+  color: var(--c-text);
+}
+.kbm-tag {
+  margin-top: 8px;
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 10px;
+  letter-spacing: .26em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.kbm-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 0 24px;
+  position: relative; z-index: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.kbm-body::-webkit-scrollbar { display: none; }
+
+.kbm-section-lbl {
+  font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .26em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  padding: 14px 22px 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.kbm-section-lbl::after {
+  content: ""; flex: 1; height: 1px;
+  background: var(--c-border);
+}
+
+.kbm-item {
+  width: 100%;
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 22px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+.kbm-item:active { background: var(--c-surface); }
+.kbm-item-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--c-text-2);
+  background: var(--c-surface);
+  border-radius: 3px;
+  border: 1px solid var(--c-border);
+}
+.kbm-item-icon svg { width: 16px; height: 16px; }
+.kbm-item-main { flex: 1; min-width: 0; }
+.kbm-item-ttl {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -.01em;
+  line-height: 1.3;
+}
+.kbm-item-sub {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 11.5px;
+  color: var(--c-muted);
+  letter-spacing: -.005em;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.kbm-item-arrow {
+  flex-shrink: 0;
+  color: var(--c-muted);
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.kbm-foot {
+  position: relative; z-index: 1;
+  padding: 16px 22px calc(22px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--c-border);
+  background: var(--c-canvas);
+}
+
+/* Bookflex 강조 항목 — 살짝 황금빛 + 약한 글로우 */
+.kbm-bookflex {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: calc(100% - 36px);
+  margin: 4px 18px 8px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.10), rgba(184, 149, 106, 0.06));
+  border: 1px solid rgba(184, 149, 106, 0.22);
+  padding: 14px 14px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+}
+.kbm-bookflex::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 100% 0%, rgba(212, 175, 55, 0.18), transparent 60%);
+  pointer-events: none;
+}
+.kbm-bookflex:active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(184, 149, 106, 0.10));
+}
+.kbm-bookflex-icon {
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
+}
+.kbm-bookflex-icon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: saturate(0.85) drop-shadow(0 1px 2px rgba(139, 109, 61, 0.3));
+}
+.kbm-bookflex .kbm-item-ttl {
+  color: #5C4423;
+  font-weight: 700;
+}
+.kbm-bookflex .kbm-item-sub {
+  color: #8B6D3D;
+  opacity: 0.85;
+}
+.kbm-bookflex .kbm-item-arrow {
+  color: #8B6D3D;
+}
+
+/* 응원하기 — 페어리 핑크 톤 (하트 컨셉) */
+.kbm-support .kbm-item-icon {
+  background: color-mix(in srgb, #E85A7C 12%, var(--c-surface));
+  border-color: color-mix(in srgb, #E85A7C 25%, var(--c-border));
+  color: #E11D48;
+}
+.kbm-support .kbm-item-ttl {
+  color: #B83A5A;
+}
+
+/* 맨 위 로그인 카드 */
+.kbm-login-card {
+  margin: 16px 18px 8px;
+  padding: 14px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 5px;
+  display: flex; align-items: center; gap: 12px;
+}
+.kbm-login-av {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.kbm-login-av svg { width: 20px; height: 20px; }
+.kbm-login-main { flex: 1; min-width: 0; }
+.kbm-login-name {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -.01em;
+}
+.kbm-login-sub {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 11px;
+  color: var(--c-muted);
+  letter-spacing: -.005em;
+  margin-top: 2px;
+}
+.kbm-user {
+  display: flex; align-items: center; gap: 12px;
+}
+.kbm-user-av {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.kbm-user-av svg { width: 18px; height: 18px; }
+.kbm-user-main { flex: 1; min-width: 0; }
+.kbm-user-name {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -.01em;
+}
+.kbm-user-sub {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 11px;
+  color: var(--c-muted);
+  letter-spacing: -.005em;
+  margin-top: 1px;
+}
+.kbm-login-btn {
+  padding: 7px 14px;
+  border-radius: 4px;
+  background: var(--c-text);
+  color: var(--c-canvas);
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  border: none;
+  cursor: pointer;
+}
+.kbm-version {
+  margin-top: 12px;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--c-muted);
+  text-align: center;
+  font-weight: 600;
+}
 
 </style>
 <!-- html2canvas for ticket sharing -->
@@ -13627,19 +14049,16 @@ body.cn-locked {
 
   <!-- ═══════════ 헤더 ═══════════ -->
   <header class="app-header" id="appHeader">
+    <button class="header-menu-btn" aria-label="메뉴" onclick="openKbMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="app-brand">
-      <span class="app-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 5 L22 5 A4 4 0 0 1 26 9 L26 24 A2.5 2.5 0 0 1 23.5 26.5 L9.5 26.5 A2.5 2.5 0 0 1 7 24 L7 5 Z"/>
-          <path d="M11 5 L11 12 L14 10 L17 12 L17 5"/>
-        </svg>
-      </span>
-      <span class="app-name">READ</span>
+      <span class="read-mark">READ</span>
     </div>
     <div class="header-actions">
       <button class="header-btn" aria-label="검색"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-search"/></svg></button>
-      <button class="header-btn coin-btn unseen" id="coinBtn" aria-label="종이값"><img class="coin-img" src="data:image/png;base64,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" alt=""><span class="coin-new-dot"></span></button>
-      <button class="header-btn" aria-label="설정"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-settings"/></svg></button>
+      
+      <button class="header-btn" aria-label="설정" style="display:none"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-settings"/></svg></button>
     </div>
   </header>
 
@@ -14042,6 +14461,69 @@ body.cn-locked {
   </div>
 </aside>
 
+<!-- ═══════════ keepbook 사이드 메뉴 ═══════════ -->
+<div class="kbm-backdrop" id="kbmBackdrop" onclick="closeKbMenu()"></div>
+<aside class="kbm-panel" id="kbmPanel" aria-hidden="true">
+  <div class="kbm-head">
+    <div class="kbm-brand">READ</div>
+    <div class="kbm-tag">Read · Note · Remember</div>
+  </div>
+  <div class="kbm-body">
+
+    <!-- 로그인 카드 (맨 위) -->
+    <div class="kbm-login-card">
+      <div class="kbm-login-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="kbm-login-main">
+        <div class="kbm-login-name">로그인 안 됨</div>
+        <div class="kbm-login-sub">기기에만 저장 중</div>
+      </div>
+      <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(window.READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
+    </div>
+
+    <!-- Bookflex (눈에 띄게) -->
+    <button class="kbm-item kbm-bookflex" id="kbmBookflexItem" onclick="kbmOpenBookflexFromMenu()">
+      <div class="kbm-item-icon kbm-bookflex-icon"><img src="data:image/png;base64,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" alt=""></div>
+      <div class="kbm-item-main">
+        <div class="kbm-item-ttl">Bookflex</div>
+        <div class="kbm-item-sub">올해 책에 쓴 돈을 한눈에</div>
+      </div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+
+    <div class="kbm-section-lbl">Settings</div>
+    <button class="kbm-item" onclick="kbmOpenSettings()">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 004.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">설정</div><div class="kbm-item-sub">테마 · 알림 · 동기화</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+
+    <div class="kbm-section-lbl">More</div>
+    <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div><div class="kbm-item-sub">v1.9.0 · 패치노트</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+    <button class="kbm-item kbm-support" onclick="kbmOpenSupport()">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">응원하기</div><div class="kbm-item-sub">페어리로 후원</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+    <button class="kbm-item" onclick="kbmCall('openContactModal', '문의 모달 준비 중')">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">문의하기</div><div class="kbm-item-sub">기능 제안 · 버그</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+    <button class="kbm-item" onclick="kbmCall('openAboutModal', '앱 정보 준비 중')">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">앱 정보</div><div class="kbm-item-sub">버전 · 약관 · 라이선스</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+  </div>
+  <div class="kbm-foot">
+    <div class="kbm-version">READ · v1.9.0</div>
+  </div>
+</aside>
+
 <!-- ═══════════ 설정 모달 ═══════════ -->
 <div class="settings-backdrop" id="settingsBackdrop"></div>
 <aside class="settings-sheet" id="settingsSheet" aria-hidden="true">
@@ -14106,38 +14588,6 @@ body.cn-locked {
           <div class="settings-row-main">
             <div class="settings-row-ttl">엑셀에서 가져오기</div>
             <div class="settings-row-sub">대용량 독서 기록 한 번에</div>
-          </div>
-          <div class="settings-row-right arrow">›</div>
-        </button>
-        <button class="settings-row" id="contactRow">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-mail"/></svg></div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">문의하기</div>
-            <div class="settings-row-sub">기능 제안 · 버그 신고 · 기타</div>
-          </div>
-          <div class="settings-row-right arrow">›</div>
-        </button>
-        <button class="settings-row settings-row-support" id="supportRow">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-heart"/></svg></div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">응원하기</div>
-            <div class="settings-row-sub">커피 한 잔의 응원이 다음 업데이트가 돼요</div>
-          </div>
-          <div class="settings-row-right arrow">›</div>
-        </button>
-        <button class="settings-row" id="whatsNewRow">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">최신 업데이트 다시보기</div>
-            <div class="settings-row-sub" id="whatsNewRowSub"><!-- JS 자동 갱신 --></div>
-          </div>
-          <div class="settings-row-right arrow">›</div>
-        </button>
-        <button class="settings-row" id="aboutRow">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-info"/></svg></div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">앱 정보</div>
-            <div class="settings-row-sub" id="aboutRowSub"><!-- JS 자동 갱신 --></div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -14521,6 +14971,9 @@ body.cn-locked {
   </div>
   <div class="bd-body" id="bdBody">
     <!-- JS 전체 렌더 -->
+  </div>
+  <div class="bd-notes-body" id="bdNotesBody" style="display:none">
+    <!-- 책별 노트 리스트 — JS 렌더 -->
   </div>
 </aside>
 
@@ -14968,13 +15421,13 @@ body.cn-locked {
       <div class="wn-hero-sub">국내고전 · 해외고전 · 판타지 · 미스터리 · SF · 로맨스 같은 장르가 새로 들어왔어요. 직접 만든 태그도 카테고리에 묶여서 깔끔하게 정리돼요.</div>
 
       <!-- 미리보기 -->
-      <div style="margin-top:16px;background:rgba(255,255,255,0.7);border-radius:12px;padding:14px 12px;border:1px solid rgba(212,165,116,0.25);">
+      <div style="margin-top:16px;background:rgba(255,255,255,0.7);border-radius:6px;padding:14px 12px;border:1px solid rgba(212,165,116,0.25);">
         <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;">
-          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:linear-gradient(135deg,#D4A574,#8B6D3D);color:white;">장르</div>
-          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">비픽션</div>
-          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">자기개발</div>
-          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">형식</div>
-          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;opacity:0.6;">숨김</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:linear-gradient(135deg,#D4A574,#8B6D3D);color:white;">장르</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:rgba(0,0,0,0.04);color:#6B5430;">비픽션</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:rgba(0,0,0,0.04);color:#6B5430;">자기개발</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:rgba(0,0,0,0.04);color:#6B5430;">형식</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:rgba(0,0,0,0.04);color:#6B5430;opacity:0.6;">숨김</div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">📜 국내고전</div>
@@ -15023,7 +15476,7 @@ body.cn-locked {
     </ul>
 
     <!-- 후속 개선 6건 (Bookflex 출고 후 의견 반영) -->
-    <div style="background:var(--c-surface);border-radius:12px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
+    <div style="background:var(--c-surface);border-radius:6px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
       <div style="font-size:10.5px;font-weight:800;color:var(--c-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
         <span>🛠</span> Bookflex 출고 후 같이 다듬은 부분
       </div>
@@ -15050,8 +15503,7 @@ body.cn-locked {
     </div>
 
     <div class="wn-actions">
-      <button class="wn-btn ghost" id="wnLater">나중에</button>
-      <button class="wn-btn primary" id="wnGoStats">태그 보러가기</button>
+      <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
     </div>
   </div>
 </div>
@@ -15975,14 +16427,13 @@ const READ_AUTH = {
       `;
     } else {
       section.innerHTML = `
-        <button class="settings-row" onclick="READ_AUTH.startKakaoLogin()">
-          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-kakao"/></svg></div>
+        <div class="settings-row" style="cursor: default; opacity: 0.7;">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-user"/></svg></div>
           <div class="settings-row-main">
-            <div class="settings-row-ttl">카카오로 로그인</div>
-            <div class="settings-row-sub">기기 간 동기화 사용 (선택)</div>
+            <div class="settings-row-ttl">로그인 안 됨</div>
+            <div class="settings-row-sub">메뉴에서 로그인하면 동기화를 사용할 수 있어요</div>
           </div>
-          <div class="settings-row-right arrow">›</div>
-        </button>
+        </div>
       `;
     }
   }
@@ -16006,8 +16457,8 @@ const READ_AUTH = {
    테마 시스템
    ═══════════════════════════════════════════════════════════ */
 const THEMES = [
-  { id: '',            name: '서재의 밤',      desc: '딥 네이비 · 기본',
-    swatches: ['#0F1F4F','#1E3A8A','#4A5FAB','#E8ECF7'] },
+  { id: '',            name: '서재의 밤',      desc: '딥 잉크 · 차분한 그레이',
+    swatches: ['#15110D','#2E2E28','#6E6E68','#DCDCD8'] },
   { id: 'cafe-latte',  name: '카페 라떼',      desc: '웜 브라운 + 크림',
     swatches: ['#6D4C41','#8D6E63','#EFE6D6','#FAF5ED'] },
   { id: 'forest',      name: '숲속 오후',      desc: '모스 그린 + 베이지',
@@ -16016,13 +16467,13 @@ const THEMES = [
     swatches: ['#A03B54','#BE6479','#F5D8E0','#FBF3F5'] },
   { id: 'midnight',    name: '미드나잇',        desc: '다크모드 · 딥 네이비 + 라이트 블루',
     swatches: ['#0F1117','#191D26','#7AA2FF','#A3BEFF'] },
-  { id: 'mono',        name: '모노 에디션',    desc: '순수 그레이 · 뉴트럴',
-    swatches: ['#1C1C1E','#48484A','#86868B','#F2F2F3'] },
 ];
 const THEME_KEY = 'read.theme';
 
 function applyTheme(id) {
   const root = document.documentElement;
+  // v1.9.x — '모노 에디션' 제거. 저장돼 있던 사용자는 기본(서재의 밤)으로 폴백.
+  if (id === 'mono') id = '';
   if (id) root.setAttribute('data-theme', id);
   else    root.removeAttribute('data-theme');
   try { localStorage.setItem(THEME_KEY, id || ''); } catch(e){}
@@ -17612,9 +18063,7 @@ function renderSearchNoKey() {
       <div class="search-state-ttl">검색 서버를 먼저 설정해주세요</div>
       <div class="search-state-sub">
         설정 (헤더의 <svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>) → <strong>책 검색 서버</strong>에서<br/>
-        카페24에 올린 <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">search.php</code> URL을 등록해주세요
-      </div>
-    </div>`;
+        카페24에 올린 <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">search.php</code> URL을 등록해주세요 </div> </div>`;
 }
 function renderSearchLoading() {
   document.getElementById('searchResults').innerHTML = `
@@ -17647,7 +18096,7 @@ function renderSearchResults(items, errors, ctx) {
   let errorBanner = '';
   if (errors && Object.keys(errors).length) {
     const msgs = Object.entries(errors).map(([src, err]) => `${src === 'kakao' ? 'Kakao' : 'Google'}: ${err}`).join(' · ');
-    errorBanner = `<div style="padding:8px 12px;background:color-mix(in srgb, var(--c-gold-500) 12%, transparent);border:1px solid var(--c-gold-100);border-radius:10px;margin-bottom:10px;font-size:11px;color:var(--c-gold-900);font-weight:600;">
+    errorBanner = `<div style="padding:8px 12px;background:color-mix(in srgb, var(--c-gold-500) 12%, transparent);border:1px solid var(--c-gold-100);border-radius:5px;margin-bottom:10px;font-size:11px;color:var(--c-gold-900);font-weight:600;">
       <svg class="ic" aria-hidden="true" style="color:var(--c-gold-500)"><use href="#i-alert"/></svg> 일부 API 오류: ${esc(msgs)}
     </div>`;
   }
@@ -17658,16 +18107,11 @@ function renderSearchResults(items, errors, ctx) {
     let sub = '아래 <strong>직접 입력</strong>으로 추가할 수 있어요';
     if (ctx.isbnMode) {
       title = 'ISBN 검색 결과가 없어요';
-      sub = `입력하신 ISBN(<code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">${esc(ctx.query || '')}</code>)으로<br/>` +
-            '책을 찾을 수 없어요. 다음을 확인해보세요:<br/><br/>' +
-            '· 책 표지나 판권면의 ISBN이 정확히 입력됐나요?<br/>' +
-            '· 영문 원서라면 <strong>제목·저자명</strong>으로 검색해보세요<br/>' +
-            '· 그래도 안 나오면 <strong>직접 입력</strong>으로 추가하실 수 있어요';
+      sub = `입력하신 ISBN(<code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">${esc(ctx.query || '')}</code>)으로<br/>` + '책을 찾을 수 없어요. 다음을 확인해보세요:<br/><br/>' + '· 책 표지나 판권면의 ISBN이 정확히 입력됐나요?<br/>' + '· 영문 원서라면 <strong>제목·저자명</strong>으로 검색해보세요<br/>' + '· 그래도 안 나오면 <strong>직접 입력</strong>으로 추가하실 수 있어요';
     } else if (ctx.query && !ctx.isKorean) {
       // 영문 쿼리에서 결과 0
       sub = '영문 신간이라면 <strong>저자명을 함께</strong> 입력해보세요<br/>' +
-            '(예: <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">In Your Dreams Sarah Adams</code>)<br/><br/>' +
-            '아래 <strong>직접 입력</strong>으로도 추가할 수 있어요';
+            '(예: <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">In Your Dreams Sarah Adams</code>)<br/><br/>' + '아래 <strong>직접 입력</strong>으로도 추가할 수 있어요';
     }
     container.innerHTML = errorBanner + `
       <div class="search-state">
@@ -19915,19 +20359,19 @@ function renderNowHero(arr) {
   const indi = multi
     ? `<span class="now-slim-indi">${_nowHeroIdx + 1} / ${arr.length}</span>`
     : '';
-  const bgCover = (multi && b.coverUrl)
+  // 배경 표지 효과는 책 수 무관하게 항상 노출 (표지 있을 때만)
+  const bgCover = b.coverUrl
     ? `<div class="now-slim-bg"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>`
     : '';
-  const progressBlock = multi
-    ? `<div class="now-slim-progress-row">
-        <button class="now-slim-arrow" data-action="now-prev" aria-label="이전 책"><svg class="ic" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+  // 진행률 바는 항상 같은 형태(좌우 화살표 포함). 1권이면 화살표만 hidden 처리.
+  const progressBlock = `<div class="now-slim-progress-row">
+        <button class="now-slim-arrow" data-action="now-prev" aria-label="이전 책" ${multi ? '' : 'style="visibility:hidden"'}><svg class="ic" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
         <div class="now-slim-progress-bar"><div class="now-slim-progress-bar-fill" style="width: ${pct}%"></div></div>
-        <button class="now-slim-arrow" data-action="now-next" aria-label="다음 책"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
-       </div>`
-    : `<div class="now-slim-progress"><div class="now-slim-progress-fill" style="width: ${pct}%"></div></div>`;
+        <button class="now-slim-arrow" data-action="now-next" aria-label="다음 책" ${multi ? '' : 'style="visibility:hidden"'}><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+       </div>`;
 
   return `
-    <div class="now-hero now-hero-slim ${multi ? 'has-multi' : ''}" id="nowHero">
+    <div class="now-hero now-hero-slim has-multi" id="nowHero">
       ${bgCover}
       <div class="now-slim-content">
         <div class="now-slim-head">
@@ -21495,6 +21939,14 @@ function _closeBookDetailActual() {
   unlockBodyScroll();
   const ttlEl = document.getElementById('bdHeadTtl');
   if (ttlEl) ttlEl.textContent = '책 상세';
+  // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
+  const body = document.getElementById('bdBody');
+  const notesBody = document.getElementById('bdNotesBody');
+  if (body) body.style.display = '';
+  if (notesBody) {
+    notesBody.style.display = 'none';
+    notesBody.innerHTML = '';
+  }
   BD.book = null;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
@@ -21596,13 +22048,14 @@ function renderBookDetail() {
           </div>`}
         </div>
       </div>
-      <!-- 상태 세그먼트 (히어로 내부) -->
+      <!-- 상태 세그먼트 (히어로 내부) — 상태 4개 + 노트 뷰 토글 -->
       <div class="bd-hero-status">
         <div class="status-seg" id="bdStatusSeg">
           <button class="status-seg-btn ${wish?'active':''}" data-status="wish"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg> 위시</button>
           <button class="status-seg-btn ${reading?'active':''}" data-status="reading"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 독서중</button>
           <button class="status-seg-btn ${done?'active':''}" data-status="done"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg> 완독</button>
           <button class="status-seg-btn dropped ${dropped?'active':''}" data-status="dropped"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg> 하차</button>
+          <button class="status-seg-btn" data-view="notes" id="bdNotesTabBtn"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 노트</button>
         </div>
       </div>
       ${reading ? (isDigital(b) ? `
@@ -22108,9 +22561,84 @@ function wireBookDetailEvents() {
   const b = BD.book;
   if (!b) return;
 
+  // 책 본문 ↔ 노트 뷰 토글
+  function _bdShowNotesView(book) {
+    const body = document.getElementById('bdBody');
+    const notesBody = document.getElementById('bdNotesBody');
+    if (!body || !notesBody) return;
+
+    // 세그먼트 활성 표시: 상태 active 모두 제거 + 노트 탭만 active
+    document.querySelectorAll('#bdStatusSeg .status-seg-btn').forEach(x => x.classList.remove('active'));
+    const notesBtn = document.querySelector('#bdStatusSeg .status-seg-btn[data-view="notes"]');
+    if (notesBtn) notesBtn.classList.add('active');
+
+    // 본문 숨기고 노트 리스트 보이기
+    body.style.display = 'none';
+    notesBody.style.display = '';
+
+    // 책별 노트 렌더 (renderNoteCard 사용)
+    const bookNotes = (typeof NOTES !== 'undefined' ? NOTES : [])
+      .filter(n => n.bookId === book.id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    if (bookNotes.length === 0) {
+      notesBody.innerHTML = `
+        <div class="bd-notes-empty">
+          <div class="bd-notes-empty-icon">
+            <svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-pen"/></svg>
+          </div>
+          <div class="bd-notes-empty-ttl">아직 노트가 없어요</div>
+          <div class="bd-notes-empty-sub">이 책에서 떠오른 인용구나 생각을 적어보세요</div>
+          <button class="bd-notes-empty-btn" id="bdNotesEmptyBtn" type="button">
+            <svg class="ic" aria-hidden="true" style="width:16px;height:16px;margin-right:6px;vertical-align:-3px"><use href="#i-pen"/></svg>
+            노트 작성하기
+          </button>
+        </div>`;
+      // 작성 버튼 핸들러
+      const emptyBtn = document.getElementById('bdNotesEmptyBtn');
+      if (emptyBtn) {
+        emptyBtn.addEventListener('click', () => {
+          if (typeof openNoteAdd === 'function') openNoteAdd(book.id);
+        });
+      }
+    } else {
+      notesBody.innerHTML = `
+        <div class="bd-notes-head">
+          <div class="bd-notes-count">${bookNotes.length}개의 노트</div>
+          <button class="bd-notes-add-btn" id="bdNotesAddBtn" type="button" aria-label="노트 추가">
+            <svg class="ic" aria-hidden="true" style="width:14px;height:14px;margin-right:4px;vertical-align:-2px"><use href="#i-pen"/></svg>
+            추가
+          </button>
+        </div>
+        <div class="bd-notes-list">${bookNotes.map(n => renderNoteCard(n)).join('')}</div>`;
+    }
+
+    // 스크롤 위로
+    notesBody.scrollTop = 0;
+  }
+
+  function _bdShowBookView() {
+    const body = document.getElementById('bdBody');
+    const notesBody = document.getElementById('bdNotesBody');
+    if (!body || !notesBody) return;
+    body.style.display = '';
+    notesBody.style.display = 'none';
+    // 노트 탭 active 해제 (상태 버튼이 다시 active 처리할 거임)
+    const notesBtn = document.querySelector('#bdStatusSeg .status-seg-btn[data-view="notes"]');
+    if (notesBtn) notesBtn.classList.remove('active');
+  }
+
   // 상태 세그먼트
   document.querySelectorAll('#bdStatusSeg .status-seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // 노트 탭 클릭은 별도 처리 (상태 변경 없이 뷰 토글만)
+      if (btn.dataset.view === 'notes') {
+        _bdShowNotesView(b);
+        return;
+      }
+      // 상태 버튼 클릭 → 노트 뷰가 열려 있으면 닫기
+      _bdShowBookView();
+
       const newStatus = btn.dataset.status;
       if (newStatus === b.status) return;
 
@@ -22568,7 +23096,24 @@ function wireBookDetailEvents() {
 /* ─── 모달 자체 핸들러 ─── */
 document.getElementById('bdBackdrop').addEventListener('click', closeBookDetail);
 document.getElementById('bdClose').addEventListener('click', closeBookDetail);
-document.getElementById('bdBack').addEventListener('click', closeBookDetail);
+document.getElementById('bdBack').addEventListener('click', () => {
+  // 노트 뷰가 열려 있으면 노트만 닫고 책 본문으로 복귀
+  const notesBody = document.getElementById('bdNotesBody');
+  if (notesBody && notesBody.style.display !== 'none' && notesBody.offsetParent !== null) {
+    const body = document.getElementById('bdBody');
+    if (body) body.style.display = '';
+    notesBody.style.display = 'none';
+    // 세그먼트 active 복원 — 현재 책의 status에 맞춰서
+    const b = BD.book;
+    if (b) {
+      document.querySelectorAll('#bdStatusSeg .status-seg-btn').forEach(x => x.classList.remove('active'));
+      const cur = document.querySelector('#bdStatusSeg .status-seg-btn[data-status="' + b.status + '"]');
+      if (cur) cur.classList.add('active');
+    }
+    return;
+  }
+  closeBookDetail();
+});
 
 /* ─── 로그 엔트리 클릭 → 상세 페이지 열기 ─── */
 document.getElementById('logList').addEventListener('click', (e) => {
@@ -22688,13 +23233,8 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
     if (!books.length) {
       list.innerHTML = '<div class="dd-empty">해당하는 책이 없어요</div>';
     } else {
-      // 최신순 (dateEnd desc; wish는 뒤로)
-      const sorted = [...books].sort((a, b) => {
-        const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
-        const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
-        return bD - aD;
-      });
-      list.innerHTML = sorted.map(b => {
+      // 렌더 헬퍼
+      const renderBook = (b) => {
         const pal = esc(b.palette || 'demian');
         const initial = (b.title || '?').charAt(0);
         const dateStr = (b.dateStart || b.dateEnd)
@@ -22710,7 +23250,52 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
             </div>
             <div class="dd-item-val">${val}</div>
           </div>`;
-      }).join('');
+      };
+      // 최신순 정렬
+      const sorted = [...books].sort((a, b) => {
+        const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
+        const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
+        return bD - aD;
+      });
+
+      if (opts.dayContext) {
+        // DAY 뷰: 읽는 중인 책 상단 / 그 외는 접기 (5권 이상이면)
+        const reading = sorted.filter(b => b.status === 'reading');
+        const others  = sorted.filter(b => b.status !== 'reading');
+        const COLLAPSE_THRESHOLD = 5;
+        const needCollapse = others.length > COLLAPSE_THRESHOLD;
+
+        let html = '';
+        if (reading.length) {
+          html += '<div class="dd-section-lbl">읽는 중 · ' + reading.length + '권</div>';
+          html += reading.map(renderBook).join('');
+        }
+        if (others.length) {
+          html += '<div class="dd-section-lbl">' + (reading.length ? '그 외 · ' : '') + others.length + '권</div>';
+          if (needCollapse) {
+            const visible = others.slice(0, COLLAPSE_THRESHOLD);
+            const hidden  = others.slice(COLLAPSE_THRESHOLD);
+            html += visible.map(renderBook).join('');
+            html += '<div id="ddHiddenWrap" style="display:none">' + hidden.map(renderBook).join('') + '</div>';
+            html += '<button class="dd-more-btn" id="ddMoreBtn" type="button">더 보기 (' + hidden.length + '권)</button>';
+          } else {
+            html += others.map(renderBook).join('');
+          }
+        }
+        list.innerHTML = html;
+
+        // 더 보기 버튼 핸들러
+        const moreBtn = document.getElementById('ddMoreBtn');
+        if (moreBtn) {
+          moreBtn.addEventListener('click', () => {
+            const wrap = document.getElementById('ddHiddenWrap');
+            if (wrap) wrap.style.display = '';
+            moreBtn.style.display = 'none';
+          });
+        }
+      } else {
+        list.innerHTML = sorted.map(renderBook).join('');
+      }
     }
     if (list) list.style.display = '';
   }
@@ -23100,7 +23685,7 @@ function _showIOSSavePreview(canvas) {
       이미지를 <u>길게 눌러</u> 사진에 저장하세요
     </div>
     <img src="${dataUrl}" alt="READ 티켓"
-         style="max-width:100%; max-height:70vh; border-radius:12px;
+         style="max-width:100%; max-height:70vh; border-radius:6px;
                 box-shadow:0 8px 32px rgba(0,0,0,0.4);
                 -webkit-touch-callout: default; user-select: none;">
     <button id="iosSavePreviewClose" style="
@@ -23132,7 +23717,8 @@ function _openCanvasInNewTab(canvas) {
       w.document.write(`<!DOCTYPE html><html><head><title>READ 티켓</title>
         <style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh}
         img{max-width:100%;height:auto}</style></head>
-        <body><img src="${dataUrl}" alt="READ 티켓"></body></html>`);
+        <body><img src="${dataUrl}" alt="READ 티켓">
+</body></html>`);
       w.document.close();
     }
   } catch (e) {
@@ -23297,8 +23883,8 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     const dt = new Date(year, month, day);
     const dowStr = ['일','월','화','수','목','금','토'][dt.getDay()];
     openDrillDown(
-      `${month + 1}월 ${day}일 (${dowStr}) · ${books.length}권`,
-      'DAY',
+      `${month + 1}월 ${day}일 (${dowStr})`,
+      `${books.length}권`,
       books,
       (b) => {
         const isFinishedToday = b.dateEnd && new Date(b.dateEnd).toDateString() === dt.toDateString();
@@ -23306,7 +23892,8 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
         if (b.status === 'reading') return '📖';
         if (b.rating) return `★ ${b.rating.toFixed(1)}`;
         return '';
-      }
+      },
+      { dayContext: true }
     );
     return;
   }
@@ -25679,7 +26266,16 @@ document.getElementById('noteBookCarousel').addEventListener('click', (e) => {
 });
 
 /* ─── 노트 카드 클릭 (편집·즐겨찾기·공유·더보기) ─── */
-document.getElementById('noteList').addEventListener('click', (e) => {
+function _noteCardClickHandler(e) {
+  // 책 상세 노트 뷰의 "추가" 버튼 (헤더)
+  const addBtn = e.target.closest('#bdNotesAddBtn');
+  if (addBtn) {
+    e.stopPropagation();
+    if (typeof BD !== 'undefined' && BD && BD.book && typeof openNoteAdd === 'function') {
+      openNoteAdd(BD.book.id);
+    }
+    return;
+  }
   const favBtn = e.target.closest('[data-action="note-fav"]');
   if (favBtn) {
     e.stopPropagation();
@@ -25709,7 +26305,11 @@ document.getElementById('noteList').addEventListener('click', (e) => {
     const id = parseInt(card.dataset.noteId, 10);
     openNoteEdit(id);
   }
-});
+}
+document.getElementById('noteList').addEventListener('click', _noteCardClickHandler);
+// 책 상세 모달 안 노트 뷰에도 같은 위임 (공유·즐겨찾기·펼치기·편집)
+const _bdNotesBody = document.getElementById('bdNotesBody');
+if (_bdNotesBody) _bdNotesBody.addEventListener('click', _noteCardClickHandler);
 
 /* ─── 즐겨찾기 토글 ─── */
 function toggleNoteFavorite(id) {
@@ -25718,6 +26318,7 @@ function toggleNoteFavorite(id) {
   note.favorite = !note.favorite;
   STORE.set('notes', NOTES);
   renderNotesTab();
+  _refreshBdNotesViewIfOpen();
   showToast(note.favorite ? '⭐ 즐겨찾기에 추가' : '즐겨찾기 해제');
 }
 
@@ -25872,14 +26473,20 @@ async function shareNoteCard(id, btnEl) {
     // ─── 표지 처리 (v1.8.x — 책 아이콘 폴백) ───
     // html2canvas는 외부 도메인 이미지를 CORS 때문에 캡처 못 함.
     // 사용자가 직접 첨부한 표지 (data URI)나 같은 도메인 이미지만 사용 가능.
-    // 외부 URL이면 책 아이콘 SVG 폴백 (Lucide book-open, 가운데 정렬)
+    // 폴백 SVG (외부 URL이거나 로드 실패할 경우 표시)
+    const fallbackSvg = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
     let coverImgHtml = '';
-    if (book.coverUrl && (book.coverUrl.startsWith('data:') || book.coverUrl.startsWith('/') || book.coverUrl.includes(window.location.host))) {
-      coverImgHtml = `<img src="${esc(book.coverUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`;
-    }
-    if (!coverImgHtml) {
-      // 폴백: 책 아이콘 (Lucide book-open 라인 드로잉, 14×14px, 흰색 90% 투명도, 가운데)
-      coverImgHtml = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
+    const isSafeCover = book.coverUrl && (
+      book.coverUrl.startsWith('data:') ||
+      book.coverUrl.startsWith('/') ||
+      (window.location.host && book.coverUrl.includes('://' + window.location.host))
+    );
+    if (isSafeCover) {
+      // 캡처 가능한 표지: img + 로드 실패 시 폴백 SVG로 자동 교체
+      coverImgHtml = `<img src="${esc(book.coverUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.outerHTML='${fallbackSvg.replace(/'/g, "\\'")}'">`;
+    } else {
+      // 외부 URL (Kakao/Aladin/Google 등) → 캡처 불가, 폴백 SVG 사용
+      coverImgHtml = fallbackSvg;
     }
 
     // ─── 캡처용 wrapper 생성 ───
@@ -25895,7 +26502,7 @@ async function shareNoteCard(id, btnEl) {
     `;
 
     wrapper.innerHTML = `
-      <div style="background:#FFFFFF;border-radius:8px;box-shadow:0 4px 18px rgba(25,31,40,0.08);overflow:hidden;position:relative">
+      <div style="background:#FFFFFF;border-radius:4px;box-shadow:0 4px 18px rgba(25,31,40,0.08);overflow:hidden;position:relative">
 
         <!-- 상단 컬러 바 -->
         <div style="height:4px;background:${darkColor}"></div>
@@ -26303,7 +26910,7 @@ function renderNA() {
 
   const fav = document.getElementById('naFav');
   fav.classList.toggle('on', NA.favorite);
-  document.getElementById('naFavLbl').textContent = NA.favorite ? '⭐ 즐겨찾기 설정됨' : '즐겨찾기에 추가';
+  document.getElementById('naFavLbl').textContent = NA.favorite ? '즐겨찾기 설정됨' : '즐겨찾기에 추가';
 
   // 편집 모드에서 삭제 구역 노출
   const delZone = document.getElementById('naDeleteZone');
@@ -26399,6 +27006,7 @@ function saveNote() {
   STORE.set('notes', NOTES);
   closeNoteSheet();
   renderNotesTab();
+  _refreshBdNotesViewIfOpen();
 }
 
 function deleteNote(id) {
@@ -26409,6 +27017,49 @@ function deleteNote(id) {
   showToast('노트 삭제됨');
   closeNoteSheet();
   renderNotesTab();
+  _refreshBdNotesViewIfOpen();
+}
+
+/* 책 상세 모달의 노트 뷰가 열려 있으면 다시 렌더 */
+function _refreshBdNotesViewIfOpen() {
+  const notesBody = document.getElementById('bdNotesBody');
+  if (!notesBody || notesBody.style.display === 'none') return;
+  if (typeof BD === 'undefined' || !BD || !BD.book) return;
+  const book = BD.book;
+  const bookNotes = (typeof NOTES !== 'undefined' ? NOTES : [])
+    .filter(n => n.bookId === book.id)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (bookNotes.length === 0) {
+    notesBody.innerHTML = `
+      <div class="bd-notes-empty">
+        <div class="bd-notes-empty-icon">
+          <svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-pen"/></svg>
+        </div>
+        <div class="bd-notes-empty-ttl">아직 노트가 없어요</div>
+        <div class="bd-notes-empty-sub">이 책에서 떠오른 인용구나 생각을 적어보세요</div>
+        <button class="bd-notes-empty-btn" id="bdNotesEmptyBtn" type="button">
+          <svg class="ic" aria-hidden="true" style="width:16px;height:16px;margin-right:6px;vertical-align:-3px"><use href="#i-pen"/></svg>
+          노트 작성하기
+        </button>
+      </div>`;
+    const emptyBtn = document.getElementById('bdNotesEmptyBtn');
+    if (emptyBtn) {
+      emptyBtn.addEventListener('click', () => {
+        if (typeof openNoteAdd === 'function') openNoteAdd(book.id);
+      });
+    }
+  } else {
+    notesBody.innerHTML = `
+      <div class="bd-notes-head">
+        <div class="bd-notes-count">${bookNotes.length}개의 노트</div>
+        <button class="bd-notes-add-btn" id="bdNotesAddBtn" type="button" aria-label="노트 추가">
+          <svg class="ic" aria-hidden="true" style="width:14px;height:14px;margin-right:4px;vertical-align:-2px"><use href="#i-pen"/></svg>
+          추가
+        </button>
+      </div>
+      <div class="bd-notes-list">${bookNotes.map(n => renderNoteCard(n)).join('')}</div>`;
+  }
 }
 
 /* ─── NA 시트 이벤트 바인딩 ─── */
@@ -26478,7 +27129,7 @@ document.getElementById('naFav').addEventListener('click', () => {
   NA.favorite = !NA.favorite;
   const fav = document.getElementById('naFav');
   fav.classList.toggle('on', NA.favorite);
-  document.getElementById('naFavLbl').textContent = NA.favorite ? '⭐ 즐겨찾기 설정됨' : '즐겨찾기에 추가';
+  document.getElementById('naFavLbl').textContent = NA.favorite ? '즐겨찾기 설정됨' : '즐겨찾기에 추가';
 });
 
 document.getElementById('naSave').addEventListener('click', saveNote);
@@ -28730,7 +29381,7 @@ function exportDataAsPdf() {
   body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: #111; padding: 0; margin: 0; line-height: 1.5; }
   h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 4px; }
   .sub { color: #666; font-size: 13px; margin-bottom: 24px; }
-  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px; }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; padding: 16px; background: #f5f5f5; border-radius: 4px; }
   .summary-item { text-align: center; }
   .summary-n { font-size: 24px; font-weight: 900; color: #111; letter-spacing: -0.02em; }
   .summary-l { font-size: 11px; color: #666; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
@@ -29927,6 +30578,118 @@ function renderDropStatCard() {
     <button class="share-choice-cancel" id="shareChoiceCancel" type="button">취소</button>
   </div>
 </div>
+
+<script>
+/* READ 사이드 메뉴 */
+var __kbmReturnAfterSettings = false;  // 설정 닫히면 메뉴 다시 열까?
+
+function openKbMenu() {
+  var p = document.getElementById('kbmPanel');
+  var b = document.getElementById('kbmBackdrop');
+  if (p) p.classList.add('open');
+  if (b) b.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeKbMenu() {
+  var p = document.getElementById('kbmPanel');
+  var b = document.getElementById('kbmBackdrop');
+  if (p) p.classList.remove('open');
+  if (b) b.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function kbmOpenSettings() {
+  __kbmReturnAfterSettings = true;
+  closeKbMenu();
+  setTimeout(function() {
+    var el = document.getElementById('settingsSheet');
+    var bd = document.getElementById('settingsBackdrop');
+    if (el) {
+      el.setAttribute('aria-hidden', 'false');
+      el.classList.add('open');
+    }
+    if (bd) bd.classList.add('open');
+    __kbmWatchSettingsClose();
+  }, 220);
+}
+
+/* 설정 모달이 닫히면 햄버거 메뉴 다시 열기 (한 번만 등록) */
+var __kbmObserverInstalled = false;
+function __kbmWatchSettingsClose() {
+  if (__kbmObserverInstalled) return;
+  __kbmObserverInstalled = true;
+  var el = document.getElementById('settingsSheet');
+  if (!el || typeof MutationObserver === 'undefined') return;
+  var obs = new MutationObserver(function(muts) {
+    muts.forEach(function(m) {
+      if (m.attributeName === 'class' || m.attributeName === 'aria-hidden') {
+        var hidden = el.getAttribute('aria-hidden') === 'true' || !el.classList.contains('open');
+        if (hidden && __kbmReturnAfterSettings) {
+          __kbmReturnAfterSettings = false;
+          setTimeout(function() { openKbMenu(); }, 200);
+        }
+      }
+    });
+  });
+  obs.observe(el, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
+}
+/* 설정 모달의 특정 row를 트리거 (설정 모달은 안 열고 핸들러만 실행) */
+function kbmInvokeRow(rowId) {
+  closeKbMenu();
+  setTimeout(function() {
+    var el = document.getElementById(rowId);
+    if (el && typeof el.click === 'function') {
+      el.click();
+    } else if (typeof showToast === 'function') {
+      showToast('기능을 찾을 수 없어요');
+    }
+  }, 260);
+}
+/* 탭바 전환 */
+function kbmGoTab(tabName) {
+  closeKbMenu();
+  setTimeout(function() {
+    var btn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+    if (btn && typeof btn.click === 'function') btn.click();
+  }, 200);
+}
+/* Bookflex 모달 — 헤더 동전 버튼이 사라졌으니 직접 sheet 열기 */
+function kbmOpenBookflexFromMenu() {
+  closeKbMenu();
+  setTimeout(function() {
+    if (typeof openSpendModal === 'function') {
+      try { openSpendModal(); return; } catch(e) { console.warn(e); }
+    }
+    if (typeof showToast === 'function') showToast('Bookflex 준비 중');
+  }, 220);
+}
+
+/* 메뉴 → 직접 모달 함수 호출 */
+function kbmCall(fnName, fallbackMsg) {
+  closeKbMenu();
+  setTimeout(function() {
+    var fn = window[fnName];
+    if (typeof fn === 'function') {
+      try { fn(); } catch (e) {
+        if (typeof showToast === 'function') showToast(fallbackMsg || '오류가 발생했어요');
+      }
+    } else {
+      if (typeof showToast === 'function') showToast(fallbackMsg || '기능을 찾을 수 없어요');
+    }
+  }, 220);
+}
+
+function kbmOpenSupport() {
+  closeKbMenu();
+  setTimeout(function() {
+    var url = (typeof FAIRY_SUPPORT_URL !== 'undefined') ? FAIRY_SUPPORT_URL : 'https://fairy.hada.io/@-read';
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      location.href = url;
+    }
+  }, 200);
+}
+</script>
 
 </body>
 </html>
