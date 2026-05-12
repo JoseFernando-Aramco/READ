@@ -25004,6 +25004,37 @@ function toggleNoteFavorite(id) {
    상단 컬러 바 + 본문 + perforation + 시리얼 + 바코드
    월별 리더스 티켓과 같은 디자인 언어로 시리즈 응집력 유지
    ═══════════════════════════════════════════════════════════ */
+/* v1.8.x — 외부 표지 URL → Worker /img 프록시 경유 → base64 변환
+   html2canvas는 외부 도메인 이미지를 CORS 때문에 캡처 못 함.
+   Worker 통해서 같은 도메인처럼 가져오면 base64로 변환해서 인라인 가능. */
+async function _fetchCoverAsDataUri(coverUrl) {
+  if (!coverUrl) return null;
+  // 이미 data URI거나 같은 도메인이면 그대로 사용
+  if (coverUrl.startsWith('data:')) return coverUrl;
+  if (coverUrl.startsWith('/') || coverUrl.includes(window.location.host)) {
+    return coverUrl;
+  }
+  // 외부 URL → Worker 프록시 → base64
+  try {
+    const proxyUrl = ALADIN_PROXY_URL + '/img?url=' + encodeURIComponent(coverUrl);
+    const res = await fetch(proxyUrl, { method: 'GET' });
+    if (!res.ok) {
+      console.warn('[cover proxy] HTTP', res.status, 'for', coverUrl);
+      return null;
+    }
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('FileReader failed'));
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn('[cover proxy] fetch failed:', e);
+    return null;
+  }
+}
+
 /* v1.8.x — Android 노트 저장/공유 선택 시트 헬퍼 */
 function _showShareChoice(opts) {
   const bd = document.getElementById('shareChoiceBackdrop');
@@ -25147,11 +25178,21 @@ async function shareNoteCard(id, btnEl) {
       <div style="text-align:center;font-size:9.5px;color:#A39E94;letter-spacing:0.06em;margin-top:12px;font-weight:500;font-family:-apple-system,'Pretendard',sans-serif">— 전문은 READ 앱에서 —</div>
     ` : '';
 
-    // ─── 표지 처리 (URL 있으면 시도, 실패 시 색상으로 폴백) ───
-    const hasCoverUrl = !!book.coverUrl;
-    const coverImgHtml = hasCoverUrl
-      ? `<img src="${esc(book.coverUrl)}" alt="" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
-      : '';
+    // ─── 표지 처리 (v1.8.x — Worker 프록시 경유로 base64 변환 + 책 아이콘 폴백) ───
+    // 1) data URI나 같은 도메인 → 즉시 사용
+    // 2) 외부 URL → Worker /img 경유 → base64
+    // 3) 모두 실패 → 책 아이콘 SVG 폴백 (Lucide book-open, 가운데 정렬)
+    let coverImgHtml = '';
+    if (book.coverUrl) {
+      const coverDataUri = await _fetchCoverAsDataUri(book.coverUrl);
+      if (coverDataUri) {
+        coverImgHtml = `<img src="${esc(coverDataUri)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      }
+    }
+    if (!coverImgHtml) {
+      // 폴백: 책 아이콘 (Lucide book-open 라인 드로잉, 14×14px, 흰색 90% 투명도, 가운데)
+      coverImgHtml = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
+    }
 
     // ─── 캡처용 wrapper 생성 ───
     const BG_COLOR = '#E8E4DD';  // 캔버스 배경 (punch hole 색과 동일해야 함)
