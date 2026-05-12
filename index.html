@@ -19864,6 +19864,34 @@ const NA = {
     NOTES.length = 0;
     NOTES.push(...savedNotes);
   }
+
+  /* v1.9.x — 데모 노트 5개 자동 정리 (1회만)
+     이전 빌드에 하드코딩됐던 더미 노트(id 1~5)가 사용자 localStorage에 저장된 경우,
+     사용자가 만든 것이 아닌데 카운트만 잡히는 버그가 있어서 한 번 청소함.
+     본문 + id를 정확히 매칭해 데모만 제거. 사용자가 진짜 만든 노트는 건드리지 않음. */
+  const DEMO_CLEANUP_KEY = 'read.demoNotesCleaned.v1';
+  if (!STORE.get(DEMO_CLEANUP_KEY, false) && NOTES.length > 0) {
+    const DEMO_SIGNATURES = [
+      { id: 1, bodyStart: '새는 알을 깨고 나온다' },
+      { id: 2, bodyStart: '싱클레어가 크로머에게' },
+      { id: 3, bodyStart: '우리는 별의 먼지로 만들어졌다' },
+      { id: 4, bodyStart: '역사는 인간이 더 행복' },
+      { id: 5, bodyStart: '오세아니아의 감시 체제' },
+    ];
+    const before = NOTES.length;
+    const kept = NOTES.filter(n => {
+      const match = DEMO_SIGNATURES.find(s =>
+        n.id === s.id && typeof n.body === 'string' && n.body.startsWith(s.bodyStart)
+      );
+      return !match;  // 데모와 정확히 매칭되면 제거
+    });
+    if (kept.length !== before) {
+      NOTES.length = 0;
+      NOTES.push(...kept);
+      STORE.set('notes', NOTES);
+    }
+    STORE.set(DEMO_CLEANUP_KEY, true);
+  }
   // v1.6.0 — dropped 마이그레이션 (안전 기본값)
   BOOKS.forEach(b => {
     if (b.status === 'dropped' && (!b.dropped || typeof b.dropped !== 'object')) {
