@@ -5442,9 +5442,250 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
   border-radius: 12px;
-  max-height: 160px;
+  min-height: 80px;
+  max-height: 220px;
   overflow-y: auto;
 }
+
+/* v1.9.0 — 카테고리 탭 */
+.tag-cat-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.tag-cat-tabs::-webkit-scrollbar { display: none; }
+.tag-cat-tab {
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.tag-cat-tab:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+}
+.tag-cat-tab.is-active {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  border-color: var(--c-border-2);
+}
+.tag-cat-tab.is-hidden-tab { color: #6B7280; }
+.tag-cat-tab.is-hidden-tab.is-active {
+  background: #6B7280;
+  color: white;
+  border-color: transparent;
+}
+.tag-cat-tab .tcc {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 1px 5px;
+  background: rgba(139, 109, 61, 0.15);
+  color: var(--c-coin-deep);
+  font-size: 9.5px; font-weight: 800;
+  border-radius: 99px;
+  line-height: 1.3;
+}
+.tag-cat-tab.is-active .tcc { background: rgba(139, 109, 61, 0.25); }
+.tag-cat-tab.is-hidden-tab .tcc {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6B7280;
+}
+.tag-cat-tab.is-hidden-tab.is-active .tcc {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* v1.9.0 — 편집 토글 색상 모드 */
+.tag-edit-toggle.is-hidden-mode.is-editing {
+  background: #6B7280 !important;
+  border-color: #6B7280 !important;
+  color: white !important;
+}
+
+/* v1.9.0 — 편집 헬프 박스 */
+.tag-edit-help {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  line-height: 1.4;
+}
+.tag-edit-help.is-visible { display: flex; }
+.tag-edit-help[data-mode="hide"] {
+  background: rgba(107, 114, 128, 0.08);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+.tag-edit-help[data-mode="delete"] {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+.tag-edit-help[data-mode="restore"] {
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+.tag-edit-help .th-icon {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  color: white;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+  display: grid; place-items: center;
+  line-height: 1;
+}
+.tag-edit-help[data-mode="hide"] .th-icon { background: #6B7280; }
+.tag-edit-help[data-mode="delete"] .th-icon { background: #DC2626; }
+.tag-edit-help[data-mode="restore"] .th-icon { background: #059669; }
+.tag-edit-help .th-text b { font-weight: 700; color: var(--c-text); }
+
+/* v1.9.0 — 사용자 만든 태그 시각 마커 */
+.tag-chip.is-user-tag {
+  position: relative;
+}
+.tag-chip.is-user-tag::before {
+  content: "";
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--c-coin-deep);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* v1.9.0 — 숨김 칩 */
+.tag-chip.is-hidden {
+  background: rgba(107, 114, 128, 0.05);
+  border-color: rgba(107, 114, 128, 0.2);
+  color: var(--c-muted);
+}
+.tag-chip.is-hidden .tc-cat-tag {
+  font-size: 9.5px;
+  color: #6B7280;
+  opacity: 0.75;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+/* v1.9.0 — 편집 모드 칩 */
+.tag-chip.is-editable {
+  padding-right: 30px;
+  cursor: default;
+  animation: tagShake 0.4s ease-in-out;
+}
+.tag-chip.is-editable.is-hide-mode { border-color: #6B7280; }
+.tag-chip.is-editable.is-delete-mode { border-color: #DC2626; }
+.tag-chip.is-editable.is-restore-mode {
+  border-color: #059669;
+  padding-right: 34px;
+}
+@keyframes tagShake {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-1.2deg); }
+  75% { transform: rotate(1.2deg); }
+}
+.tag-chip .tc-action {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: white;
+  border: none;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+  transition: transform .15s;
+}
+.tag-chip .tc-action.tc-hide { background: #6B7280; }
+.tag-chip .tc-action.tc-delete { background: #DC2626; }
+.tag-chip .tc-action.tc-restore {
+  background: #059669;
+  width: 22px;
+  border-radius: 99px;
+  font-size: 10px;
+}
+.tag-chip .tc-action:hover { transform: translateY(-50%) scale(1.15); }
+.tag-chip .tc-action:active { transform: translateY(-50%) scale(0.92); }
+
+/* v1.9.0 — 빈 상태 */
+.tag-empty {
+  width: 100%;
+  text-align: center;
+  padding: 24px 14px;
+  color: var(--c-muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.tag-empty .te-icon {
+  font-size: 26px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+.tag-empty .te-hint {
+  font-style: italic;
+  font-size: 11.5px;
+}
+
+/* v1.9.0 — 새 태그 카테고리 라디오 */
+.tag-new-cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+.tag-new-cat-row .tnc-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  margin-right: 4px;
+  letter-spacing: -0.01em;
+}
+.tag-new-cat-row .tnc-chip {
+  padding: 5px 11px;
+  background: white;
+  border: 1px solid var(--c-border-2);
+  border-radius: 99px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.tag-new-cat-row .tnc-chip:hover {
+  background: var(--c-surface);
+  border-color: var(--c-coin-2);
+}
+.tag-new-cat-row .tnc-chip.is-active {
+  background: linear-gradient(135deg, var(--c-coin-1), var(--c-coin-deep));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(139, 109, 61, 0.25);
+}
+
 /* 태그 칩 (책 상세·북 추가·필터 공통) */
 .tag-chip {
   display: inline-flex;
@@ -14211,18 +14452,35 @@ body.cn-locked {
         </div>
       </div>
 
-      <!-- 태그 선택 -->
+      <!-- 태그 선택 (v1.9.0 — 카테고리 탭 + 편집/숨김/복구) -->
       <div class="confirm-section">
         <div class="tag-section-row">
           <div class="confirm-section-lbl">태그 (선택)</div>
           <button type="button" class="tag-edit-toggle" id="tagEditToggle">편집</button>
         </div>
+        <!-- 카테고리 탭 -->
+        <div class="tag-cat-tabs" id="tagCatTabs">
+          <!-- JS 렌더 -->
+        </div>
+        <!-- 편집 헬프 박스 -->
+        <div class="tag-edit-help" id="tagEditHelp" data-mode="hide" aria-hidden="true">
+          <!-- JS 렌더 -->
+        </div>
+        <!-- 태그 칩 -->
         <div class="tag-chips-all" id="tagChipsAll">
           <!-- JS 렌더 -->
         </div>
+        <!-- 새 태그 입력 + 카테고리 선택 -->
         <div class="tag-new-wrap">
           <input class="tag-new-input" id="tagNewInput" type="text" placeholder="새 태그 만들기…" maxlength="12" autocomplete="off">
           <button class="tag-new-btn" id="tagNewBtn">+ 추가</button>
+        </div>
+        <div class="tag-new-cat-row" id="tagNewCatRow">
+          <span class="tnc-label">📂 어느 카테고리에?</span>
+          <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
+          <button type="button" class="tnc-chip" data-cat="nonfiction">비픽션</button>
+          <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
+          <button type="button" class="tnc-chip" data-cat="format">형식</button>
         </div>
       </div>
 
@@ -14696,78 +14954,97 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.8.0 · 업데이트 소식</div>
-    <div class="wn-ttl">올해 책에 얼마나 썼는지<br>한눈에 보세요</div>
-    <div class="wn-sub">완독한 책의 정가가 자동으로 쌓여요 · 매체별·책별로 보고 직접 수정도 가능해요</div>
+    <div class="wn-badge">v1.9.0 · 큰 업데이트</div>
+    <div class="wn-ttl">책에 더 어울리는<br>태그를 골라보세요</div>
+    <div class="wn-sub">장르 · 비픽션 · 자기개발 · 형식 4개 카테고리에 추천 태그 37개 · 안 쓰는 건 숨길 수도 있어요</div>
 
-    <!-- HERO — Bookflex -->
+    <!-- HERO — 태그 시스템 -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
-        <span style="font-size:11px">🪙</span>
-        NEW · Bookflex
+        <span style="font-size:11px">🏷</span>
+        NEW · 태그 시스템 전면 개편
       </div>
-      <div class="wn-hero-ttl" style="font-style:italic;background:linear-gradient(135deg,#D4A574,#B8956A 50%,#8B6D3D);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">Bookflex</div>
-      <div class="wn-hero-sub">올해 완독한 책의 정가가 자동으로 쌓여요 · 10만 / 30만 / 50만 / 100만 / 150만 마일스톤도 추적</div>
+      <div class="wn-hero-ttl" style="font-style:italic;background:linear-gradient(135deg,#D4A574,#B8956A 50%,#8B6D3D);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:22px;letter-spacing:0.005em;line-height:1.25;padding:2px 12px 2px 2px;overflow:visible;white-space:nowrap;display:inline-block;">Tag Categories</div>
+      <div class="wn-hero-sub">국내고전 · 해외고전 · 판타지 · 미스터리 · SF · 로맨스 같은 장르가 새로 들어왔어요. 직접 만든 태그도 카테고리에 묶여서 깔끔하게 정리돼요.</div>
 
-      <div style="margin-top:18px;padding:16px;background:rgba(255,255,255,0.6);border-radius:12px;border:1px solid rgba(212,165,116,0.3);text-align:center;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;color:#8B6D3D;text-transform:uppercase;margin-bottom:6px;">올해의 종이값</div>
-        <div style="font-size:32px;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#8B6D3D,#5C4520);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-variant-numeric:tabular-nums;line-height:1;">₩1,268,300</div>
-        <div style="font-size:11px;color:#6B5430;margin-top:6px;">완독 16권 · 종이·전자·오디오 모두</div>
+      <!-- 미리보기 -->
+      <div style="margin-top:16px;background:rgba(255,255,255,0.7);border-radius:12px;padding:14px 12px;border:1px solid rgba(212,165,116,0.25);">
+        <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;">
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:linear-gradient(135deg,#D4A574,#8B6D3D);color:white;">장르</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">비픽션</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">자기개발</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;">형식</div>
+          <div style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.04);color:#6B5430;opacity:0.6;">숨김</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">📜 국내고전</div>
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">🎭 해외고전</div>
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">🐉 판타지</div>
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">🔍 미스터리</div>
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">🚀 SF</div>
+          <div style="font-size:10.5px;font-weight:600;padding:4px 9px;background:white;border:1px solid rgba(212,165,116,0.3);border-radius:99px;color:#6B5430;">💕 로맨스</div>
+        </div>
       </div>
       <div class="wn-sync-status" style="margin-top:14px;">
-        <span class="dot"></span> 헤더에 동전 아이콘 새로 생겼어요
+        <span class="dot"></span> 기존 태그는 자동으로 카테고리에 분류돼요
       </div>
     </div>
 
-    <!-- 항목 리스트 -->
+    <!-- 메인 항목 -->
     <ul class="wn-list">
       <li class="wn-item">
-        <div class="wn-icon">🪙</div>
+        <div class="wn-icon">📂</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">Bookflex — 책에 쓴 돈 카운터</div>
-          <div class="wn-item-sub">헤더 동전 누르면 모달 열림 · 매체 카드 탭하면 해당 매체만 필터 · 책별 가격은 ✏️로 직접 수정</div>
+          <div class="wn-item-ttl">추천 태그 37개</div>
+          <div class="wn-item-sub">장르 14 · 비픽션 12 · 자기개발 5 · 형식 6 — 탭하면 바로 추가</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🎧</div>
+        <div class="wn-icon">✏️</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">오디오북 매체 지원</div>
-          <div class="wn-item-sub">책 추가할 때 종이/전자/오디오 선택 가능 · 통계와 Bookflex 합산에 모두 반영</div>
+          <div class="wn-item-ttl">직접 입력 — 카테고리 선택</div>
+          <div class="wn-item-sub">새 태그 만들 때 어느 카테고리에 둘지 선택 가능 · 정리가 깔끔해져요</div>
         </div>
       </li>
       <li class="wn-item">
-        <div class="wn-icon">🔍</div>
+        <div class="wn-icon">🌿</div>
         <div class="wn-text">
-          <div class="wn-item-ttl">노트 추가 — 검색형 책 선택</div>
-          <div class="wn-item-sub">책이 많아져도 단숨에 찾아요 · 읽는 중 + 최근 완독 5권은 자동으로 위에 노출</div>
+          <div class="wn-item-ttl">안 쓰는 태그는 숨기기</div>
+          <div class="wn-item-sub">매니악한 취향이라 추천 태그가 많이 거슬렸다면, 편집 모드에서 숨길 수 있어요 · [숨김] 탭에서 복구도 가능</div>
         </div>
       </li>
     </ul>
 
-    <!-- 개발자 노트 — Bookflex 컨셉 -->
+    <!-- 후속 패치 6건 -->
+    <div style="background:var(--c-surface);border-radius:12px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
+      <div style="font-size:10.5px;font-weight:800;color:var(--c-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <span>🛠</span> v1.8.0 이후 같이 들어간 자잘한 개선
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">타이머 발열 광탈 수정</b> · GPU 가속 애니메이션으로 교체</div>
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">노트 공유 — 안드로이드</b> · 사진 저장 / 공유 시트 선택 가능</div>
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">노트 공유 표지</b> · 책 아이콘 폴백으로 더 깔끔하게</div>
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">책별 정가 저장 버그</b> · 일부 책에서 가격 저장 안 되던 문제 수정</div>
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">Bookflex 타이틀 잘림</b> · 헤더 모달 디자인 미세 조정</div>
+        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">헤더 동전 아이콘</b> · 더 입체감 있는 동전 더미로 교체</div>
+      </div>
+    </div>
+
+    <!-- 개발자 노트 -->
     <div class="wn-devnote">
       <div class="wn-devnote-head">
         <span>🛠</span> 개발자 노트
       </div>
-      <div class="wn-devnote-q">"Bookflex" — 결제 금액이 아니라 정가 합계예요</div>
+      <div class="wn-devnote-q">"태그 부족하다"는 의견에서 시작했어요</div>
       <div class="wn-devnote-a">
-        도서관에서 빌렸든, 선물받았든, 구독으로 봤든 — <strong>그 책 한 권이 시장에서 얼마짜리인지</strong>를 세요. 
-        그래서 "올해 내가 만난 책의 무게" 같은 거예요. 가격이 부담스러우면 <strong>빈칸으로 두면 합계에서 빠져요</strong>.<br><br>
-        Netflix는 매달 빠져나가는데, 책은 한 번 사면 평생 내 거잖아요. 그 차이를 보여주고 싶었어요.
-      </div>
-    </div>
-
-    <!-- 감사 인사 -->
-    <div class="wn-also">
-      <div class="wn-also-head">고마워요</div>
-      <div class="wn-also-text">
-        "한 해 동안 책에 얼마나 썼나" 궁금하다는 작은 의견에서 시작한 기능이에요 🙏
+        기본 태그 18개로는 픽션 장르가 너무 부족했어요. 그래서 <strong>장르 14개 추가</strong>하고 카테고리로 묶었어요.<br><br>
+        근데 어떤 분은 추천 태그가 많아도 거슬릴 수 있겠더라고요. 그래서 <strong>"숨기기"</strong>도 같이 넣었어요. 영구 삭제는 아니라서 마음 바뀌면 [숨김] 탭에서 복구할 수 있어요.
       </div>
     </div>
 
     <div class="wn-actions">
-      <button class="wn-btn ghost" id="wnLater">나중에 보기</button>
-      <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
+      <button class="wn-btn ghost" id="wnLater">나중에</button>
+      <button class="wn-btn primary" id="wnGoStats">태그 보러가기</button>
     </div>
   </div>
 </div>
@@ -14786,7 +15063,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.8.0</div>
+      <div class="ab-ver">version 1.9.0</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -16317,6 +16594,8 @@ const BA = {
   tagsSelected: [],     // 추가 시 선택한 태그
   rating: 0,            // 완독 등록 시 별점 (0~5)
   tagEditMode: false,   // 태그 편집(삭제) 모드
+  tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭 ('genre'|'nonfiction'|'growth'|'format'|'hidden')
+  newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 선택된 카테고리
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
   manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio')
 };
@@ -18135,54 +18414,171 @@ function tryDeleteTag(name, onDone) {
   });
 }
 
-/* ─── 태그 칩 렌더 (전체 + 선택 상태) — BA(책 추가) 컨텍스트 ─── */
+/* v1.9.0 — 카테고리별 가시 태그 (숨김 제외) */
+function _getTagsByCategory(cat) {
+  return Object.entries(TAGS)
+    .filter(([name, tag]) => tag.category === cat && !HIDDEN_TAGS.has(name))
+    .map(([name, tag]) => ({ name, ...tag }));
+}
+
+/* v1.9.0 — 카테고리 탭 렌더 */
+function renderTagCategoryTabs() {
+  const tabsEl = document.getElementById('tagCatTabs');
+  if (!tabsEl) return;
+  const cats = [
+    { id: 'genre', label: '장르' },
+    { id: 'nonfiction', label: '비픽션' },
+    { id: 'growth', label: '자기개발' },
+    { id: 'format', label: '형식' },
+    { id: 'hidden', label: '숨김', hidden: true },
+  ];
+  tabsEl.innerHTML = cats.map(c => {
+    const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
+    if (c.hidden && count === 0) return ''; // 숨김 0개면 탭 자체 노출 X
+    let cls = 'tag-cat-tab';
+    if (c.hidden) cls += ' is-hidden-tab';
+    if (BA.tagsActiveCat === c.id) cls += ' is-active';
+    const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
+    return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
+  }).join('');
+  tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      BA.tagsActiveCat = btn.dataset.cat;
+      BA.tagEditMode = false;
+      renderTagChips();
+    });
+  });
+}
+
+/* ─── 태그 칩 렌더 (v1.9.0 카테고리 탭 + 편집/숨김/복구) ─── */
 function renderTagChips() {
+  renderTagCategoryTabs();
   const container = document.getElementById('tagChipsAll');
   if (!container) return;
   const editing = !!BA.tagEditMode;
+  const activeCat = BA.tagsActiveCat;
 
-  // 정렬: 편집 모드면 삭제 가능 항목(미사용)을 위로, 아니면 선택된 것을 위로
-  const entries = Object.entries(TAGS).sort(([a], [c]) => {
-    if (editing) {
-      const aDel = !isTagUsed(a) ? 0 : 1;
-      const cDel = !isTagUsed(c) ? 0 : 1;
-      return aDel - cDel;
+  // 편집 토글 버튼 상태
+  const toggleBtn = document.getElementById('tagEditToggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = editing ? '✓ 완료' : '편집';
+    toggleBtn.classList.toggle('is-editing', editing);
+    toggleBtn.classList.toggle('is-hidden-mode', activeCat === 'hidden');
+  }
+
+  // 편집 헬프 박스
+  const helpEl = document.getElementById('tagEditHelp');
+  if (helpEl) {
+    helpEl.classList.toggle('is-visible', editing);
+    let mode = 'hide';
+    let msg = '';
+    if (activeCat === 'hidden') {
+      mode = 'restore';
+      msg = '<b>복구 모드</b> · ↻ 누르면 원래 카테고리로 돌아가요';
+    } else {
+      const items = _getTagsByCategory(activeCat);
+      const hasUser = items.some(t => t.source === 'user');
+      const hasDefault = items.some(t => t.source === 'default');
+      if (hasUser && hasDefault) {
+        msg = '<b>편집 모드</b> · 회색 × = 숨기기 (기본 태그) · 빨간 × = 영구 삭제 (직접 만든 태그)';
+      } else if (hasUser) {
+        mode = 'delete';
+        msg = '<b>삭제 모드</b> · × 누르면 영구 삭제 (확인 후)';
+      } else {
+        msg = '<b>숨기기 모드</b> · × 누르면 [숨김] 탭으로 (영구 X)';
+      }
     }
-    const aSel = BA.tagsSelected.includes(a) ? 0 : 1;
-    const cSel = BA.tagsSelected.includes(c) ? 0 : 1;
-    return aSel - cSel;
-  });
+    helpEl.dataset.mode = mode;
+    helpEl.innerHTML = `<span class="th-icon">${mode === 'restore' ? '↻' : '×'}</span><span class="th-text">${msg}</span>`;
+  }
 
-  container.innerHTML = entries.map(([name, tag]) => {
-    if (editing) {
-      const used = isTagUsed(name);
-      const cls = used ? 'is-locked' : 'is-deletable';
-      return `<button type="button" class="tag-chip ${cls}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
-        <span class="tc-emoji">${tag.emoji}</span>
-        <span class="tc-name">${esc(name)}</span>
-        ${used ? '' : '<span class="tc-x" aria-hidden="true">×</span>'}
-      </button>`;
+  // 칩 영역 렌더
+  if (activeCat === 'hidden') {
+    if (HIDDEN_TAGS.size === 0) {
+      container.innerHTML = `<div class="tag-empty"><div class="te-icon">🌿</div>숨김 처리한 태그가 없어요<br><span class="te-hint">편집 모드에서 ×로 숨길 수 있어요</span></div>`;
+      return;
     }
-    const active = BA.tagsSelected.includes(name) ? ' active' : '';
-    return `<button type="button" class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
-      <span class="tc-emoji">${tag.emoji}</span>
-      <span class="tc-name">${esc(name)}</span>
-    </button>`;
-  }).join('');
-
-  container.querySelectorAll('.tag-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const name = chip.dataset.tag;
+    const hiddenList = Array.from(HIDDEN_TAGS).map(name => ({ name, ...TAGS[name] })).filter(t => t.category);
+    container.innerHTML = hiddenList.map(t => {
+      const catLabel = TAG_CATEGORIES[t.category] || '';
+      const sourceMark = t.source === 'user' ? ' • 직접' : '';
+      let cls = 'tag-chip is-hidden';
+      if (editing) cls += ' is-editable is-restore-mode';
+      const actionBtn = editing
+        ? `<button type="button" class="tc-action tc-restore" data-action="restore" data-tag="${esc(t.name)}">↻</button>`
+        : '';
+      return `<div class="${cls}" data-tag="${esc(t.name)}">
+        <span class="tc-emoji">${t.emoji || ''}</span>
+        <span class="tc-name">${esc(t.name)}</span>
+        <span class="tc-cat-tag">${catLabel}${sourceMark}</span>
+        ${actionBtn}
+      </div>`;
+    }).join('');
+  } else {
+    const items = _getTagsByCategory(activeCat);
+    if (items.length === 0) {
+      container.innerHTML = `<div class="tag-empty"><div class="te-icon">📭</div>이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
+      return;
+    }
+    // 정렬: 선택된 거 먼저, 그 다음 사용자 만든 거, 그 다음 기본
+    items.sort((a, b) => {
+      const aSel = BA.tagsSelected.includes(a.name) ? 0 : 1;
+      const bSel = BA.tagsSelected.includes(b.name) ? 0 : 1;
+      if (aSel !== bSel) return aSel - bSel;
+      const aUser = a.source === 'user' ? 0 : 1;
+      const bUser = b.source === 'user' ? 0 : 1;
+      return aUser - bUser;
+    });
+    container.innerHTML = items.map(t => {
+      let cls = 'tag-chip';
+      if (t.source === 'user') cls += ' is-user-tag';
       if (editing) {
-        // 편집 모드: 미사용 태그면 삭제 시도, 사용 중이면 토스트
-        if (chip.classList.contains('is-locked')) {
-          showToast('사용 중인 태그라 삭제할 수 없어요');
-          return;
+        cls += ' is-editable';
+        if (t.source === 'user') cls += ' is-delete-mode';
+        else cls += ' is-hide-mode';
+      } else if (BA.tagsSelected.includes(t.name)) {
+        cls += ' active';
+      }
+      let actionBtn = '';
+      if (editing) {
+        if (t.source === 'user') {
+          actionBtn = `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
+        } else {
+          actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
         }
-        tryDeleteTag(name, () => renderTagChips());
+      }
+      return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
+        <span class="tc-emoji">${t.emoji || ''}</span>
+        <span class="tc-name">${esc(t.name)}</span>
+        ${actionBtn}
+      </div>`;
+    }).join('');
+  }
+
+  // 칩 클릭 핸들러
+  container.querySelectorAll('.tag-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      // 액션 버튼 (숨기기/삭제/복구)
+      const actionBtn = e.target.closest('.tc-action');
+      if (actionBtn) {
+        e.stopPropagation();
+        const action = actionBtn.dataset.action;
+        const name = actionBtn.dataset.tag;
+        if (action === 'hide') {
+          _hideTag(name);
+        } else if (action === 'restore') {
+          _restoreTag(name);
+        } else if (action === 'delete') {
+          tryDeleteTag(name, () => renderTagChips());
+        }
         return;
       }
-      // 일반 모드: 선택 토글
+      if (editing) return;
+      if (chip.classList.contains('is-hidden')) {
+        showToast('숨김 태그는 복구 후 사용 가능해요');
+        return;
+      }
+      const name = chip.dataset.tag;
       if (BA.tagsSelected.includes(name)) {
         BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
       } else {
@@ -18191,13 +18587,28 @@ function renderTagChips() {
       renderTagChips();
     });
   });
+}
 
-  // 편집 토글 버튼 라벨/상태 동기화
-  const toggleBtn = document.getElementById('tagEditToggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = editing ? '✓ 완료' : '편집';
-    toggleBtn.classList.toggle('is-editing', editing);
+/* v1.9.0 — 기본 태그 숨기기 (영구 X) */
+function _hideTag(name) {
+  HIDDEN_TAGS.add(name);
+  BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
+  STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+  renderTagChips();
+  showToast(`"${name}" 숨김`);
+}
+
+/* v1.9.0 — 숨김 태그 복구 */
+function _restoreTag(name) {
+  HIDDEN_TAGS.delete(name);
+  STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+  // 숨김 탭 비면 자동으로 다른 탭으로
+  if (HIDDEN_TAGS.size === 0 && BA.tagsActiveCat === 'hidden') {
+    BA.tagsActiveCat = TAGS[name]?.category || 'genre';
+    BA.tagEditMode = false;
   }
+  renderTagChips();
+  showToast(`"${name}" 복구됨`);
 }
 
 /* ─── 새 태그 생성 ─── */
@@ -18209,21 +18620,33 @@ function createNewTag() {
   const name = input.value.trim();
   if (!name) return;
   if (TAGS[name]) {
-    // 이미 존재 → 선택만
+    // 이미 존재 → 선택만 + 숨김이면 자동 복구
+    if (HIDDEN_TAGS.has(name)) {
+      HIDDEN_TAGS.delete(name);
+      STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+      showToast(`"${name}" 숨김 해제`);
+    }
     if (!BA.tagsSelected.includes(name)) BA.tagsSelected.push(name);
     input.value = '';
     renderTagChips();
     return;
   }
   const idx = Object.keys(TAGS).length;
+  // v1.9.0 — 선택된 카테고리에 사용자 태그로 등록
+  const targetCat = BA.newTagCategory || 'genre';
   TAGS[name] = {
     emoji: NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
     color: NEW_TAG_COLORS[idx % NEW_TAG_COLORS.length],
+    category: targetCat,
+    source: 'user',
   };
   STORE.set('tags', TAGS);
   BA.tagsSelected.push(name);
+  // 자동으로 그 카테고리 탭으로 이동
+  BA.tagsActiveCat = targetCat;
   input.value = '';
   renderTagChips();
+  showToast(`"${name}" 추가됨 · [${TAG_CATEGORIES[targetCat]}]에 저장`);
 }
 
 /* ─── 최종 추가 (BOOKS에 push + localStorage 저장) ─── */
@@ -18461,6 +18884,16 @@ document.getElementById('tagNewInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); createNewTag(); }
 });
 
+// v1.9.0 — 새 태그 카테고리 라디오 칩 핸들러
+document.getElementById('tagNewCatRow')?.addEventListener('click', (e) => {
+  const chip = e.target.closest('.tnc-chip');
+  if (!chip) return;
+  BA.newTagCategory = chip.dataset.cat;
+  document.querySelectorAll('#tagNewCatRow .tnc-chip').forEach(c => {
+    c.classList.toggle('is-active', c.dataset.cat === BA.newTagCategory);
+  });
+});
+
 // 태그 편집(삭제) 모드 토글
 document.getElementById('tagEditToggle').addEventListener('click', () => {
   BA.tagEditMode = !BA.tagEditMode;
@@ -18483,27 +18916,89 @@ document.querySelectorAll('.chip').forEach(chip => {
    서재 · 로그 뷰 시스템
    ═══════════════════════════════════════════════════════════ */
 
-// 태그 마스터 (이모지 + 색상) — 자동완성 소스이자 칩 렌더링 정보
-const TAGS = {
-  '성장':      { emoji: '🌱', color: '#4d7c0f' },
-  '고전':      { emoji: '📜', color: '#7c2d12' },
-  '자기성찰':  { emoji: '🪞', color: '#be185d' },
-  '육아':      { emoji: '👶', color: '#ec4899' },
-  '과학':      { emoji: '🔬', color: '#1e3a8a' },
-  '우주':      { emoji: '🌌', color: '#6b21a8' },
-  '디스토피아':{ emoji: '🏚️', color: '#334155' },
-  '정치':      { emoji: '🏛️', color: '#78350f' },
-  '역사':      { emoji: '📚', color: '#a16207' },
-  '경제':      { emoji: '💰', color: '#059669' },
-  '행동심리':  { emoji: '🧠', color: '#0369a1' },
-  '인류학':    { emoji: '🦴', color: '#44403c' },
-  '데이터':    { emoji: '📊', color: '#0891b2' },
-  '습관':      { emoji: '🔄', color: '#d97706' },
-  '자기계발':  { emoji: '🚀', color: '#7c3aed' },
-  '원서':      { emoji: '🌐', color: '#c2410c' },
-  '미래':      { emoji: '🔮', color: '#6366f1' },
-  '철학':      { emoji: '💭', color: '#4338ca' },
+// v1.9.0 — 추천 태그 (앱 기본 제공, 4 카테고리)
+const DEFAULT_TAGS = {
+  // 장르 14개
+  '국내고전':    { emoji: '📜', color: '#7c2d12', category: 'genre' },
+  '해외고전':    { emoji: '🎭', color: '#92400e', category: 'genre' },
+  '한국소설':    { emoji: '📖', color: '#9a3412', category: 'genre' },
+  '외국소설':    { emoji: '✈️', color: '#1e40af', category: 'genre' },
+  '판타지':      { emoji: '🐉', color: '#6b21a8', category: 'genre' },
+  '미스터리':    { emoji: '🔍', color: '#334155', category: 'genre' },
+  '스릴러':      { emoji: '👻', color: '#1e1b4b', category: 'genre' },
+  'SF':          { emoji: '🚀', color: '#6366f1', category: 'genre' },
+  '로맨스':      { emoji: '💕', color: '#be185d', category: 'genre' },
+  '에세이':      { emoji: '📝', color: '#0f766e', category: 'genre' },
+  '시·시집':     { emoji: '✒️', color: '#4338ca', category: 'genre' },
+  '라틴아메리카':{ emoji: '🌏', color: '#b45309', category: 'genre' },
+  '일본문학':    { emoji: '🇯🇵', color: '#9f1239', category: 'genre' },
+  '역사소설':    { emoji: '📚', color: '#a16207', category: 'genre' },
+  // 비픽션 12개
+  '심리':        { emoji: '🧠', color: '#0369a1', category: 'nonfiction' },
+  '경영':        { emoji: '💼', color: '#1f2937', category: 'nonfiction' },
+  '경제':        { emoji: '💰', color: '#059669', category: 'nonfiction' },
+  '과학':        { emoji: '🔬', color: '#1e3a8a', category: 'nonfiction' },
+  '역사':        { emoji: '🏛️', color: '#a16207', category: 'nonfiction' },
+  '기술/IT':     { emoji: '📡', color: '#0891b2', category: 'nonfiction' },
+  '예술':        { emoji: '🎨', color: '#c026d3', category: 'nonfiction' },
+  '환경':        { emoji: '🌱', color: '#4d7c0f', category: 'nonfiction' },
+  '건강':        { emoji: '⚕️', color: '#dc2626', category: 'nonfiction' },
+  '요리':        { emoji: '🍳', color: '#ea580c', category: 'nonfiction' },
+  '여행':        { emoji: '✈️', color: '#0284c7', category: 'nonfiction' },
+  '사회':        { emoji: '📰', color: '#475569', category: 'nonfiction' },
+  // 자기개발 5개
+  '자기계발':    { emoji: '💪', color: '#7c3aed', category: 'growth' },
+  '자기성찰':    { emoji: '🪞', color: '#be185d', category: 'growth' },
+  '명상':        { emoji: '🧘', color: '#0d9488', category: 'growth' },
+  '습관/생산성':{ emoji: '🎯', color: '#d97706', category: 'growth' },
+  '사고법':      { emoji: '🧩', color: '#7e22ce', category: 'growth' },
+  // 형식 6개
+  '원서':        { emoji: '🌍', color: '#c2410c', category: 'format' },
+  '그래픽노블':  { emoji: '📕', color: '#9333ea', category: 'format' },
+  '입문서':      { emoji: '📖', color: '#0ea5e9', category: 'format' },
+  '전공서':      { emoji: '🎓', color: '#1d4ed8', category: 'format' },
+  '아동/청소년':{ emoji: '👶', color: '#ec4899', category: 'format' },
+  '인생책':      { emoji: '🌟', color: '#facc15', category: 'format' },
 };
+
+// v1.9.0 — 카테고리 라벨 매핑
+const TAG_CATEGORIES = {
+  genre: '장르',
+  nonfiction: '비픽션',
+  growth: '자기개발',
+  format: '형식',
+};
+
+// v1.9.0 — 기존 시드 18개 → 새 카테고리 자동 마이그레이션 매핑
+// 정확 매칭 우선, 그 다음 의미상 가까운 카테고리로
+const LEGACY_TAG_MIGRATION = {
+  '성장':      { category: 'growth',     mergeInto: null },           // 유지 (사용자)
+  '고전':      { category: 'genre',      mergeInto: null },           // 유지 (사용자)
+  '자기성찰':  { category: 'growth',     mergeInto: '자기성찰' },     // DEFAULT에 흡수
+  '육아':      { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '과학':      { category: 'nonfiction', mergeInto: '과학' },         // DEFAULT에 흡수
+  '우주':      { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '디스토피아':{ category: 'genre',      mergeInto: null },           // 유지 (사용자)
+  '정치':      { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '역사':      { category: 'nonfiction', mergeInto: '역사' },         // DEFAULT에 흡수
+  '경제':      { category: 'nonfiction', mergeInto: '경제' },         // DEFAULT에 흡수
+  '행동심리':  { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '인류학':    { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '데이터':    { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '습관':      { category: 'growth',     mergeInto: null },           // 유지 (사용자)
+  '자기계발':  { category: 'growth',     mergeInto: '자기계발' },     // DEFAULT에 흡수
+  '원서':      { category: 'format',     mergeInto: '원서' },         // DEFAULT에 흡수
+  '미래':      { category: 'nonfiction', mergeInto: null },           // 유지 (사용자)
+  '철학':      { category: 'growth',     mergeInto: null },           // 유지 (사용자)
+};
+
+// 태그 마스터 — DEFAULT_TAGS 복제로 초기화 (사용자가 만든 태그도 같은 구조로 같이 들어감)
+const TAGS = JSON.parse(JSON.stringify(DEFAULT_TAGS));
+// DEFAULT_TAGS의 source 마킹 (앱 기본 vs 사용자)
+Object.keys(TAGS).forEach(k => { TAGS[k].source = 'default'; });
+
+// 숨김 처리된 태그 이름 Set
+const HIDDEN_TAGS = new Set();
 
 // 책 데이터 (샘플) — 실제 앱에선 localStorage / IndexedDB
 const BOOKS = [
@@ -18673,6 +19168,57 @@ const NA = {
     //  필요하면 사용자가 직접 추가하시면 됨. 사용자 의도 침범 안 하는 게 우선)
     Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
     Object.keys(savedTags).forEach(k => { TAGS[k] = savedTags[k]; });
+  }
+
+  /* v1.9.0 — 태그 시스템 마이그레이션 (1회만)
+     기존 사용자의 평면 TAGS를 새 카테고리 구조로 자동 분류 */
+  const TAGS_MIGRATED_KEY = 'read.tagsMigrated.v1.9';
+  if (!STORE.get(TAGS_MIGRATED_KEY, false)) {
+    let migratedCount = 0;
+    let absorbedCount = 0;
+    Object.keys(TAGS).forEach(name => {
+      const t = TAGS[name];
+      // 이미 category가 있으면 건너뜀 (새로 만든 태그)
+      if (t.category) return;
+      const legacy = LEGACY_TAG_MIGRATION[name];
+      if (legacy) {
+        if (legacy.mergeInto && DEFAULT_TAGS[legacy.mergeInto]) {
+          // DEFAULT로 흡수 (이름 같음) — 카테고리·source·이모지 갱신
+          t.category = DEFAULT_TAGS[legacy.mergeInto].category;
+          t.source = 'default';
+          if (DEFAULT_TAGS[legacy.mergeInto].emoji) t.emoji = DEFAULT_TAGS[legacy.mergeInto].emoji;
+          absorbedCount++;
+        } else {
+          // 사용자 태그로 분류
+          t.category = legacy.category;
+          t.source = 'user';
+          migratedCount++;
+        }
+      } else {
+        // LEGACY에 없는 태그 (사용자가 만든 거) — 기본은 장르로
+        t.category = 'genre';
+        t.source = 'user';
+        migratedCount++;
+      }
+    });
+
+    // DEFAULT_TAGS의 새 태그 중 사용자한테 없는 건 추가 (앱 업데이트 신규 추천 태그)
+    Object.keys(DEFAULT_TAGS).forEach(name => {
+      if (!TAGS[name]) {
+        TAGS[name] = { ...DEFAULT_TAGS[name], source: 'default' };
+      }
+    });
+
+    STORE.set('tags', TAGS);
+    STORE.set(TAGS_MIGRATED_KEY, true);
+    // 마이그 결과는 UI 첫 진입 시 토스트로 알림 (showToast 정의 후)
+    window._tagsMigrationResult = { migratedCount, absorbedCount };
+  }
+
+  // 숨김 태그 복원
+  const savedHidden = STORE.get('hiddenTags', null);
+  if (Array.isArray(savedHidden)) {
+    savedHidden.forEach(name => HIDDEN_TAGS.add(name));
   }
   const savedNotes = STORE.get('notes', null);
   if (Array.isArray(savedNotes)) {
@@ -28417,8 +28963,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.8.0';
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v6';
+const APP_VERSION = '1.9.0';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v7';
 
 function openWhatsNew() {
   const modal = document.getElementById('wnModal');
@@ -28471,6 +29017,19 @@ function _versionLower(a, b) {
       setTimeout(() => openWhatsNew(), 600);
     }
   } catch(e){}
+})();
+
+/* v1.9.0 — 태그 마이그레이션 결과 토스트 (1회) */
+(function showTagMigrationToast() {
+  const result = window._tagsMigrationResult;
+  if (!result) return;
+  const total = (result.migratedCount || 0) + (result.absorbedCount || 0);
+  if (total === 0) return;
+  setTimeout(() => {
+    if (typeof showToast === 'function') {
+      showToast(`기존 태그 ${total}개가 카테고리에 정리됐어요`);
+    }
+  }, 1500);
 })();
 
 /* 업데이트 소식 모달 버튼 바인딩 */
