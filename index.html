@@ -18611,6 +18611,186 @@ function _restoreTag(name) {
   showToast(`"${name}" 복구됨`);
 }
 
+/* v1.9.0 — 책 상세 페이지 태그 칩 렌더 (BD 컨텍스트) */
+function renderBookDetailTags() {
+  const b = BD.book;
+  if (!b) return;
+
+  // 카테고리 탭
+  const tabsEl = document.getElementById('bdTagCatTabs');
+  if (tabsEl) {
+    const cats = [
+      { id: 'genre', label: '장르' },
+      { id: 'nonfiction', label: '비픽션' },
+      { id: 'growth', label: '자기개발' },
+      { id: 'format', label: '형식' },
+      { id: 'hidden', label: '숨김', hidden: true },
+    ];
+    tabsEl.innerHTML = cats.map(c => {
+      const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
+      if (c.hidden && count === 0) return '';
+      let cls = 'tag-cat-tab';
+      if (c.hidden) cls += ' is-hidden-tab';
+      if (BD.tagsActiveCat === c.id) cls += ' is-active';
+      const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
+      return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
+    }).join('');
+    tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        BD.tagsActiveCat = btn.dataset.cat;
+        BD.tagEditMode = false;
+        renderBookDetailTags();
+      });
+    });
+  }
+
+  const editing = !!BD.tagEditMode;
+  const activeCat = BD.tagsActiveCat;
+
+  // 편집 토글 버튼
+  const toggleBtn = document.getElementById('bdTagEditToggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = editing ? '✓ 완료' : '편집';
+    toggleBtn.classList.toggle('is-editing', editing);
+    toggleBtn.classList.toggle('is-hidden-mode', activeCat === 'hidden');
+  }
+
+  // 편집 헬프
+  const helpEl = document.getElementById('bdTagEditHelp');
+  if (helpEl) {
+    helpEl.classList.toggle('is-visible', editing);
+    let mode = 'hide';
+    let msg = '';
+    if (activeCat === 'hidden') {
+      mode = 'restore';
+      msg = '<b>복구 모드</b> · ↻ 누르면 원래 카테고리로 돌아가요';
+    } else {
+      const items = _getTagsByCategory(activeCat);
+      const hasUser = items.some(t => t.source === 'user');
+      const hasDefault = items.some(t => t.source === 'default');
+      if (hasUser && hasDefault) {
+        msg = '<b>편집 모드</b> · 회색 × = 숨기기 · 빨간 × = 영구 삭제';
+      } else if (hasUser) {
+        mode = 'delete';
+        msg = '<b>삭제 모드</b> · × 누르면 영구 삭제 (확인 후)';
+      } else {
+        msg = '<b>숨기기 모드</b> · × 누르면 [숨김] 탭으로';
+      }
+    }
+    helpEl.dataset.mode = mode;
+    helpEl.innerHTML = `<span class="th-icon">${mode === 'restore' ? '↻' : '×'}</span><span class="th-text">${msg}</span>`;
+  }
+
+  // 칩 영역
+  const container = document.getElementById('bdTagChips');
+  if (!container) return;
+  const bookTags = b.tags || [];
+
+  if (activeCat === 'hidden') {
+    if (HIDDEN_TAGS.size === 0) {
+      container.innerHTML = `<div class="tag-empty"><div class="te-icon">🌿</div>숨김 처리한 태그가 없어요<br><span class="te-hint">편집 모드에서 ×로 숨길 수 있어요</span></div>`;
+    } else {
+      const hiddenList = Array.from(HIDDEN_TAGS).map(name => ({ name, ...TAGS[name] })).filter(t => t.category);
+      container.innerHTML = hiddenList.map(t => {
+        const catLabel = TAG_CATEGORIES[t.category] || '';
+        const sourceMark = t.source === 'user' ? ' • 직접' : '';
+        let cls = 'tag-chip is-hidden';
+        if (editing) cls += ' is-editable is-restore-mode';
+        const actionBtn = editing
+          ? `<button type="button" class="tc-action tc-restore" data-action="restore" data-tag="${esc(t.name)}">↻</button>`
+          : '';
+        return `<div class="${cls}" data-tag="${esc(t.name)}">
+          <span class="tc-emoji">${t.emoji || ''}</span>
+          <span class="tc-name">${esc(t.name)}</span>
+          <span class="tc-cat-tag">${catLabel}${sourceMark}</span>
+          ${actionBtn}
+        </div>`;
+      }).join('');
+    }
+  } else {
+    const items = _getTagsByCategory(activeCat);
+    if (items.length === 0) {
+      container.innerHTML = `<div class="tag-empty"><div class="te-icon">📭</div>이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
+    } else {
+      items.sort((a, c) => {
+        const aSel = bookTags.includes(a.name) ? 0 : 1;
+        const cSel = bookTags.includes(c.name) ? 0 : 1;
+        if (aSel !== cSel) return aSel - cSel;
+        const aUser = a.source === 'user' ? 0 : 1;
+        const cUser = c.source === 'user' ? 0 : 1;
+        return aUser - cUser;
+      });
+      container.innerHTML = items.map(t => {
+        let cls = 'tag-chip';
+        if (t.source === 'user') cls += ' is-user-tag';
+        if (editing) {
+          cls += ' is-editable';
+          if (t.source === 'user') cls += ' is-delete-mode';
+          else cls += ' is-hide-mode';
+        } else if (bookTags.includes(t.name)) {
+          cls += ' active';
+        }
+        let actionBtn = '';
+        if (editing) {
+          if (t.source === 'user') {
+            actionBtn = `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
+          } else {
+            actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
+          }
+        }
+        return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
+          <span class="tc-emoji">${t.emoji || ''}</span>
+          <span class="tc-name">${esc(t.name)}</span>
+          ${actionBtn}
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // 클릭 핸들러
+  container.querySelectorAll('.tag-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const actionBtn = e.target.closest('.tc-action');
+      if (actionBtn) {
+        e.stopPropagation();
+        const action = actionBtn.dataset.action;
+        const name = actionBtn.dataset.tag;
+        if (action === 'hide') {
+          HIDDEN_TAGS.add(name);
+          // 책에서도 빼기
+          const newBookTags = (b.tags || []).filter(t => t !== name);
+          updateBook(b.id, { tags: newBookTags });
+          STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+          renderBookDetail();
+          showToast(`"${name}" 숨김`);
+        } else if (action === 'restore') {
+          HIDDEN_TAGS.delete(name);
+          STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+          if (HIDDEN_TAGS.size === 0 && BD.tagsActiveCat === 'hidden') {
+            BD.tagsActiveCat = TAGS[name]?.category || 'genre';
+            BD.tagEditMode = false;
+          }
+          renderBookDetailTags();
+          showToast(`"${name}" 복구됨`);
+        } else if (action === 'delete') {
+          tryDeleteTag(name, () => renderBookDetail());
+        }
+        return;
+      }
+      if (editing) return;
+      if (chip.classList.contains('is-hidden')) {
+        showToast('숨김 태그는 복구 후 사용 가능해요');
+        return;
+      }
+      const name = chip.dataset.tag;
+      const tags = b.tags || [];
+      const newTags = tags.includes(name) ? tags.filter(t => t !== name) : [...tags, name];
+      updateBook(b.id, { tags: newTags });
+      renderBookDetailTags();
+    });
+  });
+}
+
 /* ─── 새 태그 생성 ─── */
 const NEW_TAG_EMOJIS = ['🏷️','✨','📘','🔖','💫','🎨','🌿','⭐','🫧','🎭','🧩','🌊'];
 const NEW_TAG_COLORS = ['#ef4444','#f59e0b','#10b981','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#84cc16','#f97316','#a855f7','#0ea5e9'];
@@ -20230,6 +20410,8 @@ const BD = {
   confirmDelete: false,
   editingReadIdx: null,  // 편집 중인 독서 기록 인덱스 (-1: 현재 세션, 0+: rereads 인덱스, null: 편집 안 함)
   tagEditMode: false,    // 태그 편집(삭제) 모드
+  tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭
+  newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 카테고리
 };
 
 /* ─── 독서 세션 모음 (본 독서 + 재독 정렬) ─── */
@@ -21605,47 +21787,35 @@ function renderBookDetail() {
     ` : ''}
 
     ${!wish ? `
-    <!-- 태그 -->
+    <!-- 태그 (v1.9.0 — 카테고리 탭 + 편집/숨김/복구) -->
     <div class="bd-section">
       <div class="tag-section-row">
         <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
-        <button type="button" class="tag-edit-toggle${BD.tagEditMode ? ' is-editing' : ''}" id="bdTagEditToggle">${BD.tagEditMode ? '✓ 완료' : '편집'}</button>
+        <button type="button" class="tag-edit-toggle" id="bdTagEditToggle">편집</button>
       </div>
+      <!-- 카테고리 탭 -->
+      <div class="tag-cat-tabs" id="bdTagCatTabs">
+        <!-- JS 렌더 -->
+      </div>
+      <!-- 편집 헬프 박스 -->
+      <div class="tag-edit-help" id="bdTagEditHelp" data-mode="hide" aria-hidden="true">
+        <!-- JS 렌더 -->
+      </div>
+      <!-- 태그 칩 -->
       <div class="tag-chips-all" id="bdTagChips">
-        ${(() => {
-          const editing = !!BD.tagEditMode;
-          const entries = Object.entries(TAGS).sort(([a], [c]) => {
-            if (editing) {
-              const aDel = !isTagUsed(a) ? 0 : 1;
-              const cDel = !isTagUsed(c) ? 0 : 1;
-              return aDel - cDel;
-            }
-            const sel = (b.tags || []);
-            const aSel = sel.includes(a) ? 0 : 1;
-            const cSel = sel.includes(c) ? 0 : 1;
-            return aSel - cSel;
-          });
-          return entries.map(([name, tag]) => {
-            if (editing) {
-              const used = isTagUsed(name);
-              const cls = used ? 'is-locked' : 'is-deletable';
-              return `<button type="button" class="tag-chip ${cls}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
-                <span class="tc-emoji">${tag.emoji}</span>
-                <span class="tc-name">${esc(name)}</span>
-                ${used ? '' : '<span class="tc-x" aria-hidden="true">×</span>'}
-              </button>`;
-            }
-            const active = (b.tags || []).includes(name) ? ' active' : '';
-            return `<button type="button" class="tag-chip${active}" data-tag="${esc(name)}" style="--tag-color:${tag.color}">
-              <span class="tc-emoji">${tag.emoji}</span>
-              <span class="tc-name">${esc(name)}</span>
-            </button>`;
-          }).join('');
-        })()}
+        <!-- JS 렌더 -->
       </div>
+      <!-- 새 태그 입력 + 카테고리 선택 -->
       <div class="tag-new-wrap">
         <input class="tag-new-input" id="bdTagNewInput" type="text" placeholder="새 태그 만들기…" maxlength="12" autocomplete="off">
         <button class="tag-new-btn" id="bdTagNewBtn">+ 추가</button>
+      </div>
+      <div class="tag-new-cat-row" id="bdTagNewCatRow">
+        <span class="tnc-label">📂 어느 카테고리에?</span>
+        <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
+        <button type="button" class="tnc-chip" data-cat="nonfiction">비픽션</button>
+        <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
+        <button type="button" class="tnc-chip" data-cat="format">형식</button>
       </div>
     </div>
     ` : ''}
@@ -22218,35 +22388,71 @@ function wireBookDetailEvents() {
     });
   }
 
-  // 태그 칩
-  document.querySelectorAll('#bdTagChips .tag-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const name = chip.dataset.tag;
-      if (BD.tagEditMode) {
-        // 편집 모드: 미사용 태그면 삭제 시도, 사용 중이면 토스트
-        if (chip.classList.contains('is-locked')) {
-          showToast('사용 중인 태그라 삭제할 수 없어요');
-          return;
-        }
-        tryDeleteTag(name, () => renderBookDetail());
-        return;
-      }
-      // 일반 모드: 이 책의 태그 토글
-      const tags = b.tags || [];
-      const newTags = tags.includes(name) ? tags.filter(t => t !== name) : [...tags, name];
-      updateBook(b.id, { tags: newTags });
-      renderBookDetail();
-    });
-  });
+  // v1.9.0 — 책 상세 페이지 태그 카테고리 탭 + 칩 렌더 (인라인)
+  renderBookDetailTags();
 
   // 태그 편집(삭제) 모드 토글 — 책 상세
   const bdEditToggle = document.getElementById('bdTagEditToggle');
   if (bdEditToggle) {
     bdEditToggle.addEventListener('click', () => {
       BD.tagEditMode = !BD.tagEditMode;
-      renderBookDetail();
+      renderBookDetailTags();
     });
   }
+
+  // v1.9.0 — 새 태그 카테고리 라디오 칩 (책 상세)
+  const bdCatRow = document.getElementById('bdTagNewCatRow');
+  if (bdCatRow) {
+    bdCatRow.addEventListener('click', (e) => {
+      const chip = e.target.closest('.tnc-chip');
+      if (!chip) return;
+      BD.newTagCategory = chip.dataset.cat;
+      bdCatRow.querySelectorAll('.tnc-chip').forEach(c => {
+        c.classList.toggle('is-active', c.dataset.cat === BD.newTagCategory);
+      });
+    });
+  }
+
+  // v1.9.0 — 새 태그 추가 (책 상세 — BD 컨텍스트로 직접 등록)
+  const bdNewBtn = document.getElementById('bdTagNewBtn');
+  const bdNewInput = document.getElementById('bdTagNewInput');
+  function _bdCreateNewTag() {
+    if (!bdNewInput) return;
+    const name = bdNewInput.value.trim();
+    if (!name) return;
+    const tags = b.tags || [];
+    if (TAGS[name]) {
+      // 이미 존재 → 이 책에 토글 + 숨김이면 복구
+      if (HIDDEN_TAGS.has(name)) {
+        HIDDEN_TAGS.delete(name);
+        STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+        showToast(`"${name}" 숨김 해제`);
+      }
+      if (!tags.includes(name)) {
+        updateBook(b.id, { tags: [...tags, name] });
+      }
+    } else {
+      // 새 태그 — 카테고리에 등록
+      const targetCat = BD.newTagCategory || 'genre';
+      const idx = Object.keys(TAGS).length;
+      TAGS[name] = {
+        emoji: NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
+        color: NEW_TAG_COLORS[idx % NEW_TAG_COLORS.length],
+        category: targetCat,
+        source: 'user',
+      };
+      STORE.set('tags', TAGS);
+      updateBook(b.id, { tags: [...tags, name] });
+      BD.tagsActiveCat = targetCat;
+      showToast(`"${name}" 추가됨 · [${TAG_CATEGORIES[targetCat]}]에 저장`);
+    }
+    bdNewInput.value = '';
+    renderBookDetail();
+  }
+  if (bdNewBtn) bdNewBtn.addEventListener('click', _bdCreateNewTag);
+  if (bdNewInput) bdNewInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); _bdCreateNewTag(); }
+  });
 
   // 표지 변경 (책 상세) — 표지 탭 → 사진 선택
   const bdCoverBtn = document.getElementById('bdCoverBtn');
@@ -22324,44 +22530,7 @@ function wireBookDetailEvents() {
     });
   }
 
-  // 새 태그 만들기 (책 상세)
-  const bdNewInput = document.getElementById('bdTagNewInput');
-  const bdNewBtn = document.getElementById('bdTagNewBtn');
-  if (bdNewInput && bdNewBtn) {
-    const addTagFromBD = () => {
-      const name = bdNewInput.value.trim();
-      if (!name) return;
-      if (TAGS[name]) {
-        // 이미 있으면 그냥 이 책에 토글만
-        const tags = b.tags || [];
-        if (!tags.includes(name)) {
-          updateBook(b.id, { tags: [...tags, name] });
-          showToast(`'${name}' 태그가 이미 있어서 선택했어요`);
-        } else {
-          showToast(`이미 '${name}' 태그가 달려있어요`);
-        }
-        bdNewInput.value = '';
-        renderBookDetail();
-        return;
-      }
-      // 새 태그 생성 + 이 책에 자동 적용
-      const idx = Object.keys(TAGS).length;
-      TAGS[name] = {
-        emoji: NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
-        color: NEW_TAG_COLORS[idx % NEW_TAG_COLORS.length],
-      };
-      STORE.set('tags', TAGS);
-      const tags = b.tags || [];
-      updateBook(b.id, { tags: [...tags, name] });
-      bdNewInput.value = '';
-      renderBookDetail();
-      showToast(`'${name}' 태그 생성 ✓`);
-    };
-    bdNewBtn.addEventListener('click', addTagFromBD);
-    bdNewInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); addTagFromBD(); }
-    });
-  }
+  // v1.9.0 — 옛 새 태그 핸들러 제거됨 (위쪽 _bdCreateNewTag로 통합)
 
   // 삭제 플로우
   const delBtn = document.getElementById('bdDelBtn');
