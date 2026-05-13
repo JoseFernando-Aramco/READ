@@ -18822,6 +18822,100 @@ function _dedupeByIsbn(arr) {
   return out;
 }
 
+/* v1.9.1 — 같은 ISBN(또는 제목+저자+출판사 키)의 후보들을 그룹화 후 항목별 best source 데이터로 합성.
+ *
+ * 우선순위 (Jason 결정):
+ *   책정보 (title/author/publisher/year): 네이버 → 카카오 → 알라딘 → 구글
+ *   가격   (priceSales/priceList):        네이버 → 알라딘 → 카카오 → 구글
+ *   표지   (cover):                       카카오 → 알라딘 → 네이버 → 구글
+ *   페이지 (pages):                       알라딘 → 구글
+ *
+ * 정렬:
+ *   1차 — source 개수 (많은 후보가 위 = 여러 source가 가진 강력한 후보)
+ *   2차 — 책정보 우선순위 (네이버 우선)
+ */
+function _mergeByIsbn(arr) {
+  const PRIORITY = {
+    info:  ['naver', 'kakao', 'aladin', 'google'],
+    price: ['naver', 'aladin', 'kakao', 'google'],
+    cover: ['kakao', 'aladin', 'naver', 'google'],
+    pages: ['aladin', 'google'],
+  };
+  const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  const hasStr = v => v != null && String(v).trim() !== '';
+  const hasNum = v => typeof v === 'number' && v > 0;
+
+  // 그룹화 — ISBN 우선, 없으면 제목+저자+출판사 키
+  const groups = new Map();
+  for (const it of arr) {
+    const isbn = (it.isbn || '').replace(/[-\s]/g, '');
+    const key = isbn || `t:${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(it);
+  }
+
+  const pickByPriority = (group, priority, field, validator) => {
+    for (const src of priority) {
+      const item = group.find(g => g.source === src);
+      if (item && validator(item[field])) return item[field];
+    }
+    return null;
+  };
+
+  const merged = [];
+  for (const group of groups.values()) {
+    // 책정보 (우선순위에 없으면 첫 후보 fallback)
+    const title     = pickByPriority(group, PRIORITY.info, 'title',     hasStr) || group[0].title || '';
+    const author    = pickByPriority(group, PRIORITY.info, 'author',    hasStr) || group[0].author || '';
+    const publisher = pickByPriority(group, PRIORITY.info, 'publisher', hasStr) || group[0].publisher || '';
+    const year      = pickByPriority(group, PRIORITY.info, 'year',      hasStr) || group[0].year || '';
+    const contents  = pickByPriority(group, PRIORITY.info, 'contents',  hasStr) || group[0].contents || '';
+    const language  = group.find(g => g.language)?.language || 'ko';
+    const isbn      = group.find(g => hasStr(g.isbn))?.isbn || '';
+
+    // 가격 — priceSource도 같이 추적 (가격 카드 출처 chip용)
+    const priceSales = pickByPriority(group, PRIORITY.price, 'priceSales', hasNum);
+    const priceList  = pickByPriority(group, PRIORITY.price, 'priceList',  hasNum);
+    let priceSource = null;
+    if (priceSales != null || priceList != null) {
+      for (const src of PRIORITY.price) {
+        const it = group.find(g => g.source === src);
+        if (it && (hasNum(it.priceSales) || hasNum(it.priceList))) { priceSource = src; break; }
+      }
+    }
+
+    // 표지·페이지
+    const cover = pickByPriority(group, PRIORITY.cover, 'cover', hasStr) || '';
+    const pages = pickByPriority(group, PRIORITY.pages, 'pages', hasNum);
+
+    // 출처 추적 — 어느 source들에 있었는지
+    const sources = [...new Set(group.map(g => g.source).filter(Boolean))];
+    // 정렬용 primary source — 책정보 우선순위 첫 매치
+    let primarySource = sources[0];
+    for (const src of PRIORITY.info) {
+      if (sources.includes(src)) { primarySource = src; break; }
+    }
+
+    merged.push({
+      title, author, publisher, year, language, contents,
+      priceSales, priceList, priceSource,
+      cover, pages, isbn,
+      source: primarySource,  // 정렬용 + 기존 코드 호환
+      sources,                // 출처 set (UI 디버그·라벨용)
+    });
+  }
+
+  // 정렬: 1차 source 개수 (많은 후보가 위), 2차 책정보 우선순위
+  const infoOrder = {};
+  PRIORITY.info.forEach((src, i) => infoOrder[src] = i);
+  merged.sort((a, b) => {
+    if (b.sources.length !== a.sources.length) return b.sources.length - a.sources.length;
+    return (infoOrder[a.source] ?? 99) - (infoOrder[b.source] ?? 99);
+  });
+
+  return merged;
+}
+
 async function searchBooks(query) {
   const q = query.trim();
   console.log('[search] 시작:', q);
@@ -20767,6 +20861,9 @@ setTimeout(_enrichMissingCovers, 1000);
 
 /* ─── v1.8.0 — 종이값 자동 보강 (시드 책 + ISBN 있는 책에 알라딘 가격 채움) ─── */
 async function _enrichMissingPrices() {
+  // v1.9.1 — 네이버 책 검색 API로 변경 (한도 25,000회 = 알라딘 5배).
+  //   백그라운드 자동 호출 가능. 24시간 throttle + 한 번에 20권만.
+  //
   // priceSales 없고 + 사용자가 직접 빈 값으로 저장한 게 아닌 책만 (메모리 #11)
   // priceSource === 'manual' 이면 사용자가 의도적으로 비웠을 수 있음 → 건드리지 않음
   const targets = (BOOKS || []).filter(b =>
@@ -20777,15 +20874,18 @@ async function _enrichMissingPrices() {
   if (targets.length === 0) return;
   if (typeof ALADIN_PROXY_URL === 'undefined' || !ALADIN_PROXY_URL) return;
 
+  // 한 번에 최대 20권 (호출 분산)
+  const batch = targets.slice(0, 20);
+
   let enriched = 0;
-  for (const b of targets) {
+  for (const b of batch) {
     try {
       // ISBN 있으면 ISBN 우선, 없으면 title+author로 검색
       const cleanIsbn = (b.isbn || '').replace(/[-\s]/g, '');
       const q = cleanIsbn || (b.title + (b.author ? ' ' + b.author : '')).trim();
       const url = cleanIsbn
-        ? `${ALADIN_PROXY_URL}/search?isbn=${encodeURIComponent(cleanIsbn)}`
-        : `${ALADIN_PROXY_URL}/search?query=${encodeURIComponent(q)}`;
+        ? `${ALADIN_PROXY_URL}/search-naver?isbn=${encodeURIComponent(cleanIsbn)}`
+        : `${ALADIN_PROXY_URL}/search-naver?query=${encodeURIComponent(q)}`;
 
       const res = await fetch(url);
       if (!res.ok) continue;
@@ -20798,7 +20898,6 @@ async function _enrichMissingPrices() {
         const titleNorm = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
         const got = titleNorm(item.title);
         const want = titleNorm(b.title);
-        // 제목이 서로 30% 이상 포함 관계가 아니면 스킵 (오매칭 방지)
         if (!got.includes(want.slice(0, Math.min(want.length, 6))) &&
             !want.includes(got.slice(0, Math.min(got.length, 6)))) {
           continue;
@@ -20811,40 +20910,48 @@ async function _enrichMissingPrices() {
       if (priceSales != null) {
         b.priceSales = priceSales;
         b.priceList = priceStandard || priceSales;
-        b.priceSource = 'aladin';
+        b.priceSource = 'naver';
         // ISBN 없던 책에는 ISBN도 같이 채움 (재검색 효율)
-        if (!b.isbn && (item.isbn13 || item.isbn)) {
-          b.isbn = item.isbn13 || item.isbn;
+        if (!b.isbn && item.isbn) {
+          b.isbn = item.isbn;
         }
         enriched++;
       }
     } catch (e) {
       // 조용히 실패 — 다음 책 진행
     }
-    await new Promise(r => setTimeout(r, 200));  // rate limit 여유 (표지보강보다 살짝 길게)
+    await new Promise(r => setTimeout(r, 300));  // 분당 ~200 호출. 네이버 한도 25,000 = 시간당 1200 안전
   }
 
   if (enriched > 0) {
     try { STORE.set('books', BOOKS); } catch(e){}
-    // 책 상세가 열려있으면 가격 카드 재렌더
     try {
       if (typeof BD !== 'undefined' && BD.book && typeof _renderPriceCard === 'function') {
         _renderPriceCard(BD.book);
       }
     } catch(e){}
-    console.log(`[price] ${enriched}권 종이값 자동 보강됨`);
+    console.log(`[price] ${enriched}권 종이값 자동 보강됨 (네이버)`);
 
-    // 마일스톤 체크 — 자동 보강으로 합계가 처음 채워질 때 도달 알림
-    // (보강 시작 시점엔 prevTotal === 0이라 첫 사용자에겐 모든 마일스톤 알림 가능)
     try {
       const newTotal = _calcSpend().grandTotal;
-      // 첫 도달 마킹이 안 된 사용자만 알림 (이미 도달 기록 있으면 skip)
       _checkAndCelebrateMilestone(0, newTotal);
-    } catch(e) { /* 무시 */ }
+    } catch(e) {}
   }
 }
-// v1.10.0 — 백그라운드 자동 호출 제거. 알라딘 한도 분산을 위해 사용자가 "일괄 보강"을 명시적으로 클릭할 때만 실행.
-// setTimeout(_enrichMissingPrices, 2500);
+
+// v1.9.1 — 자동 호출 활성화. 24시간 throttle (한 번 돌리면 다음 24시간 동안 안 돌림).
+//   한 번에 20권만 처리 → 매일 자연스럽게 누적되어 보강됨.
+const ENRICH_PRICES_LAST_RUN_KEY = 'read.enrichPricesLastRun';
+const ENRICH_PRICES_THROTTLE_MS = 24 * 60 * 60 * 1000; // 24h
+setTimeout(() => {
+  try {
+    const last = parseInt(localStorage.getItem(ENRICH_PRICES_LAST_RUN_KEY) || '0', 10);
+    if (Date.now() - last < ENRICH_PRICES_THROTTLE_MS) return; // 너무 잦으면 skip
+    _enrichMissingPrices().then(() => {
+      try { localStorage.setItem(ENRICH_PRICES_LAST_RUN_KEY, String(Date.now())); } catch(e){}
+    });
+  } catch(e){}
+}, 2500);
 
 /* ─── 타이머 상태 (BOOKS 선언 뒤에 위치해야 resumeTimer 가능) ─── */
 const TIMER = {
@@ -30046,18 +30153,9 @@ async function _imSearchMerged(query, opts) {
     });
   }
 
-  // 우선순위:
-  //   ISBN: 알라딘 → 네이버 → 카카오 → 구글 (정확 ISBN, 가격 풍부 source 우선)
-  //   한글: 알라딘 → 카카오 → 네이버 → 구글 (한국 발간본 정확도. 네이버는 노벨상 이후 외국 번역본 우선이라 뒤로)
-  //   영문: 알라딘 → 구글 → 네이버 → 카카오 (영문 책은 구글이 best)
-  let merged;
-  if (isbnMode) {
-    merged = _dedupeByIsbn([...aladinItems, ...naverItems, ...kakaoItems, ...googleItems]);
-  } else if (isKorean) {
-    merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...naverItems, ...googleItems]);
-  } else {
-    merged = _dedupeByIsbn([...aladinItems, ...googleItems, ...naverItems, ...kakaoItems]);
-  }
+  // v1.9.1 — 4개 source 결과를 ISBN별로 그룹화 + 항목별 best source 데이터 합성
+  //   _mergeByIsbn 내부에서 정렬도 같이 처리 (source 개수 우선, 그 다음 책정보 우선순위)
+  const merged = _mergeByIsbn([...aladinItems, ...naverItems, ...kakaoItems, ...googleItems]);
 
   // 진단 모드 — source별 카운트도 함께 반환
   if (opts && opts.debug) {
@@ -31009,7 +31107,11 @@ function _bdeRenderResults(book, searchInfo) {
     const hasPages = c.pages && c.pages > 0;
     const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
     const hasCover = !!c.cover;
-    const sourceLbl = c.source === 'aladin' ? 'A' : c.source === 'naver' ? 'N' : c.source === 'kakao' ? 'K' : 'G';
+    // v1.9.1 — 합성된 후보면 여러 source 표시 (A+N+K 등)
+    const SOURCE_ABBR = { aladin: 'A', naver: 'N', kakao: 'K', google: 'G' };
+    const sourceLbl = Array.isArray(c.sources) && c.sources.length > 1
+      ? c.sources.map(s => SOURCE_ABBR[s] || '?').join('+')
+      : (SOURCE_ABBR[c.source] || 'G');
     const cover = hasCover
       ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
       : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:var(--c-label);">📖</div>';
@@ -31072,10 +31174,12 @@ function _bdeApply() {
     const pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
     const pList  = (typeof c.priceList  === 'number' && c.priceList  > 0) ? c.priceList  : null;
     const newPrice = pSales || pList;
-    if (newPrice && (c.source === 'aladin' || c.source === 'naver') && newPrice !== book.priceSales) {
+    // v1.9.1 — 합성된 후보면 c.priceSource가 정확한 출처. 없으면 c.source fallback.
+    const priceSrc = c.priceSource || c.source;
+    if (newPrice && (priceSrc === 'aladin' || priceSrc === 'naver') && newPrice !== book.priceSales) {
       book.priceSales = newPrice;
       book.priceList = pList || pSales;
-      book.priceSource = c.source;
+      book.priceSource = priceSrc;
       touchedFields.push('가격');
     }
   }
