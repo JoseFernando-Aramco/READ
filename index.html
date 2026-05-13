@@ -30531,13 +30531,11 @@ async function _imMatchOneBook(book) {
 
         // v1.9.1 — ISBN 매칭이라도 정보 부족하면 제목 검색 fallback 시도
         //   Jason 사례: 카카오 ISBN 매칭 (표지만) — 부제 책은 다른 ISBN이라 ISBN 검색에선 안 잡힘
-        //   제목으로 검색하면 부제 책 (알라딘/네이버, 정보 풍부)도 발견 가능
+        //   제목으로 검색 → multi-source 부제 후보 발견 시 자동 선택
         if (exactScore < 3 && book.title) {
           try {
-            // 1차: 제목+저자
             const titleQuery = book.author ? `${book.title} ${book.author}` : book.title;
             let titleResults = await _imSearchMerged(titleQuery);
-            // 부제 후보 없으면 제목만으로 추가 검색
             const titleNormQ = _imNormalizeForMatch(book.title);
             const hasSubtitleCand = titleResults.some(r => {
               const rNorm = _imNormalizeForMatch(r.title);
@@ -30553,10 +30551,27 @@ async function _imMatchOneBook(book) {
                 }
               } catch (e) {}
             }
-            const titleNorm = titleNormQ;
+
+            // multi-source 부제 후보 찾기 (Jason 제안)
+            const bestPartial = titleResults.find(r => {
+              const rNorm = _imNormalizeForMatch(r.title);
+              const isRelated = rNorm.startsWith(titleNormQ) || titleNormQ.startsWith(rNorm);
+              if (!isRelated) return false;
+              if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
+              const sourceCount = (r.sources || []).length;
+              const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
+                           + (typeof r.priceSales === 'number' && r.priceSales > 0 ? 1 : 0);
+              return sourceCount >= 2 && rScore > exactScore;
+            });
+            if (bestPartial) {
+              // multi-source 합의 → 자동 선택
+              return { status: 'auto', candidates: [bestPartial, exact, ...titleResults.filter(r => r !== bestPartial && r !== exact)].slice(0, 8), chosen: 0, allResults: [...results, ...titleResults] };
+            }
+
+            // multi-source 없지만 단일 source라도 풍부 → 사용자 검토
             const partialBetter = titleResults.some(r => {
               const rNorm = _imNormalizeForMatch(r.title);
-              const isRelated = rNorm.startsWith(titleNorm) || titleNorm.startsWith(rNorm);
+              const isRelated = rNorm.startsWith(titleNormQ) || titleNormQ.startsWith(rNorm);
               if (!isRelated) return false;
               if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
               const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
@@ -30642,24 +30657,43 @@ async function _imMatchOneBook(book) {
     const exactScore = (exact.cover ? 1 : 0) + (exact.pages ? 1 : 0)
                      + (typeof exact.priceSales === 'number' && exact.priceSales > 0 ? 1 : 0);
 
-    // v1.9.1 — 정확 일치 후보 정보 부족 + 부분 매칭 후보가 더 풍부하면 검토 단계로
-    //   Jason 사례: "시체 읽는 남자" 카카오 (표지만) vs "시체 읽는 남자 (압도적 역사추리 소설)" 알라딘/네이버 (페이지+가격)
-    //   괄호 부제 때문에 정확 일치 안 됐지만 같은 책 → 사용자가 골라야 정보 풍부한 쪽 선택 가능
+    // v1.9.1 — Jason 제안: multi-source 부제 후보 (A+N+K처럼 여러 API가 합의한 것) + 저자 일치 + 정보 풍부
+    //   → 신뢰도 최고. 자동 선택 (검토 없이 바로 적용).
+    //   같은 책의 다른 판본 (괄호 부제, 시리즈 표기 등)일 가능성 압도적.
     if (exactScore < 3) {
+      const bestPartial = results.find(r => {
+        if (r === exact) return false;
+        const rNorm = _imNormalizeForMatch(r.title);
+        const isRelated = rNorm.startsWith(titleNorm) || titleNorm.startsWith(rNorm);
+        if (!isRelated) return false;
+        if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
+        const sourceCount = (r.sources || []).length;
+        const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
+                     + (typeof r.priceSales === 'number' && r.priceSales > 0 ? 1 : 0);
+        // multi-source (2+ API 합의) + 정보 더 풍부
+        return sourceCount >= 2 && rScore > exactScore;
+      });
+
+      if (bestPartial) {
+        // multi-source 합의 → 자동 선택
+        const idx = results.indexOf(bestPartial);
+        const chosen = (idx >= 0 && idx < 8) ? idx : 0;
+        const candidates = (idx >= 0 && idx < 8) ? results.slice(0, 8) : [bestPartial, ...results.filter(r => r !== bestPartial)].slice(0, 8);
+        return { status: 'auto', candidates, chosen, allResults: results };
+      }
+
+      // multi-source 없지만 단일 source라도 정보 풍부한 부분 매칭 후보 있으면 → 사용자 검토
       const partialBetter = results.some(r => {
         if (r === exact) return false;
         const rNorm = _imNormalizeForMatch(r.title);
-        // 같은 책 후보: 한 쪽이 다른 쪽 prefix (괄호 부제, 시리즈 표기 등)
         const isRelated = rNorm.startsWith(titleNorm) || titleNorm.startsWith(rNorm);
         if (!isRelated) return false;
-        // 저자도 일치해야 (CSV 저자 있을 때만 강제)
         if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
         const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
                      + (typeof r.priceSales === 'number' && r.priceSales > 0 ? 1 : 0);
         return rScore > exactScore;
       });
       if (partialBetter) {
-        // 검토 단계로 — 사용자가 정확 일치 vs 부분 매칭 중 선택
         return { status: 'ambiguous', candidates: results.slice(0, 8), chosen: null, allResults: results };
       }
     }
