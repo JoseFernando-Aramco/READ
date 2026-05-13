@@ -28844,8 +28844,20 @@ async function _imHandleFile(file) {
   }
   try {
     IM_STATE.file = file;
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+
+    // v1.10.0 — CSV는 텍스트로 직접 읽어 UTF-8 보존 + BOM 제거.
+    // XLSX.read의 binary 모드는 CSV 인코딩 자동 감지가 약해서 한글이 깨졌음 (v1.3.0~ 버그).
+    const isCSV = /\.csv$/i.test(file.name || '') || file.type === 'text/csv';
+    let wb;
+    if (isCSV) {
+      let text = await file.text();
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // BOM 제거
+      wb = XLSX.read(text, { type: 'string', cellDates: true });
+    } else {
+      const buf = await file.arrayBuffer();
+      wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    }
+
     const sheet = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: false });
     if (!rows.length) { showToast('시트가 비어있어요'); return; }
