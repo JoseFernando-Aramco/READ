@@ -28838,28 +28838,28 @@ function _imUpdateButtons() {
 /* ─── 파일 처리 ─── */
 async function _imHandleFile(file) {
   if (!file) return;
-  if (typeof XLSX === 'undefined') {
-    showToast('엑셀 라이브러리 로드 실패 · 네트워크 확인');
-    return;
-  }
   try {
     IM_STATE.file = file;
 
-    // v1.10.0 — CSV는 텍스트로 직접 읽어 UTF-8 보존 + BOM 제거.
-    // XLSX.read의 binary 모드는 CSV 인코딩 자동 감지가 약해서 한글이 깨졌음 (v1.3.0~ 버그).
+    // v1.10.0 — CSV는 직접 UTF-8 파싱 (XLSX 라이브러리의 string 모드가 한글을 byte 변환 시 깨버림).
+    //   XLSX 파일만 라이브러리에 의존.
     const isCSV = /\.csv$/i.test(file.name || '') || file.type === 'text/csv';
-    let wb;
+    let rows;
     if (isCSV) {
       let text = await file.text();
       if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // BOM 제거
-      wb = XLSX.read(text, { type: 'string', cellDates: true });
+      rows = _imParseCSV(text);
     } else {
+      if (typeof XLSX === 'undefined') {
+        showToast('엑셀 라이브러리 로드 실패 · 네트워크 확인');
+        return;
+      }
       const buf = await file.arrayBuffer();
-      wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: false });
     }
 
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: false });
     if (!rows.length) { showToast('시트가 비어있어요'); return; }
 
     // 헤더 행 탐지 (병합된 타이틀/안내 행 건너뛰고 진짜 헤더 찾기)
@@ -28900,6 +28900,51 @@ function _imNormalizeHeader(raw) {
 }
 
 /* 헤더 행 탐지 — 2셀 이상 찬 행 중 우리 키워드와 가장 잘 매칭되는 행 */
+/* v1.10.0 — CSV 직접 파싱 (UTF-8 보존, XLSX 라이브러리 우회)
+ * RFC 4180 기반: 따옴표 안의 콤마·줄바꿈·이스케이프된 따옴표 처리.
+ * 반환: 행의 배열, 각 행은 셀(문자열)의 배열.
+ */
+function _imParseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let inQuote = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }   // 이스케이프된 ""
+        else inQuote = false;
+      } else {
+        cur += c;
+      }
+    } else {
+      if (c === '"') {
+        inQuote = true;
+      } else if (c === ',') {
+        row.push(cur); cur = '';
+      } else if (c === '\r') {
+        // CRLF의 CR — 다음에 LF 오면 같이 처리, 아니면 줄 끝
+        if (text[i + 1] === '\n') { /* 다음 루프에서 \n으로 처리 */ }
+        else { row.push(cur); cur = ''; rows.push(row); row = []; }
+      } else if (c === '\n') {
+        row.push(cur); cur = ''; rows.push(row); row = [];
+      } else {
+        cur += c;
+      }
+    }
+  }
+  // 마지막 셀/행 처리
+  if (cur.length > 0 || row.length > 0) {
+    row.push(cur);
+    rows.push(row);
+  }
+
+  // 빈 행 제거
+  return rows.filter(r => r.some(cell => String(cell).trim().length > 0));
+}
+
 function _imFindHeaderRow(rows) {
   const allKeywords = Object.values(IM_HEADER_HINTS).flat().map(s => s.toLowerCase());
   let bestIdx = 0;
