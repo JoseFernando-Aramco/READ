@@ -20843,7 +20843,8 @@ async function _enrichMissingPrices() {
     } catch(e) { /* 무시 */ }
   }
 }
-setTimeout(_enrichMissingPrices, 2500);  // 표지 보강 끝난 후 (표지=1초 + 13권×150ms ≈ 3초)
+// v1.10.0 — 백그라운드 자동 호출 제거. 알라딘 한도 분산을 위해 사용자가 "일괄 보강"을 명시적으로 클릭할 때만 실행.
+// setTimeout(_enrichMissingPrices, 2500);
 
 /* ─── 타이머 상태 (BOOKS 선언 뒤에 위치해야 resumeTimer 가능) ─── */
 const TIMER = {
@@ -28951,6 +28952,7 @@ function _renderPriceCard(b) {
   // 출처 칩
   let srcChip;
   if (src === 'aladin') srcChip = '<span class="src-chip"><span class="dot"></span>알라딘 자동</span>';
+  else if (src === 'naver') srcChip = '<span class="src-chip"><span class="dot"></span>네이버 자동</span>';
   else if (src === 'manual') srcChip = '<span class="src-chip manual"><span class="dot"></span>직접 입력</span>';
   else srcChip = '<span class="src-chip empty"><span class="dot"></span>비워둠 — 합계 제외</span>';
 
@@ -30777,7 +30779,7 @@ async function _bfStart() {
       ? subParts.join(' · ')
       : '검색 중...';
 
-    await new Promise(r => setTimeout(r, 450)); // rate limit
+    await new Promise(r => setTimeout(r, 1000)); // v1.10.0 — rate limit 분산 (분당 60회 → 시간당 3600회 → 알라딘 일 한도 5000 안전)
   }
 
   // 저장 + 화면 갱신
@@ -30970,7 +30972,6 @@ async function _bdeSearch(book) {
 function _bdeRenderResults(book, searchInfo) {
   const body = document.getElementById('bdeBody');
   const candidates = BDE_STATE.candidates;
-  const debugLog = BDE_STATE.debugLog || [];
 
   // 메인 desc
   const desc = document.getElementById('bdeDesc');
@@ -30980,16 +30981,8 @@ function _bdeRenderResults(book, searchInfo) {
       : `${searchInfo} · 후보 ${candidates.length}개 — 맞는 책을 선택하세요`;
   }
 
-  // 진단 박스 — body 첫 줄. 명확하게 보이도록 박스 처리
-  const debugBox = debugLog.length
-    ? `<div style="background:var(--c-surface-2);border:1px solid var(--c-border);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--c-text);line-height:1.6;font-family:monospace;">
-         <div style="font-weight:700;margin-bottom:4px;color:var(--c-label);font-family:inherit;">검색 단계별 결과 (a=알라딘 · n=네이버 · k=카카오 · g=구글)</div>
-         ${debugLog.map(l => esc(l)).join('<br>')}
-       </div>`
-    : '';
-
   if (candidates.length === 0) {
-    body.innerHTML = debugBox + `
+    body.innerHTML = `
       <div class="bde-empty">
         <div class="bde-empty-icon">🔍</div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
@@ -31000,7 +30993,7 @@ function _bdeRenderResults(book, searchInfo) {
   }
 
   // 후보 카드 리스트
-  body.innerHTML = debugBox + candidates.map((c, idx) => {
+  body.innerHTML = candidates.map((c, idx) => {
     const hasPages = c.pages && c.pages > 0;
     const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
     const hasCover = !!c.cover;
@@ -31760,7 +31753,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.9.1';
 const APP_VERSION_NICKNAME = '태그 시스템'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v7';
 
@@ -31816,6 +31809,8 @@ function _versionLower(a, b) {
 
 /* 자동 열기: 온보딩 완료된 기존 유저 중, 이번 버전 처음 보는 사람만 */
 (function autoOpenWhatsNew() {
+  // v1.9.1 — 자동 모달 임시 비활성화. v1.10.0 모달 작성 시 아래 return 제거하고 본문 갱신.
+  return;
   try {
     const onboarded = localStorage.getItem(ONBOARDING_KEY);
     // 신규 유저(온보딩 미완료)는 패스 — 온보딩이 먼저
