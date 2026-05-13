@@ -1192,6 +1192,31 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* v1.9.1 — 책 데이터 미완성 표시 (페이지·표지·가격·ISBN 중 누락 있을 때) */
+.book-card-incomplete-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-warning, #d97706);
+  margin-left: 4px;
+  position: relative;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.book-card-incomplete-dot::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--c-warning, #d97706);
+  opacity: 0;
+  animation: book-card-incomplete-pulse 2s ease-out infinite;
+}
+@keyframes book-card-incomplete-pulse {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
 .book-card-meta {
   font-family: inherit;
   font-style: normal;
@@ -21408,6 +21433,16 @@ function renderBookCoverInner(b, number) {
 }
 
 /* 북 카드 하나 (커버 + 제목 + 메타) */
+/* v1.9.1 — 책 데이터 미완성 검사 (페이지·표지·가격·ISBN 중 하나라도 누락) */
+function isBookIncomplete(b) {
+  if (!b) return false;
+  if (!b.coverUrl) return true;
+  if (!b.pages || b.pages <= 0) return true;
+  if (b.priceSales == null || b.priceSales <= 0) return true;
+  if (!b.isbn) return true;
+  return false;
+}
+
 function renderBookCard(b, idx) {
   const fmtMark = mediaIcon(b);
   const isDropped = b.status === 'dropped';
@@ -21467,7 +21502,7 @@ function renderBookCard(b, idx) {
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
       </div>
-      <div class="book-card-title">${esc(b.title)}</div>
+      <div class="book-card-title">${esc(b.title)}${isBookIncomplete(b) ? '<span class="book-card-incomplete-dot" title="페이지·표지·가격·ISBN 중 누락된 정보가 있어요"></span>' : ''}</div>
       <div class="book-card-meta">${meta}</div>
       ${dropReasonLine}
     </div>`;
