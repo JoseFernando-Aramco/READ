@@ -28037,7 +28037,17 @@ function unlockBodyScroll() {
   document.body.style.top = '';
   document.body.style.width = '';
   document.body.style.overflow = '';
-  window.scrollTo(0, y);
+  // v1.9.1 — iOS Safari/PWA에서 position:fixed 해제 직후 scrollTo가 무시되는 경우 대비.
+  //   즉시 한 번 + 다음 frame에 한 번 더 시도. documentElement.scrollTop도 같이 설정.
+  const restore = () => {
+    window.scrollTo(0, y);
+    if (document.documentElement) document.documentElement.scrollTop = y;
+    if (document.body) document.body.scrollTop = y;
+  };
+  restore();
+  requestAnimationFrame(() => {
+    if (Math.abs((window.scrollY || 0) - y) > 2) restore();
+  });
 }
 // 전역 노출 (closeXxx 내부에서 호출)
 window.lockBodyScroll = lockBodyScroll;
