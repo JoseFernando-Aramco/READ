@@ -30525,6 +30525,51 @@ async function _imMatchOneBook(book) {
         return rIsbn && rIsbn === bIsbn;
       });
       if (isbnExact.length > 0) {
+        const exact = isbnExact[0];
+        const exactScore = (exact.cover ? 1 : 0) + (exact.pages ? 1 : 0)
+                         + (typeof exact.priceSales === 'number' && exact.priceSales > 0 ? 1 : 0);
+
+        // v1.9.1 — ISBN 매칭이라도 정보 부족하면 제목 검색 fallback 시도
+        //   Jason 사례: 카카오 ISBN 매칭 (표지만) — 부제 책은 다른 ISBN이라 ISBN 검색에선 안 잡힘
+        //   제목으로 검색하면 부제 책 (알라딘/네이버, 정보 풍부)도 발견 가능
+        if (exactScore < 3 && book.title) {
+          try {
+            // 1차: 제목+저자
+            const titleQuery = book.author ? `${book.title} ${book.author}` : book.title;
+            let titleResults = await _imSearchMerged(titleQuery);
+            // 부제 후보 없으면 제목만으로 추가 검색
+            const titleNormQ = _imNormalizeForMatch(book.title);
+            const hasSubtitleCand = titleResults.some(r => {
+              const rNorm = _imNormalizeForMatch(r.title);
+              return rNorm.length > titleNormQ.length && rNorm.startsWith(titleNormQ);
+            });
+            if (!hasSubtitleCand && book.author) {
+              try {
+                const titleOnly = await _imSearchMerged(book.title);
+                const seen = new Set(titleResults.map(r => (r.isbn || '').replace(/[-\s]/g, '') || `${r.title}|${r.author}`));
+                for (const r of titleOnly) {
+                  const key = (r.isbn || '').replace(/[-\s]/g, '') || `${r.title}|${r.author}`;
+                  if (!seen.has(key)) { titleResults.push(r); seen.add(key); }
+                }
+              } catch (e) {}
+            }
+            const titleNorm = titleNormQ;
+            const partialBetter = titleResults.some(r => {
+              const rNorm = _imNormalizeForMatch(r.title);
+              const isRelated = rNorm.startsWith(titleNorm) || titleNorm.startsWith(rNorm);
+              if (!isRelated) return false;
+              if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
+              const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
+                           + (typeof r.priceSales === 'number' && r.priceSales > 0 ? 1 : 0);
+              return rScore > exactScore;
+            });
+            if (partialBetter) {
+              const combined = [exact, ...titleResults.filter(r => r !== exact)].slice(0, 8);
+              return { status: 'ambiguous', candidates: combined, chosen: null, allResults: [...results, ...titleResults] };
+            }
+          } catch (e) { /* 조용히 실패 */ }
+        }
+
         return { status: 'auto', candidates: isbnExact, chosen: 0, allResults: results };
       }
       // ISBN으로 매칭 안 되면 → fallback으로 제목 검색 시도
@@ -30545,6 +30590,31 @@ async function _imMatchOneBook(book) {
   } catch (e) {
     console.warn('[im-match] title search fail', e);
     return { status: 'failed', candidates: [], chosen: null, allResults: [] };
+  }
+
+  // v1.9.1 — 제목+저자 검색이 부제 후보 못 잡으면 제목만으로 추가 검색 (_bdeSearch와 동일 흐름)
+  //   Jason 사례: "시체 읽는 남자 안토니오 가리도" 검색 → 카카오만. "시체 읽는 남자" 단독 검색 → 부제 후보까지.
+  if (book.author && book.title) {
+    const titleNormQ = _imNormalizeForMatch(book.title);
+    // 부제 후보 = 제목으로 시작하지만 더 긴 제목 (괄호 부제, 시리즈 표기 등)
+    const hasSubtitleCand = results.some(r => {
+      const rNorm = _imNormalizeForMatch(r.title);
+      return rNorm.length > titleNormQ.length && rNorm.startsWith(titleNormQ);
+    });
+    if (!hasSubtitleCand) {
+      try {
+        const titleOnlyResults = await _imSearchMerged(book.title);
+        // 합치기 (중복 제거)
+        const seen = new Set(results.map(r => (r.isbn || '').replace(/[-\s]/g, '') || `${r.title}|${r.author}`));
+        for (const r of titleOnlyResults) {
+          const key = (r.isbn || '').replace(/[-\s]/g, '') || `${r.title}|${r.author}`;
+          if (!seen.has(key)) {
+            results.push(r);
+            seen.add(key);
+          }
+        }
+      } catch (e) { /* 조용히 실패 */ }
+    }
   }
 
   // 5순위: 검색 결과 0건
