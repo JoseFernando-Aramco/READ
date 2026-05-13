@@ -29606,7 +29606,7 @@ function _imRenderPreview() {
 }
 
 /* ─── 실행 (BOOKS에 삽입) — v1.10.0에서 _imFinalize로 변경, 매칭 결과 적용 추가 ─── */
-function _imFinalize() {
+async function _imFinalize() {
   const skipDupe = document.getElementById('imOptSkipDupe')?.checked;
   // v1.10.0 — 중복 체크: 제목+저자 + ISBN 양쪽으로. 옛 import의 깨진 책 + 새 import 충돌 방지
   const existingKeys = new Set(
@@ -29618,13 +29618,14 @@ function _imFinalize() {
 
   let added = 0, dupe = 0, enriched = 0;
   const newBooks = [];
-  IM_STATE.parsedBooks.forEach((b, i) => {
+  for (let i = 0; i < IM_STATE.parsedBooks.length; i++) {
+    const b = IM_STATE.parsedBooks[i];
     // v1.10.0 — 매칭 결과 적용 (자동/사용자 선택된 경우만, 'skip' / null / failed는 그대로)
     let book = b;
     const matchRes = IM_STATE.matchResults[i];
     if (matchRes && (matchRes.status === 'auto' || matchRes.status === 'ambiguous')) {
       if (typeof matchRes.chosen === 'number' && matchRes.candidates[matchRes.chosen]) {
-        book = _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.allResults);
+        book = await _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.allResults);
         enriched++;
       }
     }
@@ -29633,7 +29634,7 @@ function _imFinalize() {
     const cleanIsbn = String(book.isbn || '').replace(/[-\s]/g, '');
     const isDupTitle = skipDupe && existingKeys.has(key);
     const isDupIsbn = skipDupe && cleanIsbn && existingIsbns.has(cleanIsbn);
-    if (isDupTitle || isDupIsbn) { dupe++; return; }
+    if (isDupTitle || isDupIsbn) { dupe++; continue; }
     existingKeys.add(key);
     if (cleanIsbn) existingIsbns.add(cleanIsbn);
     const palette = (typeof pickPalette === 'function')
@@ -29664,7 +29665,7 @@ function _imFinalize() {
       readingNote: book.note || '',
     });
     added++;
-  });
+  }
 
   BOOKS.unshift(...newBooks);
   try { STORE.set('books', BOOKS); } catch (e) {}
@@ -29691,7 +29692,7 @@ async function _imStartMatching() {
   if (!autoMatch) {
     // 매칭 안 함 — matchResults 비워두고 바로 BOOKS에 삽입
     IM_STATE.matchResults = new Array(IM_STATE.parsedBooks.length);
-    _imFinalize();
+    await _imFinalize();
     return;
   }
 
@@ -29716,7 +29717,7 @@ async function _imStartMatching() {
   } catch (e) {
     console.warn('[im-finalize] matching error', e);
     showToast('매칭 중 오류 — 정보 없이 진행해요');
-    _imFinalize();
+    await _imFinalize();
     return;
   }
 
@@ -29727,7 +29728,7 @@ async function _imStartMatching() {
     _imShowStep('review');
     _imRenderReview();
   } else {
-    _imFinalize();
+    await _imFinalize();
   }
 }
 
@@ -29977,7 +29978,7 @@ async function _imAutoMatchAll(books, onProgress) {
 // 매칭 결과 → parsedBook의 필드를 어떻게 덮어쓸지 정책
 // 보존: title(사용자 표기), status, dateStart, dateEnd, rating, tags, note, _rowIdx
 // 덮어씀: author(CSV 비어있을 때만), publisher/pages/isbn/year/coverUrl/language(매칭 우선)
-function _imApplyCandidate(parsedBook, candidate, allResults) {
+async function _imApplyCandidate(parsedBook, candidate, allResults) {
   if (!candidate) return parsedBook;
 
   // v1.10.0 — 페이지: best candidate(카카오)는 페이지 안 줌. allResults에서 별도 추출 (알라딘/구글).
@@ -30002,12 +30003,22 @@ function _imApplyCandidate(parsedBook, candidate, allResults) {
     }
   }
 
+  const isbn = candidate.isbn || parsedBook.isbn || '';
+
+  // v1.10.0 — 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출 (알라딘 ItemLookUp)
+  if ((!pages || pages <= 0) && isbn) {
+    try {
+      const p = await _fetchPagesFromAladin({ isbn });
+      if (p) pages = p;
+    } catch (e) { /* ignore */ }
+  }
+
   return {
     ...parsedBook,
     author:      parsedBook.author || candidate.author || '',
     publisher:   candidate.publisher || parsedBook.publisher || '',
     pages,
-    isbn:        candidate.isbn || parsedBook.isbn || '',
+    isbn,
     year:        candidate.year || parsedBook.year || null,
     coverUrl:    candidate.cover || '',
     language:    candidate.language || 'ko',
@@ -30432,6 +30443,14 @@ async function _bfStart() {
             }
           }
         }
+        // v1.10.0 — 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출 (알라딘 ItemLookUp)
+        //   ItemSearch는 itemPage 안 줘서 검색에선 못 받음. ItemLookUp(ISBN)이 유일한 경로.
+        if ((!b.pages || b.pages === 0) && b.isbn) {
+          try {
+            const p = await _fetchPagesFromAladin({ isbn: b.isbn });
+            if (p) { b.pages = p; touched = true; }
+          } catch (e) { /* ignore */ }
+        }
         if (touched) enriched++;
         else skipped++;
       } else if (result.status === 'ambiguous' || result.status === 'failed') {
@@ -30455,6 +30474,13 @@ async function _bfStart() {
               }
             }
           }
+        }
+        // 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출
+        if ((!b.pages || b.pages === 0) && b.isbn) {
+          try {
+            const p = await _fetchPagesFromAladin({ isbn: b.isbn });
+            if (p) { b.pages = p; touched = true; }
+          } catch (e) { /* ignore */ }
         }
         if (touched) enriched++;
         else skipped++;
@@ -30529,7 +30555,7 @@ document.getElementById('imBtnNext')?.addEventListener('click', () => {
     case 'pick':   /* auto handled by _imHandleFile */ break;
     case 'map':    _imBuildPreview(); _imShowStep('preview'); break;
     case 'preview': _imStartMatching(); break;
-    case 'review':  _imFinalize(); break;
+    case "review":  _imFinalize(); break;  // 비동기지만 fire-and-forget OK (UI 업데이트는 함수 내부에서 처리)
     case 'done':   _imClose(); break;
   }
 });
@@ -31125,26 +31151,9 @@ document.querySelectorAll('.ob-choice-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const choice = btn.dataset.choice;
     if (choice === 'reset') {
-      // 방어: 책이 많으면 (샘플 수준 초과) 확인창 — 혹시 choice UI 가 노출된 상태에서 실수 방지
-      const bookCount = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS.length : 0;
-      if (bookCount > 12) {
-        showConfirm({
-          title: `정말 ${bookCount}권을 모두 삭제할까요?`,
-          message: '이 작업은 되돌릴 수 없어요. 기록이 많으시면 설정에서 데이터를 먼저 내보내 백업해 두시길 권해요.',
-          confirmLabel: '모두 삭제',
-          cancelLabel: '취소',
-          destructive: true,
-          onConfirm: () => {
-            resetAppData();
-            showToast('모든 기록을 삭제했어요');
-            closeOnboarding(true);
-          },
-        });
-        return;
-      }
-      // 샘플 수준이면 바로 진행
+      // v1.10.0 — onboarding의 "빈 서재로 시작"은 명시적 사용자 선택. 추가 확인 모달 없이 자동 삭제.
       resetAppData();
-      showToast('샘플 데이터를 모두 삭제했어요');
+      showToast('빈 서재로 시작해요');
     } else {
       showToast('샘플 책으로 둘러보세요');
     }
