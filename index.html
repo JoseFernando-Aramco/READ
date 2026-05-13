@@ -29624,7 +29624,7 @@ function _imFinalize() {
     const matchRes = IM_STATE.matchResults[i];
     if (matchRes && (matchRes.status === 'auto' || matchRes.status === 'ambiguous')) {
       if (typeof matchRes.chosen === 'number' && matchRes.candidates[matchRes.chosen]) {
-        book = _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.candidates);
+        book = _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.allResults);
         enriched++;
       }
     }
@@ -29776,16 +29776,66 @@ async function _imSearchMerged(query) {
   const googleItems = g.status === 'fulfilled' ? g.value : [];
   const aladinItems = a.status === 'fulfilled' ? a.value : [];
 
-  // 검색 흐름과 동일한 우선순위 정렬
+  // 검색 흐름과 동일한 우선순위 정렬 — v1.10.0: 모든 case에서 알라딘 우선
+  // 이유: 알라딘이 가장 풍부한 메타데이터 (페이지·가격·표지·출판사). best=알라딘이 직접 채움 → fallback 의존 줄임.
+  // 알라딘에 없는 책은 자동으로 카카오/구글 결과가 best로 선택됨 (results 내에 있으니까).
   let merged;
   if (isbnMode) {
     merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
   } else if (isKorean) {
-    merged = _dedupeByIsbn([...kakaoItems, ...aladinItems, ...googleItems]);
+    merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
   } else {
-    merged = _dedupeByIsbn([...googleItems, ...aladinItems, ...kakaoItems]);
+    merged = _dedupeByIsbn([...aladinItems, ...googleItems, ...kakaoItems]);
   }
   return merged;
+}
+
+// v1.10.0 — 검색 결과 전체에서 조건 + 제목·저자 유사도 통과한 첫 후보 반환.
+//   다른 책 데이터 들어가는 거 방지: source 무관, 제목 prefix 유사도 + 저자 일치 검증.
+function _imFindMatchingResult(results, book, filter) {
+  if (!Array.isArray(results) || !results.length || !book || !book.title) return null;
+  const bTitle = _imNormalizeForMatch(book.title);
+  if (!bTitle) return null;
+
+  for (const r of results) {
+    if (!r) continue;
+    if (filter && !filter(r)) continue;
+
+    const rTitle = _imNormalizeForMatch(r.title);
+    if (!rTitle) continue;
+
+    // 제목 유사도: 정확 일치 OR prefix 일치 (최소 6자, 또는 짧은 쪽의 70%)
+    const minLen = Math.min(bTitle.length, rTitle.length);
+    const prefixLen = Math.max(6, Math.min(minLen, Math.floor(minLen * 0.7)));
+    const titleMatch =
+      rTitle === bTitle ||
+      rTitle.startsWith(bTitle.slice(0, prefixLen)) ||
+      bTitle.startsWith(rTitle.slice(0, prefixLen));
+    if (!titleMatch) continue;
+
+    // 저자: 책에 author 있으면 매치 필수
+    if (book.author && !_imAuthorMatches(r.author, book.author)) continue;
+
+    return r;
+  }
+  return null;
+}
+
+// 가격 후보: 알라딘 + (priceSales > 0 또는 priceList > 0)
+function _imExtractPriceCandidate(results, book) {
+  return _imFindMatchingResult(results, book, r =>
+    r.source === 'aladin' && (
+      (typeof r.priceSales === 'number' && r.priceSales > 0) ||
+      (typeof r.priceList  === 'number' && r.priceList  > 0)
+    )
+  );
+}
+
+// 페이지 후보: source 무관 (알라딘·구글 둘 다 줌), pages > 0
+function _imExtractPagesCandidate(results, book) {
+  return _imFindMatchingResult(results, book, r =>
+    typeof r.pages === 'number' && r.pages > 0
+  );
 }
 
 // v1.10.0 — 후보 완전도 점수 (pages·cover 가장 중요, publisher·year·isbn 보조)
@@ -29814,7 +29864,8 @@ function _imPickBestCandidate(candidates) {
 // 한 권 매칭 — 5순위 로직
 async function _imMatchOneBook(book) {
   // book: parsedBooks의 한 권 { title, author, isbn, publisher, year, ... }
-  // 반환: { status: 'auto' | 'ambiguous' | 'failed', candidates: [...], chosen: idx | null }
+  // 반환: { status, candidates, chosen, allResults }
+  //   allResults: 검색 결과 전체 (titleExact 필터 전). 가격 후보 추출용 (v1.10.0)
 
   // ─── 1순위: ISBN 검색 (정확 매칭) ───
   if (book.isbn) {
@@ -29826,7 +29877,7 @@ async function _imMatchOneBook(book) {
         return rIsbn && rIsbn === bIsbn;
       });
       if (isbnExact.length > 0) {
-        return { status: 'auto', candidates: isbnExact, chosen: 0 };
+        return { status: 'auto', candidates: isbnExact, chosen: 0, allResults: results };
       }
       // ISBN으로 매칭 안 되면 → fallback으로 제목 검색 시도
     } catch (e) {
@@ -29836,7 +29887,7 @@ async function _imMatchOneBook(book) {
 
   // ─── 2~4순위: 제목 (+저자) 검색 ───
   if (!book.title) {
-    return { status: 'failed', candidates: [], chosen: null };
+    return { status: 'failed', candidates: [], chosen: null, allResults: [] };
   }
 
   const query = book.author ? `${book.title} ${book.author}` : book.title;
@@ -29845,12 +29896,12 @@ async function _imMatchOneBook(book) {
     results = await _imSearchMerged(query);
   } catch (e) {
     console.warn('[im-match] title search fail', e);
-    return { status: 'failed', candidates: [], chosen: null };
+    return { status: 'failed', candidates: [], chosen: null, allResults: [] };
   }
 
   // 5순위: 검색 결과 0건
   if (results.length === 0) {
-    return { status: 'failed', candidates: [], chosen: null };
+    return { status: 'failed', candidates: [], chosen: null, allResults: [] };
   }
 
   // 제목 정확 일치 필터
@@ -29869,24 +29920,23 @@ async function _imMatchOneBook(book) {
 
   // 2순위: 정확 일치 + 결과 1건 → 자동
   if (titleAuthorExact.length === 1) {
-    return { status: 'auto', candidates: titleAuthorExact, chosen: 0 };
+    return { status: 'auto', candidates: titleAuthorExact, chosen: 0, allResults: results };
   }
 
   // 3순위 (v1.10.0 옵션 A): 제목+저자 정확 일치 후보 여러 개 → 가장 완전한 것 자동 선택
-  // (사용자 검토는 책 상세의 "책 정보 검색" 버튼이 fallback)
   if (titleAuthorExact.length > 1) {
     const bestIdx = _imPickBestCandidate(titleAuthorExact);
-    return { status: 'auto', candidates: titleAuthorExact.slice(0, 5), chosen: bestIdx };
+    return { status: 'auto', candidates: titleAuthorExact.slice(0, 5), chosen: bestIdx, allResults: results };
   }
 
   // 4순위 (v1.10.0 옵션 A 연장): 정확 일치 없지만 결과 1건 → 자동
   // 사용자가 고를 선택지가 없으니 검토 요청은 무의미. 잘못 매칭은 Phase 5 fallback.
   if (results.length === 1) {
-    return { status: 'auto', candidates: results, chosen: 0 };
+    return { status: 'auto', candidates: results, chosen: 0, allResults: results };
   }
 
   // 5순위: 정확 일치 없고 결과 여러 개 → 모호 (다른 책일 수 있어 사용자 확인 필요)
-  return { status: 'ambiguous', candidates: results.slice(0, 5), chosen: null };
+  return { status: 'ambiguous', candidates: results.slice(0, 5), chosen: null, allResults: results };
 }
 
 // 전체 임포트 책 매칭 — onProgress 콜백으로 진행률 보고 (모달 내부 UI가 사용), rate limit 보호
@@ -29927,25 +29977,27 @@ async function _imAutoMatchAll(books, onProgress) {
 // 매칭 결과 → parsedBook의 필드를 어떻게 덮어쓸지 정책
 // 보존: title(사용자 표기), status, dateStart, dateEnd, rating, tags, note, _rowIdx
 // 덮어씀: author(CSV 비어있을 때만), publisher/pages/isbn/year/coverUrl/language(매칭 우선)
-function _imApplyCandidate(parsedBook, candidate, allCandidates) {
+function _imApplyCandidate(parsedBook, candidate, allResults) {
   if (!candidate) return parsedBook;
-  // v1.10.0 — 가격: best candidate가 알라딘 아니어도 후보 중 알라딘 있으면 거기서 가져옴.
-  //   priceList(정가)도 fallback으로 인정 (할인가 없는 책 케이스).
+
+  // v1.10.0 — 페이지: best candidate(카카오)는 페이지 안 줌. allResults에서 별도 추출 (알라딘/구글).
+  let pages = candidate.pages || parsedBook.pages || 0;
+  if ((!pages || pages <= 0) && Array.isArray(allResults)) {
+    const pagesCand = _imExtractPagesCandidate(allResults, parsedBook);
+    if (pagesCand) pages = pagesCand.pages;
+  }
+
+  // v1.10.0 — 가격: best가 알라딘 아니어도 allResults에서 알라딘 + 유사도 검증된 후보 찾음.
+  //   priceList(정가)도 fallback으로 인정.
   let priceSales = (typeof candidate.priceSales === 'number' && candidate.priceSales > 0) ? candidate.priceSales : null;
   let priceList  = (typeof candidate.priceList  === 'number' && candidate.priceList  > 0) ? candidate.priceList  : null;
   let priceSource = (priceSales || priceList) && candidate.source === 'aladin' ? 'aladin' : null;
 
-  // best가 알라딘 아니면 후보 목록에서 알라딘 후보의 가격 찾기
-  if (!priceSource && Array.isArray(allCandidates)) {
-    const aladinCand = allCandidates.find(x =>
-      x && x.source === 'aladin' && (
-        (typeof x.priceSales === 'number' && x.priceSales > 0) ||
-        (typeof x.priceList  === 'number' && x.priceList  > 0)
-      )
-    );
-    if (aladinCand) {
-      priceSales = (typeof aladinCand.priceSales === 'number' && aladinCand.priceSales > 0) ? aladinCand.priceSales : null;
-      priceList  = (typeof aladinCand.priceList  === 'number' && aladinCand.priceList  > 0) ? aladinCand.priceList  : null;
+  if (!priceSource && Array.isArray(allResults)) {
+    const priceCand = _imExtractPriceCandidate(allResults, parsedBook);
+    if (priceCand) {
+      priceSales = (typeof priceCand.priceSales === 'number' && priceCand.priceSales > 0) ? priceCand.priceSales : null;
+      priceList  = (typeof priceCand.priceList  === 'number' && priceCand.priceList  > 0) ? priceCand.priceList  : null;
       priceSource = 'aladin';
     }
   }
@@ -29954,7 +30006,7 @@ function _imApplyCandidate(parsedBook, candidate, allCandidates) {
     ...parsedBook,
     author:      parsedBook.author || candidate.author || '',
     publisher:   candidate.publisher || parsedBook.publisher || '',
-    pages:       candidate.pages || parsedBook.pages || 0,
+    pages,
     isbn:        candidate.isbn || parsedBook.isbn || '',
     year:        candidate.year || parsedBook.year || null,
     coverUrl:    candidate.cover || '',
@@ -30352,45 +30404,60 @@ async function _bfStart() {
       const result = await _imMatchOneBook({ title: b.title, author: b.author || '' });
       if (result.status === 'auto' && typeof result.chosen === 'number' && result.candidates[result.chosen]) {
         const c = result.candidates[result.chosen];
-        const allCands = result.candidates;
         // 정책: 빈 필드만 채움. 사용자 입력값(0이 아닌 pages, 있는 coverUrl 등) 절대 안 덮어쓰기.
         let touched = false;
         if (!b.coverUrl && c.cover) { b.coverUrl = c.cover; touched = true; }
-        if ((!b.pages || b.pages === 0) && c.pages) { b.pages = c.pages; touched = true; }
+        // 페이지: best 후보(보통 카카오)는 페이지 안 줌 → allResults에서 별도 추출 (알라딘/구글)
+        if (!b.pages || b.pages === 0) {
+          if (c.pages) { b.pages = c.pages; touched = true; }
+          else if (result.allResults) {
+            const pagesCand = _imExtractPagesCandidate(result.allResults, { title: b.title, author: b.author });
+            if (pagesCand) { b.pages = pagesCand.pages; touched = true; }
+          }
+        }
         if (!b.publisher && c.publisher) { b.publisher = c.publisher; touched = true; }
         if (!b.year && c.year) { b.year = c.year; touched = true; }
         if (!b.isbn && c.isbn) { b.isbn = c.isbn; touched = true; }
-        // v1.10.0 — 가격: best candidate가 알라딘 아니어도 후보 중 알라딘 있으면 거기서 받음.
-        //   priceList(정가)도 fallback으로 인정 (할인가 없는 책).
+        // 가격: 알라딘만 줌 + 검색 결과 전체에서 유사도 검증된 후보 추출. priceList(정가) fallback.
         if (b.priceSales == null && b.priceSource !== 'manual') {
-          let pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
-          let pList  = (typeof c.priceList  === 'number' && c.priceList  > 0) ? c.priceList  : null;
-          let isAladin = (pSales || pList) && c.source === 'aladin';
-          if (!isAladin) {
-            const aladinCand = allCands.find(x =>
-              x && x.source === 'aladin' && (
-                (typeof x.priceSales === 'number' && x.priceSales > 0) ||
-                (typeof x.priceList  === 'number' && x.priceList  > 0)
-              )
-            );
-            if (aladinCand) {
-              pSales = (typeof aladinCand.priceSales === 'number' && aladinCand.priceSales > 0) ? aladinCand.priceSales : null;
-              pList  = (typeof aladinCand.priceList  === 'number' && aladinCand.priceList  > 0) ? aladinCand.priceList  : null;
-              isAladin = true;
+          const priceCand = _imExtractPriceCandidate(result.allResults || result.candidates, { title: b.title, author: b.author });
+          if (priceCand) {
+            const pSales = (typeof priceCand.priceSales === 'number' && priceCand.priceSales > 0) ? priceCand.priceSales : null;
+            const pList  = (typeof priceCand.priceList  === 'number' && priceCand.priceList  > 0) ? priceCand.priceList  : null;
+            if (pSales || pList) {
+              b.priceSales = pSales || pList;
+              b.priceList = pList || pSales;
+              b.priceSource = 'aladin';
+              touched = true;
             }
-          }
-          if (isAladin && (pSales || pList)) {
-            b.priceSales = pSales || pList;
-            b.priceList = pList || pSales;
-            b.priceSource = 'aladin';
-            touched = true;
           }
         }
         if (touched) enriched++;
         else skipped++;
-      } else {
-        // ambiguous 또는 failed → skip (잘못된 정보 들어가는 것 방지)
-        skipped++;
+      } else if (result.status === 'ambiguous' || result.status === 'failed') {
+        // 매칭 ambiguous/failed여도 가격·페이지는 시도 (allResults에서 유사도 검증된 후보)
+        let touched = false;
+        if (result.allResults) {
+          if ((!b.pages || b.pages === 0)) {
+            const pagesCand = _imExtractPagesCandidate(result.allResults, { title: b.title, author: b.author });
+            if (pagesCand) { b.pages = pagesCand.pages; touched = true; }
+          }
+          if (b.priceSales == null && b.priceSource !== 'manual') {
+            const priceCand = _imExtractPriceCandidate(result.allResults, { title: b.title, author: b.author });
+            if (priceCand) {
+              const pSales = (typeof priceCand.priceSales === 'number' && priceCand.priceSales > 0) ? priceCand.priceSales : null;
+              const pList  = (typeof priceCand.priceList  === 'number' && priceCand.priceList  > 0) ? priceCand.priceList  : null;
+              if (pSales || pList) {
+                b.priceSales = pSales || pList;
+                b.priceList = pList || pSales;
+                b.priceSource = 'aladin';
+                touched = true;
+              }
+            }
+          }
+        }
+        if (touched) enriched++;
+        else skipped++;
       }
     } catch (e) {
       console.warn('[backfill] error on', b.title, e);
