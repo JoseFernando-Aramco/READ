@@ -8283,6 +8283,207 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   cursor: not-allowed;
 }
 
+/* v1.10.0 Phase 5 — 책 상세 "책 정보 검색" pill 버튼 */
+.bd-enrich-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 8px;
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.bd-enrich-pill:hover {
+  background: var(--c-border);
+  border-color: var(--c-text);
+}
+.bd-enrich-pill svg {
+  width: 11px; height: 11px;
+}
+
+/* 책별 enrich 모달 — bf 모달 디자인 재사용 + 추가 */
+.bde-backdrop, .bde-modal {
+  position: fixed; inset: 0;
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.bde-backdrop {
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+}
+.bde-modal {
+  z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.bde-backdrop.open, .bde-modal.open { opacity: 1; pointer-events: auto; }
+.bde-card {
+  background: var(--c-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  overflow: hidden;
+}
+.bde-modal.open .bde-card { transform: scale(1); }
+.bde-head {
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+.bde-ttl {
+  font-size: 16px; font-weight: 700; color: var(--c-text);
+  margin-bottom: 4px;
+}
+.bde-desc {
+  font-size: 12px; color: var(--c-label);
+  line-height: 1.5;
+}
+.bde-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 20px 6px;
+}
+.bde-loading, .bde-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--c-label);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bde-loading .bf-spinner {
+  margin: 0 auto 12px;
+}
+.bde-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.bde-empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 4px;
+}
+.bde-card-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .15s ease;
+  background: var(--c-surface);
+}
+.bde-card-item:hover {
+  border-color: var(--c-text);
+  background: var(--c-surface-2);
+}
+.bde-card-item.selected {
+  border-color: var(--primary, var(--c-text));
+  border-width: 2px;
+  padding: 11px;
+  background: var(--c-surface-2);
+}
+.bde-cand-cover {
+  width: 48px; height: 68px;
+  border-radius: 4px;
+  background: var(--c-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.bde-cand-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bde-cand-info {
+  flex: 1;
+  min-width: 0;
+}
+.bde-cand-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1.35;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.bde-cand-meta {
+  font-size: 11px;
+  color: var(--c-label);
+  line-height: 1.55;
+}
+.bde-cand-source {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--c-border);
+  color: var(--c-text-2, var(--c-label));
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+.bde-cand-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.bde-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--c-border);
+  color: var(--c-text-2, var(--c-label));
+  border-radius: 3px;
+  font-weight: 600;
+}
+.bde-tag.has { background: #d4edda; color: #059669; }
+.bde-tag.miss { background: var(--c-border); color: var(--c-label); }
+.bde-footer {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+.bde-btn-ghost, .bde-btn-primary {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .15s ease;
+}
+.bde-btn-ghost {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.bde-btn-ghost:hover { background: var(--c-border); }
+.bde-btn-primary {
+  background: var(--c-text);
+  color: #fff;
+}
+.bde-btn-primary:disabled {
+  opacity: .4; cursor: not-allowed;
+}
+
 /* v1.10.0 — 매칭 검토 UI */
 .im-review-summary {
   display: flex;
@@ -16263,6 +16464,27 @@ body.cn-locked {
   </div>
 </div>
 
+<!-- v1.10.0 Phase 5 — 책별 메타 정보 검색 모달 -->
+<div class="bde-backdrop" id="bdeBackdrop"></div>
+<div class="bde-modal" id="bdeModal" aria-hidden="true">
+  <div class="bde-card">
+    <div class="bde-head">
+      <div class="bde-ttl">책 정보 검색</div>
+      <div class="bde-desc" id="bdeDesc">알라딘·카카오·구글에서 후보를 찾아요</div>
+    </div>
+    <div class="bde-body" id="bdeBody">
+      <div class="bde-loading">
+        <div class="bf-spinner"></div>
+        <div>검색 중...</div>
+      </div>
+    </div>
+    <div class="bde-footer">
+      <button type="button" class="bde-btn-ghost" id="bdeBtnCancel">취소</button>
+      <button type="button" class="bde-btn-primary" id="bdeBtnApply" disabled>이 정보로 채우기</button>
+    </div>
+  </div>
+</div>
+
 <div class="ex-backdrop" id="exBackdrop"></div>
 <div class="ex-modal" id="exModal" aria-hidden="true">
   <div class="ex-card">
@@ -22607,7 +22829,7 @@ function renderBookDetail() {
             </button>` : ''}
           </div>
           <div class="bd-hero-author">${esc(b.author)}</div>
-          ${metaParts.length ? `<div class="bd-hero-meta">
+          <div class="bd-hero-meta">
             <span class="fmt-pill" id="bdFmtPill">
               <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
                 <span class="fmt-pill-emoji">📕</span>
@@ -22623,22 +22845,11 @@ function renderBookDetail() {
               </button>
             </span>
             ${metaParts.map(m => `<span>${m}</span>`).join('')}
-          </div>` : `<div class="bd-hero-meta">
-            <span class="fmt-pill" id="bdFmtPill">
-              <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
-                <span class="fmt-pill-emoji">📕</span>
-                <span>종이</span>
-              </button>
-              <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
-                <span class="fmt-pill-emoji">📱</span>
-                <span>전자</span>
-              </button>
-              <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
-                <span class="fmt-pill-emoji">🎧</span>
-                <span>오디오</span>
-              </button>
-            </span>
-          </div>`}
+            <button type="button" class="bd-enrich-pill" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
+              <span>책 정보 검색</span>
+            </button>
+          </div>
         </div>
       </div>
       <!-- 상태 세그먼트 (히어로 내부) — 상태 4개 + 노트 뷰 토글 -->
@@ -30553,6 +30764,211 @@ document.getElementById('bfBtnStart')?.addEventListener('click', _bfStart);
 document.getElementById('bfBackdrop')?.addEventListener('click', () => {
   if (!BF_STATE.running) _bfClose();
 });
+
+/* ═══════════════════════════════════════════════════════════
+   v1.10.0 Phase 5 — 책별 메타 정보 검색 (책 상세에서 호출)
+   ═══════════════════════════════════════════════════════════ */
+
+const BDE_STATE = { bookId: null, candidates: [], selectedIdx: -1 };
+
+function _bdeOpen(bookId) {
+  const book = BOOKS.find(b => b.id === bookId);
+  if (!book) { showToast('책을 찾을 수 없어요'); return; }
+
+  BDE_STATE.bookId = bookId;
+  BDE_STATE.candidates = [];
+  BDE_STATE.selectedIdx = -1;
+
+  const modal = document.getElementById('bdeModal');
+  const backdrop = document.getElementById('bdeBackdrop');
+  if (!modal || !backdrop) return;
+
+  // 모달 열기 + 로딩 상태
+  document.getElementById('bdeDesc').textContent = `${book.title} 검색 중`;
+  document.getElementById('bdeBody').innerHTML = `
+    <div class="bde-loading">
+      <div class="bf-spinner"></div>
+      <div>알라딘·카카오·구글에서 검색 중...</div>
+    </div>`;
+  document.getElementById('bdeBtnApply').disabled = true;
+
+  backdrop.classList.add('open');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+
+  // 검색 시작
+  _bdeSearch(book);
+}
+
+function _bdeClose() {
+  const modal = document.getElementById('bdeModal');
+  const backdrop = document.getElementById('bdeBackdrop');
+  if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+  if (backdrop) backdrop.classList.remove('open');
+  BDE_STATE.bookId = null;
+  BDE_STATE.candidates = [];
+  BDE_STATE.selectedIdx = -1;
+}
+
+async function _bdeSearch(book) {
+  // 검색 우선순위: ISBN → 제목+저자
+  let results = [];
+  let searchInfo = '';
+  try {
+    if (book.isbn) {
+      const r = await _imSearchMerged(String(book.isbn).replace(/[-\s]/g, ''));
+      if (r && r.length) { results = r; searchInfo = 'ISBN 검색'; }
+    }
+    if (!results.length) {
+      const q = book.author ? `${book.title} ${book.author}` : book.title;
+      results = await _imSearchMerged(q);
+      searchInfo = book.author ? '제목+저자 검색' : '제목 검색';
+    }
+  } catch (e) {
+    console.warn('[bde-search] error', e);
+  }
+
+  // 페이지 추가 fetch — 알라딘 응답에 itemPage 없으니 ISBN 있는 후보들 한해
+  //   상위 5개만 (rate limit 고려)
+  if (results.length) {
+    const top = results.slice(0, 5).filter(r => r.isbn && (!r.pages || r.pages === 0));
+    for (const r of top) {
+      try {
+        const p = await _fetchPagesFromAladin({ isbn: r.isbn });
+        if (p) r.pages = p;
+      } catch (e) { /* ignore */ }
+      await new Promise(rs => setTimeout(rs, 250));
+    }
+  }
+
+  BDE_STATE.candidates = results.slice(0, 10);
+  _bdeRenderResults(book, searchInfo);
+}
+
+function _bdeRenderResults(book, searchInfo) {
+  const body = document.getElementById('bdeBody');
+  const candidates = BDE_STATE.candidates;
+
+  if (candidates.length === 0) {
+    // 진단 케이스: 검색 결과 0건
+    body.innerHTML = `
+      <div class="bde-empty">
+        <div class="bde-empty-icon">🔍</div>
+        <div class="bde-empty-title">검색 결과가 없어요</div>
+        <div>알라딘·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
+        절판이거나 등록되지 않은 책일 수 있어요.</div>
+      </div>`;
+    document.getElementById('bdeDesc').textContent = `${searchInfo} · 결과 없음`;
+    return;
+  }
+
+  document.getElementById('bdeDesc').textContent = `${searchInfo} · 후보 ${candidates.length}개 — 맞는 책을 선택하세요`;
+
+  // 후보 카드 리스트
+  body.innerHTML = candidates.map((c, idx) => {
+    const hasPages = c.pages && c.pages > 0;
+    const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
+    const hasCover = !!c.cover;
+    const sourceLbl = c.source === 'aladin' ? 'A' : c.source === 'kakao' ? 'K' : 'G';
+    const cover = hasCover
+      ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+      : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:var(--c-label);">📖</div>';
+    const metaLine = [
+      esc(c.author || ''),
+      c.publisher ? esc(c.publisher) : '',
+      c.year ? String(c.year) : '',
+    ].filter(Boolean).join(' · ');
+
+    return `
+      <div class="bde-card-item" data-idx="${idx}">
+        <div class="bde-cand-cover">${cover}</div>
+        <div class="bde-cand-info">
+          <div class="bde-cand-title">${esc(c.title)}<span class="bde-cand-source">${sourceLbl}</span></div>
+          <div class="bde-cand-meta">${metaLine || '정보 없음'}</div>
+          <div class="bde-cand-tags">
+            <span class="bde-tag ${hasCover ? 'has' : 'miss'}">표지${hasCover ? '✓' : '✗'}</span>
+            <span class="bde-tag ${hasPages ? 'has' : 'miss'}">${hasPages ? `${c.pages}p` : '페이지✗'}</span>
+            <span class="bde-tag ${hasPrice ? 'has' : 'miss'}">${hasPrice ? `${(c.priceSales || c.priceList).toLocaleString()}원` : '가격✗'}</span>
+            ${c.isbn ? `<span class="bde-tag has">ISBN</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 클릭 이벤트
+  body.querySelectorAll('.bde-card-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      _bdeSelect(idx);
+    });
+  });
+}
+
+function _bdeSelect(idx) {
+  BDE_STATE.selectedIdx = idx;
+  document.querySelectorAll('#bdeBody .bde-card-item').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('bdeBtnApply').disabled = (idx < 0);
+}
+
+function _bdeApply() {
+  if (BDE_STATE.selectedIdx < 0) return;
+  const c = BDE_STATE.candidates[BDE_STATE.selectedIdx];
+  const book = BOOKS.find(b => b.id === BDE_STATE.bookId);
+  if (!c || !book) return;
+
+  // 정책: 빈 필드만 채움 — 사용자 입력값 안 덮어씀. 다만 명시적으로 사용자가 후보 골라 누른 거니까
+  //   기존 메타와 다르더라도 사용자 선택 우선. 그래서 이 경우엔 빈 필드만이 아니라 *덮어쓰는* 게 자연스러움.
+  //   다만 priceSource='manual'(사용자 수동 입력가)은 보호.
+  const touchedFields = [];
+  if (c.cover && c.cover !== book.coverUrl) { book.coverUrl = c.cover; touchedFields.push('표지'); }
+  if (c.pages && c.pages !== book.pages) { book.pages = c.pages; touchedFields.push('페이지'); }
+  if (c.publisher && c.publisher !== book.publisher) { book.publisher = c.publisher; touchedFields.push('출판사'); }
+  if (c.year && c.year !== book.year) { book.year = c.year; touchedFields.push('출판연도'); }
+  if (c.isbn && c.isbn !== book.isbn) { book.isbn = c.isbn; touchedFields.push('ISBN'); }
+  // 가격 — 'manual' 보호
+  if (book.priceSource !== 'manual') {
+    const pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
+    const pList  = (typeof c.priceList  === 'number' && c.priceList  > 0) ? c.priceList  : null;
+    const newPrice = pSales || pList;
+    if (newPrice && c.source === 'aladin' && newPrice !== book.priceSales) {
+      book.priceSales = newPrice;
+      book.priceList = pList || pSales;
+      book.priceSource = 'aladin';
+      touchedFields.push('가격');
+    }
+  }
+
+  // 저장
+  try { STORE.set('books', BOOKS); } catch (e) {}
+
+  // 책 상세 재렌더 + 화면 갱신
+  if (typeof BD !== 'undefined' && BD.book && BD.book.id === book.id) {
+    BD.book = book;
+    try { renderBookDetail(); } catch (e) {}
+  }
+  try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
+
+  _bdeClose();
+
+  if (touchedFields.length) {
+    showToast(`채움: ${touchedFields.join(' · ')}`);
+  } else {
+    showToast('새로 채울 정보가 없었어요');
+  }
+}
+
+// 이벤트 바인딩 — bdEnrichBtn은 renderBookDetail 내부에서 생성되므로 이벤트 위임으로 처리
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#bdEnrichBtn');
+  if (btn && typeof BD !== 'undefined' && BD.book) {
+    _bdeOpen(BD.book.id);
+  }
+});
+document.getElementById('bdeBtnCancel')?.addEventListener('click', _bdeClose);
+document.getElementById('bdeBtnApply')?.addEventListener('click', _bdeApply);
+document.getElementById('bdeBackdrop')?.addEventListener('click', _bdeClose);
 
 document.getElementById('imFileInput')?.addEventListener('change', (e) => {
   const file = e.target.files?.[0];
