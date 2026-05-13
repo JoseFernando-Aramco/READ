@@ -30811,25 +30811,40 @@ function _bdeClose() {
 }
 
 async function _bdeSearch(book) {
-  // 검색 우선순위: ISBN → 제목+저자
+  // v1.10.0 Phase 5 — 2단 검색:
+  //   1단: ISBN 있으면 ISBN 검색 (가장 정확)
+  //   2단: ISBN 검색 결과가 부족하면 (알라딘 후보 없거나 페이지·가격 다 있는 후보 없음) 제목 검색 추가 → 합치기
   let results = [];
-  let searchInfo = '';
+  const sources = [];
   try {
     if (book.isbn) {
       const r = await _imSearchMerged(String(book.isbn).replace(/[-\s]/g, ''));
-      if (r && r.length) { results = r; searchInfo = 'ISBN 검색'; }
+      if (r && r.length) { results = r; sources.push('ISBN'); }
     }
-    if (!results.length) {
+
+    // 알라딘 후보가 있고 가격·페이지 다 있으면 충분 → 추가 검색 skip
+    const hasGoodAladin = results.some(r =>
+      r.source === 'aladin' &&
+      ((r.priceSales > 0) || (r.priceList > 0))
+    );
+
+    // ISBN 검색 결과 0건이거나, 양질의 알라딘 후보 없으면 → 제목+저자 검색 추가
+    if (!results.length || !hasGoodAladin) {
       const q = book.author ? `${book.title} ${book.author}` : book.title;
-      results = await _imSearchMerged(q);
-      searchInfo = book.author ? '제목+저자 검색' : '제목 검색';
+      const titleResults = await _imSearchMerged(q);
+      if (titleResults && titleResults.length) {
+        // 합치고 dedupe
+        results = _dedupeByIsbn([...results, ...titleResults]);
+        sources.push(book.author ? '제목+저자' : '제목');
+      }
     }
   } catch (e) {
     console.warn('[bde-search] error', e);
   }
 
-  // 페이지 추가 fetch — 알라딘 응답에 itemPage 없으니 ISBN 있는 후보들 한해
-  //   상위 5개만 (rate limit 고려)
+  const searchInfo = sources.length ? `${sources.join(' + ')} 검색` : '검색';
+
+  // 페이지 추가 fetch — 알라딘 응답에 itemPage 없으니 ISBN 있는 상위 후보 한해
   if (results.length) {
     const top = results.slice(0, 5).filter(r => r.isbn && (!r.pages || r.pages === 0));
     for (const r of top) {
