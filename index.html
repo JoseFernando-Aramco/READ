@@ -30450,6 +30450,47 @@ function _imAuthorMatches(searchAuthor, csvAuthor) {
 }
 
 // 통합 검색 (Kakao + 알라딘 + Google · 3종 동시) — 임포트 매칭용
+/* Phase 2 — Worker /book 통합 캐시 조회
+ *
+ * 한 번 받은 책 데이터는 worker KV에 저장됨. 다음 사용자가 같은 책 찾으면 캐시에서 바로 줌.
+ * import 시 매 책마다 worker /book 먼저 호출 → 캐시 hit이면 외부 API 4번 호출 skip.
+ */
+async function _fetchBookFromWorker({ isbn, title, author }) {
+  if (typeof ALADIN_PROXY_URL === 'undefined' || !ALADIN_PROXY_URL) return null;
+  if (!isbn && !title) return null;
+  const params = new URLSearchParams();
+  if (isbn) params.set('isbn', isbn);
+  if (title) params.set('title', title);
+  if (author) params.set('author', author);
+  try {
+    const res = await fetch(`${ALADIN_PROXY_URL}/book?${params.toString()}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn('[worker-book] fetch fail:', e.message);
+    return null;
+  }
+}
+
+// worker /book 응답 → _imApplyCandidate가 기대하는 candidate 형식으로 변환
+function _workerBookToCandidate(book) {
+  if (!book) return null;
+  return {
+    title: book.title || '',
+    author: book.author || '',
+    publisher: book.publisher || '',
+    year: book.year || '',
+    isbn: book.isbn || '',
+    cover: book.cover || '',
+    pages: (typeof book.pages === 'number' && book.pages > 0) ? book.pages : null,
+    priceSales: (typeof book.priceSales === 'number' && book.priceSales > 0) ? book.priceSales : null,
+    priceList: (typeof book.priceList === 'number' && book.priceList > 0) ? book.priceList : null,
+    language: book.language || 'ko',
+    source: 'worker_cache',
+    sources: Array.isArray(book.sources) ? book.sources : [],
+  };
+}
+
 async function _imSearchMerged(query, opts) {
   const isbnMode = _isLikelyIsbn(query);
   const isKorean = _hasHangul(query);
@@ -30575,6 +30616,31 @@ async function _imMatchOneBook(book) {
   // book: parsedBooks의 한 권 { title, author, isbn, publisher, year, ... }
   // 반환: { status, candidates, chosen, allResults }
   //   allResults: 검색 결과 전체 (titleExact 필터 전). 가격 후보 추출용 (v1.10.0)
+
+  // ─── Phase 2: Worker /book 캐시 우선 시도 ───
+  //   ISBN 또는 제목+저자 있으면 worker가 책 정보 줌 (캐시 hit이면 외부 API 0번)
+  //   miss여도 worker가 4 source 검색·합성·캐싱 → 다음 사용자에게 이득
+  if (book.isbn || (book.title && book.author)) {
+    try {
+      const cleanIsbn = book.isbn ? String(book.isbn).replace(/[-\s]/g, '') : '';
+      const isbnValid = cleanIsbn && (/^97[89]\d{10}$/.test(cleanIsbn) || /^\d{9}[\dX]$/i.test(cleanIsbn));
+      const workerBook = await _fetchBookFromWorker({
+        isbn: isbnValid ? cleanIsbn : '',
+        title: book.title,
+        author: book.author,
+      });
+      if (workerBook && workerBook.isbn) {
+        const candidate = _workerBookToCandidate(workerBook);
+        // worker가 정확한 책 정보 줬으면 매칭 skip + 바로 적용
+        return {
+          status: 'auto',
+          candidates: [candidate],
+          chosen: 0,
+          allResults: [candidate],
+        };
+      }
+    } catch (e) { /* worker 실패 시 기존 매칭 흐름으로 */ }
+  }
 
   // ─── 1순위: ISBN 검색 (정확 매칭) ───
   if (book.isbn) {
