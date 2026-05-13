@@ -29666,7 +29666,13 @@ async function _imMatchOneBook(book) {
     return { status: 'auto', candidates: titleAuthorExact.slice(0, 5), chosen: bestIdx };
   }
 
-  // 4순위: 정확 일치 없지만 결과는 있음 → 모호 (제목이 다른 책일 위험 ↑, 사용자 확인 필요)
+  // 4순위 (v1.10.0 옵션 A 연장): 정확 일치 없지만 결과 1건 → 자동
+  // 사용자가 고를 선택지가 없으니 검토 요청은 무의미. 잘못 매칭은 Phase 5 fallback.
+  if (results.length === 1) {
+    return { status: 'auto', candidates: results, chosen: 0 };
+  }
+
+  // 5순위: 정확 일치 없고 결과 여러 개 → 모호 (다른 책일 수 있어 사용자 확인 필요)
   return { status: 'ambiguous', candidates: results.slice(0, 5), chosen: null };
 }
 
