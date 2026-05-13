@@ -19058,10 +19058,16 @@ function _mergeByIsbn(arr) {
     });
   }
 
-  // 정렬: 1차 source 개수 (많은 후보가 위), 2차 책정보 우선순위
+  // v1.9.1 — 정렬 (Jason 제안 반영):
+  //   1차: 페이지수 있는 후보 우선 (책 정보의 핵심 — 알라딘 ItemLookUp 결과만 갖는 정보라 희소)
+  //   2차: source 개수 (multi-source 합의가 신뢰도 표시)
+  //   3차: 책정보 우선순위 (책 정보 quality)
   const infoOrder = {};
   PRIORITY.info.forEach((src, i) => infoOrder[src] = i);
   merged.sort((a, b) => {
+    const aPages = (typeof a.pages === 'number' && a.pages > 0) ? 1 : 0;
+    const bPages = (typeof b.pages === 'number' && b.pages > 0) ? 1 : 0;
+    if (aPages !== bPages) return bPages - aPages;
     if (b.sources.length !== a.sources.length) return b.sources.length - a.sources.length;
     return (infoOrder[a.source] ?? 99) - (infoOrder[b.source] ?? 99);
   });
@@ -30783,12 +30789,31 @@ async function _imApplyCandidate(parsedBook, candidate, allResults) {
 
   const isbn = candidate.isbn || parsedBook.isbn || '';
 
-  // v1.10.0 — 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출 (알라딘 ItemLookUp)
-  if ((!pages || pages <= 0) && isbn) {
-    try {
-      const p = await _fetchPagesFromAladin({ isbn });
-      if (p) pages = p;
-    } catch (e) { /* ignore */ }
+  // v1.9.1 — 페이지 폴백 강화 (Jason 제안)
+  //   1) 알라딘 ItemLookUp + ISBN  2) 알라딘 ItemLookUp + title  3) 구글 ISBN 직접 조회
+  if ((!pages || pages <= 0)) {
+    // 1차: 알라딘 ISBN
+    if (isbn) {
+      try {
+        const p = await _fetchPagesFromAladin({ isbn });
+        if (typeof p === 'number' && p > 0) pages = p;
+      } catch (e) { /* 다음 */ }
+    }
+    // 2차: 알라딘 title
+    if ((!pages || pages <= 0) && parsedBook.title) {
+      try {
+        const titleQ = parsedBook.author ? `${parsedBook.title} ${parsedBook.author}` : parsedBook.title;
+        const p = await _fetchPagesFromAladin({ title: titleQ });
+        if (typeof p === 'number' && p > 0) pages = p;
+      } catch (e) { /* 다음 */ }
+    }
+    // 3차: 구글 ISBN
+    if ((!pages || pages <= 0) && isbn && typeof _fetchPagesByIsbn === 'function') {
+      try {
+        const p = await _fetchPagesByIsbn(isbn);
+        if (typeof p === 'number' && p > 0) pages = p;
+      } catch (e) { /* 조용히 실패 */ }
+    }
   }
 
   return {
@@ -31249,15 +31274,38 @@ async function _enrichBookItem(book, item) {
     }
   }
 
-  // v1.9.1 — pages는 알라딘 ItemSearch 응답에 없음. ItemLookUp(/pages?isbn=...)로 폴백.
-  //   ISBN 있어야 가능. _bdeSearch가 페이지 받는 핵심 경로.
-  if (item === 'pages' && cleanIsbn && typeof _fetchPagesFromAladin === 'function') {
-    try {
-      const p = await _fetchPagesFromAladin({ isbn: cleanIsbn });
-      if (typeof p === 'number' && p > 0) {
-        return { value: p, source: 'aladin_lookup', matched: null };
-      }
-    } catch (e) { /* 조용히 실패 */ }
+  // v1.9.1 — pages 폴백 강화 (Jason 제안: 페이지 매칭 최우선)
+  //   알라딘 ItemSearch는 페이지 응답 X — 별도 엔드포인트 필요
+  //   1) 알라딘 ItemLookUp ISBN  2) 알라딘 ItemLookUp title  3) 구글 ISBN 직접 조회
+  if (item === 'pages') {
+    // 1차: 알라딘 ItemLookUp + ISBN
+    if (cleanIsbn && typeof _fetchPagesFromAladin === 'function') {
+      try {
+        const p = await _fetchPagesFromAladin({ isbn: cleanIsbn });
+        if (typeof p === 'number' && p > 0) {
+          return { value: p, source: 'aladin_lookup_isbn', matched: null };
+        }
+      } catch (e) { /* 다음 단계 */ }
+    }
+    // 2차: 알라딘 ItemLookUp + title (ISBN 없거나 ISBN 실패)
+    if (book.title && typeof _fetchPagesFromAladin === 'function') {
+      try {
+        const titleQ = book.author ? `${book.title} ${book.author}` : book.title;
+        const p = await _fetchPagesFromAladin({ title: titleQ });
+        if (typeof p === 'number' && p > 0) {
+          return { value: p, source: 'aladin_lookup_title', matched: null };
+        }
+      } catch (e) { /* 다음 단계 */ }
+    }
+    // 3차: 구글 ISBN 직접 조회 (알라딘 한도 도달 대비)
+    if (cleanIsbn && typeof _fetchPagesByIsbn === 'function') {
+      try {
+        const p = await _fetchPagesByIsbn(cleanIsbn);
+        if (typeof p === 'number' && p > 0) {
+          return { value: p, source: 'google_isbn', matched: null };
+        }
+      } catch (e) { /* 조용히 실패 */ }
+    }
   }
   return null;
 }
