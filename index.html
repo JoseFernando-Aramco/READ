@@ -6142,15 +6142,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bd-hero-top {
   display: flex;
-  gap: 14px;
-  align-items: flex-start;
+  gap: 16px;
+  align-items: stretch;       /* v1.9.1 — 표지와 콘텐츠 높이 맞춤 */
   padding-bottom: 18px;
 }
 .bd-hero-cover {
-  width: 76px; height: 108px;
-  border-radius: 4px;
+  width: 130px;
+  aspect-ratio: 2 / 3;        /* v1.9.1 — 비율 유지하며 콘텐츠 높이에 맞춤 */
+  height: auto;
+  border-radius: 6px;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(25,31,40,0.12);
+  box-shadow: 0 6px 18px rgba(25,31,40,0.15);
   overflow: hidden;
   background: var(--brand-primary);
   position: relative;
@@ -6710,7 +6712,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   letter-spacing: -0.01em;
 }
 
-.bd-hero-info { flex: 1; min-width: 0; padding-top: 2px; }
+.bd-hero-info {
+  flex: 1; min-width: 0; padding-top: 2px;
+  display: flex;
+  flex-direction: column;     /* v1.9.1 — 내부 vertical stack */
+}
 .bd-hero-title {
   font-family: inherit;
   font-size: 20px; font-weight: 800;
@@ -7148,13 +7154,86 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 4px;
 }
 .bd-hero-meta {
-  display: flex; flex-wrap: wrap; gap: 4px 10px;
-  align-items: center;          /* 알약과 페이지 텍스트 상하정렬 */
+  display: flex;
+  flex-direction: column;     /* v1.9.1 — 매체 토글 + 메타 리스트 + footer 세로 stack */
+  gap: 10px;
+  align-items: stretch;
+  flex: 1;                    /* bd-hero-info 안에서 남은 공간 차지 → footer 하단 정렬 */
   font-family: inherit;
-  font-size: 12px; font-weight: 500;
+  font-size: 12px;
   color: var(--c-label);
   letter-spacing: -0.01em;
-  text-transform: none;
+}
+.bd-hero-meta .fmt-pill {
+  align-self: flex-start;     /* 매체 토글은 stretch 안 되게 */
+}
+
+/* v1.9.1 — 컬러 dot 메타 리스트 */
+.bd-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.bd-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.bd-meta-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.bd-meta-dot-publisher { background: #4a6b8a; }
+.bd-meta-dot-pages     { background: #b88838; }
+.bd-meta-dot-price     { background: var(--brand-primary); }
+.bd-meta-dot-lang      { background: var(--c-muted); }
+.bd-meta-lbl {
+  color: var(--c-muted);
+  font-size: 11.5px;
+  width: 42px;
+  flex-shrink: 0;
+}
+.bd-meta-val {
+  color: var(--c-text);
+  font-size: 13px;
+}
+
+/* v1.9.1 — footer: ISBN 강조 박스 + 검색 버튼 */
+.bd-meta-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;           /* 콘텐츠 하단으로 밀어내기 → 표지 하단과 정렬 */
+  padding-top: 12px;
+  border-top: 1px dashed var(--c-border);
+  flex-wrap: wrap;
+}
+.bd-isbn-box {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+}
+.bd-isbn-lbl {
+  font-size: 9.5px;
+  color: var(--c-muted);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.bd-isbn-val {
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: 0.2px;
 }
 
 /* ─── V2: 상태 세그먼트를 라인 탭으로 ─── */
@@ -16259,8 +16338,8 @@ body.cn-locked {
       <div class="rs-icon-danger">
         <svg class="ic ic-2xl" aria-hidden="true"><use href="#i-alert"/></svg>
       </div>
-      <div class="rs-ttl">모든 기록을 삭제할까요?</div>
-      <div class="rs-desc">이 작업은 <strong>되돌릴 수 없어요.</strong></div>
+      <div class="rs-ttl">서재를 어떻게 초기화할까요?</div>
+      <div class="rs-desc">기존 기록은 <strong>모두 삭제</strong>돼요. 되돌릴 수 없어요.</div>
     </div>
 
     <div class="rs-warn-box">
@@ -16279,9 +16358,10 @@ body.cn-locked {
              autocomplete="off" autocapitalize="characters" spellcheck="false">
     </div>
 
-    <div class="rs-footer">
+    <div class="rs-footer" style="flex-wrap:wrap;gap:8px;">
       <button class="rs-btn-ghost" id="rsCancel">취소</button>
-      <button class="rs-btn-danger" id="rsDelete" disabled>영구 삭제</button>
+      <button class="rs-btn-danger" id="rsResetSample" disabled style="background:var(--c-surface-2);color:var(--c-text);border:1px solid var(--c-border);">📚 샘플로 초기화</button>
+      <button class="rs-btn-danger" id="rsResetEmpty" disabled>✨ 빈으로 초기화</button>
     </div>
   </div>
 </div>
@@ -22950,16 +23030,10 @@ function renderBookDetail() {
   const totalReads = reads.length;
   const progPct = reading ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
 
-  // 메타
-  const metaParts = [];
-  if (b.publisher) metaParts.push(esc(b.publisher));
-  if (b.pages) metaParts.push(`${b.pages}p`);
-  // v1.9.1 — 가격 매칭된 책만 메타 라인에 가격 표시 (튀지 않게)
-  if (typeof b.priceSales === 'number' && b.priceSales > 0) {
-    metaParts.push(`${b.priceSales.toLocaleString('ko-KR')}원`);
-  }
-  if (b.isbn) metaParts.push(`ISBN ${esc(b.isbn)}`);
-  if (b.language && b.language !== 'ko') metaParts.push(`🌐 ${b.language.toUpperCase()}`);
+  // v1.9.1 — 메타 정보를 컬러 dot 리스트로 분리 (가독성 + 정보 위계)
+  const hasPrice = (typeof b.priceSales === 'number' && b.priceSales > 0);
+  const isNonKo  = (b.language && b.language !== 'ko');
+  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo);
 
   // 커버
   const cover = b.coverUrl
@@ -23002,11 +23076,20 @@ function renderBookDetail() {
                 <span>오디오</span>
               </button>
             </span>
-            ${metaParts.map(m => `<span>${m}</span>`).join('')}
-            <button type="button" class="bd-enrich-pill" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
-              <span>책 정보 검색</span>
-            </button>
+            ${hasAnyMeta ? `
+            <div class="bd-meta-list">
+              ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
+              ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
+              ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
+              ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
+            </div>` : ''}
+            <div class="bd-meta-footer">
+              ${b.isbn ? `<span class="bd-isbn-box"><span class="bd-isbn-lbl">ISBN</span><span class="bd-isbn-val">${esc(b.isbn)}</span></span>` : '<span></span>'}
+              <button type="button" class="bd-enrich-pill" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
+                <span>책 정보 검색</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -31499,11 +31582,13 @@ function _rsOpen() {
     list.innerHTML = items.join('');
   }
 
-  // 입력 초기화, 버튼 비활성
+  // 입력 초기화, 버튼 비활성 (v1.9.1: 두 옵션 버튼)
   const input = document.getElementById('rsInput');
-  const delBtn = document.getElementById('rsDelete');
+  const sample = document.getElementById('rsResetSample');
+  const empty  = document.getElementById('rsResetEmpty');
   if (input) input.value = '';
-  if (delBtn) delBtn.disabled = true;
+  if (sample) sample.disabled = true;
+  if (empty)  empty.disabled  = true;
 
   document.getElementById('rsBackdrop').classList.add('open');
   document.getElementById('rsModal').classList.add('open');
@@ -31518,11 +31603,14 @@ function _rsClose() {
   unlockBodyScroll();
 }
 
-/* 입력 감지 → "READ" 정확 매칭 시 버튼 활성화 (대소문자 엄격) */
+/* 입력 감지 → "READ" 정확 매칭 시 두 버튼 활성화 (대소문자 엄격) */
 document.getElementById('rsInput')?.addEventListener('input', (e) => {
   const v = (e.target.value || '').trim();
-  const del = document.getElementById('rsDelete');
-  if (del) del.disabled = (v !== RESET_CONFIRM_TEXT);
+  const ok = (v === RESET_CONFIRM_TEXT);
+  const sample = document.getElementById('rsResetSample');
+  const empty  = document.getElementById('rsResetEmpty');
+  if (sample) sample.disabled = !ok;
+  if (empty)  empty.disabled  = !ok;
 });
 
 /* 닫기 핸들러 — 배경 클릭·ESC로도 취소 가능 (취소는 쉽게) */
@@ -31535,33 +31623,42 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* 삭제 실행 — 모든 localStorage 지우고 리로드 */
-document.getElementById('rsDelete')?.addEventListener('click', () => {
+/* 실행 — v1.9.1: 두 옵션 (샘플로 / 빈으로). 둘 다 read.* 키를 지우되 ONBOARDING_KEY는 유지
+ *   → reload 후 가이드 자동 skip. 사용자가 매번 가이드 누르는 귀찮음 제거.
+ *   샘플: localStorage 'books' 키 없으면 DEFAULT_BOOKS 자동 로드 → 별도 시드 불필요
+ *   빈:  STORE.set('books', []) 명시 → hydrateData가 빈 배열로 적용 */
+function _rsExecute(seedSample) {
   const input = document.getElementById('rsInput');
-  if ((input?.value || '').trim() !== RESET_CONFIRM_TEXT) return;  // 방어적 재검증
+  if ((input?.value || '').trim() !== RESET_CONFIRM_TEXT) return;
 
   try {
-    // 'read.*' 접두사 키만 지우기 (다른 앱 데이터에 영향 안 주도록)
+    // 'read.*' 접두사 키 지우기. 단 ONBOARDING_KEY는 *유지* (가이드 skip 위해)
     const toRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('read.')) toRemove.push(k);
+      if (k && k.startsWith('read.') && k !== ONBOARDING_KEY) toRemove.push(k);
     }
     toRemove.forEach(k => localStorage.removeItem(k));
-    // 혹시 다른 키도 썼을 경우 대비 (온보딩 등)
-    try { localStorage.removeItem('ONBOARDING_KEY'); } catch(_){}
     try { sessionStorage.clear(); } catch(_){}
+
+    // 빈으로 초기화면 'books'=[] 명시 → hydrateData가 빈 배열로 채움 (DEFAULT_BOOKS 자동 로드 차단)
+    if (!seedSample) {
+      try { STORE.set('books', []); } catch(_){}
+    }
+    // 샘플로 초기화면 별도 처리 없음 — 'books' 키가 없는 상태 = hydrateData가 DEFAULT_BOOKS 유지
   } catch (err) {
     console.error('[reset] 실패:', err);
     showToast('초기화 실패 · 브라우저 설정을 확인해주세요');
     return;
   }
 
-  // 모달 바로 닫고, 잠깐 뒤 리로드 → 완전 초기 상태
   _rsClose();
-  showToast('모든 기록을 삭제했어요');
+  showToast(seedSample ? '샘플 책으로 다시 시작해요' : '빈 서재로 시작해요');
   setTimeout(() => { location.reload(); }, 600);
-});
+}
+
+document.getElementById('rsResetSample')?.addEventListener('click', () => _rsExecute(true));
+document.getElementById('rsResetEmpty')?.addEventListener('click', () => _rsExecute(false));
 
 /* 설정에서 "모든 기록 초기화" 행 클릭 → 모달 */
 (function wireResetRow() {
