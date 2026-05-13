@@ -29624,7 +29624,7 @@ function _imFinalize() {
     const matchRes = IM_STATE.matchResults[i];
     if (matchRes && (matchRes.status === 'auto' || matchRes.status === 'ambiguous')) {
       if (typeof matchRes.chosen === 'number' && matchRes.candidates[matchRes.chosen]) {
-        book = _imApplyCandidate(b, matchRes.candidates[matchRes.chosen]);
+        book = _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.candidates);
         enriched++;
       }
     }
@@ -29927,11 +29927,29 @@ async function _imAutoMatchAll(books, onProgress) {
 // 매칭 결과 → parsedBook의 필드를 어떻게 덮어쓸지 정책
 // 보존: title(사용자 표기), status, dateStart, dateEnd, rating, tags, note, _rowIdx
 // 덮어씀: author(CSV 비어있을 때만), publisher/pages/isbn/year/coverUrl/language(매칭 우선)
-function _imApplyCandidate(parsedBook, candidate) {
+function _imApplyCandidate(parsedBook, candidate, allCandidates) {
   if (!candidate) return parsedBook;
-  // v1.10.0 — 가격 정보: 알라딘 candidate일 때만 source='aladin' (카카오/구글은 가격 정보 없음)
-  const cPriceSales = (typeof candidate.priceSales === 'number' && candidate.priceSales > 0) ? candidate.priceSales : null;
-  const cPriceList  = (typeof candidate.priceList === 'number' && candidate.priceList > 0) ? candidate.priceList : null;
+  // v1.10.0 — 가격: best candidate가 알라딘 아니어도 후보 중 알라딘 있으면 거기서 가져옴.
+  //   priceList(정가)도 fallback으로 인정 (할인가 없는 책 케이스).
+  let priceSales = (typeof candidate.priceSales === 'number' && candidate.priceSales > 0) ? candidate.priceSales : null;
+  let priceList  = (typeof candidate.priceList  === 'number' && candidate.priceList  > 0) ? candidate.priceList  : null;
+  let priceSource = (priceSales || priceList) && candidate.source === 'aladin' ? 'aladin' : null;
+
+  // best가 알라딘 아니면 후보 목록에서 알라딘 후보의 가격 찾기
+  if (!priceSource && Array.isArray(allCandidates)) {
+    const aladinCand = allCandidates.find(x =>
+      x && x.source === 'aladin' && (
+        (typeof x.priceSales === 'number' && x.priceSales > 0) ||
+        (typeof x.priceList  === 'number' && x.priceList  > 0)
+      )
+    );
+    if (aladinCand) {
+      priceSales = (typeof aladinCand.priceSales === 'number' && aladinCand.priceSales > 0) ? aladinCand.priceSales : null;
+      priceList  = (typeof aladinCand.priceList  === 'number' && aladinCand.priceList  > 0) ? aladinCand.priceList  : null;
+      priceSource = 'aladin';
+    }
+  }
+
   return {
     ...parsedBook,
     author:      parsedBook.author || candidate.author || '',
@@ -29941,9 +29959,9 @@ function _imApplyCandidate(parsedBook, candidate) {
     year:        candidate.year || parsedBook.year || null,
     coverUrl:    candidate.cover || '',
     language:    candidate.language || 'ko',
-    priceSales:  cPriceSales,
-    priceList:   cPriceList || cPriceSales,
-    priceSource: cPriceSales ? 'aladin' : null,
+    priceSales:  priceSales || priceList,   // sale 없으면 정가 사용
+    priceList:   priceList || priceSales,
+    priceSource,
   };
 }
 
@@ -30334,6 +30352,7 @@ async function _bfStart() {
       const result = await _imMatchOneBook({ title: b.title, author: b.author || '' });
       if (result.status === 'auto' && typeof result.chosen === 'number' && result.candidates[result.chosen]) {
         const c = result.candidates[result.chosen];
+        const allCands = result.candidates;
         // 정책: 빈 필드만 채움. 사용자 입력값(0이 아닌 pages, 있는 coverUrl 등) 절대 안 덮어쓰기.
         let touched = false;
         if (!b.coverUrl && c.cover) { b.coverUrl = c.cover; touched = true; }
@@ -30341,12 +30360,31 @@ async function _bfStart() {
         if (!b.publisher && c.publisher) { b.publisher = c.publisher; touched = true; }
         if (!b.year && c.year) { b.year = c.year; touched = true; }
         if (!b.isbn && c.isbn) { b.isbn = c.isbn; touched = true; }
-        // 가격은 알라딘 결과일 때만 (priceSource !== 'manual'인 책에만)
-        if (b.priceSales == null && b.priceSource !== 'manual' && c.priceSales && c.source === 'aladin') {
-          b.priceSales = c.priceSales;
-          b.priceList = c.priceList || c.priceSales;
-          b.priceSource = 'aladin';
-          touched = true;
+        // v1.10.0 — 가격: best candidate가 알라딘 아니어도 후보 중 알라딘 있으면 거기서 받음.
+        //   priceList(정가)도 fallback으로 인정 (할인가 없는 책).
+        if (b.priceSales == null && b.priceSource !== 'manual') {
+          let pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
+          let pList  = (typeof c.priceList  === 'number' && c.priceList  > 0) ? c.priceList  : null;
+          let isAladin = (pSales || pList) && c.source === 'aladin';
+          if (!isAladin) {
+            const aladinCand = allCands.find(x =>
+              x && x.source === 'aladin' && (
+                (typeof x.priceSales === 'number' && x.priceSales > 0) ||
+                (typeof x.priceList  === 'number' && x.priceList  > 0)
+              )
+            );
+            if (aladinCand) {
+              pSales = (typeof aladinCand.priceSales === 'number' && aladinCand.priceSales > 0) ? aladinCand.priceSales : null;
+              pList  = (typeof aladinCand.priceList  === 'number' && aladinCand.priceList  > 0) ? aladinCand.priceList  : null;
+              isAladin = true;
+            }
+          }
+          if (isAladin && (pSales || pList)) {
+            b.priceSales = pSales || pList;
+            b.priceList = pList || pSales;
+            b.priceSource = 'aladin';
+            touched = true;
+          }
         }
         if (touched) enriched++;
         else skipped++;
