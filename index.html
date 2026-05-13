@@ -29445,6 +29445,19 @@ function _imOpen() {
   lockBodyScroll();
 }
 function _imClose() {
+  // v1.9.1 — _imFinalize 진행 중엔 닫기 차단 (API 낭비 + 데이터 손실 방지)
+  if (IM_STATE.finalizing) {
+    // 사용자에게 알림
+    try {
+      const subEl = document.getElementById('imMatchingSub');
+      if (subEl) {
+        const orig = subEl.textContent;
+        subEl.textContent = '⚠️ 보강 중이에요. 끝나면 자동으로 닫혀요.';
+        setTimeout(() => { if (subEl) subEl.textContent = orig; }, 2000);
+      }
+    } catch(e){}
+    return;
+  }
   document.getElementById('imBackdrop').classList.remove('open');
   document.getElementById('imModal').classList.remove('open');
   document.getElementById('imModal').setAttribute('aria-hidden', 'true');
@@ -29987,6 +30000,38 @@ function _imRenderPreview() {
 
 /* ─── 실행 (BOOKS에 삽입) — v1.10.0에서 _imFinalize로 변경, 매칭 결과 적용 추가 ─── */
 async function _imFinalize() {
+  // v1.9.1 — 진행 중 닫기 차단 + 페이지 이탈 경고
+  IM_STATE.finalizing = true;
+  // X 버튼 시각적 비활성화
+  const closeBtn = document.getElementById('imClose');
+  if (closeBtn) {
+    closeBtn.style.opacity = '0.3';
+    closeBtn.style.pointerEvents = 'none';
+    closeBtn.setAttribute('aria-disabled', 'true');
+  }
+  // 페이지 이탈 시 브라우저 경고 (탭 닫기·새로고침·뒤로가기)
+  const beforeUnloadHandler = (e) => {
+    e.preventDefault();
+    e.returnValue = '메타데이터 보강이 진행 중이에요. 지금 나가면 일부 책은 표지·가격·페이지가 비어있게 돼요.';
+    return e.returnValue;
+  };
+  window.addEventListener('beforeunload', beforeUnloadHandler);
+
+  try {
+    await _imFinalizeInner();
+  } finally {
+    // 어떤 경우에도 lock 해제
+    IM_STATE.finalizing = false;
+    if (closeBtn) {
+      closeBtn.style.opacity = '';
+      closeBtn.style.pointerEvents = '';
+      closeBtn.removeAttribute('aria-disabled');
+    }
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+  }
+}
+
+async function _imFinalizeInner() {
   const skipDupe = document.getElementById('imOptSkipDupe')?.checked;
   // v1.10.0 — 중복 체크: 제목+저자 + ISBN 양쪽으로. 옛 import의 깨진 책 + 새 import 충돌 방지
   const existingKeys = new Set(
@@ -29995,6 +30040,18 @@ async function _imFinalize() {
   const existingIsbns = new Set(
     BOOKS.map(b => String(b.isbn || '').replace(/[-\s]/g, '')).filter(Boolean)
   );
+
+  // v1.9.1 — 매칭 진행됐다면 누락 항목도 자동 보강 (Jason 요구: 200권 등록 시 한 번에 다 채우기)
+  //   매칭 안 한 사용자(autoMatch off)는 보강도 안 함. matchResults가 있는 경우만 시도.
+  const didMatching = IM_STATE.matchResults && IM_STATE.matchResults.some(r => r);
+  if (didMatching) {
+    // matching step UI 재사용 — 보강 진행률 표시
+    try { _imShowStep('matching'); } catch(e){}
+    const totalEl = document.getElementById('imMatchingTotal');
+    const subEl   = document.getElementById('imMatchingSub');
+    if (totalEl) totalEl.textContent = IM_STATE.parsedBooks.length;
+    if (subEl) subEl.textContent = '메타데이터 보강 중이에요. 닫지 말고 잠시 기다려주세요 🙏';
+  }
 
   let added = 0, dupe = 0, enriched = 0;
   const newBooks = [];
@@ -30006,9 +30063,54 @@ async function _imFinalize() {
     if (matchRes && (matchRes.status === 'auto' || matchRes.status === 'ambiguous')) {
       if (typeof matchRes.chosen === 'number' && matchRes.candidates[matchRes.chosen]) {
         book = await _imApplyCandidate(b, matchRes.candidates[matchRes.chosen], matchRes.allResults);
-        enriched++;
       }
     }
+
+    // v1.9.1 — 누락 항목 자동 보강 (cover/pages/price 항목별 source 순차 호출)
+    //   매칭 ambig/failed여도 시도. skip은 사용자 의도라 건너뜀.
+    //   각 항목은 첫 source 성공에서 멈추므로 호출 수 최소화 (Jason: "불필요한 api호출 줄임")
+    let touchedAuto = false;
+    let lastMatched = null;
+    if (didMatching && matchRes && matchRes.status !== 'skip') {
+      try {
+        if (!book.coverUrl) {
+          const r = await _enrichBookItem(book, 'cover');
+          if (r) { book.coverUrl = r.value; touchedAuto = true; lastMatched = r.matched; }
+        }
+        if (!book.pages || book.pages === 0) {
+          const r = await _enrichBookItem(book, 'pages');
+          if (r) { book.pages = r.value; touchedAuto = true; lastMatched = r.matched; }
+        }
+        if (book.priceSales == null && book.priceSource !== 'manual') {
+          const r = await _enrichBookItem(book, 'price');
+          if (r) {
+            book.priceSales = r.priceSales;
+            book.priceList = r.priceList;
+            book.priceSource = r.source;
+            touchedAuto = true;
+            lastMatched = r.matched;
+          }
+        }
+        // 부가 정보 — 마지막 성공한 source의 matched에서 publisher/year/isbn 추출
+        if (lastMatched) {
+          if (!book.publisher && lastMatched.publisher) book.publisher = lastMatched.publisher;
+          if (!book.year      && lastMatched.year)      book.year      = lastMatched.year;
+          if (!book.isbn      && lastMatched.isbn)      book.isbn      = lastMatched.isbn;
+        }
+      } catch (e) { /* 조용히 실패 */ }
+
+      // 진행률 표시
+      const doneEl = document.getElementById('imMatchingDone');
+      const fillEl = document.getElementById('imMatchingFill');
+      const subEl  = document.getElementById('imMatchingSub');
+      const total  = IM_STATE.parsedBooks.length;
+      if (doneEl) doneEl.textContent = i + 1;
+      if (fillEl) fillEl.style.width = (((i + 1) / total) * 100).toFixed(1) + '%';
+      if (subEl) subEl.textContent = `${(book.title || '').slice(0, 30)} 보강 중...`;
+
+      await new Promise(r => setTimeout(r, 300));
+    }
+    if (touchedAuto || (matchRes && matchRes.status === 'auto')) enriched++;
 
     const key = `${book.title.toLowerCase()}|${(book.author || '').toLowerCase()}`;
     const cleanIsbn = String(book.isbn || '').replace(/[-\s]/g, '');
