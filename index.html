@@ -30833,8 +30833,13 @@ async function _bdeSearch(book) {
       const q = book.author ? `${book.title} ${book.author}` : book.title;
       const titleResults = await _imSearchMerged(q);
       if (titleResults && titleResults.length) {
-        // 합치고 dedupe
-        results = _dedupeByIsbn([...results, ...titleResults]);
+        // 합치고 dedupe — v1.10.0: source 우선순위(aladin > kakao > google) 따라 정렬 후 dedupe.
+        //   같은 ISBN이면 알라딘이 살아남도록 (가장 풍부한 정보).
+        const order = { aladin: 0, kakao: 1, google: 2 };
+        const combined = [...results, ...titleResults].sort(
+          (a, b) => (order[a.source] ?? 3) - (order[b.source] ?? 3)
+        );
+        results = _dedupeByIsbn(combined);
         sources.push(book.author ? '제목+저자' : '제목');
       }
     }
