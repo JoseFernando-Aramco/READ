@@ -23295,40 +23295,41 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
       });
 
       if (opts.dayContext) {
-        // DAY 뷰: 읽는 중인 책 상단 / 그 외는 접기 (5권 이상이면)
+        // DAY 뷰: 읽는 중 / 완독 두 섹션. 각 3권 + 더보기 (3권 초과 시 접기)
         const reading = sorted.filter(b => b.status === 'reading');
         const others  = sorted.filter(b => b.status !== 'reading');
-        const COLLAPSE_THRESHOLD = 5;
-        const needCollapse = others.length > COLLAPSE_THRESHOLD;
+        const COLLAPSE_THRESHOLD = 3;
+
+        // 섹션 한 개를 임계치+더보기로 렌더하는 헬퍼
+        function renderSection(label, books, idSuffix) {
+          if (!books.length) return '';
+          let out = '<div class="dd-section-lbl">' + label + ' · ' + books.length + '권</div>';
+          if (books.length > COLLAPSE_THRESHOLD) {
+            const visible = books.slice(0, COLLAPSE_THRESHOLD);
+            const hidden  = books.slice(COLLAPSE_THRESHOLD);
+            out += visible.map(renderBook).join('');
+            out += '<div id="ddHidden_' + idSuffix + '" style="display:none">' + hidden.map(renderBook).join('') + '</div>';
+            out += '<button class="dd-more-btn" data-more-target="ddHidden_' + idSuffix + '" type="button">더 보기 (' + hidden.length + '권)</button>';
+          } else {
+            out += books.map(renderBook).join('');
+          }
+          return out;
+        }
 
         let html = '';
-        if (reading.length) {
-          html += '<div class="dd-section-lbl">읽는 중 · ' + reading.length + '권</div>';
-          html += reading.map(renderBook).join('');
-        }
-        if (others.length) {
-          html += '<div class="dd-section-lbl">' + (reading.length ? '그 외 · ' : '') + others.length + '권</div>';
-          if (needCollapse) {
-            const visible = others.slice(0, COLLAPSE_THRESHOLD);
-            const hidden  = others.slice(COLLAPSE_THRESHOLD);
-            html += visible.map(renderBook).join('');
-            html += '<div id="ddHiddenWrap" style="display:none">' + hidden.map(renderBook).join('') + '</div>';
-            html += '<button class="dd-more-btn" id="ddMoreBtn" type="button">더 보기 (' + hidden.length + '권)</button>';
-          } else {
-            html += others.map(renderBook).join('');
-          }
-        }
+        html += renderSection('읽는 중', reading, 'reading');
+        html += renderSection('완독', others, 'others');
         list.innerHTML = html;
 
-        // 더 보기 버튼 핸들러
-        const moreBtn = document.getElementById('ddMoreBtn');
-        if (moreBtn) {
-          moreBtn.addEventListener('click', () => {
-            const wrap = document.getElementById('ddHiddenWrap');
+        // 더 보기 버튼 핸들러 (data-more-target 위임)
+        list.querySelectorAll('.dd-more-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.dataset.moreTarget;
+            const wrap = document.getElementById(target);
             if (wrap) wrap.style.display = '';
-            moreBtn.style.display = 'none';
+            btn.style.display = 'none';
           });
-        }
+        });
       } else {
         list.innerHTML = sorted.map(renderBook).join('');
       }
