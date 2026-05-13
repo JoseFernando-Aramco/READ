@@ -30406,6 +30406,8 @@ async function _bfStart() {
   document.getElementById('bfSub').textContent = '시작...';
 
   let enriched = 0, skipped = 0, failed = 0;
+  // v1.10.0 — 항목별 카운터 (Jason 진단 가시화 요청)
+  let cntCover = 0, cntPages = 0, cntPublisher = 0, cntYear = 0, cntIsbn = 0, cntPrice = 0;
 
   for (let i = 0; i < total; i++) {
     if (BF_STATE.abort) break;
@@ -30413,22 +30415,23 @@ async function _bfStart() {
     try {
       // import 흐름의 _imMatchOneBook 재사용 — 옵션 A (가장 완전한 후보 자동)
       const result = await _imMatchOneBook({ title: b.title, author: b.author || '' });
+      let touched = false;
+
       if (result.status === 'auto' && typeof result.chosen === 'number' && result.candidates[result.chosen]) {
         const c = result.candidates[result.chosen];
         // 정책: 빈 필드만 채움. 사용자 입력값(0이 아닌 pages, 있는 coverUrl 등) 절대 안 덮어쓰기.
-        let touched = false;
-        if (!b.coverUrl && c.cover) { b.coverUrl = c.cover; touched = true; }
+        if (!b.coverUrl && c.cover) { b.coverUrl = c.cover; cntCover++; touched = true; }
         // 페이지: best 후보(보통 카카오)는 페이지 안 줌 → allResults에서 별도 추출 (알라딘/구글)
         if (!b.pages || b.pages === 0) {
-          if (c.pages) { b.pages = c.pages; touched = true; }
+          if (c.pages) { b.pages = c.pages; cntPages++; touched = true; }
           else if (result.allResults) {
             const pagesCand = _imExtractPagesCandidate(result.allResults, { title: b.title, author: b.author });
-            if (pagesCand) { b.pages = pagesCand.pages; touched = true; }
+            if (pagesCand) { b.pages = pagesCand.pages; cntPages++; touched = true; }
           }
         }
-        if (!b.publisher && c.publisher) { b.publisher = c.publisher; touched = true; }
-        if (!b.year && c.year) { b.year = c.year; touched = true; }
-        if (!b.isbn && c.isbn) { b.isbn = c.isbn; touched = true; }
+        if (!b.publisher && c.publisher) { b.publisher = c.publisher; cntPublisher++; touched = true; }
+        if (!b.year && c.year) { b.year = c.year; cntYear++; touched = true; }
+        if (!b.isbn && c.isbn) { b.isbn = c.isbn; cntIsbn++; touched = true; }
         // 가격: 알라딘만 줌 + 검색 결과 전체에서 유사도 검증된 후보 추출. priceList(정가) fallback.
         if (b.priceSales == null && b.priceSource !== 'manual') {
           const priceCand = _imExtractPriceCandidate(result.allResults || result.candidates, { title: b.title, author: b.author });
@@ -30439,27 +30442,16 @@ async function _bfStart() {
               b.priceSales = pSales || pList;
               b.priceList = pList || pSales;
               b.priceSource = 'aladin';
-              touched = true;
+              cntPrice++; touched = true;
             }
           }
         }
-        // v1.10.0 — 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출 (알라딘 ItemLookUp)
-        //   ItemSearch는 itemPage 안 줘서 검색에선 못 받음. ItemLookUp(ISBN)이 유일한 경로.
-        if ((!b.pages || b.pages === 0) && b.isbn) {
-          try {
-            const p = await _fetchPagesFromAladin({ isbn: b.isbn });
-            if (p) { b.pages = p; touched = true; }
-          } catch (e) { /* ignore */ }
-        }
-        if (touched) enriched++;
-        else skipped++;
       } else if (result.status === 'ambiguous' || result.status === 'failed') {
-        // 매칭 ambiguous/failed여도 가격·페이지는 시도 (allResults에서 유사도 검증된 후보)
-        let touched = false;
+        // 매칭 ambiguous/failed여도 가격·페이지·ISBN은 시도 (allResults에서 유사도 검증된 후보)
         if (result.allResults) {
           if ((!b.pages || b.pages === 0)) {
             const pagesCand = _imExtractPagesCandidate(result.allResults, { title: b.title, author: b.author });
-            if (pagesCand) { b.pages = pagesCand.pages; touched = true; }
+            if (pagesCand) { b.pages = pagesCand.pages; cntPages++; touched = true; }
           }
           if (b.priceSales == null && b.priceSource !== 'manual') {
             const priceCand = _imExtractPriceCandidate(result.allResults, { title: b.title, author: b.author });
@@ -30470,21 +30462,28 @@ async function _bfStart() {
                 b.priceSales = pSales || pList;
                 b.priceList = pList || pSales;
                 b.priceSource = 'aladin';
-                touched = true;
+                cntPrice++; touched = true;
               }
             }
           }
+          // v1.10.0 — ambig/failed에서도 ISBN 보강. 가격 후보로 매칭된 결과(같은 책 검증됨)의 ISBN 사용.
+          if (!b.isbn) {
+            const isbnCand = _imFindMatchingResult(result.allResults, { title: b.title, author: b.author }, r => r.isbn);
+            if (isbnCand) { b.isbn = isbnCand.isbn; cntIsbn++; touched = true; }
+          }
         }
-        // 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출
-        if ((!b.pages || b.pages === 0) && b.isbn) {
-          try {
-            const p = await _fetchPagesFromAladin({ isbn: b.isbn });
-            if (p) { b.pages = p; touched = true; }
-          } catch (e) { /* ignore */ }
-        }
-        if (touched) enriched++;
-        else skipped++;
       }
+
+      // v1.10.0 — 페이지 아직도 없는데 ISBN 확보됐으면 /pages 추가 호출 (알라딘 ItemLookUp). 모든 분기 공통.
+      if ((!b.pages || b.pages === 0) && b.isbn) {
+        try {
+          const p = await _fetchPagesFromAladin({ isbn: b.isbn });
+          if (p) { b.pages = p; cntPages++; touched = true; }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (touched) enriched++;
+      else skipped++;
     } catch (e) {
       console.warn('[backfill] error on', b.title, e);
       failed++;
@@ -30493,7 +30492,17 @@ async function _bfStart() {
     const done = i + 1;
     document.getElementById('bfDone').textContent = done;
     document.getElementById('bfFill').style.width = ((done / total) * 100).toFixed(1) + '%';
-    document.getElementById('bfSub').textContent = `채움 ${enriched}권 · 건너뜀 ${skipped}권` + (failed ? ` · 실패 ${failed}권` : '');
+    // v1.10.0 — 항목별 실시간 카운트 (가격·페이지가 핵심 관심사라 우선 표시)
+    const subParts = [];
+    if (cntPrice)     subParts.push(`가격 ${cntPrice}`);
+    if (cntPages)     subParts.push(`페이지 ${cntPages}`);
+    if (cntCover)     subParts.push(`표지 ${cntCover}`);
+    if (cntPublisher || cntYear || cntIsbn) {
+      subParts.push(`기타 ${cntPublisher + cntYear + cntIsbn}`);
+    }
+    document.getElementById('bfSub').textContent = subParts.length
+      ? subParts.join(' · ')
+      : '검색 중...';
 
     await new Promise(r => setTimeout(r, 450)); // rate limit
   }
@@ -30505,10 +30514,26 @@ async function _bfStart() {
 
   BF_STATE.running = false;
 
-  // 완료 화면
+  // 완료 화면 — v1.10.0: 항목별 카운트로 가시화
   const doneDesc = document.getElementById('bfDoneDesc');
   if (doneDesc) {
-    const parts = [`<strong>${enriched}권</strong>의 정보를 채웠어요`];
+    const parts = [];
+    if (enriched > 0) {
+      parts.push(`<strong>${enriched}권</strong>의 정보를 채웠어요`);
+      // 항목별 내역
+      const detail = [];
+      if (cntPrice)     detail.push(`가격 <strong>${cntPrice}</strong>`);
+      if (cntPages)     detail.push(`페이지 <strong>${cntPages}</strong>`);
+      if (cntCover)     detail.push(`표지 <strong>${cntCover}</strong>`);
+      if (cntPublisher) detail.push(`출판사 <strong>${cntPublisher}</strong>`);
+      if (cntYear)      detail.push(`출판연도 <strong>${cntYear}</strong>`);
+      if (cntIsbn)      detail.push(`ISBN <strong>${cntIsbn}</strong>`);
+      if (detail.length) {
+        parts.push(`<span style="font-size:11.5px;color:var(--c-label);line-height:1.7;">${detail.join(' · ')}</span>`);
+      }
+    } else {
+      parts.push(`새로 채울 정보가 없었어요`);
+    }
     if (skipped) parts.push(`<strong>${skipped}권</strong>은 정확한 매칭이 안 되어 건너뛰었어요`);
     if (failed) parts.push(`<strong>${failed}권</strong>은 오류로 실패`);
     if (BF_STATE.abort) parts.push('(중단됨)');
