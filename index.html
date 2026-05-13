@@ -18732,17 +18732,13 @@ async function _searchAladin(q) {
   const data = await res.json();
   const items = (data && data.item) || [];
   return items.map(it => {
-    // 알라딘 응답 필드: title, author, pubDate, publisher, cover, isbn13, itemPage, description
     const year = it.pubDate ? String(it.pubDate).slice(0, 4) : '';
-    // itemPage는 root에 있을 수도 있고 subInfo.itemPage에 있을 수도 있음 (ItemLookUp vs ItemSearch 차이)
     let pages = null;
     if (typeof it.itemPage === 'number' && it.itemPage > 0) {
       pages = it.itemPage;
     } else if (it.subInfo && typeof it.subInfo.itemPage === 'number' && it.subInfo.itemPage > 0) {
       pages = it.subInfo.itemPage;
     }
-    // v1.8.0 — 종이값: 알라딘 응답에서 priceSales / priceStandard 추출
-    // (둘 다 0이거나 음수면 null로 정규화 — 검색 결과 자동 입력 대상 아님)
     const priceSalesRaw = (typeof it.priceSales === 'number' && it.priceSales > 0) ? it.priceSales : null;
     const priceListRaw  = (typeof it.priceStandard === 'number' && it.priceStandard > 0) ? it.priceStandard : null;
     return {
@@ -18752,10 +18748,47 @@ async function _searchAladin(q) {
       pages,
       publisher: it.publisher || '',
       cover: it.cover || '',
-      language: 'ko',  // 알라딘은 국내 유통서 위주
+      language: 'ko',
       isbn: it.isbn13 || it.isbn || '',
       contents: it.description || '',
       source: 'aladin',
+      priceList: priceListRaw,
+      priceSales: priceSalesRaw,
+    };
+  });
+}
+
+/* v1.10.0 — 네이버 책 검색 (알라딘 한도 분산용. 가격 ✓ 페이지 ✗) */
+async function _searchNaver(q) {
+  if (typeof ALADIN_PROXY_URL === 'undefined' || !ALADIN_PROXY_URL) return [];
+
+  const isbnMode = _isLikelyIsbn(q);
+  const cleanQ = isbnMode ? q.replace(/[-\s]/g, '') : q;
+  // worker가 isbn/query 같은 인자명으로 받음 (알라딘 호환)
+  const url = isbnMode
+    ? `${ALADIN_PROXY_URL}/search-naver?isbn=${encodeURIComponent(cleanQ)}`
+    : `${ALADIN_PROXY_URL}/search-naver?query=${encodeURIComponent(cleanQ)}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Naver HTTP ' + res.status);
+  const data = await res.json();
+  const items = (data && data.item) || [];
+  return items.map(it => {
+    const year = it.pubDate ? String(it.pubDate).slice(0, 4) : '';
+    // 네이버는 페이지수 안 줌
+    const priceSalesRaw = (typeof it.priceSales === 'number' && it.priceSales > 0) ? it.priceSales : null;
+    const priceListRaw  = (typeof it.priceStandard === 'number' && it.priceStandard > 0) ? it.priceStandard : null;
+    return {
+      title: it.title || '',
+      author: it.author || '',
+      year,
+      pages: null,
+      publisher: it.publisher || '',
+      cover: it.cover || '',
+      language: 'ko',
+      isbn: it.isbn || '',
+      contents: it.description || '',
+      source: 'naver',
       priceList: priceListRaw,
       priceSales: priceSalesRaw,
     };
@@ -29979,32 +30012,38 @@ async function _imSearchMerged(query, opts) {
   const isbnMode = _isLikelyIsbn(query);
   const isKorean = _hasHangul(query);
 
-  const [k, g, a] = await Promise.allSettled([
+  // v1.10.0 — 네이버 책 검색 추가 (알라딘 한도 분산용)
+  const [k, g, a, n] = await Promise.allSettled([
     _searchKakao(query),
     _searchGoogle(query),
     _searchAladin(query),
+    _searchNaver(query),
   ]);
   const kakaoItems  = k.status === 'fulfilled' ? k.value  : [];
   const googleItems = g.status === 'fulfilled' ? g.value : [];
   const aladinItems = a.status === 'fulfilled' ? a.value : [];
+  const naverItems  = n.status === 'fulfilled' ? n.value  : [];
 
-  // v1.10.0 디버그 — 호출자가 진단 정보 원할 때 source별 raw 결과 노출
+  // 디버그 — 호출자가 진단 정보 원할 때 source별 raw 결과 노출
   if (opts && opts.debug) {
     console.log('[merged]', query, {
       kakao: k.status === 'fulfilled' ? `${k.value.length}건` : `에러: ${k.reason}`,
       google: g.status === 'fulfilled' ? `${g.value.length}건` : `에러: ${g.reason}`,
       aladin: a.status === 'fulfilled' ? `${a.value.length}건` : `에러: ${a.reason}`,
+      naver: n.status === 'fulfilled' ? `${n.value.length}건` : `에러: ${n.reason}`,
     });
   }
 
-  // 검색 흐름과 동일한 우선순위 정렬 — v1.10.0: 모든 case에서 알라딘 우선
+  // 우선순위: 알라딘 → 네이버 → 카카오 → 구글 (가장 풍부한 정보 순)
+  //   알라딘이 응답 안 하면 네이버가 fallback. 둘 다 한국 책 가격 정보 풍부.
   let merged;
   if (isbnMode) {
-    merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
+    merged = _dedupeByIsbn([...aladinItems, ...naverItems, ...kakaoItems, ...googleItems]);
   } else if (isKorean) {
-    merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
+    merged = _dedupeByIsbn([...aladinItems, ...naverItems, ...kakaoItems, ...googleItems]);
   } else {
-    merged = _dedupeByIsbn([...aladinItems, ...googleItems, ...kakaoItems]);
+    // 영문 쿼리 — 구글 우선 (영문 책 정보 풍부)
+    merged = _dedupeByIsbn([...aladinItems, ...googleItems, ...naverItems, ...kakaoItems]);
   }
 
   // 진단 모드 — source별 카운트도 함께 반환
@@ -30013,10 +30052,13 @@ async function _imSearchMerged(query, opts) {
       kakao: kakaoItems.length,
       google: googleItems.length,
       aladin: aladinItems.length,
+      naver: naverItems.length,
       kakaoStatus: k.status,
       googleStatus: g.status,
       aladinStatus: a.status,
+      naverStatus: n.status,
       aladinError: a.status === 'rejected' ? String(a.reason) : null,
+      naverError: n.status === 'rejected' ? String(n.reason) : null,
     };
   }
   return merged;
@@ -30869,8 +30911,9 @@ async function _bdeSearch(book) {
   const logStep = (label, r) => {
     if (r && r._debug) {
       const d = r._debug;
-      let line = `${label}: a=${d.aladin} k=${d.kakao} g=${d.google}`;
+      let line = `${label}: a=${d.aladin} n=${d.naver} k=${d.kakao} g=${d.google}`;
       if (d.aladinStatus === 'rejected') line += ` [알라딘 에러: ${d.aladinError}]`;
+      if (d.naverStatus === 'rejected') line += ` [네이버 에러: ${d.naverError}]`;
       debugLog.push(line);
     }
   };
@@ -30940,7 +30983,7 @@ function _bdeRenderResults(book, searchInfo) {
   // 진단 박스 — body 첫 줄. 명확하게 보이도록 박스 처리
   const debugBox = debugLog.length
     ? `<div style="background:var(--c-surface-2);border:1px solid var(--c-border);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--c-text);line-height:1.6;font-family:monospace;">
-         <div style="font-weight:700;margin-bottom:4px;color:var(--c-label);font-family:inherit;">검색 단계별 결과 (a=알라딘 · k=카카오 · g=구글)</div>
+         <div style="font-weight:700;margin-bottom:4px;color:var(--c-label);font-family:inherit;">검색 단계별 결과 (a=알라딘 · n=네이버 · k=카카오 · g=구글)</div>
          ${debugLog.map(l => esc(l)).join('<br>')}
        </div>`
     : '';
