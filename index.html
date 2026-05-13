@@ -30782,6 +30782,70 @@ async function _imAutoMatchAll(books, onProgress) {
 // 매칭 결과 → parsedBook의 필드를 어떻게 덮어쓸지 정책
 // 보존: title(사용자 표기), status, dateStart, dateEnd, rating, tags, note, _rowIdx
 // 덮어씀: author(CSV 비어있을 때만), publisher/pages/isbn/year/coverUrl/language(매칭 우선)
+/* v1.9.1 — Jason 제안: 제목+저자로 정상 ISBN 찾기
+ *
+ * 카카오·네이버 worker가 EAN-13 바코드(480 시작)를 ISBN으로 주는 케이스가 있음.
+ * 알라딘 ItemLookUp이나 구글 ISBN 조회는 정상 ISBN(979/978)이어야 동작.
+ *
+ * 흐름: 4개 source 동시 검색 → 각 결과의 ISBN 검증 → 제목 비슷하게 일치 + valid ISBN 첫 발견
+ * 우선순위: 알라딘 → 구글 → 네이버 → 카카오 (정상 ISBN 신뢰도 순)
+ */
+async function _lookupValidIsbn(title, author) {
+  if (!title) return null;
+  const query = author ? `${title} ${author}` : title;
+  const isValidIsbn = (s) => {
+    if (!s) return false;
+    const c = String(s).replace(/[-\s]/g, '');
+    return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
+  };
+  const titleNorm = String(title).replace(/\s+/g, '').toLowerCase();
+  const matchesTitle = (r) => {
+    const rNorm = String(r.title || '').replace(/\s+/g, '').toLowerCase();
+    if (!rNorm || !titleNorm) return false;
+    const minLen = Math.min(titleNorm.length, rNorm.length, 6);
+    return rNorm.startsWith(titleNorm.slice(0, minLen)) || titleNorm.startsWith(rNorm.slice(0, minLen));
+  };
+
+  // 4개 source 병렬
+  const [aRes, gRes, nRes, kRes] = await Promise.allSettled([
+    typeof _searchAladin === 'function' ? _searchAladin(query) : Promise.resolve([]),
+    typeof _searchGoogle === 'function' ? _searchGoogle(query) : Promise.resolve([]),
+    typeof _searchNaver  === 'function' ? _searchNaver(query)  : Promise.resolve([]),
+    typeof _searchKakao  === 'function' ? _searchKakao(query)  : Promise.resolve([]),
+  ]);
+  const getValue = (r) => (r.status === 'fulfilled' && Array.isArray(r.value)) ? r.value : [];
+
+  // 알라딘 우선 (정상 ISBN13 잘 줌)
+  const isIsbn13 = (s) => /^97[89]\d{10}$/.test(String(s || '').replace(/[-\s]/g, ''));
+  for (const res of [aRes, gRes, nRes, kRes]) {
+    for (const item of getValue(res)) {
+      if (!matchesTitle(item)) continue;
+      const cleanIsbn = String(item.isbn || '').replace(/[-\s]/g, '');
+      // 1차: item.isbn 자체가 valid ISBN13이면 그대로
+      if (isIsbn13(cleanIsbn)) {
+        return { isbn: cleanIsbn, source: item.source, item };
+      }
+      // 2차: 공백 분리 토큰 (카카오 "ISBN10 ISBN13" 등) — ISBN13 우선
+      if (item.isbn && /\s/.test(item.isbn)) {
+        const tokens = item.isbn.split(/\s+/).filter(Boolean);
+        const isbn13 = tokens.find(t => isIsbn13(t));
+        if (isbn13) return { isbn: isbn13.replace(/[-\s]/g, ''), source: item.source, item };
+      }
+      // 3차: item.isbn이 valid ISBN10 단독
+      if (isValidIsbn(cleanIsbn)) {
+        return { isbn: cleanIsbn, source: item.source, item };
+      }
+      // 4차: 공백 분리 토큰에서 ISBN10이라도 찾기 (ISBN13 없는 경우)
+      if (item.isbn && /\s/.test(item.isbn)) {
+        const tokens = item.isbn.split(/\s+/).filter(Boolean);
+        const isbn10 = tokens.find(t => isValidIsbn(t));
+        if (isbn10) return { isbn: isbn10.replace(/[-\s]/g, ''), source: item.source, item };
+      }
+    }
+  }
+  return null;
+}
+
 async function _imApplyCandidate(parsedBook, candidate, allResults) {
   if (!candidate) return parsedBook;
 
@@ -30814,8 +30878,35 @@ async function _imApplyCandidate(parsedBook, candidate, allResults) {
     const c = String(s).replace(/[-\s]/g, '');
     return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
   };
-  const isbn = candidate.isbn || parsedBook.isbn || '';
-  const isbnValid = isValidIsbnFinal(isbn);
+  let isbn = candidate.isbn || parsedBook.isbn || '';
+  let isbnValid = isValidIsbnFinal(isbn);
+
+  // v1.9.1 — Jason 제안: 가짜 ISBN이면 제목+저자로 모든 source 동원해서 진짜 ISBN 찾기
+  //   알라딘이 정상 ISBN13 잘 주고, 구글도 industryIdentifiers로 정확히 분리해서 줌
+  if (!isbnValid && parsedBook.title) {
+    try {
+      const lookup = await _lookupValidIsbn(parsedBook.title, parsedBook.author);
+      if (lookup && lookup.isbn) {
+        console.log('[apply] 가짜 ISBN→진짜 ISBN 교체:', isbn || '(빈)', '→', lookup.isbn, '(' + lookup.source + ')');
+        isbn = lookup.isbn;
+        isbnValid = true;
+        // 진짜 ISBN을 가진 source의 책정보도 부수적으로 활용 (빈 필드만 채움)
+        const itm = lookup.item;
+        if (itm) {
+          if ((!pages || pages <= 0) && typeof itm.pages === 'number' && itm.pages > 0) {
+            pages = itm.pages;
+          }
+          if (priceSales == null && typeof itm.priceSales === 'number' && itm.priceSales > 0) {
+            priceSales = itm.priceSales;
+            priceList = (typeof itm.priceList === 'number' && itm.priceList > 0) ? itm.priceList : itm.priceSales;
+            priceSource = itm.source;
+          }
+          // cover는 _imApplyCandidate 후반에 처리되므로 candidate에 덮어쓰기
+          if (!candidate.cover && itm.cover) candidate.cover = itm.cover;
+        }
+      }
+    } catch (e) { /* 그대로 진행 */ }
+  }
 
   // v1.9.1 — 페이지 폴백 강화 (Jason 제안)
   //   1) 알라딘 ItemLookUp + 유효한 ISBN  2) 알라딘 ItemLookUp + title  3) 구글 ISBN (valid만)
