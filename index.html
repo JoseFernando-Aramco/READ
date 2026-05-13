@@ -29975,7 +29975,7 @@ function _imAuthorMatches(searchAuthor, csvAuthor) {
 }
 
 // 통합 검색 (Kakao + 알라딘 + Google · 3종 동시) — 임포트 매칭용
-async function _imSearchMerged(query) {
+async function _imSearchMerged(query, opts) {
   const isbnMode = _isLikelyIsbn(query);
   const isKorean = _hasHangul(query);
 
@@ -29988,9 +29988,16 @@ async function _imSearchMerged(query) {
   const googleItems = g.status === 'fulfilled' ? g.value : [];
   const aladinItems = a.status === 'fulfilled' ? a.value : [];
 
+  // v1.10.0 디버그 — 호출자가 진단 정보 원할 때 source별 raw 결과 노출
+  if (opts && opts.debug) {
+    console.log('[merged]', query, {
+      kakao: k.status === 'fulfilled' ? `${k.value.length}건` : `에러: ${k.reason}`,
+      google: g.status === 'fulfilled' ? `${g.value.length}건` : `에러: ${g.reason}`,
+      aladin: a.status === 'fulfilled' ? `${a.value.length}건` : `에러: ${a.reason}`,
+    });
+  }
+
   // 검색 흐름과 동일한 우선순위 정렬 — v1.10.0: 모든 case에서 알라딘 우선
-  // 이유: 알라딘이 가장 풍부한 메타데이터 (페이지·가격·표지·출판사). best=알라딘이 직접 채움 → fallback 의존 줄임.
-  // 알라딘에 없는 책은 자동으로 카카오/구글 결과가 best로 선택됨 (results 내에 있으니까).
   let merged;
   if (isbnMode) {
     merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
@@ -29998,6 +30005,19 @@ async function _imSearchMerged(query) {
     merged = _dedupeByIsbn([...aladinItems, ...kakaoItems, ...googleItems]);
   } else {
     merged = _dedupeByIsbn([...aladinItems, ...googleItems, ...kakaoItems]);
+  }
+
+  // 진단 모드 — source별 카운트도 함께 반환
+  if (opts && opts.debug) {
+    merged._debug = {
+      kakao: kakaoItems.length,
+      google: googleItems.length,
+      aladin: aladinItems.length,
+      kakaoStatus: k.status,
+      googleStatus: g.status,
+      aladinStatus: a.status,
+      aladinError: a.status === 'rejected' ? String(a.reason) : null,
+    };
   }
   return merged;
 }
@@ -30832,12 +30852,10 @@ function _bdeCleanAuthor(a) {
 }
 
 async function _bdeSearch(book) {
-  // v1.10.0 Phase 5 — 3단 검색:
-  //   1단: ISBN
-  //   2단: 제목+저자 (정제된 query — 마침표·괄호·"외" 등 제거)
-  //   3단: 제목만 fallback (저자 noise 의심 시)
+  // v1.10.0 Phase 5 — 3단 검색 + 진단 모드
   let results = [];
   const sources = [];
+  const debugLog = [];  // 진단: 각 단계별 source 카운트
   const cleanT = _bdeCleanTitle(book.title);
   const cleanA = _bdeCleanAuthor(book.author);
   const order = { aladin: 0, kakao: 1, google: 2 };
@@ -30848,15 +30866,26 @@ async function _bdeSearch(book) {
     r.source === 'aladin' && ((r.priceSales > 0) || (r.priceList > 0))
   );
 
+  const logStep = (label, r) => {
+    if (r && r._debug) {
+      const d = r._debug;
+      let line = `${label}: a=${d.aladin} k=${d.kakao} g=${d.google}`;
+      if (d.aladinStatus === 'rejected') line += ` [알라딘 에러: ${d.aladinError}]`;
+      debugLog.push(line);
+    }
+  };
+
   try {
     if (book.isbn) {
-      const r = await _imSearchMerged(String(book.isbn).replace(/[-\s]/g, ''));
+      const r = await _imSearchMerged(String(book.isbn).replace(/[-\s]/g, ''), { debug: true });
+      logStep('ISBN', r);
       if (r && r.length) { results = r; sources.push('ISBN'); }
     }
 
     if (!hasGoodAladin(results)) {
       const q = cleanA ? `${cleanT} ${cleanA}` : cleanT;
-      const tr = await _imSearchMerged(q);
+      const tr = await _imSearchMerged(q, { debug: true });
+      logStep('제목+저자', tr);
       if (tr && tr.length) {
         results = sortAndDedupe([...results, ...tr]);
         sources.push('제목+저자');
@@ -30864,7 +30893,8 @@ async function _bdeSearch(book) {
     }
 
     if (!hasGoodAladin(results)) {
-      const tr2 = await _imSearchMerged(cleanT);
+      const tr2 = await _imSearchMerged(cleanT, { debug: true });
+      logStep('제목만', tr2);
       if (tr2 && tr2.length) {
         results = sortAndDedupe([...results, ...tr2]);
         sources.push('제목만');
@@ -30872,6 +30902,7 @@ async function _bdeSearch(book) {
     }
   } catch (e) {
     console.warn('[bde-search] error', e);
+    debugLog.push(`예외: ${e.message}`);
   }
 
   const searchInfo = sources.length ? `${sources.join(' + ')} 검색` : '검색';
@@ -30889,30 +30920,44 @@ async function _bdeSearch(book) {
   }
 
   BDE_STATE.candidates = results.slice(0, 10);
+  BDE_STATE.debugLog = debugLog;  // 진단 정보 누적
   _bdeRenderResults(book, searchInfo);
 }
 
 function _bdeRenderResults(book, searchInfo) {
   const body = document.getElementById('bdeBody');
   const candidates = BDE_STATE.candidates;
+  const debugLog = BDE_STATE.debugLog || [];
+
+  // 메인 desc
+  const desc = document.getElementById('bdeDesc');
+  if (desc) {
+    desc.textContent = candidates.length === 0
+      ? `${searchInfo} · 결과 없음`
+      : `${searchInfo} · 후보 ${candidates.length}개 — 맞는 책을 선택하세요`;
+  }
+
+  // 진단 박스 — body 첫 줄. 명확하게 보이도록 박스 처리
+  const debugBox = debugLog.length
+    ? `<div style="background:var(--c-surface-2);border:1px solid var(--c-border);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--c-text);line-height:1.6;font-family:monospace;">
+         <div style="font-weight:700;margin-bottom:4px;color:var(--c-label);font-family:inherit;">검색 단계별 결과 (a=알라딘 · k=카카오 · g=구글)</div>
+         ${debugLog.map(l => esc(l)).join('<br>')}
+       </div>`
+    : '';
 
   if (candidates.length === 0) {
-    // 진단 케이스: 검색 결과 0건
-    body.innerHTML = `
+    body.innerHTML = debugBox + `
       <div class="bde-empty">
         <div class="bde-empty-icon">🔍</div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
         <div>알라딘·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
         절판이거나 등록되지 않은 책일 수 있어요.</div>
       </div>`;
-    document.getElementById('bdeDesc').textContent = `${searchInfo} · 결과 없음`;
     return;
   }
 
-  document.getElementById('bdeDesc').textContent = `${searchInfo} · 후보 ${candidates.length}개 — 맞는 책을 선택하세요`;
-
   // 후보 카드 리스트
-  body.innerHTML = candidates.map((c, idx) => {
+  body.innerHTML = debugBox + candidates.map((c, idx) => {
     const hasPages = c.pages && c.pages > 0;
     const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
     const hasCover = !!c.cover;
