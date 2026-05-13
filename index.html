@@ -8132,6 +8132,157 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   line-height: 1.5;
 }
 
+/* v1.10.0 — 메타데이터 일괄 보강 모달 */
+.bf-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.bf-backdrop.open { opacity: 1; pointer-events: auto; }
+.bf-modal {
+  position: fixed; inset: 0;
+  z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.bf-modal.open { opacity: 1; pointer-events: auto; }
+.bf-card {
+  background: var(--c-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  overflow: hidden;
+  padding: 28px 24px 20px;
+}
+.bf-modal.open .bf-card { transform: scale(1); }
+.bf-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.bf-icon {
+  width: 52px; height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+}
+.bf-icon .ic { width: 24px; height: 24px; }
+.bf-icon-done {
+  background: #d4edda;
+  color: #059669;
+}
+.bf-spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--c-border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: im-spin 0.9s linear infinite;
+}
+.bf-ttl {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 4px;
+}
+.bf-desc {
+  font-size: 12px;
+  color: var(--c-label);
+  line-height: 1.55;
+}
+.bf-policy {
+  background: var(--c-surface-2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.bf-policy-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  letter-spacing: .02em;
+  margin-bottom: 6px;
+}
+.bf-policy-list {
+  font-size: 12.5px;
+  color: var(--c-text);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.bf-policy-note {
+  font-size: 11px;
+  color: var(--c-label);
+  line-height: 1.55;
+}
+.bf-prog {
+  padding: 4px 4px 8px;
+}
+.bf-bar {
+  height: 6px;
+  background: var(--c-surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.bf-fill {
+  height: 100%;
+  background: var(--primary);
+  width: 0%;
+  transition: width .3s ease;
+}
+.bf-cnt {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.bf-sub {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--c-label);
+  margin-top: 4px;
+}
+.bf-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.bf-btn-ghost, .bf-btn-primary {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .15s ease;
+}
+.bf-btn-ghost {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.bf-btn-ghost:hover { background: var(--c-border); }
+.bf-btn-primary {
+  background: var(--c-text);
+  color: #fff;
+}
+.bf-btn-primary:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
 /* v1.10.0 — 매칭 검토 UI */
 .im-review-summary {
   display: flex;
@@ -14876,6 +15027,14 @@ body.cn-locked {
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <button class="settings-row" id="backfillRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-refresh-cw"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">메타데이터 일괄 보강</div>
+            <div class="settings-row-sub">비어있는 표지·페이지·가격 자동으로 채우기</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
       </div>
     </div>
 
@@ -16050,6 +16209,56 @@ body.cn-locked {
     <div class="im-footer">
       <button type="button" class="im-btn-ghost" id="imBtnBack" style="display:none;">이전</button>
       <button type="button" class="im-btn-primary" id="imBtnNext" disabled>다음</button>
+    </div>
+  </div>
+</div>
+
+<!-- v1.10.0 — 메타데이터 일괄 보강 모달 -->
+<div class="bf-backdrop" id="bfBackdrop"></div>
+<div class="bf-modal" id="bfModal" aria-hidden="true">
+  <div class="bf-card">
+    <!-- 시작 전 확인 -->
+    <div class="bf-step" data-step="confirm">
+      <div class="bf-head">
+        <div class="bf-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-refresh-cw"/></svg></div>
+        <div class="bf-ttl">메타데이터 일괄 보강</div>
+        <div class="bf-desc" id="bfConfirmDesc">비어있는 정보가 있는 책을 찾고 있어요...</div>
+      </div>
+      <div class="bf-policy">
+        <div class="bf-policy-ttl">자동으로 채우는 항목</div>
+        <div class="bf-policy-list">표지 · 페이지수 · 출판사 · 출판연도 · ISBN · 가격(알라딘)</div>
+        <div class="bf-policy-note">사용자가 직접 입력한 값은 절대 덮어쓰지 않아요.<br>매칭이 애매한 책은 건너뛰어요 (잘못된 정보 방지).</div>
+      </div>
+      <div class="bf-footer">
+        <button type="button" class="bf-btn-ghost" id="bfBtnCancel">취소</button>
+        <button type="button" class="bf-btn-primary" id="bfBtnStart">시작</button>
+      </div>
+    </div>
+
+    <!-- 진행 중 -->
+    <div class="bf-step" data-step="progress" style="display:none;">
+      <div class="bf-head">
+        <div class="bf-icon"><div class="bf-spinner"></div></div>
+        <div class="bf-ttl">보강 중</div>
+        <div class="bf-desc">알라딘·카카오에서 정보 찾는 중이에요</div>
+      </div>
+      <div class="bf-prog">
+        <div class="bf-bar"><div class="bf-fill" id="bfFill"></div></div>
+        <div class="bf-cnt"><span id="bfDone">0</span> / <span id="bfTotal">0</span>권</div>
+        <div class="bf-sub" id="bfSub">시작...</div>
+      </div>
+    </div>
+
+    <!-- 완료 -->
+    <div class="bf-step" data-step="done" style="display:none;">
+      <div class="bf-head">
+        <div class="bf-icon bf-icon-done"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-check"/></svg></div>
+        <div class="bf-ttl">보강 완료</div>
+        <div class="bf-desc" id="bfDoneDesc"></div>
+      </div>
+      <div class="bf-footer">
+        <button type="button" class="bf-btn-primary" id="bfBtnClose">확인</button>
+      </div>
     </div>
   </div>
 </div>
@@ -29446,6 +29655,10 @@ function _imFinalize() {
       coverUrl: book.coverUrl || '',
       publisher: book.publisher || '',
       year: book.year || undefined,
+      // v1.10.0 — 매칭 candidate에서 받은 가격 정보 (알라딘 결과일 때만 채워짐)
+      priceSales: book.priceSales || null,
+      priceList: book.priceList || null,
+      priceSource: book.priceSource || null,
       isLifeBook: false,
       rereads: [],
       readingNote: book.note || '',
@@ -29716,15 +29929,21 @@ async function _imAutoMatchAll(books, onProgress) {
 // 덮어씀: author(CSV 비어있을 때만), publisher/pages/isbn/year/coverUrl/language(매칭 우선)
 function _imApplyCandidate(parsedBook, candidate) {
   if (!candidate) return parsedBook;
+  // v1.10.0 — 가격 정보: 알라딘 candidate일 때만 source='aladin' (카카오/구글은 가격 정보 없음)
+  const cPriceSales = (typeof candidate.priceSales === 'number' && candidate.priceSales > 0) ? candidate.priceSales : null;
+  const cPriceList  = (typeof candidate.priceList === 'number' && candidate.priceList > 0) ? candidate.priceList : null;
   return {
     ...parsedBook,
-    author:    parsedBook.author || candidate.author || '',
-    publisher: candidate.publisher || parsedBook.publisher || '',
-    pages:     candidate.pages || parsedBook.pages || 0,
-    isbn:      candidate.isbn || parsedBook.isbn || '',
-    year:      candidate.year || parsedBook.year || null,
-    coverUrl:  candidate.cover || '',
-    language:  candidate.language || 'ko',
+    author:      parsedBook.author || candidate.author || '',
+    publisher:   candidate.publisher || parsedBook.publisher || '',
+    pages:       candidate.pages || parsedBook.pages || 0,
+    isbn:        candidate.isbn || parsedBook.isbn || '',
+    year:        candidate.year || parsedBook.year || null,
+    coverUrl:    candidate.cover || '',
+    language:    candidate.language || 'ko',
+    priceSales:  cPriceSales,
+    priceList:   cPriceList || cPriceSales,
+    priceSource: cPriceSales ? 'aladin' : null,
   };
 }
 
@@ -29965,7 +30184,7 @@ function _imDownloadTemplate() {
       '상태',
       '시작일\n(ex: 2025.01.15)',
       '완독일\n(ex: 2025.01.15)',
-      '별점\n(숫자)',
+      '별점\n(0.5 단위, 1~5)',
       '태그 \n(ex: SF, 로멘스, 스릴러, 에세이 등)',
       '메모'
     ],
@@ -30024,6 +30243,160 @@ function _imDownloadTemplate() {
 document.getElementById('imClose')?.addEventListener('click', _imClose);
 document.getElementById('imBackdrop')?.addEventListener('click', _imClose);
 document.getElementById('imTemplateBtn')?.addEventListener('click', _imDownloadTemplate);
+
+/* ═══════════════════════════════════════════════════════════
+   v1.10.0 — 메타데이터 일괄 보강 (Backfill)
+   ═══════════════════════════════════════════════════════════ */
+
+const BF_STATE = { running: false, abort: false, targets: [] };
+
+function _bfFindTargets() {
+  // 보강 후보: 비어있는 정보가 1개 이상 있는 책 (단, 사용자가 수동 입력한 가격은 안 건드림)
+  return (BOOKS || []).filter(b => {
+    if (!b.title) return false;
+    if (b.priceSource === 'manual') {
+      // 사용자가 가격 수동 입력 — 다른 정보는 보강 가능
+    }
+    const hasMissing =
+      (!b.coverUrl) ||
+      (!b.pages || b.pages === 0) ||
+      (b.priceSales == null && b.priceSource !== 'manual') ||
+      (!b.publisher) ||
+      (!b.year) ||
+      (!b.isbn);
+    return hasMissing;
+  });
+}
+
+function _bfShowStep(step) {
+  document.querySelectorAll('#bfModal .bf-step').forEach(el => {
+    el.style.display = (el.dataset.step === step) ? '' : 'none';
+  });
+}
+
+function _bfOpen() {
+  const modal = document.getElementById('bfModal');
+  const backdrop = document.getElementById('bfBackdrop');
+  if (!modal || !backdrop) return;
+
+  BF_STATE.targets = _bfFindTargets();
+  const desc = document.getElementById('bfConfirmDesc');
+  if (desc) {
+    if (BF_STATE.targets.length === 0) {
+      desc.textContent = '비어있는 정보가 있는 책이 없어요. 모든 책에 메타데이터가 채워져 있어요.';
+      document.getElementById('bfBtnStart').disabled = true;
+    } else {
+      const totalSec = Math.ceil(BF_STATE.targets.length * 0.5);
+      desc.innerHTML = `<strong>${BF_STATE.targets.length}권</strong>의 빈 정보를 자동으로 채울게요.<br>예상 시간: 약 ${totalSec}초`;
+      document.getElementById('bfBtnStart').disabled = false;
+    }
+  }
+
+  _bfShowStep('confirm');
+  backdrop.classList.add('open');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function _bfClose() {
+  if (BF_STATE.running) {
+    BF_STATE.abort = true;
+    return;
+  }
+  const modal = document.getElementById('bfModal');
+  const backdrop = document.getElementById('bfBackdrop');
+  if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+  if (backdrop) backdrop.classList.remove('open');
+}
+
+async function _bfStart() {
+  if (BF_STATE.running) return;
+  const targets = BF_STATE.targets;
+  if (!targets.length) { _bfClose(); return; }
+
+  BF_STATE.running = true;
+  BF_STATE.abort = false;
+  _bfShowStep('progress');
+
+  const total = targets.length;
+  document.getElementById('bfTotal').textContent = total;
+  document.getElementById('bfDone').textContent = '0';
+  document.getElementById('bfFill').style.width = '0%';
+  document.getElementById('bfSub').textContent = '시작...';
+
+  let enriched = 0, skipped = 0, failed = 0;
+
+  for (let i = 0; i < total; i++) {
+    if (BF_STATE.abort) break;
+    const b = targets[i];
+    try {
+      // import 흐름의 _imMatchOneBook 재사용 — 옵션 A (가장 완전한 후보 자동)
+      const result = await _imMatchOneBook({ title: b.title, author: b.author || '' });
+      if (result.status === 'auto' && typeof result.chosen === 'number' && result.candidates[result.chosen]) {
+        const c = result.candidates[result.chosen];
+        // 정책: 빈 필드만 채움. 사용자 입력값(0이 아닌 pages, 있는 coverUrl 등) 절대 안 덮어쓰기.
+        let touched = false;
+        if (!b.coverUrl && c.cover) { b.coverUrl = c.cover; touched = true; }
+        if ((!b.pages || b.pages === 0) && c.pages) { b.pages = c.pages; touched = true; }
+        if (!b.publisher && c.publisher) { b.publisher = c.publisher; touched = true; }
+        if (!b.year && c.year) { b.year = c.year; touched = true; }
+        if (!b.isbn && c.isbn) { b.isbn = c.isbn; touched = true; }
+        // 가격은 알라딘 결과일 때만 (priceSource !== 'manual'인 책에만)
+        if (b.priceSales == null && b.priceSource !== 'manual' && c.priceSales && c.source === 'aladin') {
+          b.priceSales = c.priceSales;
+          b.priceList = c.priceList || c.priceSales;
+          b.priceSource = 'aladin';
+          touched = true;
+        }
+        if (touched) enriched++;
+        else skipped++;
+      } else {
+        // ambiguous 또는 failed → skip (잘못된 정보 들어가는 것 방지)
+        skipped++;
+      }
+    } catch (e) {
+      console.warn('[backfill] error on', b.title, e);
+      failed++;
+    }
+
+    const done = i + 1;
+    document.getElementById('bfDone').textContent = done;
+    document.getElementById('bfFill').style.width = ((done / total) * 100).toFixed(1) + '%';
+    document.getElementById('bfSub').textContent = `채움 ${enriched}권 · 건너뜀 ${skipped}권` + (failed ? ` · 실패 ${failed}권` : '');
+
+    await new Promise(r => setTimeout(r, 450)); // rate limit
+  }
+
+  // 저장 + 화면 갱신
+  try { STORE.set('books', BOOKS); } catch (e) {}
+  try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
+  try { renderAllStats && renderAllStats(); } catch (e) {}
+
+  BF_STATE.running = false;
+
+  // 완료 화면
+  const doneDesc = document.getElementById('bfDoneDesc');
+  if (doneDesc) {
+    const parts = [`<strong>${enriched}권</strong>의 정보를 채웠어요`];
+    if (skipped) parts.push(`<strong>${skipped}권</strong>은 정확한 매칭이 안 되어 건너뛰었어요`);
+    if (failed) parts.push(`<strong>${failed}권</strong>은 오류로 실패`);
+    if (BF_STATE.abort) parts.push('(중단됨)');
+    doneDesc.innerHTML = parts.join('<br>');
+  }
+  _bfShowStep('done');
+}
+
+/* 설정에서 "메타데이터 일괄 보강" 행 클릭 → 모달 */
+document.getElementById('backfillRow')?.addEventListener('click', () => {
+  closeSettings();
+  setTimeout(_bfOpen, 280);
+});
+document.getElementById('bfBtnCancel')?.addEventListener('click', _bfClose);
+document.getElementById('bfBtnClose')?.addEventListener('click', _bfClose);
+document.getElementById('bfBtnStart')?.addEventListener('click', _bfStart);
+document.getElementById('bfBackdrop')?.addEventListener('click', () => {
+  if (!BF_STATE.running) _bfClose();
+});
 
 document.getElementById('imFileInput')?.addEventListener('change', (e) => {
   const file = e.target.files?.[0];
