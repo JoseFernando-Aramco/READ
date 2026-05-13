@@ -30098,7 +30098,7 @@ function _imFindMatchingResult(results, book, filter) {
 // 가격 후보: 알라딘 + (priceSales > 0 또는 priceList > 0)
 function _imExtractPriceCandidate(results, book) {
   return _imFindMatchingResult(results, book, r =>
-    r.source === 'aladin' && (
+    (r.source === 'aladin' || r.source === 'naver') && (
       (typeof r.priceSales === 'number' && r.priceSales > 0) ||
       (typeof r.priceList  === 'number' && r.priceList  > 0)
     )
@@ -30272,7 +30272,7 @@ async function _imApplyCandidate(parsedBook, candidate, allResults) {
     if (priceCand) {
       priceSales = (typeof priceCand.priceSales === 'number' && priceCand.priceSales > 0) ? priceCand.priceSales : null;
       priceList  = (typeof priceCand.priceList  === 'number' && priceCand.priceList  > 0) ? priceCand.priceList  : null;
-      priceSource = 'aladin';
+      priceSource = priceCand.source;  // 'aladin' or 'naver'
     }
   }
 
@@ -30714,7 +30714,7 @@ async function _bfStart() {
             if (pSales || pList) {
               b.priceSales = pSales || pList;
               b.priceList = pList || pSales;
-              b.priceSource = 'aladin';
+              b.priceSource = priceCand.source;
               cntPrice++; touched = true;
             }
           }
@@ -30734,7 +30734,7 @@ async function _bfStart() {
               if (pSales || pList) {
                 b.priceSales = pSales || pList;
                 b.priceList = pList || pSales;
-                b.priceSource = 'aladin';
+                b.priceSource = priceCand.source;
                 cntPrice++; touched = true;
               }
             }
@@ -31004,7 +31004,7 @@ function _bdeRenderResults(book, searchInfo) {
     const hasPages = c.pages && c.pages > 0;
     const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
     const hasCover = !!c.cover;
-    const sourceLbl = c.source === 'aladin' ? 'A' : c.source === 'kakao' ? 'K' : 'G';
+    const sourceLbl = c.source === 'aladin' ? 'A' : c.source === 'naver' ? 'N' : c.source === 'kakao' ? 'K' : 'G';
     const cover = hasCover
       ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
       : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:var(--c-label);">📖</div>';
@@ -31067,10 +31067,10 @@ function _bdeApply() {
     const pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
     const pList  = (typeof c.priceList  === 'number' && c.priceList  > 0) ? c.priceList  : null;
     const newPrice = pSales || pList;
-    if (newPrice && c.source === 'aladin' && newPrice !== book.priceSales) {
+    if (newPrice && (c.source === 'aladin' || c.source === 'naver') && newPrice !== book.priceSales) {
       book.priceSales = newPrice;
       book.priceList = pList || pSales;
-      book.priceSource = 'aladin';
+      book.priceSource = c.source;
       touchedFields.push('가격');
     }
   }
