@@ -8087,6 +8087,51 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   overflow-y: auto;
 }
 
+/* v1.10.0 — 매칭 진행 step (모달 내부) */
+.im-icon-loading {
+  background: var(--c-surface-2) !important;
+  color: var(--primary);
+}
+.im-step-spinner {
+  width: 30px; height: 30px;
+  border: 3px solid var(--c-border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: im-spin 0.9s linear infinite;
+}
+.im-matching-prog {
+  margin-top: 20px;
+  padding: 0 8px;
+}
+.im-matching-bar {
+  height: 6px;
+  background: var(--c-surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.im-matching-fill {
+  height: 100%;
+  background: var(--primary);
+  width: 0%;
+  transition: width .3s ease;
+}
+.im-matching-meta {
+  text-align: center;
+}
+.im-matching-cnt {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.im-matching-sub {
+  font-size: 12px;
+  color: var(--c-label);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
 /* v1.10.0 — 매칭 검토 UI */
 .im-review-summary {
   display: flex;
@@ -15941,6 +15986,22 @@ body.cn-locked {
         </label>
       </div>
       <div class="im-warn" id="imWarnList" style="display:none;"></div>
+    </div>
+
+    <!-- Step 3.3: 매칭 진행 (v1.10.0) — 모달 내부 진행률, 외부 토스트 박스 대체 -->
+    <div class="im-step" data-step="matching" style="display:none;">
+      <div class="im-head" style="border-bottom: none; padding-bottom: 0;">
+        <div class="im-icon im-icon-loading"><div class="im-step-spinner"></div></div>
+        <div class="im-ttl">메타데이터 찾는 중</div>
+        <div class="im-desc">검색해서 출판사·표지·페이지수를 채우고 있어요.<br/>잠시만 기다려주세요</div>
+      </div>
+      <div class="im-matching-prog">
+        <div class="im-matching-bar"><div class="im-matching-fill" id="imMatchingFill"></div></div>
+        <div class="im-matching-meta">
+          <div class="im-matching-cnt"><span id="imMatchingDone">0</span> / <span id="imMatchingTotal">0</span>권</div>
+          <div class="im-matching-sub" id="imMatchingSub">준비 중...</div>
+        </div>
+      </div>
     </div>
 
     <!-- Step 3.5: 매칭 검토 (v1.10.0) — 모호한 책 1권 이상일 때만 진입 -->
@@ -28799,6 +28860,9 @@ function _imUpdateButtons() {
   const next = document.getElementById('imBtnNext');
   const back = document.getElementById('imBtnBack');
   if (!next || !back) return;
+  // 기본값 복원 — matching step에서 숨겼다 다른 step으로 갈 때 안 보이는 문제 방지
+  next.style.display = '';
+  back.style.display = '';
   switch (IM_STATE.step) {
     case 'pick':
       next.textContent = '다음';
@@ -28814,6 +28878,11 @@ function _imUpdateButtons() {
       next.textContent = `${IM_STATE.parsedBooks.length}권 가져오기`;
       next.disabled = !IM_STATE.parsedBooks.length;
       back.style.display = '';
+      break;
+    case 'matching':
+      // v1.10.0 — 매칭 진행 중. 사용자 조작 불가, 버튼 숨김.
+      next.style.display = 'none';
+      back.style.display = 'none';
       break;
     case 'review': {
       // v1.10.0 — 검토 단계. 미결정 책 있어도 진행 가능 (친절 처리)
@@ -29316,8 +29385,12 @@ function _imRenderPreview() {
 /* ─── 실행 (BOOKS에 삽입) — v1.10.0에서 _imFinalize로 변경, 매칭 결과 적용 추가 ─── */
 function _imFinalize() {
   const skipDupe = document.getElementById('imOptSkipDupe')?.checked;
+  // v1.10.0 — 중복 체크: 제목+저자 + ISBN 양쪽으로. 옛 import의 깨진 책 + 새 import 충돌 방지
   const existingKeys = new Set(
     BOOKS.map(b => `${String(b.title || '').trim().toLowerCase()}|${String(b.author || '').trim().toLowerCase()}`)
+  );
+  const existingIsbns = new Set(
+    BOOKS.map(b => String(b.isbn || '').replace(/[-\s]/g, '')).filter(Boolean)
   );
 
   let added = 0, dupe = 0, enriched = 0;
@@ -29334,8 +29407,12 @@ function _imFinalize() {
     }
 
     const key = `${book.title.toLowerCase()}|${(book.author || '').toLowerCase()}`;
-    if (skipDupe && existingKeys.has(key)) { dupe++; return; }
+    const cleanIsbn = String(book.isbn || '').replace(/[-\s]/g, '');
+    const isDupTitle = skipDupe && existingKeys.has(key);
+    const isDupIsbn = skipDupe && cleanIsbn && existingIsbns.has(cleanIsbn);
+    if (isDupTitle || isDupIsbn) { dupe++; return; }
     existingKeys.add(key);
+    if (cleanIsbn) existingIsbns.add(cleanIsbn);
     const palette = (typeof pickPalette === 'function')
       ? pickPalette(book.title + (book.author || ''))
       : 'ink';
@@ -29391,9 +29468,24 @@ async function _imStartMatching() {
     return;
   }
 
-  // 매칭 진행 (await — 진행률 박스가 보이는 동안 사용자는 기다림)
+  // 매칭 진행 step으로 전환
+  _imShowStep('matching');
+  const totalBooks = IM_STATE.parsedBooks.length;
+  document.getElementById('imMatchingTotal').textContent = totalBooks;
+  document.getElementById('imMatchingDone').textContent = '0';
+  document.getElementById('imMatchingFill').style.width = '0%';
+  document.getElementById('imMatchingSub').textContent = '검색 시작...';
+
   try {
-    await _imAutoMatchAll(IM_STATE.parsedBooks);
+    await _imAutoMatchAll(IM_STATE.parsedBooks, (p) => {
+      document.getElementById('imMatchingDone').textContent = p.done;
+      document.getElementById('imMatchingFill').style.width = ((p.done / p.total) * 100).toFixed(1) + '%';
+      const subParts = [];
+      if (p.autoCount) subParts.push(`자동 매칭 ${p.autoCount}권`);
+      if (p.ambigCount) subParts.push(`검토 필요 ${p.ambigCount}권`);
+      if (p.failedCount) subParts.push(`매칭 실패 ${p.failedCount}권`);
+      document.getElementById('imMatchingSub').textContent = subParts.length ? subParts.join(' · ') : '검색 중...';
+    });
   } catch (e) {
     console.warn('[im-finalize] matching error', e);
     showToast('매칭 중 오류 — 정보 없이 진행해요');
@@ -29539,16 +29631,14 @@ async function _imMatchOneBook(book) {
   return { status: 'ambiguous', candidates: results.slice(0, 5), chosen: null };
 }
 
-// 전체 임포트 책 매칭 — 진행률 UI 재사용, rate limit 보호
-async function _imAutoMatchAll(books) {
+// 전체 임포트 책 매칭 — onProgress 콜백으로 진행률 보고 (모달 내부 UI가 사용), rate limit 보호
+async function _imAutoMatchAll(books, onProgress) {
   _imFetchAbort = false;
   const DELAY_MS = 450;
   const total = books.length;
   let done = 0, autoCount = 0, ambigCount = 0, failedCount = 0;
 
   IM_STATE.matchResults = new Array(total);
-  _imProgressShow(total);
-  _imProgressSetLabel('메타데이터 찾는 중');
 
   for (let i = 0; i < total; i++) {
     if (_imFetchAbort) break;
@@ -29565,11 +29655,12 @@ async function _imAutoMatchAll(books) {
     else if (result.status === 'ambiguous') ambigCount++;
     else failedCount++;
     done++;
-    _imProgressUpdate(done, total, autoCount + ambigCount);
+    if (typeof onProgress === 'function') {
+      onProgress({ done, total, autoCount, ambigCount, failedCount });
+    }
     await new Promise(r => setTimeout(r, DELAY_MS));
   }
 
-  _imProgressHide();
   return { autoCount, ambigCount, failedCount, aborted: _imFetchAbort, done };
 }
 
