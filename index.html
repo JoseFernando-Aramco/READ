@@ -19003,12 +19003,21 @@ function _mergeByIsbn(arr) {
   const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
   const hasStr = v => v != null && String(v).trim() !== '';
   const hasNum = v => typeof v === 'number' && v > 0;
+  // v1.9.1 — valid ISBN 검사 (978/979 ISBN13 또는 정상 ISBN10)
+  //   카카오/네이버가 EAN-13 바코드 (480 시작 등)를 ISBN으로 주는 케이스 거름
+  const isValidIsbn = (s) => {
+    if (!s) return false;
+    const c = String(s).replace(/[-\s]/g, '');
+    return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
+  };
 
-  // 그룹화 — ISBN 우선, 없으면 제목+저자+출판사 키
+  // 그룹화 — valid ISBN 우선, 가짜 ISBN은 제목+저자 키로 폴백 (정상 source와 합성 가능)
   const groups = new Map();
   for (const it of arr) {
-    const isbn = (it.isbn || '').replace(/[-\s]/g, '');
-    const key = isbn || `t:${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`;
+    const rawIsbn = (it.isbn || '').replace(/[-\s]/g, '');
+    const key = (rawIsbn && isValidIsbn(rawIsbn))
+      ? rawIsbn
+      : `t:${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(it);
   }
@@ -19030,13 +19039,8 @@ function _mergeByIsbn(arr) {
     const year      = pickByPriority(group, PRIORITY.info, 'year',      hasStr) || group[0].year || '';
     const contents  = pickByPriority(group, PRIORITY.info, 'contents',  hasStr) || group[0].contents || '';
     const language  = group.find(g => g.language)?.language || 'ko';
-    // v1.9.1 — ISBN 선택 시 valid 우선 (978/979 ISBN13 또는 정상 ISBN10)
-    //   가짜 ISBN (480 시작 EAN-13 등)은 후순위
-    const isValidIsbn = (s) => {
-      if (!s) return false;
-      const c = String(s).replace(/[-\s]/g, '');
-      return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
-    };
+    // v1.9.1 — ISBN 선택: valid (978/979 또는 ISBN10) 우선 → 가짜라도 fallback (사용자 표시용, 빈 칸 방지)
+    //   가짜는 ItemLookUp 호출 시 검증으로 거름. UI엔 표시.
     const isbn = group.find(g => isValidIsbn(g.isbn))?.isbn
               || group.find(g => hasStr(g.isbn))?.isbn
               || '';
@@ -30437,30 +30441,9 @@ async function _imSearchMerged(query, opts) {
     });
   }
 
-  // v1.9.1 — Jason 발견: 카카오/네이버 등이 EAN-13 바코드 (480 시작 등)를 ISBN으로 줄 수 있음
-  //   알라딘 ItemLookUp/구글 ISBN 조회는 모두 정상 도서 ISBN (978/979 prefix)으로만 작동
-  //   가짜 ISBN을 가진 결과는 isbn을 빈 string으로 → _mergeByIsbn이 제목+저자 키로 그룹화 → 정상 source와 합성 가능
-  const isValidIsbn = (s) => {
-    if (!s) return false;
-    const c = String(s).replace(/[-\s]/g, '');
-    return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
-  };
-  const sanitizeIsbn = (arr) => {
-    for (const r of arr) {
-      if (r.isbn && !isValidIsbn(r.isbn)) {
-        if (opts && opts.debug) console.log('[sanitize] 가짜 ISBN 제거:', r.source, r.isbn, r.title);
-        r.isbn = '';
-      }
-    }
-    return arr;
-  };
-  sanitizeIsbn(kakaoItems);
-  sanitizeIsbn(googleItems);
-  sanitizeIsbn(aladinItems);
-  sanitizeIsbn(naverItems);
-
   // v1.9.1 — 4개 source 결과를 ISBN별로 그룹화 + 항목별 best source 데이터 합성
-  //   _mergeByIsbn 내부에서 정렬도 같이 처리 (source 개수 우선, 그 다음 책정보 우선순위)
+  //   _mergeByIsbn 내부에서 정렬도 같이 처리 (페이지 우선 → source 개수 → 책정보)
+  //   ISBN 정합성은 _mergeByIsbn 그룹화 키 + 최종 ISBN 선택에서 처리
   const merged = _mergeByIsbn([...aladinItems, ...naverItems, ...kakaoItems, ...googleItems]);
 
   // 진단 모드 — source별 카운트도 함께 반환
@@ -30824,29 +30807,28 @@ async function _imApplyCandidate(parsedBook, candidate, allResults) {
     }
   }
 
-  // v1.9.1 — 최종 ISBN valid 검증 (가짜 ISBN이 어디선가 새어들어와도 거름)
+  // v1.9.1 — ISBN 저장: 가짜라도 표시 (사용자 책 상세에 빈 칸 안 보이게)
+  //   ItemLookUp/구글 호출 시에만 valid 검사로 거름
   const isValidIsbnFinal = (s) => {
     if (!s) return false;
     const c = String(s).replace(/[-\s]/g, '');
     return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
   };
-  let isbn = candidate.isbn || parsedBook.isbn || '';
-  if (isbn && !isValidIsbnFinal(isbn)) {
-    console.log('[apply] 가짜 ISBN 거름:', isbn, parsedBook.title);
-    isbn = '';
-  }
+  const isbn = candidate.isbn || parsedBook.isbn || '';
+  const isbnValid = isValidIsbnFinal(isbn);
 
   // v1.9.1 — 페이지 폴백 강화 (Jason 제안)
-  //   1) 알라딘 ItemLookUp + ISBN  2) 알라딘 ItemLookUp + title  3) 구글 ISBN 직접 조회
+  //   1) 알라딘 ItemLookUp + 유효한 ISBN  2) 알라딘 ItemLookUp + title  3) 구글 ISBN (valid만)
+  //   가짜 ISBN은 ItemLookUp 무의미 → skip하고 title로 폴백
   if ((!pages || pages <= 0)) {
-    // 1차: 알라딘 ISBN
-    if (isbn) {
+    // 1차: 알라딘 ISBN — valid한 경우만
+    if (isbn && isbnValid) {
       try {
         const p = await _fetchPagesFromAladin({ isbn });
         if (typeof p === 'number' && p > 0) pages = p;
       } catch (e) { /* 다음 */ }
     }
-    // 2차: 알라딘 title
+    // 2차: 알라딘 title (ISBN 가짜거나 ISBN으로 못 받음)
     if ((!pages || pages <= 0) && parsedBook.title) {
       try {
         const titleQ = parsedBook.author ? `${parsedBook.title} ${parsedBook.author}` : parsedBook.title;
@@ -30854,8 +30836,8 @@ async function _imApplyCandidate(parsedBook, candidate, allResults) {
         if (typeof p === 'number' && p > 0) pages = p;
       } catch (e) { /* 다음 */ }
     }
-    // 3차: 구글 ISBN
-    if ((!pages || pages <= 0) && isbn && typeof _fetchPagesByIsbn === 'function') {
+    // 3차: 구글 ISBN — valid한 경우만
+    if ((!pages || pages <= 0) && isbn && isbnValid && typeof _fetchPagesByIsbn === 'function') {
       try {
         const p = await _fetchPagesByIsbn(isbn);
         if (typeof p === 'number' && p > 0) pages = p;
@@ -31321,20 +31303,21 @@ async function _enrichBookItem(book, item) {
     }
   }
 
-  // v1.9.1 — pages 폴백 강화 (Jason 제안: 페이지 매칭 최우선)
+  // v1.9.1 — pages 폴백 강화 (Jason 제안)
   //   알라딘 ItemSearch는 페이지 응답 X — 별도 엔드포인트 필요
-  //   1) 알라딘 ItemLookUp ISBN  2) 알라딘 ItemLookUp title  3) 구글 ISBN 직접 조회
+  //   가짜 ISBN (480 시작 EAN-13 등)은 ItemLookUp 무의미 → title 폴백으로 직행
   if (item === 'pages') {
-    // 1차: 알라딘 ItemLookUp + ISBN
-    if (cleanIsbn && typeof _fetchPagesFromAladin === 'function') {
+    const isbnIsValid = cleanIsbn && (/^97[89]\d{10}$/.test(cleanIsbn) || /^\d{9}[\dX]$/i.test(cleanIsbn));
+    // 1차: 알라딘 ItemLookUp + ISBN (valid한 경우만)
+    if (isbnIsValid && typeof _fetchPagesFromAladin === 'function') {
       try {
         const p = await _fetchPagesFromAladin({ isbn: cleanIsbn });
         if (typeof p === 'number' && p > 0) {
           return { value: p, source: 'aladin_lookup_isbn', matched: null };
         }
-      } catch (e) { /* 다음 단계 */ }
+      } catch (e) { /* 다음 */ }
     }
-    // 2차: 알라딘 ItemLookUp + title (ISBN 없거나 ISBN 실패)
+    // 2차: 알라딘 ItemLookUp + title (ISBN 없거나 가짜거나 ISBN으로 못 받음)
     if (book.title && typeof _fetchPagesFromAladin === 'function') {
       try {
         const titleQ = book.author ? `${book.title} ${book.author}` : book.title;
@@ -31342,10 +31325,10 @@ async function _enrichBookItem(book, item) {
         if (typeof p === 'number' && p > 0) {
           return { value: p, source: 'aladin_lookup_title', matched: null };
         }
-      } catch (e) { /* 다음 단계 */ }
+      } catch (e) { /* 다음 */ }
     }
-    // 3차: 구글 ISBN 직접 조회 (알라딘 한도 도달 대비)
-    if (cleanIsbn && typeof _fetchPagesByIsbn === 'function') {
+    // 3차: 구글 ISBN 직접 조회 (valid한 경우만)
+    if (isbnIsValid && typeof _fetchPagesByIsbn === 'function') {
       try {
         const p = await _fetchPagesByIsbn(cleanIsbn);
         if (typeof p === 'number' && p > 0) {
