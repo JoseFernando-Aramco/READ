@@ -9028,6 +9028,58 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .rs-btn-danger:not(:disabled):active { opacity: 0.85; }
 
+/* v1.9.1 — 초기화 선택 카드 (시안 2 — 카드 선택 패턴) */
+.rs-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rs-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  background: var(--c-surface, #fff);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.rs-choice:not(:disabled):hover,
+.rs-choice:not(:disabled):active {
+  border-color: var(--brand-primary);
+  background: var(--c-surface-2);
+}
+.rs-choice:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.rs-choice-ttl {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.rs-choice-sub {
+  font-size: 12px;
+  color: var(--c-muted);
+  letter-spacing: -0.01em;
+}
+.rs-cancel-row {
+  display: flex;
+  justify-content: flex-end;
+}
+.rs-cancel-row .rs-btn-ghost {
+  flex: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .ab-modal {
   position: fixed; inset: 0;
   z-index: 210;
@@ -16358,10 +16410,18 @@ body.cn-locked {
              autocomplete="off" autocapitalize="characters" spellcheck="false">
     </div>
 
-    <div class="rs-footer" style="flex-wrap:wrap;gap:8px;">
+    <div class="rs-choices">
+      <button class="rs-choice" id="rsResetSample" disabled>
+        <div class="rs-choice-ttl">샘플 서적들로 초기화</div>
+        <div class="rs-choice-sub">샘플 책으로 둘러보기</div>
+      </button>
+      <button class="rs-choice" id="rsResetEmpty" disabled>
+        <div class="rs-choice-ttl">빈 서재로 초기화</div>
+        <div class="rs-choice-sub">내 책들로 시작</div>
+      </button>
+    </div>
+    <div class="rs-cancel-row">
       <button class="rs-btn-ghost" id="rsCancel">취소</button>
-      <button class="rs-btn-danger" id="rsResetSample" disabled style="background:var(--c-surface-2);color:var(--c-text);border:1px solid var(--c-border);">📚 샘플로 초기화</button>
-      <button class="rs-btn-danger" id="rsResetEmpty" disabled>✨ 빈으로 초기화</button>
     </div>
   </div>
 </div>
@@ -30506,8 +30566,34 @@ async function _imMatchOneBook(book) {
     if (titleAuthorExact.length === 0) titleAuthorExact = titleExact;
   }
 
-  // 2순위: 정확 일치 + 결과 1건 → 자동
+  // 2순위: 정확 일치 + 결과 1건 → 보통 자동
   if (titleAuthorExact.length === 1) {
+    const exact = titleAuthorExact[0];
+    const exactScore = (exact.cover ? 1 : 0) + (exact.pages ? 1 : 0)
+                     + (typeof exact.priceSales === 'number' && exact.priceSales > 0 ? 1 : 0);
+
+    // v1.9.1 — 정확 일치 후보 정보 부족 + 부분 매칭 후보가 더 풍부하면 검토 단계로
+    //   Jason 사례: "시체 읽는 남자" 카카오 (표지만) vs "시체 읽는 남자 (압도적 역사추리 소설)" 알라딘/네이버 (페이지+가격)
+    //   괄호 부제 때문에 정확 일치 안 됐지만 같은 책 → 사용자가 골라야 정보 풍부한 쪽 선택 가능
+    if (exactScore < 3) {
+      const partialBetter = results.some(r => {
+        if (r === exact) return false;
+        const rNorm = _imNormalizeForMatch(r.title);
+        // 같은 책 후보: 한 쪽이 다른 쪽 prefix (괄호 부제, 시리즈 표기 등)
+        const isRelated = rNorm.startsWith(titleNorm) || titleNorm.startsWith(rNorm);
+        if (!isRelated) return false;
+        // 저자도 일치해야 (CSV 저자 있을 때만 강제)
+        if (book.author && !_imAuthorMatches(r.author, book.author)) return false;
+        const rScore = (r.cover ? 1 : 0) + (r.pages ? 1 : 0)
+                     + (typeof r.priceSales === 'number' && r.priceSales > 0 ? 1 : 0);
+        return rScore > exactScore;
+      });
+      if (partialBetter) {
+        // 검토 단계로 — 사용자가 정확 일치 vs 부분 매칭 중 선택
+        return { status: 'ambiguous', candidates: results.slice(0, 8), chosen: null, allResults: results };
+      }
+    }
+
     return { status: 'auto', candidates: titleAuthorExact, chosen: 0, allResults: results };
   }
 
