@@ -18778,7 +18778,13 @@ async function _searchKakao(q) {
   const data = await res.json();
   return (data.documents || []).map(doc => {
     const year = (doc.datetime || '').slice(0, 4);
-    const isbn = (doc.isbn || '').split(' ').pop() || ''; // 보통 뒤가 ISBN-13
+    // v1.9.1 — ISBN 추출 강화 (Jason 발견: 카카오가 "ISBN10 EAN13" 순서로 줄 때 .pop()이 480 시작 EAN13 추출)
+    //   978/979 prefix ISBN13 우선 → ISBN10 차순위 → 그 외 fallback
+    const isbnParts = (doc.isbn || '').split(/\s+/).filter(Boolean);
+    let isbn = isbnParts.find(p => /^97[89]\d{10}$/.test(p))         // 정상 도서 ISBN13
+            || isbnParts.find(p => /^\d{9}[\dX]$/i.test(p))           // ISBN10
+            || isbnParts.pop()                                          // fallback (마지막 토큰)
+            || '';
     return {
       title: doc.title || '',
       author: Array.isArray(doc.authors) ? doc.authors.join(' · ') : '',
@@ -19024,7 +19030,16 @@ function _mergeByIsbn(arr) {
     const year      = pickByPriority(group, PRIORITY.info, 'year',      hasStr) || group[0].year || '';
     const contents  = pickByPriority(group, PRIORITY.info, 'contents',  hasStr) || group[0].contents || '';
     const language  = group.find(g => g.language)?.language || 'ko';
-    const isbn      = group.find(g => hasStr(g.isbn))?.isbn || '';
+    // v1.9.1 — ISBN 선택 시 valid 우선 (978/979 ISBN13 또는 정상 ISBN10)
+    //   가짜 ISBN (480 시작 EAN-13 등)은 후순위
+    const isValidIsbn = (s) => {
+      if (!s) return false;
+      const c = String(s).replace(/[-\s]/g, '');
+      return /^97[89]\d{10}$/.test(c) || /^\d{9}[\dX]$/i.test(c);
+    };
+    const isbn = group.find(g => isValidIsbn(g.isbn))?.isbn
+              || group.find(g => hasStr(g.isbn))?.isbn
+              || '';
 
     // 가격 — priceSource도 같이 추적 (가격 카드 출처 chip용)
     const priceSales = pickByPriority(group, PRIORITY.price, 'priceSales', hasNum);
