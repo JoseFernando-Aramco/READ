@@ -30069,33 +30069,34 @@ async function _imFinalizeInner() {
     // v1.9.1 — 누락 항목 자동 보강 (cover/pages/price 항목별 source 순차 호출)
     //   매칭 ambig/failed여도 시도. skip은 사용자 의도라 건너뜀.
     //   각 항목은 첫 source 성공에서 멈추므로 호출 수 최소화 (Jason: "불필요한 api호출 줄임")
+    //   매 단계마다 matched에서 부가 정보(isbn 포함) 즉시 갱신 → 다음 단계에서 활용 (특히 pages는 isbn 필수)
     let touchedAuto = false;
-    let lastMatched = null;
+    const applyExtras = (matched) => {
+      if (!matched) return;
+      if (!book.publisher && matched.publisher) book.publisher = matched.publisher;
+      if (!book.year      && matched.year)      book.year      = matched.year;
+      if (!book.isbn      && matched.isbn)      book.isbn      = matched.isbn;
+    };
     if (didMatching && matchRes && matchRes.status !== 'skip') {
       try {
         if (!book.coverUrl) {
           const r = await _enrichBookItem(book, 'cover');
-          if (r) { book.coverUrl = r.value; touchedAuto = true; lastMatched = r.matched; }
-        }
-        if (!book.pages || book.pages === 0) {
-          const r = await _enrichBookItem(book, 'pages');
-          if (r) { book.pages = r.value; touchedAuto = true; lastMatched = r.matched; }
+          if (r) { book.coverUrl = r.value; touchedAuto = true; applyExtras(r.matched); }
         }
         if (book.priceSales == null && book.priceSource !== 'manual') {
           const r = await _enrichBookItem(book, 'price');
           if (r) {
             book.priceSales = r.priceSales;
-            book.priceList = r.priceList;
+            book.priceList  = r.priceList;
             book.priceSource = r.source;
             touchedAuto = true;
-            lastMatched = r.matched;
+            applyExtras(r.matched);
           }
         }
-        // 부가 정보 — 마지막 성공한 source의 matched에서 publisher/year/isbn 추출
-        if (lastMatched) {
-          if (!book.publisher && lastMatched.publisher) book.publisher = lastMatched.publisher;
-          if (!book.year      && lastMatched.year)      book.year      = lastMatched.year;
-          if (!book.isbn      && lastMatched.isbn)      book.isbn      = lastMatched.isbn;
+        // pages는 마지막. cover/price 호출 시 부가로 받은 isbn 활용 가능 (ItemLookUp 폴백)
+        if (!book.pages || book.pages === 0) {
+          const r = await _enrichBookItem(book, 'pages');
+          if (r) { book.pages = r.value; touchedAuto = true; applyExtras(r.matched); }
         }
       } catch (e) { /* 조용히 실패 */ }
 
@@ -30974,6 +30975,17 @@ async function _enrichBookItem(book, item) {
       // 조용히 실패 — 다음 source 시도
     }
   }
+
+  // v1.9.1 — pages는 알라딘 ItemSearch 응답에 없음. ItemLookUp(/pages?isbn=...)로 폴백.
+  //   ISBN 있어야 가능. _bdeSearch가 페이지 받는 핵심 경로.
+  if (item === 'pages' && cleanIsbn && typeof _fetchPagesFromAladin === 'function') {
+    try {
+      const p = await _fetchPagesFromAladin({ isbn: cleanIsbn });
+      if (typeof p === 'number' && p > 0) {
+        return { value: p, source: 'aladin_lookup', matched: null };
+      }
+    } catch (e) { /* 조용히 실패 */ }
+  }
   return null;
 }
 
@@ -31024,22 +31036,13 @@ async function _bfStart() {
     let touched = false;
 
     try {
-      // 표지 보강
+      // v1.9.1 — 처리 순서: cover → price → pages
+      //   pages는 알라딘 ItemLookUp 폴백이 isbn 필요. cover/price 보강 시 isbn 받으면 pages에서 활용 가능.
       if (opts.cover && !b.coverUrl) {
         const r = await _enrichBookItem(b, 'cover');
         if (r) {
           b.coverUrl = r.value;
           cntCover++; touched = true;
-          if (enrichExtras(b, r.matched)) touched = true;
-        }
-      }
-
-      // 페이지수 보강 — 알라딘 → 구글 순차
-      if (opts.pages && (!b.pages || b.pages === 0)) {
-        const r = await _enrichBookItem(b, 'pages');
-        if (r) {
-          b.pages = r.value;
-          cntPages++; touched = true;
           if (enrichExtras(b, r.matched)) touched = true;
         }
       }
@@ -31052,6 +31055,16 @@ async function _bfStart() {
           b.priceList = r.priceList;
           b.priceSource = r.source;
           cntPrice++; touched = true;
+          if (enrichExtras(b, r.matched)) touched = true;
+        }
+      }
+
+      // 페이지수 보강 — 알라딘 → 구글 순차 + ItemLookUp 폴백 (cover/price 보강에서 받은 isbn 활용)
+      if (opts.pages && (!b.pages || b.pages === 0)) {
+        const r = await _enrichBookItem(b, 'pages');
+        if (r) {
+          b.pages = r.value;
+          cntPages++; touched = true;
           if (enrichExtras(b, r.matched)) touched = true;
         }
       }
