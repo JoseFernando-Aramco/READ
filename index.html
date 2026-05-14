@@ -7741,6 +7741,71 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   min-height: 110px;
 }
 
+/* v1.10.0 — 메모 저장 버튼 (시안 C: 라벨 줄 우측 통합) */
+.bd-memo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.memo-save-btn {
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  min-width: 88px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  font-feature-settings: 'tnum';
+}
+.memo-save-btn:disabled { cursor: default; }
+.memo-save-check {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* idle: 변경 없음 (비활성) */
+.memo-save-btn.idle {
+  background: var(--c-surface-2, #ececde);
+  color: var(--c-label, #a8a89e);
+}
+/* active: 변경 있음 (활성) */
+.memo-save-btn.active {
+  background: var(--primary, #4a6b3a);
+  color: white;
+  box-shadow: 0 1px 3px rgba(74,107,58,0.25);
+}
+.memo-save-btn.active:hover {
+  background: var(--primary-deep, #3a5a2c);
+}
+.memo-save-btn.active:active {
+  transform: scale(0.97);
+}
+/* saved: 저장 직후 잠깐 (2초) */
+.memo-save-btn.saved {
+  background: #e1efd8;
+  color: #4a7b3a;
+  animation: memo-save-pop 0.4s ease;
+}
+@keyframes memo-save-pop {
+  0%   { transform: scale(0.92); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
 /* ═══════════ 앱 정보 모달 ═══════════ */
 .ab-backdrop {
   position: fixed; inset: 0;
@@ -13381,6 +13446,161 @@ body.cn-locked {
   color: var(--c-text-2); font-size: 18px; line-height: 1;
 }
 
+/* v1.10.0 — Bookflex 4+ 시안 (내 서재의 가치) */
+.bfp-hero {
+  position: relative;
+  margin: 0 20px 14px;
+  padding: 28px 20px 22px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e5e3d8);
+  overflow: hidden;
+}
+.bfp-pebble {
+  position: absolute;
+  top: 18px; right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 8px;
+  background: linear-gradient(135deg, #f7f0e5 0%, #f0e6d2 100%);
+  border-radius: 99px;
+  border: 1px solid rgba(184,153,104,0.25);
+}
+.bfp-pebble-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4b88e, #b89968);
+  box-shadow: 0 0 4px rgba(184,153,104,0.4);
+  flex-shrink: 0;
+}
+.bfp-pebble-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: #b89968;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.bfp-hero-lbl {
+  font-size: 11px;
+  color: var(--c-muted, #888);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.bfp-hero-amt {
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--c-text, #1c1c1c);
+  line-height: 1;
+  letter-spacing: -2px;
+  margin-bottom: 6px;
+  font-feature-settings: 'tnum';
+  display: inline-block;
+  position: relative;
+}
+.bfp-hero-amt::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 32px;
+  height: 2px;
+  background: linear-gradient(90deg, #b89968, #d4b88e);
+  border-radius: 1px;
+}
+.bfp-hero-cap {
+  font-size: 11px;
+  color: var(--c-muted, #888);
+  margin-top: 10px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.bfp-hero-cap b { color: var(--c-text, #1c1c1c); font-weight: 700; }
+
+.bfp-hero-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+}
+.bfp-meta-item {
+  padding-right: 8px;
+  border-right: 1px solid #eee;
+}
+.bfp-meta-item:nth-child(2) { padding-left: 8px; }
+.bfp-meta-item:last-child { border-right: none; padding-right: 0; padding-left: 8px; }
+.bfp-meta-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text, #1c1c1c);
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 4px;
+  font-feature-settings: 'tnum';
+}
+.bfp-meta-num .unit { font-size: 10px; font-weight: 500; color: var(--c-muted, #888); margin-left: 1px; }
+.bfp-meta-lbl {
+  font-size: 10px;
+  color: var(--c-muted, #888);
+}
+
+/* 환산 카드 */
+.bfp-equiv {
+  margin: 0 20px 18px;
+  background: linear-gradient(135deg, #fff 0%, #f7f0e5 100%);
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e5e3d8);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.bfp-equiv::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 80px;
+  background: radial-gradient(circle at top right, rgba(184,153,104,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.bfp-equiv-lbl {
+  font-size: 10px;
+  color: #b89968;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.bfp-equiv-body {
+  font-size: 14px;
+  color: var(--c-text, #1c1c1c);
+  line-height: 1.55;
+  font-weight: 500;
+}
+.bfp-equiv-body b { font-weight: 800; color: var(--c-text, #1c1c1c); }
+.bfp-equiv-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bfp-equiv-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--c-text-2, #5a5550);
+}
+.bfp-equiv-item .ic {
+  width: 18px;
+  font-size: 14px;
+  text-align: center;
+}
+.bfp-equiv-item .num {
+  font-weight: 700;
+  color: var(--c-text, #1c1c1c);
+  font-feature-settings: 'tnum';
+}
+
 .sp-hero {
   margin: 0 20px 18px;
   padding: 28px 22px 24px;
@@ -14046,7 +14266,7 @@ body.cn-locked {
 /* ═══════════ v1.8.0 — Bookflex 풀세트 ═══════════ */
 .bookflex-mark {
   font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   font-style: normal;
   letter-spacing: -0.045em;
@@ -16964,7 +17184,7 @@ body.cn-locked {
       <div class="sp-handle"></div>
     </div>
     <div class="sp-head">
-      <div class="bookflex-mark" id="spendTitle">Bookflex 2026</div>
+      <div class="bookflex-mark" id="spendTitle">Bookflex</div>
       <button class="sp-close" id="spendClose" aria-label="닫기">×</button>
     </div>
     <div id="spendBody"></div>
@@ -23271,7 +23491,10 @@ function renderBookDetail() {
     ${!wish ? `
     <!-- 독서 메모 (인물·용어 기록) -->
     <div class="bd-section">
-      <div class="bd-section-lbl">독서 메모<span class="subct">등장인물 · 용어 · 지역</span></div>
+      <div class="bd-memo-row">
+        <div class="bd-section-lbl">독서 메모<span class="subct">등장인물 · 용어 · 지역</span></div>
+        <button type="button" class="memo-save-btn idle" id="bdReadingNoteSave" disabled>저장</button>
+      </div>
       <textarea class="bd-reading-note" id="bdReadingNote" placeholder="예: 싱클레어 — 주인공 · 10살 소년&#10;데미안 — 전학생, 싱클레어보다 어른스러움&#10;크로머 — 싱클레어를 괴롭히는 동네 불량배" maxlength="2000" rows="4">${esc(b.readingNote || '')}</textarea>
     </div>
     ` : ''}
@@ -23406,7 +23629,10 @@ function renderBookDetail() {
     ${wish ? `
     <!-- 위시 메모 -->
     <div class="bd-section">
-      <div class="bd-section-lbl">메모<span class="subct">왜 궁금한 책인가요?</span></div>
+      <div class="bd-memo-row">
+        <div class="bd-section-lbl">메모<span class="subct">왜 궁금한 책인가요?</span></div>
+        <button type="button" class="memo-save-btn idle" id="bdWishNoteSave" disabled>저장</button>
+      </div>
       <textarea class="bd-wish-note" id="bdWishNote" placeholder="예: 친구 추천 · 올해 안에 꼭 · EBS 다큐에서 보고 관심 생김" maxlength="500" rows="3">${esc(b.wishNote || '')}</textarea>
     </div>
     ` : ''}
@@ -24066,27 +24292,61 @@ function wireBookDetailEvents() {
     });
   }
 
-  // 위시 메모 저장 (blur 시)
-  const wishNote = document.getElementById('bdWishNote');
-  if (wishNote) {
-    wishNote.addEventListener('blur', () => {
-      const val = wishNote.value.trim();
-      if ((b.wishNote || '') !== val) {
-        updateBook(b.id, { wishNote: val });
-      }
-    });
+  // v1.10.0 — 위시 메모 + 독서 메모: 명시적 저장 버튼 (Jason 결정)
+  //   자동 저장 X, 사용자가 저장 버튼 눌러야 저장
+  //   상태: idle(변경없음/빈값) → active(변경있음) → saved(저장 직후 2초) → idle
+  function wireMemoSave(textareaId, btnId, field) {
+    const ta = document.getElementById(textareaId);
+    const btn = document.getElementById(btnId);
+    if (!ta || !btn) return;
+
+    const original = (b[field] || '').trim();
+    let savedValue = original;
+    let savedTimer = null;
+
+    function setIdle() {
+      btn.disabled = true;
+      btn.classList.remove('active', 'saved');
+      btn.classList.add('idle');
+      btn.textContent = '저장';
+    }
+    function setActive() {
+      btn.disabled = false;
+      btn.classList.remove('idle', 'saved');
+      btn.classList.add('active');
+      btn.textContent = '저장';
+    }
+    function setSaved() {
+      btn.disabled = true;
+      btn.classList.remove('idle', 'active');
+      btn.classList.add('saved');
+      btn.innerHTML = '<svg class="memo-save-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>저장됨';
+    }
+    function checkState() {
+      const cur = ta.value.trim();
+      if (cur === savedValue) setIdle();
+      else setActive();
+    }
+    function doSave() {
+      if (btn.disabled) return;
+      const val = ta.value.trim();
+      if (val === savedValue) return;
+      updateBook(b.id, { [field]: val });
+      savedValue = val;
+      setSaved();
+      if (savedTimer) clearTimeout(savedTimer);
+      savedTimer = setTimeout(() => { checkState(); }, 2000);
+    }
+
+    // 초기 상태
+    setIdle();
+
+    ta.addEventListener('input', checkState);
+    btn.addEventListener('click', doSave);
   }
 
-  // 독서 메모 저장 (blur 시) — 등장인물·용어
-  const readingNote = document.getElementById('bdReadingNote');
-  if (readingNote) {
-    readingNote.addEventListener('blur', () => {
-      const val = readingNote.value.trim();
-      if ((b.readingNote || '') !== val) {
-        updateBook(b.id, { readingNote: val });
-      }
-    });
-  }
+  wireMemoSave('bdWishNote',    'bdWishNoteSave',    'wishNote');
+  wireMemoSave('bdReadingNote', 'bdReadingNoteSave', 'readingNote');
 
   // v1.9.0 — 책 상세 페이지 태그 카테고리 탭 + 칩 렌더 (인라인)
   renderBookDetailTags();
@@ -28709,6 +28969,52 @@ function _checkAndCelebrateMilestone(prevTotal, newTotal) {
 }
 
 /* 매체별 합산 — 완독 책만, priceSales 있는 책만 */
+/* v1.10.0 — Bookflex 4+ 시안: 등급 + 환산 헬퍼 */
+function _bfCollectorTier(amount) {
+  if (amount >= 5000000) return '북 마스터';
+  if (amount >= 3000000) return '북 큐레이터';
+  if (amount >= 1000000) return '북 마니아';
+  if (amount >= 500000)  return '북 컬렉터';
+  if (amount >= 100000)  return '북 러버';
+  return '북 시작';
+}
+
+const BF_EQUIV_ITEMS = {
+  small: [
+    { ic:'\u2615', name:'카페 아메리카노',     unit:4585,    suffix:'잔' },
+    { ic:'\uD83C\uDF54', name:'맥도날드 빅맥세트', unit:7500, suffix:'세트' },
+    { ic:'\uD83C\uDFAC', name:'영화관 관람',     unit:15000,   suffix:'회' },
+  ],
+  medium: [
+    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000, suffix:'대' },
+    { ic:'\u2615', name:'카페 아메리카노',        unit:4585,   suffix:'잔' },
+    { ic:'\uD83C\uDFAC', name:'영화관 관람',      unit:15000,  suffix:'회' },
+  ],
+  large: [
+    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000,  suffix:'대' },
+    { ic:'\uD83D\uDCBB', name:'맥북 에어',         unit:1500000, suffix:'대' },
+    { ic:'\u2708\uFE0F', name:'도쿄 왕복 항공권',  unit:280000,  suffix:'회' },
+  ],
+  xlarge: [
+    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000,  suffix:'대' },
+    { ic:'\uD83D\uDCBB', name:'맥북 에어',         unit:1500000, suffix:'대' },
+    { ic:'\uD83D\uDE97', name:'경차 한 대',         unit:9000000, suffix:'대' },
+  ],
+};
+
+function _bfCalcEquivalents(amount) {
+  let items;
+  if (amount >= 10000000) items = BF_EQUIV_ITEMS.xlarge;
+  else if (amount >= 1000000) items = BF_EQUIV_ITEMS.large;
+  else if (amount >= 300000) items = BF_EQUIV_ITEMS.medium;
+  else items = BF_EQUIV_ITEMS.small;
+
+  return items.map(it => ({
+    ...it,
+    count: Math.floor(amount / it.unit),
+  })).filter(it => it.count > 0);
+}
+
 function _calcSpend() {
   const all = (BOOKS || []).filter(b => b.status === 'done');
   const byFormat = { paper: [], ebook: [], audio: [] };
@@ -28735,7 +29041,20 @@ function _calcSpend() {
   const highest = priced[0] || null;
   const lowest  = priced[priced.length - 1] || null;
 
-  return { paper, ebook, audio, grandTotal, grandCount, grandRegistered, highest, lowest };
+  // v1.10.0 — 권당 평균 + 월 평균 (Bookflex 4+ 시안 적용)
+  const perBookAvg = grandRegistered > 0 ? Math.round(grandTotal / grandRegistered) : 0;
+  const allReadDates = all
+    .filter(b => b.dateEnd)
+    .map(b => new Date(b.dateEnd).getTime())
+    .filter(t => !isNaN(t));
+  const firstReadTs = allReadDates.length ? Math.min(...allReadDates) : null;
+  let monthlyAvg = 0;
+  if (firstReadTs && grandTotal > 0) {
+    const months = Math.max(1, Math.round((Date.now() - firstReadTs) / (1000 * 60 * 60 * 24 * 30.44)));
+    monthlyAvg = Math.round(grandTotal / months);
+  }
+
+  return { paper, ebook, audio, grandTotal, grandCount, grandRegistered, highest, lowest, perBookAvg, monthlyAvg, firstReadTs };
 }
 
 /* 마일스톤 정보 */
@@ -28856,7 +29175,7 @@ function _renderSpendModal() {
   const s = _calcSpend();
   const year = new Date().getFullYear();
   const titleEl = document.getElementById('spendTitle');
-  if (titleEl) titleEl.textContent = 'Bookflex ' + year;
+  if (titleEl) titleEl.textContent = 'Bookflex';
 
   if (s.grandCount === 0) {
     body.innerHTML =
@@ -28944,18 +29263,62 @@ function _renderSpendModal() {
     ? ('\u20A9' + milestoneRemain.toLocaleString('ko-KR') + ' 남음')
     : '모든 단계 통과 \uD83C\uDF89';
 
+  // v1.10.0 — Bookflex 4+ 시안 적용: '내 서재의 가치' + 페블(등급) + 메타 3개 + 환산 카드
+  const tier = _bfCollectorTier(s.grandTotal);
+  const equivList = _bfCalcEquivalents(s.grandTotal);
+  const fmtN = (n) => '\u20A9' + n.toLocaleString('ko-KR');
+
+  const heroMissingNote = (s.grandRegistered < s.grandCount)
+    ? '<br>가격을 비워둔 <b>' + (s.grandCount - s.grandRegistered) + '권</b>은 제외.'
+    : '';
+
+  const equivHeadlineHtml = equivList.length > 0
+    ? '\uC9C0\uAE08\uAE4C\uC9C0 \uCC45\uC5D0 \uB4E4\uC778 \uB3C8\uC73C\uB85C <b>' + equivList[0].name + ' ' + equivList[0].count + equivList[0].suffix + '</b>\uB97C<br>\uC0B4 \uC218 \uC788\uB294 \uC148\uC774\uC5D0\uC694.'
+    : '\uC11C\uC7AC\uC758 \uAC00\uCE58\uB97C \uACC4\uC0B0 \uC911\uC774\uC5D0\uC694.';
+
+  const equivItemsHtml = equivList.map(it =>
+    '<div class="bfp-equiv-item">' +
+      '<div class="ic">' + it.ic + '</div>' +
+      '<div>' + it.name + ' <span class="num">' + it.count.toLocaleString('ko-KR') + it.suffix + '</span></div>' +
+    '</div>'
+  ).join('');
+
+  const equivCardHtml = (s.grandTotal > 0 && equivList.length > 0)
+    ? '<div class="bfp-equiv">' +
+        '<div class="bfp-equiv-lbl">\uB0B4 \uC11C\uC7AC\uC640 \uBC14\uAFC0 \uC218 \uC788\uB294 \uAC83</div>' +
+        '<div class="bfp-equiv-body">' + equivHeadlineHtml + '</div>' +
+        '<div class="bfp-equiv-list">' + equivItemsHtml + '</div>' +
+      '</div>'
+    : '';
+
   body.innerHTML =
-    '<div class="sp-hero">' +
-      '<img class="sp-hero-coin" src="' + _coinDataUri() + '" alt="">' +
-      '<div class="sp-hero-label">올해의 종이값</div>' +
-      '<div class="sp-hero-num">\u20A9' + s.grandTotal.toLocaleString('ko-KR') + '</div>' +
-      '<div class="sp-hero-meta">' +
-        '올해 완독한 <b>' + s.grandCount + '권</b>의 합산값' +
-        (s.grandRegistered < s.grandCount
-          ? '<br>' + (s.grandCount - s.grandRegistered) + '권은 가격 비워두셔서 제외됨'
-          : '') +
+    '<div class="bfp-hero">' +
+      '<div class="bfp-pebble">' +
+        '<div class="bfp-pebble-dot"></div>' +
+        '<div class="bfp-pebble-lbl">' + tier + '</div>' +
+      '</div>' +
+      '<div class="bfp-hero-lbl">\uB0B4 \uC11C\uC7AC\uC758 \uAC00\uCE58</div>' +
+      '<div class="bfp-hero-amt">' + fmtN(s.grandTotal) + '</div>' +
+      '<div class="bfp-hero-cap">' +
+        '\uC9C0\uAE08\uAE4C\uC9C0 \uBAA8\uC740 \uCC45 <b>' + s.grandCount + '\uAD8C</b>\uC758 \uD569\uC0B0\uAC12.' + heroMissingNote +
+      '</div>' +
+      '<div class="bfp-hero-meta">' +
+        '<div class="bfp-meta-item">' +
+          '<div class="bfp-meta-num">' + s.grandCount.toLocaleString('ko-KR') + '<span class="unit">\uAD8C</span></div>' +
+          '<div class="bfp-meta-lbl">\uC644\uB3C5\uD55C \uAD8C\uC218</div>' +
+        '</div>' +
+        '<div class="bfp-meta-item">' +
+          '<div class="bfp-meta-num">' + s.perBookAvg.toLocaleString('ko-KR') + '<span class="unit">\uC6D0</span></div>' +
+          '<div class="bfp-meta-lbl">\uAD8C\uB2F9 \uD3C9\uADE0</div>' +
+        '</div>' +
+        '<div class="bfp-meta-item">' +
+          '<div class="bfp-meta-num">' + (s.monthlyAvg > 0 ? s.monthlyAvg.toLocaleString('ko-KR') : '\u2014') + '<span class="unit">' + (s.monthlyAvg > 0 ? '\uC6D0' : '') + '</span></div>' +
+          '<div class="bfp-meta-lbl">\uC6D4 \uD3C9\uADE0</div>' +
+        '</div>' +
       '</div>' +
     '</div>' +
+
+    equivCardHtml +
 
     '<div class="bf-milestone">' +
       '<div class="bfm-head">' +
