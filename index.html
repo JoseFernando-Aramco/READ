@@ -14731,67 +14731,79 @@ body.cn-locked {
 }
 
 /* 매체 카드 그리드 */
-.media-cards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-}
-.media-card-v2 {
-  position: relative;
-  padding: 14px 10px 12px;
-  border-radius: 6px;
+/* v1.10.0 — 매체 표시 (리스트 행 형태) */
+.media-rows {
+  background: #fff;
+  border: 1px solid var(--c-border, #e5e3d8);
+  border-radius: 12px;
   overflow: hidden;
-  text-align: center;
+}
+.media-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
   cursor: pointer;
-  transition: all .2s cubic-bezier(.2, .8, .2, 1);
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
-.media-card-v2:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.03);
+.media-row + .media-row {
+  border-top: 1px solid #f5f3ee;
 }
-.media-card-v2::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 30%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
-  pointer-events: none;
+.media-row:hover { background: #fafaf7; }
+.media-row.selected {
+  background: linear-gradient(90deg, #fef9e7 0%, #f7f0e5 100%);
 }
-.media-card-v2.paper { background: linear-gradient(160deg, #FAF5F0, #EDE0D0); border: 1px solid #D8C7B0; }
-.media-card-v2.ebook { background: linear-gradient(160deg, #F5EDE8, #E5D5C8); border: 1px solid #C7AC95; }
-.media-card-v2.audio { background: linear-gradient(160deg, #E6F5F1, #C8E5DC); border: 1px solid #95C0B5; }
-.media-card-v2.selected {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(139, 109, 61, 0.22);
-  border-width: 2px;
-  padding: 13px 9px 11px;
-}
-.media-card-v2.selected.paper { border-color: #6D4C41; }
-.media-card-v2.selected.ebook { border-color: #4E342E; }
-.media-card-v2.selected.audio { border-color: #0F766E; }
-.media-card-v2.selected::after {
+.media-row.selected .media-row-name { color: #b89968; font-weight: 700; }
+.media-row.selected::after {
   content: "✓";
   position: absolute;
-  top: 4px; right: 6px;
-  font-size: 11px;
+  right: 18px;
+  font-size: 12px;
   font-weight: 900;
-  color: rgba(0, 0, 0, 0.5);
+  color: #b89968;
 }
-.media-card-v2-emoji { font-size: 22px; margin-bottom: 3px; pointer-events: none; }
-.media-card-v2-name { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--c-text-2); margin-bottom: 6px; pointer-events: none; }
-.media-card-v2-amount {
-  font-size: 13px;
-  font-weight: 900;
+.media-row.selected { position: relative; padding-right: 36px; }
+
+.media-row.zero {
+  opacity: 0.5;
+}
+.media-row.zero .media-row-amount {
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.media-row-emoji {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+  pointer-events: none;
+}
+.media-row-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+.media-row-count {
+  font-size: 12px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.media-row-amount {
+  font-size: 14px;
+  font-weight: 800;
   color: var(--c-text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  margin-bottom: 2px;
+  min-width: 92px;
+  text-align: right;
   pointer-events: none;
 }
-.media-card-v2.paper .media-card-v2-amount { color: #5D3A28; }
-.media-card-v2.ebook .media-card-v2-amount { color: #4B2E20; }
-.media-card-v2.audio .media-card-v2-amount { color: #0E5C56; }
-.media-card-v2-count { font-size: 10.5px; color: var(--c-muted); font-weight: 600; pointer-events: none; }
 
 /* 섹션 타이틀 옆 힌트 */
 .sec-hint {
@@ -24383,7 +24395,10 @@ function wireBookDetailEvents() {
       // 데이터 즉시 저장
       updateBook(b.id, { isLifeBook: willBeActive });
       showToast(willBeActive ? '⭐ 인생책 등록' : '인생책 해제');
-      // 애니메이션 끝나면 렌더 (제목 옆 인생책 뱃지 등 갱신)
+      // v1.10.0 — 서재/통계 즉시 갱신 (명전 탭 필터링 등 백그라운드 반영)
+      try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+      try { renderAllStats && renderAllStats(); } catch(e){}
+      // 애니메이션 끝나면 책 상세 렌더 (제목 옆 뱃지 등 갱신)
       setTimeout(() => {
         if (typeof renderBookDetail === 'function') renderBookDetail();
       }, 800);
@@ -29415,13 +29430,17 @@ function _coinDataUri() {
 /* 모달 매체 카드 그리드 — 탭하면 책별 필터링 */
 function _renderMediaCard(fmt, icon, name, info) {
   const isSelected = _SPEND_SELECTED_FORMAT === fmt;
+  const isZero = info.count === 0 || info.total === 0;
   const amount = info.total.toLocaleString('ko-KR');
+  const classes = ['media-row', fmt];
+  if (isSelected) classes.push('selected');
+  if (isZero) classes.push('zero');
   return (
-    '<div class="media-card-v2 ' + fmt + (isSelected ? ' selected' : '') + '" data-format="' + fmt + '">' +
-      '<div class="media-card-v2-emoji">' + icon + '</div>' +
-      '<div class="media-card-v2-name">' + name + '</div>' +
-      '<div class="media-card-v2-amount">\u20A9' + amount + '</div>' +
-      '<div class="media-card-v2-count">' + info.count + '권</div>' +
+    '<div class="' + classes.join(' ') + '" data-format="' + fmt + '">' +
+      '<div class="media-row-emoji">' + icon + '</div>' +
+      '<div class="media-row-name">' + name + '</div>' +
+      '<div class="media-row-count">' + info.count + '권</div>' +
+      '<div class="media-row-amount">\u20A9' + amount + '</div>' +
     '</div>'
   );
 }
@@ -29684,7 +29703,7 @@ function _renderSpendModal() {
       '<div class="sp-sec-title">어디에 쌓였나' +
         (_SPEND_SELECTED_FORMAT ? ' <span class="sec-hint">\u00B7 탭하면 해제</span>' : ' <span class="sec-hint">\u00B7 탭하면 필터</span>') +
       '</div>' +
-      '<div class="media-cards-grid">' +
+      '<div class="media-rows">' +
         _renderMediaCard('paper', '\uD83D\uDCD5', '종이책', s.paper) +
         _renderMediaCard('ebook', '\uD83D\uDCF1', '전자책', s.ebook) +
         _renderMediaCard('audio', '\uD83C\uDFA7', '오디오북', s.audio) +
@@ -29909,7 +29928,7 @@ function closeSpendModal() {
   }
   function start(e) {
     // 콘텐츠/버튼/카드 영역 시작 드래그는 무시
-    if (e.target.closest('.book-edit-pane, .price-input, .book-edit-btn, .price-btn, .more-btn, .sp-more-btn, .media-card-v2[data-format], .media-card[data-format], .media-bar[data-format], .sp-close, .sp-row-card, .price-card')) return;
+    if (e.target.closest('.book-edit-pane, .price-input, .book-edit-btn, .price-btn, .more-btn, .sp-more-btn, .media-row[data-format], .media-card-v2[data-format], .media-card[data-format], .media-bar[data-format], .sp-close, .sp-row-card, .price-card')) return;
     // 핸들 zone이나 헤더 영역만
     const inDragArea = e.target.closest('#spendDragZone, .sp-head');
     if (!inDragArea) return;
@@ -30071,8 +30090,8 @@ function _renderPriceCard(b) {
   });
 
   document.addEventListener('click', (e) => {
-    // v1.8.0 — 매체 카드 클릭 → 책별 필터 토글
-    const mediaCard = e.target.closest('.media-card-v2[data-format]');
+    // v1.10.0 — 매체 행 클릭 → 책별 필터 토글
+    const mediaCard = e.target.closest('.media-row[data-format]');
     if (mediaCard) {
       const bd = document.getElementById('spendBackdrop');
       if (bd && bd.classList.contains('open')) {
