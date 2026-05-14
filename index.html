@@ -14187,6 +14187,48 @@ body.cn-locked {
   gap: 10px;
   padding: 10px 12px;
 }
+/* v1.10.0 — 시안 적용: rank 번호 (좌측) */
+.sp-row-rank {
+  width: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-label, #b0aca5);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+.sp-row-rank.gold { color: #b89968; }
+.sp-row-rank.muted { color: #d4d0c8; }
+/* v1.10.0 — 시안 적용: 실제 표지 (또는 gradient fallback) */
+.sp-row-cover {
+  width: 28px; height: 38px;
+  border-radius: 3px;
+  background: linear-gradient(140deg, #6D4C41, #4E342E);
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.sp-row-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* 표지 우상단 매체 뱃지 — 전자/오디오만 표시 (종이는 기본이라 생략) */
+.sp-row-fmt-badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+/* 옛 .sp-row-fmt 정사각형은 더 이상 사용 X (호환을 위해 정의는 남겨둠) */
 .sp-row-fmt {
   width: 22px; height: 22px;
   border-radius: 3px;
@@ -14380,12 +14422,12 @@ body.cn-locked {
 }
 .bfm-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
 }
 .bfm-step {
   text-align: center;
-  padding: 10px 2px 11px;
+  padding: 8px 1px 9px;
   background: #FAFAFA;
   border: 1px solid #F0EDE8;
   border-radius: 4px;
@@ -14393,7 +14435,7 @@ body.cn-locked {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .bfm-step.reached {
   background: var(--c-surface);
@@ -14406,16 +14448,21 @@ body.cn-locked {
   transform: translateY(-2px);
 }
 .bfm-stack {
-  width: 32px; height: 30px;
-  display: block;
+  width: 26px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
 }
 .bfm-step:not(.reached):not(.current) .bfm-stack { opacity: 0.32; }
 .bfm-name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--c-text-2);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   margin-top: 2px;
+  white-space: nowrap;
 }
 .bfm-step:not(.reached):not(.current) .bfm-name { color: #B8B0A8; }
 .bfm-progress {
@@ -14467,12 +14514,12 @@ body.cn-locked {
 }
 .bfm-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
 }
 .bfm-step {
   text-align: center;
-  padding: 10px 2px 11px;
+  padding: 8px 1px 9px;
   background: #FAFAFA;
   border: 1px solid #F0EDE8;
   border-radius: 4px;
@@ -14480,7 +14527,7 @@ body.cn-locked {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .bfm-step.reached {
   background: var(--c-surface);
@@ -14495,7 +14542,11 @@ body.cn-locked {
 .bfm-stack {
   width: 32px;
   height: 30px;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
 }
 .bfm-step:not(.reached):not(.current) .bfm-stack { opacity: 0.32; }
 .bfm-name {
@@ -28919,20 +28970,24 @@ document.addEventListener('keydown', (e) => {
    ═══════════════════════════════════════════════════════════ */
 
 const SPEND_MILESTONES = [
-  { value: 100000,  label: '10만',  stack: 1 },
-  { value: 300000,  label: '30만',  stack: 2 },
-  { value: 500000,  label: '50만',  stack: 3 },
-  { value: 1000000, label: '100만', stack: 5 },
-  { value: 1500000, label: '150만', stack: 7 },
+  { value: 100000,  label: '10만',  stack: 1, icon: '🪙' },
+  { value: 500000,  label: '50만',  stack: 2, icon: '📚' },
+  { value: 1000000, label: '100만', stack: 3, icon: '📖' },
+  { value: 1500000, label: '150만', stack: 5, icon: '🏠' },
+  { value: 2000000, label: '200만', stack: 5, icon: '✨' },
+  { value: 2500000, label: '250만', stack: 7, icon: '👑' },
+  { value: 3000000, label: '300만', stack: 7, icon: '🏆' },
 ];
 
 /* 마일스톤 도달 시 표시할 메시지 (값별로 톤이 다름) */
 const _MILESTONE_TOAST = {
   100000:  '🪙 첫 10만 통과',
-  300000:  '📚 30만 도달',
   500000:  '📖 50만 통과',
   1000000: '🏠 100만 — 한 책장 완성',
   1500000: '🎩 150만 — 책 부자 인정',
+  2000000: '✨ 200만 도달',
+  2500000: '👑 250만 — 컬렉터 인증',
+  3000000: '🏆 300만 — 황금서재 달성',
 };
 
 /* 이미 도달 알림한 마일스톤 (1회만 알림 — 중복 방지) */
@@ -29094,7 +29149,7 @@ function _renderMediaCard(fmt, icon, name, info) {
 }
 
 /* 모달 안 책별 종이값 행 — .price-card 재활용 (위임 편집 핸들러 그대로 작동) */
-function _renderSpendBookRow(b) {
+function _renderSpendBookRow(b, rank) {
   const fmt = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
   const fmtIcon = fmt === 'audio' ? '\uD83C\uDFA7' : fmt === 'ebook' ? '\uD83D\uDCF1' : '\uD83D\uDCD5';
   const list = (typeof b.priceList === 'number' && b.priceList > 0) ? b.priceList : null;
@@ -29106,10 +29161,28 @@ function _renderSpendBookRow(b) {
     ? '<div class="sp-row-price">\u20A9' + sale.toLocaleString('ko-KR') + '</div>'
     : '<div class="sp-row-price empty">빈칸</div>';
 
+  // v1.10.0 — rank 번호 (1위는 골드, 가격 미입력은 muted)
+  const rankNum = (typeof rank === 'number' && rank > 0) ? rank : 0;
+  let rankCls = '';
+  if (sale == null) rankCls = ' muted';
+  else if (rankNum === 1) rankCls = ' gold';
+  const rankStr = rankNum > 0 ? String(rankNum).padStart(2, '0') : '—';
+  const rankHtml = '<div class="sp-row-rank' + rankCls + '">' + rankStr + '</div>';
+
+  // v1.10.0 — 실제 표지 이미지 (있으면) + 매체 뱃지 (종이 외)
+  const coverImgHtml = b.coverUrl
+    ? '<img src="' + _spEsc(b.coverUrl) + '" alt="" onerror="this.style.display=\'none\'">'
+    : '';
+  const fmtBadgeHtml = (fmt !== 'paper')
+    ? '<div class="sp-row-fmt-badge">' + fmtIcon + '</div>'
+    : '';
+  const coverHtml = '<div class="sp-row-cover">' + coverImgHtml + fmtBadgeHtml + '</div>';
+
   return (
     '<div class="price-card sp-row-card" data-book-id="' + _spEsc(b.id) + '">' +
       '<div class="price-display">' +
-        '<div class="sp-row-fmt ' + fmt + '">' + fmtIcon + '</div>' +
+        rankHtml +
+        coverHtml +
         '<div class="sp-row-info">' +
           '<div class="sp-row-title">' + _spEsc(b.title) + '</div>' +
           '<div class="sp-row-author">' + _spEsc(b.author || '') + '</div>' +
@@ -29254,11 +29327,11 @@ function _renderSpendModal() {
     if (i < currentIdx) cls = 'reached';
     else if (i === currentIdx || (currentIdx === SPEND_MILESTONES.length && i === SPEND_MILESTONES.length - 1)) cls = 'current';
     return '<div class="bfm-step ' + cls + '">' +
-      '<svg class="bfm-stack"><use href="#bf-stack-' + mil.stack + '"/></svg>' +
+      '<div class="bfm-stack">' + (mil.icon || '🪙') + '</div>' +
       '<div class="bfm-name">' + mil.label + '</div>' +
     '</div>';
   }).join('');
-  const _msLabel = ms.next ? ('다음은 ' + ms.next.label) : '두 책장 완성';
+  const _msLabel = ms.next ? ('다음은 ' + ms.next.label) : '황금서재달성';
   const _msRemain = ms.next
     ? ('\u20A9' + milestoneRemain.toLocaleString('ko-KR') + ' 남음')
     : '모든 단계 통과 \uD83C\uDF89';
@@ -29374,7 +29447,7 @@ function _renderSpendModal() {
       let html = '<div class="sp-books-section">' +
         '<div class="sp-sec-title">' + sectionTitle + '</div>' +
         '<div class="sp-books-list">' +
-          visible.map(function(b) { return _renderSpendBookRow(b); }).join('') +
+          visible.map(function(b, i) { return _renderSpendBookRow(b, i + 1); }).join('') +
         '</div>';
 
       if (remaining > 0) {
