@@ -500,6 +500,50 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .coin-btn:not(.unseen) .coin-new-dot { display: none; }
 
+/* v1.10.0 — 헤더 PWA 설치 안내 버튼 (검색 옆) */
+.install-btn { position: relative; padding: 6px; }
+.install-btn .ic-install {
+  width: 22px; height: 22px;
+  stroke: var(--c-text-2);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+.install-btn.unseen::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: rgba(184, 153, 104, 0.32);
+  animation: install-pulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.install-btn.unseen .ic-install {
+  stroke: #b89968;
+  position: relative;
+  z-index: 1;
+}
+.install-new-dot {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 7px; height: 7px;
+  background: #D4544A;
+  border-radius: 50%;
+  border: 2px solid var(--c-canvas);
+  z-index: 2;
+}
+.install-btn:not(.unseen) .install-new-dot { display: none; }
+/* PWA로 이미 실행 중이면 버튼 자체 숨김 */
+.install-btn.installed { display: none; }
+
+@keyframes install-pulse {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
 @keyframes coin-pulse {
   0%, 100% { transform: scale(1); opacity: 0.5; }
   50% { transform: scale(1.65); opacity: 0; }
@@ -10031,6 +10075,211 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .wn-modal.open .wn-card { transform: scale(1); }
 
+/* ═══════════ v1.10.0 — PWA 설치 안내 모달 ═══════════ */
+.ig-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.ig-modal.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ig-card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 32px 24px 24px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  transform: scale(0.94);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ig-modal.open .ig-card { transform: scale(1); }
+
+.ig-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  border-radius: 50%;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ig-close:active { background: rgba(0, 0, 0, 0.08); }
+
+/* 아이콘 변환 비주얼 */
+.ig-icon-row {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.ig-icon-stack {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.ig-icon-box {
+  width: 44px;
+  height: 44px;
+  background: var(--c-surface);
+  border: 2px solid var(--c-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  color: var(--c-text);
+}
+.ig-icon-box svg { width: 20px; height: 20px; }
+.ig-icon-arrow {
+  font-size: 16px;
+  color: #b89968;
+}
+.ig-icon-home {
+  background: linear-gradient(135deg, #f5d76e, #b89968);
+  border-color: #b89968;
+  color: white;
+}
+
+/* 제목 / 부제 */
+.ig-ttl {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+  color: var(--c-text);
+}
+.ig-sub {
+  font-size: 12px;
+  color: var(--c-text-2);
+  text-align: center;
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+
+/* iOS / Android 토글 */
+.ig-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: 18px;
+  background: var(--c-surface-2, #faf9f3);
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid var(--c-border);
+}
+.ig-platform-btn {
+  padding: 9px;
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  font-family: inherit;
+}
+.ig-platform-btn.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* 단계 */
+.ig-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ig-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.ig-step-num {
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #b89968, #8b6238);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+  box-shadow: 0 2px 5px rgba(184, 153, 104, 0.3);
+}
+.ig-step-body { flex: 1; }
+.ig-step-ttl {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 3px;
+  letter-spacing: -0.01em;
+}
+.ig-step-sub {
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+}
+.ig-step-sub b {
+  color: var(--c-text);
+  font-weight: 700;
+}
+
+/* 키 박스 */
+.ig-key {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin: 0 1px;
+  line-height: 1.4;
+}
+
+/* 하단 노트 */
+.ig-note {
+  margin-top: 18px;
+  padding: 10px 12px;
+  background: var(--c-surface-2, #faf9f3);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  border-left: 3px solid #b89968;
+}
+.ig-note b {
+  color: var(--c-text);
+  font-weight: 700;
+}
+
 .wn-skip {
   position: absolute;
   top: 14px; right: 14px;
@@ -15334,6 +15583,13 @@ body.cn-locked {
       <span class="read-mark">READ</span>
     </div>
     <div class="header-actions">
+      <button class="header-btn install-btn unseen" id="installBtn" aria-label="앱처럼 설치하기">
+        <svg class="ic-install" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="5" y="2" width="14" height="20" rx="2"/>
+          <path d="M12 10 v6 M9 13 l3 3 3-3"/>
+        </svg>
+        <span class="install-new-dot"></span>
+      </button>
       <button class="header-btn" aria-label="검색"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-search"/></svg></button>
       
       <button class="header-btn" aria-label="설정" style="display:none"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-settings"/></svg></button>
@@ -15779,6 +16035,11 @@ body.cn-locked {
     <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
       <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div><div class="kbm-item-sub">v1.9.0 · 패치노트</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+    <button class="kbm-item" onclick="kbmCall('openInstallGuide', '설치 안내 준비 중')">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">앱처럼 설치하기</div><div class="kbm-item-sub">홈 화면에 추가 · 빠른 접속</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
     <button class="kbm-item kbm-support" onclick="kbmOpenSupport()">
@@ -16849,7 +17110,105 @@ body.cn-locked {
   </div>
 </div>
 
-<!-- ═══════════ 문의하기 모달 ═══════════ -->
+<!-- ═══════════ v1.10.0 — PWA 설치 안내 모달 ═══════════ -->
+<div class="ig-modal" id="igModal" aria-hidden="true">
+  <div class="ig-card">
+    <button class="ig-close" id="igClose" aria-label="닫기">✕</button>
+
+    <div class="ig-icon-row">
+      <div class="ig-icon-stack">
+        <div class="ig-icon-box">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 5 L22 5 A4 4 0 0 1 26 9 L26 24 A2.5 2.5 0 0 1 23.5 26.5 L9.5 26.5 A2.5 2.5 0 0 1 7 24 L7 5 Z"/>
+            <path d="M11 5 L11 12 L14 10 L17 12 L17 5"/>
+          </svg>
+        </div>
+        <span class="ig-icon-arrow">→</span>
+        <div class="ig-icon-box ig-icon-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="ig-ttl">홈 화면에 READ 설치하기</div>
+    <div class="ig-sub">한 번 추가하면 아이콘 한 번으로<br/>매번 빠르게 열어볼 수 있어요</div>
+
+    <div class="ig-toggle">
+      <button class="ig-platform-btn active" data-platform="ios">iPhone</button>
+      <button class="ig-platform-btn" data-platform="android">Android</button>
+    </div>
+
+    <!-- iOS 단계 -->
+    <div class="ig-steps" id="igStepsIos">
+      <div class="ig-step">
+        <div class="ig-step-num">1</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">Safari로 READ 접속</div>
+          <div class="ig-step-sub">Chrome이 아니라 <b>Safari</b>에서 열어주세요. iPhone은 Safari에서만 홈 화면에 추가할 수 있어요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">2</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">하단 공유 버튼 누르기</div>
+          <div class="ig-step-sub"><span class="ig-key">⤴ 공유</span> 아이콘이 화면 아래쪽 중앙에 있어요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">3</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">"홈 화면에 추가" 선택</div>
+          <div class="ig-step-sub">메뉴를 아래로 스크롤하면 보여요. 안 보이면 "더 보기" 눌러보세요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">4</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">우상단 "추가" 탭</div>
+          <div class="ig-step-sub">우상단 <span class="ig-key">추가</span> 버튼 누르면 홈 화면에 아이콘이 생겨요</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android 단계 -->
+    <div class="ig-steps" id="igStepsAndroid" hidden>
+      <div class="ig-step">
+        <div class="ig-step-num">1</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">Chrome으로 READ 접속</div>
+          <div class="ig-step-sub">대부분 안드로이드는 <b>Chrome</b>이 기본이지만, 다른 브라우저면 Chrome으로 열어주세요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">2</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">우상단 더보기 메뉴</div>
+          <div class="ig-step-sub">주소창 옆 <span class="ig-key">⋮</span> 점 세 개 아이콘을 누르세요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">3</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">"앱 설치" 또는 "홈 화면에 추가"</div>
+          <div class="ig-step-sub">기종에 따라 표시 문구가 달라요. 둘 다 같은 기능이에요</div>
+        </div>
+      </div>
+      <div class="ig-step">
+        <div class="ig-step-num">4</div>
+        <div class="ig-step-body">
+          <div class="ig-step-ttl">"설치" 또는 "추가" 탭</div>
+          <div class="ig-step-sub">잠시 후 홈 화면에 READ 아이콘이 나타나요</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ig-note">
+      💡 <b>설치 후</b> · 인터넷이 없어도 일부 기능을 사용할 수 있어요. 데이터는 모두 기기에 저장됩니다
+    </div>
+  </div>
+</div>
 <div class="ct-backdrop" id="ctBackdrop"></div>
 <div class="ct-modal" id="ctModal" aria-hidden="true">
   <div class="ct-card">
@@ -29389,6 +29748,33 @@ document.addEventListener('keydown', (e) => {
   });
 })();
 
+/* v1.10.0 — 헤더 PWA 설치 안내 버튼 (read.installSeen 펄스 토글) */
+(function wireInstallBtn() {
+  const btn = document.getElementById('installBtn');
+  if (!btn || btn.dataset.installWired) return;
+  btn.dataset.installWired = '1';
+
+  // 이미 PWA로 실행 중이면 버튼 자체 숨김 (설치 안내 불필요)
+  // - display-mode: standalone → 홈 화면 아이콘으로 열린 상태
+  // - iOS: navigator.standalone === true
+  const isStandalone =
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+  if (isStandalone) {
+    btn.classList.add('installed');
+    return;
+  }
+
+  // 한 번이라도 본 사용자: 펄스만 끄고 버튼은 유지 (다시 보고 싶을 수 있으니)
+  if (STORE.get('installSeen', false)) btn.classList.remove('unseen');
+
+  btn.addEventListener('click', () => {
+    btn.classList.remove('unseen');
+    STORE.set('installSeen', true);
+    if (typeof openInstallGuide === 'function') openInstallGuide();
+  });
+})();
+
 /* ═══════════════════════════════════════════════════════════
    v1.8.0 — 종이값 (책에 들인 돈)
    합산 로직 + 모달 렌더 + 마일스톤
@@ -33544,6 +33930,50 @@ function closeWhatsNew() {
   // 본 것으로 표시
   try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
 }
+
+/* v1.10.0 — PWA 설치 안내 모달 */
+function openInstallGuide() {
+  const modal = document.getElementById('igModal');
+  if (!modal) return;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+function closeInstallGuide() {
+  const modal = document.getElementById('igModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+/* iOS / Android 토글 + 닫기 핸들러 */
+(function wireInstallGuide() {
+  const modal = document.getElementById('igModal');
+  if (!modal || modal.dataset.igWired) return;
+  modal.dataset.igWired = '1';
+
+  // 토글 버튼
+  modal.querySelectorAll('.ig-platform-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const platform = btn.dataset.platform;
+      modal.querySelectorAll('.ig-platform-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const iosEl = document.getElementById('igStepsIos');
+      const andEl = document.getElementById('igStepsAndroid');
+      if (iosEl) iosEl.hidden = (platform !== 'ios');
+      if (andEl) andEl.hidden = (platform !== 'android');
+    });
+  });
+
+  // X 닫기
+  const closeBtn = document.getElementById('igClose');
+  if (closeBtn) closeBtn.addEventListener('click', closeInstallGuide);
+
+  // 배경 클릭 닫기
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeInstallGuide();
+  });
+})();
 
 /* 간단한 semver 비교 — v1.0.2 < v1.3.0 판단 */
 function _versionLower(a, b) {
