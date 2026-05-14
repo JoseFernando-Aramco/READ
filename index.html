@@ -3407,6 +3407,92 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   white-space: nowrap;
 }
 
+/* v1.10.0 — 인생책 별 마크 (책 상세 hero 우상단 FAB · 시안 E 채택) */
+.bd-hero { position: relative; }
+.star-fab {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 50px;
+  height: 50px;
+  background: #fafaf7;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f0ede7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-fab:active { transform: scale(0.92); }
+.star-fab svg {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  transition: all 0.3s;
+}
+.star-fab .star-fab-icon {
+  fill: #ebe8e0;
+  stroke: #d8d4ca;
+  stroke-width: 1.5;
+  transition: all 0.3s ease;
+}
+.star-fab .star-fab-label {
+  font-size: 6.5px;
+  font-weight: 700;
+  color: #c4bfb5;
+  letter-spacing: 0.6px;
+  margin-top: 2px;
+  text-align: center;
+  line-height: 1;
+  transition: color 0.3s;
+}
+.star-fab.active {
+  background: linear-gradient(135deg, #fef9e7 0%, #f7f0e5 100%);
+  border-color: #b89968;
+  box-shadow: 0 2px 12px rgba(212, 165, 116, 0.35);
+}
+.star-fab.active .star-fab-icon {
+  fill: url(#starFabGrad);
+  stroke: #b89968;
+  filter: drop-shadow(0 0 4px rgba(245, 215, 110, 0.6));
+}
+.star-fab.active .star-fab-label { color: #b89968; }
+
+@keyframes star-fab-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.star-fab.popping {
+  animation: star-fab-pop 0.5s ease-out;
+}
+@keyframes star-fab-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 215, 110, 0.7), 0 2px 12px rgba(212, 165, 116, 0.35); }
+  100% { box-shadow: 0 0 0 20px rgba(245, 215, 110, 0), 0 2px 12px rgba(212, 165, 116, 0.35); }
+}
+.star-fab.glowing {
+  animation: star-fab-pop 0.5s ease-out, star-fab-glow 0.8s ease-out;
+}
+@keyframes star-fab-sparkle {
+  0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: scale(2.2) rotate(180deg); opacity: 0; }
+}
+.star-fab-sparkle {
+  position: absolute;
+  width: 6px; height: 6px;
+  pointer-events: none;
+  font-size: 11px;
+  animation: star-fab-sparkle 0.65s ease-out forwards;
+  z-index: 3;
+}
+
 /* Confirm 시트 · 인생책 토글 */
 .lifebook-toggle {
   display: flex; align-items: flex-start; gap: 12px;
@@ -15036,6 +15122,12 @@ body.cn-locked {
       <stop offset="0%"   style="stop-color:#d4a76a"/>
       <stop offset="100%" style="stop-color:#7d5620"/>
     </linearGradient>
+    <!-- v1.10.0 — 인생책 별 마크용 밝은 골드 그라디언트 -->
+    <linearGradient id="starFabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d76e"/>
+      <stop offset="60%" stop-color="#d4a574"/>
+      <stop offset="100%" stop-color="#b89968"/>
+    </linearGradient>
   </defs>
 </svg>
 
@@ -20226,14 +20318,9 @@ function updateLifebookToggle() {
     sub.textContent = '완독한 책만 인생책으로 등록할 수 있어요';
   } else {
     toggle.classList.toggle('checked', !!BA.isLifeBook);
-    const currentCount = BOOKS.filter(x => x.isLifeBook).length;
-    if (currentCount >= 100) {
-      sub.textContent = '이미 100권이 다 찼어요. 기존 인생책을 정리해주세요';
-    } else {
-      sub.textContent = BA.isLifeBook
-        ? '⭐ 선택 완료 · 로그·통계에서 특별 표시돼요'
-        : '두번 세번 다시 읽고 싶은 책을 체크해주세요';
-    }
+    sub.textContent = BA.isLifeBook
+      ? '⭐ 선택 완료 · 로그·통계에서 특별 표시돼요'
+      : '두번 세번 다시 읽고 싶은 책을 체크해주세요';
   }
   const currentCount = BOOKS.filter(x => x.isLifeBook).length;
   count.textContent = `${currentCount} / 100`;
@@ -20900,15 +20987,10 @@ _wireDragRating(document.getElementById('confirmStars'), {
   },
 });
 
-// 인생책 토글
+// 인생책 토글 (책 추가 폼) — v1.10.0: 100권 제한 제거
 document.getElementById('lifebookToggle').addEventListener('click', () => {
   const toggle = document.getElementById('lifebookToggle');
   if (toggle.classList.contains('disabled')) return;
-  const currentCount = BOOKS.filter(x => x.isLifeBook).length;
-  if (!BA.isLifeBook && currentCount >= 100) {
-    showToast('인생책 한도 100권이 찼어요');
-    return;
-  }
   BA.isLifeBook = !BA.isLifeBook;
   updateLifebookToggle();
 });
@@ -23435,6 +23517,13 @@ function renderBookDetail() {
 
     <!-- Hero 통합: 커버 + 타이틀 + 메타 + 상태 + (reading시 진행률) -->
     <div class="bd-hero bd-hero-unified">
+      ${done || b.isLifeBook ? `
+      <!-- v1.10.0 — 인생책 별 마크 (시안 E · 블록 내 우상단) -->
+      <div class="star-fab ${b.isLifeBook ? 'active' : ''}" id="bdStarFab" role="button" tabindex="0" aria-label="${b.isLifeBook ? '인생책 등록 해제' : '인생책으로 등록'}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-fab-icon" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <div class="star-fab-label">HALL OF FAME</div>
+      </div>
+      ` : ''}
       <div class="bd-hero-top">
         <button type="button" class="bd-hero-cover bd-hero-cover-btn" id="bdCoverBtn" aria-label="표지 변경">
           ${cover}
@@ -23547,24 +23636,6 @@ function renderBookDetail() {
         <button type="button" class="memo-save-btn idle" id="bdReadingNoteSave" disabled>저장</button>
       </div>
       <textarea class="bd-reading-note" id="bdReadingNote" placeholder="예: 싱클레어 — 주인공 · 10살 소년&#10;데미안 — 전학생, 싱클레어보다 어른스러움&#10;크로머 — 싱클레어를 괴롭히는 동네 불량배" maxlength="2000" rows="4">${esc(b.readingNote || '')}</textarea>
-    </div>
-    ` : ''}
-
-    ${done || b.isLifeBook ? `
-    <!-- 인생책 -->
-    <div class="bd-section">
-      <div class="bd-section-lbl">인생책 <span class="subct">${BOOKS.filter(x => x.isLifeBook).length} / 100</span></div>
-      <div class="lifebook-toggle ${b.isLifeBook?'checked':''}" id="bdLifebookToggle" role="button" tabindex="0">
-        <div class="lifebook-toggle-check"></div>
-        <div class="lifebook-toggle-body">
-          <div class="lifebook-toggle-ttl">
-            <span>⭐ ${b.isLifeBook ? '인생책 등록됨' : '인생책으로 등록'}</span>
-          </div>
-          <div class="lifebook-toggle-sub">
-            ${b.isLifeBook ? '로그·통계에서 특별 표시됨' : '두번 세번 다시 읽고 싶은 책을 체크해주세요'}
-          </div>
-        </div>
-      </div>
     </div>
     ` : ''}
 
@@ -24101,18 +24172,51 @@ function wireBookDetailEvents() {
     });
   });
 
-  // 인생책 토글
-  const lbt = document.getElementById('bdLifebookToggle');
+  // v1.10.0 — 인생책 별 FAB sparkle 입자 6개 펑
+  function _spawnStarFabSparkles(starEl) {
+    const cx = starEl.offsetWidth / 2;
+    const cy = starEl.offsetHeight / 2;
+    const colors = ['\u2726', '\u2727', '\u22c6', '\u2728'];  // ✦✧⋆✨
+    for (let i = 0; i < 6; i++) {
+      const p = document.createElement('span');
+      p.className = 'star-fab-sparkle';
+      p.textContent = colors[Math.floor(Math.random() * colors.length)];
+      p.style.color = i % 2 === 0 ? '#f5d76e' : '#d4a574';
+      const angle = (Math.PI * 2 / 6) * i;
+      const dist = 22;
+      p.style.left = (cx + Math.cos(angle) * dist - 3) + 'px';
+      p.style.top  = (cy + Math.sin(angle) * dist - 3) + 'px';
+      starEl.appendChild(p);
+      setTimeout(() => { try { p.remove(); } catch(e){} }, 750);
+    }
+  }
+
+  // v1.10.0 — 인생책 별 FAB (시안 E · 100권 제한 제거 + 반짝 애니메이션)
+  const lbt = document.getElementById('bdStarFab');
   if (lbt) {
-    lbt.addEventListener('click', () => {
-      const count = BOOKS.filter(x => x.isLifeBook && x.id !== b.id).length;
-      if (!b.isLifeBook && count >= 100) {
-        showToast('인생책 한도 100권이 찼어요');
-        return;
+    const trigger = () => {
+      const willBeActive = !b.isLifeBook;
+      // 즉시 시각 토글 (DOM 다시 그려지기 전에 애니메이션 시작)
+      lbt.classList.toggle('active', willBeActive);
+      lbt.classList.remove('popping', 'glowing');
+      void lbt.offsetWidth;  // reflow → 애니메이션 재시작
+      if (willBeActive) {
+        lbt.classList.add('glowing');
+        _spawnStarFabSparkles(lbt);
+      } else {
+        lbt.classList.add('popping');
       }
-      updateBook(b.id, { isLifeBook: !b.isLifeBook });
-      renderBookDetail();
-      showToast(b.isLifeBook ? '⭐ 인생책 등록' : '인생책 해제');
+      // 데이터 즉시 저장
+      updateBook(b.id, { isLifeBook: willBeActive });
+      showToast(willBeActive ? '⭐ 인생책 등록' : '인생책 해제');
+      // 애니메이션 끝나면 렌더 (제목 옆 인생책 뱃지 등 갱신)
+      setTimeout(() => {
+        if (typeof renderBookDetail === 'function') renderBookDetail();
+      }, 800);
+    };
+    lbt.addEventListener('click', trigger);
+    lbt.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger(); }
     });
   }
 
