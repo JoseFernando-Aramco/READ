@@ -7320,8 +7320,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   justify-content: flex-end;  /* v1.10.0 — ISBN 제거 후 검색 버튼만 우측 정렬 */
   gap: 8px;
   margin-top: auto;           /* 콘텐츠 하단으로 밀어내기 → 표지 하단과 정렬 */
-  padding-top: 12px;
-  border-top: 1px dashed var(--c-border);
+  padding-top: 8px;           /* v1.10.0 — 점선 제거에 따라 padding 축소 */
   flex-wrap: wrap;
 }
 .bd-isbn-box {
@@ -23560,8 +23559,8 @@ function renderBookDetail() {
             ${hasAnyMeta ? `
             <div class="bd-meta-list">
               ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
-              ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
               ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
+              ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
             </div>` : ''}
             <div class="bd-meta-footer">
@@ -23617,15 +23616,15 @@ function renderBookDetail() {
         </div>
         <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
       </div>
-      `) : `
-      <!-- 페이지 수 편집 (위시/완독) -->
+      `) : (!b.pages ? `
+      <!-- 페이지 수 편집 (위시/완독) — v1.10.0: b.pages 비어있을 때만 fallback 표시 -->
       <div class="bd-hero-pages">
         <span class="bd-hero-pages-lbl">페이지 수</span>
         <input type="number" class="bd-progress-input bd-hero-pages-input" id="bdTotalPagesInput"
-               value="${b.pages}" min="1" max="20000" aria-label="총 페이지 수">
+               value="${b.pages || ''}" min="1" max="20000" aria-label="총 페이지 수">
         <span class="bd-progress-unit">p</span>
       </div>
-      `}
+      ` : '')}
     </div>
 
     ${!wish ? `
