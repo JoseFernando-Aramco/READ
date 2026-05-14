@@ -5367,6 +5367,63 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* ─── Stage 2: 추가 확인 ─── */
+
+/* v1.10.0 — 검색 입력 시 정확한 메타데이터 보강 진행 표시 */
+.enrich-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin: -10px 0 14px;
+  background: linear-gradient(90deg, var(--c-surface), var(--c-surface-2));
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--c-text-2);
+  animation: enrich-progress-fade 0.3s ease-out;
+}
+.enrich-progress.done {
+  background: linear-gradient(90deg, #f7f0e5, #fef9e7);
+  border-color: #d4b88e;
+  color: #8b6d3d;
+}
+.enrich-progress-spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: #b89968;
+  border-radius: 50%;
+  animation: enrich-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.enrich-progress.done .enrich-progress-spinner {
+  border: none;
+  animation: none;
+  background: #d4b88e;
+  position: relative;
+}
+.enrich-progress.done .enrich-progress-spinner::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+}
+.enrich-progress-text {
+  flex: 1;
+  font-weight: 500;
+}
+@keyframes enrich-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes enrich-progress-fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .confirm-preview {
   display: flex; gap: 14px;
   padding: 16px;
@@ -15997,6 +16054,12 @@ body.cn-locked {
         <!-- JS 렌더 -->
       </div>
 
+      <!-- v1.10.0 — 정확한 메타데이터 매칭 진행 표시 -->
+      <div class="enrich-progress" id="enrichProgress" hidden>
+        <div class="enrich-progress-spinner"></div>
+        <div class="enrich-progress-text" id="enrichProgressText">조회 중…</div>
+      </div>
+
       <!-- 페이지 수 (API 부정확 시 수정 가능) -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">페이지 수</div>
@@ -19926,63 +19989,158 @@ async function quickAddToWish(idx, btnEl) {
 }
 
 async function selectBook(normalizedBook) {
-  let pages = normalizedBook.pages;
-  let pagesFromApi = !!pages;
-
-  // 이미 페이지 있으면 (Google Books 원서 등) 바로 진행
-  if (pages) {
-    BA.selected = { ...normalizedBook, pages };
-    BA.pagesFromApi = true;
-    BA.tagsSelected = [];
-    goToStage('confirm');
-    renderConfirm();
-    return;
-  }
-
-  // 페이지 없음 → 먼저 stage 이동 + 조회 중 UI
-  BA.selected = { ...normalizedBook, pages: 0 };
-  BA.pagesFromApi = false;
+  // v1.10.0 — 즉시 confirm 화면 표시 + 백그라운드 정확한 메타데이터 보강
+  BA.selected = { ...normalizedBook };
+  BA.pagesFromApi = !!normalizedBook.pages;
   BA.tagsSelected = [];
   goToStage('confirm');
   renderConfirm();
 
-  // 백그라운드에서 3단계 순차 보강
-  const result = await _enrichPages(normalizedBook);
+  // 임포트와 동일한 패턴으로 누락된 메타데이터 보강 (cover / price / pages)
+  _enrichSelectedBookInBackground(normalizedBook);
+}
 
-  // 사용자가 그 사이 다른 책을 선택했다면 중단
-  if (!BA.selected || BA.selected.isbn !== normalizedBook.isbn || BA.selected.title !== normalizedBook.title) return;
+/* v1.10.0 — 검색 결과 선택 시 정확한 메타데이터를 다른 source에서 보강.
+   ① /book 통합 캐시 (4 source 합성) 우선 → 캐시 hit이면 외부 API 0번
+   ② 그래도 누락된 항목만 _enrichBookItem 폴백 */
+async function _enrichSelectedBookInBackground(originalBook) {
+  if (!BA.selected) return;
 
-  if (result.pages) {
-    BA.selected.pages = result.pages;
-    BA.pagesFromApi = true;
-    const pagesInput = document.getElementById('confirmPages');
-    const pagesHint = document.getElementById('pagesHint');
-    if (pagesInput && !pagesInput.value) pagesInput.value = result.pages;
-    if (pagesHint) {
-      pagesHint.className = 'pages-hint';
-      const sourceLabel = {
-        aladin: '알라딘에서',
-        contents: '책 소개에서',
-        isbn: 'ISBN으로',
-        title: '제목·저자로',
-      }[result.source] || '자동으로';
-      pagesHint.textContent = `${sourceLabel} 조회했어요. 실제와 다르면 수정하세요`;
+  const setProgress = (text, cls) => {
+    const el = document.getElementById('enrichProgress');
+    const txt = document.getElementById('enrichProgressText');
+    if (!el || !txt) return;
+    el.hidden = false;
+    el.className = 'enrich-progress' + (cls ? ' ' + cls : '');
+    txt.textContent = text;
+  };
+  const hideProgress = () => {
+    const el = document.getElementById('enrichProgress');
+    if (el) el.hidden = true;
+  };
+  const isStale = () => !BA.selected ||
+    BA.selected.title !== originalBook.title ||
+    (BA.selected.isbn || '') !== (originalBook.isbn || '');
+
+  // 필요한 항목 (누락된 것만 보강)
+  const needCover = () => !BA.selected.cover && !BA.selected.coverUrl;
+  const needPrice = () => BA.selected.priceSales == null;
+  const needPages = () => !BA.selected.pages || BA.selected.pages === 0;
+
+  if (!needCover() && !needPrice() && !needPages()) {
+    return;  // 이미 완벽 — 진행 표시 X
+  }
+
+  let touched = false;
+
+  // ─── ① /book 통합 캐시 호출 (worker가 4 source 합성·캐싱) ───
+  //     캐시 hit이면 외부 API 0번 호출로 모든 누락 필드 한 번에 보강
+  //     miss여도 worker가 합성·캐싱 → 다음 사용자에게 이득
+  if (typeof _fetchBookFromWorker === 'function') {
+    setProgress('조회 중…');
+    try {
+      const cleanIsbn = BA.selected.isbn ? String(BA.selected.isbn).replace(/[-\s]/g, '') : '';
+      const isbnValid = cleanIsbn && (/^97[89]\d{10}$/.test(cleanIsbn) || /^\d{9}[\dX]$/i.test(cleanIsbn));
+      const workerBook = await _fetchBookFromWorker({
+        isbn: isbnValid ? cleanIsbn : '',
+        title: BA.selected.title,
+        author: BA.selected.author,
+      });
+      if (isStale()) { hideProgress(); return; }
+      if (workerBook) {
+        // 누락된 필드만 보강 (기존 값 보존)
+        if (needCover() && workerBook.cover) {
+          BA.selected.cover = workerBook.cover;
+          touched = true;
+        }
+        if (needPrice() && typeof workerBook.priceSales === 'number' && workerBook.priceSales > 0) {
+          BA.selected.priceSales = workerBook.priceSales;
+          if (typeof workerBook.priceList === 'number' && workerBook.priceList > 0) {
+            BA.selected.priceList = workerBook.priceList;
+          }
+          touched = true;
+        }
+        if (needPages() && typeof workerBook.pages === 'number' && workerBook.pages > 0) {
+          BA.selected.pages = workerBook.pages;
+          BA.pagesFromApi = true;
+          touched = true;
+        }
+        // 부가 정보 (publisher / year / isbn) 도 누락 시 보강
+        if (!BA.selected.publisher && workerBook.publisher) BA.selected.publisher = workerBook.publisher;
+        if (!BA.selected.year && workerBook.year) BA.selected.year = workerBook.year;
+        if (!BA.selected.isbn && workerBook.isbn) BA.selected.isbn = workerBook.isbn;
+      }
+    } catch (e) { /* worker 실패 → 폴백으로 */ }
+  }
+
+  // ─── ② 그래도 누락된 항목만 _enrichBookItem 폴백 ───
+  //     worker가 못 준 경우만 각 source 직접 호출
+  if (typeof _enrichBookItem === 'function') {
+    const enrichBook = {
+      title: BA.selected.title,
+      author: BA.selected.author,
+      isbn: BA.selected.isbn,
+    };
+
+    if (needCover()) {
+      setProgress('조회 중…');
+      try {
+        const r = await _enrichBookItem(enrichBook, 'cover');
+        if (isStale()) { hideProgress(); return; }
+        if (r && r.value) {
+          BA.selected.cover = r.value;
+          if (r.matched && r.matched.isbn && !BA.selected.isbn) BA.selected.isbn = r.matched.isbn;
+          touched = true;
+        }
+      } catch (e) { /* 조용히 실패 */ }
     }
-    // 미리보기 meta도 갱신
-    const metaEl = document.querySelector('#confirmPreview .confirm-meta');
-    if (metaEl) {
-      const parts = [normalizedBook.year, `${result.pages}p`,
-        normalizedBook.language && normalizedBook.language !== 'ko' ? `🌐 ${normalizedBook.language.toUpperCase()}` : '',
-        normalizedBook.publisher].filter(Boolean).join(' · ');
-      metaEl.textContent = parts;
+
+    if (needPrice()) {
+      setProgress('조회 중…');
+      try {
+        enrichBook.isbn = BA.selected.isbn;
+        const r = await _enrichBookItem(enrichBook, 'price');
+        if (isStale()) { hideProgress(); return; }
+        if (r && r.priceSales) {
+          BA.selected.priceSales = r.priceSales;
+          BA.selected.priceList = r.priceList;
+          BA.selected.priceSource = r.source;
+          touched = true;
+        }
+      } catch (e) { /* 조용히 실패 */ }
     }
+
+    if (needPages()) {
+      setProgress('조회 중…');
+      try {
+        enrichBook.isbn = BA.selected.isbn;
+        const r = await _enrichBookItem(enrichBook, 'pages');
+        if (isStale()) { hideProgress(); return; }
+        if (r && r.value) {
+          BA.selected.pages = r.value;
+          BA.pagesFromApi = true;
+          touched = true;
+        }
+      } catch (e) { /* 조용히 실패 */ }
+    }
+  }
+
+  if (isStale()) { hideProgress(); return; }
+
+  // 미리보기 + input 필드 갱신
+  if (touched) renderConfirm();
+
+  // 완료 표시
+  const filled = [];
+  if (BA.selected.cover || BA.selected.coverUrl) filled.push('표지');
+  if (BA.selected.priceSales) filled.push('가격');
+  if (BA.selected.pages) filled.push('페이지');
+
+  if (touched && filled.length > 0) {
+    setProgress(filled.join(' · ') + ' 정보 받아옴', 'done');
+    setTimeout(hideProgress, 2500);
   } else {
-    // 모든 전략 실패 → 수동 입력 유도
-    const pagesHint = document.getElementById('pagesHint');
-    if (pagesHint) {
-      pagesHint.className = 'pages-hint warn';
-      pagesHint.textContent = '⚠ 페이지 정보를 자동으로 찾지 못했어요. 책 뒷표지를 보고 입력해주세요';
-    }
+    hideProgress();
   }
 }
 
