@@ -6254,11 +6254,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-hero-top {
   display: flex;
   gap: 14px;
-  align-items: flex-start;    /* v1.10.0 — 표지가 자기 비율 유지 (stretch X) */
+  align-items: stretch;       /* v1.10.0 — cover-col이 메타 영역 높이만큼 stretch */
   padding-bottom: 14px;
 }
+.bd-hero-cover-col {           /* v1.10.0 — 표지 + 책정보 검색 버튼 묶는 column */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 100px;
+  gap: 8px;                   /* 표지와 검색 버튼 사이 최소 간격 보장 */
+}
 .bd-hero-cover {
-  width: 100px;               /* v1.10.0 — 130 → 100 (정보 영역 확보) */
+  width: 100%;                /* v1.10.0 — col 폭(100px) 따라감 */
   aspect-ratio: 2 / 3;        /* 표준 책 비율 */
   height: auto;
   border-radius: 6px;
@@ -8559,6 +8566,15 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .bd-enrich-pill svg {
   width: 11px; height: 11px;
+}
+
+/* v1.10.0 — 표지 아래로 stacked 변형 (col 폭 100% + 메타 하단 정렬) */
+.bd-enrich-pill-stacked {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;           /* col 내 하단으로 밀어내기 → 메타 하단과 정렬 */
+  padding: 7px 10px;
+  font-size: 11px;
 }
 
 /* 책별 enrich 모달 — bf 모달 디자인 재사용 + 추가 */
@@ -23525,13 +23541,20 @@ function renderBookDetail() {
       </div>
       ` : ''}
       <div class="bd-hero-top">
-        <button type="button" class="bd-hero-cover bd-hero-cover-btn" id="bdCoverBtn" aria-label="표지 변경">
-          ${cover}
-          <span class="bd-cover-edit-badge" aria-hidden="true">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </span>
-          <input type="file" id="bdCoverFileInput" accept="image/*" style="display:none">
-        </button>
+        <div class="bd-hero-cover-col">
+          <button type="button" class="bd-hero-cover bd-hero-cover-btn" id="bdCoverBtn" aria-label="표지 변경">
+            ${cover}
+            <span class="bd-cover-edit-badge" aria-hidden="true">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </span>
+            <input type="file" id="bdCoverFileInput" accept="image/*" style="display:none">
+          </button>
+          <!-- v1.10.0 — 책 정보 검색을 표지 아래로 이동 (표지 폭에 맞춤 + 메타 하단 정렬) -->
+          <button type="button" class="bd-enrich-pill bd-enrich-pill-stacked" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
+            <span>책 정보 검색</span>
+          </button>
+        </div>
         <div class="bd-hero-info">
           <div class="bd-title-row">
             <div class="bd-hero-title">${esc(b.title)}</div>
@@ -23563,12 +23586,6 @@ function renderBookDetail() {
               ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
             </div>` : ''}
-            <div class="bd-meta-footer">
-              <button type="button" class="bd-enrich-pill" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
-                <span>책 정보 검색</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
