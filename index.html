@@ -3411,10 +3411,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-hero { position: relative; }
 .star-fab {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 50px;
-  height: 50px;
+  top: 10px;
+  right: 10px;
+  width: 48px;
+  height: 48px;
   background: #fafaf7;
   border-radius: 50%;
   display: flex;
@@ -6241,7 +6241,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* Hero — 커버 + 정보 (기본 구조) */
 .bd-hero {
-  padding: 20px 20px 18px;
+  padding: 16px 18px 14px;
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border);
   position: relative;
@@ -6249,21 +6249,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* 통합형 (A 시안) — 내부에 상단 row + 상태 + 진행률 합침 */
 .bd-hero.bd-hero-unified {
   display: block;
-  padding: 20px 20px 0;
+  padding: 16px 18px 0;
 }
 .bd-hero-top {
   display: flex;
-  gap: 16px;
-  align-items: stretch;       /* v1.9.1 — 표지와 콘텐츠 높이 맞춤 */
-  padding-bottom: 18px;
+  gap: 14px;
+  align-items: flex-start;    /* v1.10.0 — 표지가 자기 비율 유지 (stretch X) */
+  padding-bottom: 14px;
 }
 .bd-hero-cover {
-  width: 130px;
-  aspect-ratio: 2 / 3;        /* v1.9.1 — 비율 유지하며 콘텐츠 높이에 맞춤 */
+  width: 100px;               /* v1.10.0 — 130 → 100 (정보 영역 확보) */
+  aspect-ratio: 2 / 3;        /* 표준 책 비율 */
   height: auto;
   border-radius: 6px;
   flex-shrink: 0;
-  box-shadow: 0 6px 18px rgba(25,31,40,0.15);
+  box-shadow: 0 4px 12px rgba(25,31,40,0.12);
   overflow: hidden;
   background: var(--brand-primary);
   position: relative;
@@ -6825,17 +6825,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 .bd-hero-info {
   flex: 1; min-width: 0; padding-top: 2px;
+  padding-right: 62px;        /* v1.10.0 — 우상단 별 FAB 영역 피하기 */
   display: flex;
   flex-direction: column;     /* v1.9.1 — 내부 vertical stack */
 }
 .bd-hero-title {
   font-family: inherit;
-  font-size: 20px; font-weight: 800;
+  font-size: 19px; font-weight: 800;
   color: var(--c-text); letter-spacing: -0.025em;
   line-height: 1.25;
   margin-bottom: 4px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;      /* v1.10.0 — 3줄 → 2줄 (컴팩트) */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -7316,7 +7317,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-meta-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;  /* v1.10.0 — ISBN 제거 후 검색 버튼만 우측 정렬 */
   gap: 8px;
   margin-top: auto;           /* 콘텐츠 하단으로 밀어내기 → 표지 하단과 정렬 */
   padding-top: 12px;
@@ -23534,7 +23535,7 @@ function renderBookDetail() {
         </button>
         <div class="bd-hero-info">
           <div class="bd-title-row">
-            <div class="bd-hero-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
+            <div class="bd-hero-title">${esc(b.title)}</div>
             ${reading ? `<button type="button" class="quick-read-pill ${TIMER.bookId === b.id ? 'same-book' : ''}" id="bdQuickRead" aria-label="${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'} (시네마 모드)">
               <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
               <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
@@ -23564,7 +23565,6 @@ function renderBookDetail() {
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
             </div>` : ''}
             <div class="bd-meta-footer">
-              ${b.isbn ? `<span class="bd-isbn-box"><span class="bd-isbn-lbl">ISBN</span><span class="bd-isbn-val">${esc(b.isbn)}</span></span>` : '<span></span>'}
               <button type="button" class="bd-enrich-pill" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
                 <span>책 정보 검색</span>
