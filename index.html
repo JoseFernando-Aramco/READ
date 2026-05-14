@@ -19961,6 +19961,10 @@ async function quickAddToWish(idx, btnEl) {
     language: item.language || 'ko',
     coverUrl: item.cover || '',
     publisher: item.publisher || '',
+    // v1.10.0 — 가격 필드 누락 fix (검색 결과에 있으면 그대로 저장)
+    priceList: (typeof item.priceList === 'number' && item.priceList > 0) ? item.priceList : null,
+    priceSales: (typeof item.priceSales === 'number' && item.priceSales > 0) ? item.priceSales : null,
+    priceSource: (typeof item.priceSales === 'number' && item.priceSales > 0) ? 'search' : null,
     isLifeBook: false,
     rereads: [],
     format: (item.format === 'ebook' || item.format === 'paper' || item.format === 'audio') ? item.format : 'paper',
@@ -19980,24 +19984,117 @@ async function quickAddToWish(idx, btnEl) {
 
   showToast(`위시에 추가됐어요 ✓ · "${newBook.title}"`);
 
-  // 페이지 수 없으면 백그라운드 보강 (위시는 필수 아니라 비차단)
-  if (!newBook.pages) {
-    _enrichPages(item).then(result => {
-      if (result && result.pages) {
-        const i = BOOKS.findIndex(b => b.id === newBook.id);
-        if (i >= 0) {
-          BOOKS[i].pages = result.pages;
-          STORE.set('books', BOOKS);
-        }
-      }
-    }).catch(() => {});
-  }
+  // v1.10.0 — 누락 메타데이터 백그라운드 보강 (cover/price/pages 통합)
+  //   여러 권 일괄 + 시 각 책 모두 보강. /book 캐시 활용으로 외부 API 거의 0번.
+  _backfillNewBook(newBook.id, item);
 
   // UI 리렌더 (카드/통계/태그 레이더)
   try { renderTagRadar(); } catch(e){}
   try { renderLogList(); } catch(e){}
   try { renderAllStats(); } catch(e){}
   try { renderLibraryCards(); } catch(e){}
+}
+
+/* v1.10.0 — 추가된 책 백그라운드 보강 (backfill)
+   두 시나리오 모두 해결:
+   ① confirmAddBook (성질급한 사용자) — 보강 도중 추가 누르면 newBook 누락 데이터 발생
+   ② quickAddToWish (시리즈물 일괄 +) — 가격 누락 + cover/pages 보강 없음
+
+   /book 통합 캐시 우선 → cache hit이면 외부 API 0번. miss여도 worker가 합성·캐싱.
+   누락된 항목만 채움 (사용자 입력 보존). 보강 완료 시 BOOKS의 책 mutate + STORE 저장 + 리렌더 */
+async function _backfillNewBook(newBookId, originalItem) {
+  if (!newBookId || !originalItem) return;
+  if (typeof _fetchBookFromWorker !== 'function') return;
+
+  const find = () => (BOOKS || []).find(b => b.id === newBookId);
+  if (!find()) return;
+
+  // 누락 항목 판정 (실시간 재조회 — 다른 보강이 먼저 채울 수도 있음)
+  const needCover = () => { const b = find(); return b && !b.coverUrl; };
+  const needPrice = () => { const b = find(); return b && b.priceSales == null; };
+  const needPages = () => { const b = find(); return b && (!b.pages || b.pages === 0); };
+  const needPub   = () => { const b = find(); return b && !b.publisher; };
+
+  if (!needCover() && !needPrice() && !needPages() && !needPub()) return;
+
+  let touched = false;
+  const commit = () => {
+    if (touched) {
+      try { STORE.set('books', BOOKS); } catch(e){}
+      try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+      try { renderAllStats && renderAllStats(); } catch(e){}
+      touched = false;
+    }
+  };
+
+  // ─── ① /book 통합 캐시 호출 (cache hit이면 외부 API 0번) ───
+  try {
+    const cleanIsbn = originalItem.isbn ? String(originalItem.isbn).replace(/[-\s]/g, '') : '';
+    const isbnValid = cleanIsbn && (/^97[89]\d{10}$/.test(cleanIsbn) || /^\d{9}[\dX]$/i.test(cleanIsbn));
+    const wb = await _fetchBookFromWorker({
+      isbn: isbnValid ? cleanIsbn : '',
+      title: originalItem.title,
+      author: originalItem.author,
+    });
+    if (wb) {
+      const b = find();
+      if (!b) return;
+      if (!b.coverUrl && wb.cover) { b.coverUrl = wb.cover; touched = true; }
+      if (b.priceSales == null && typeof wb.priceSales === 'number' && wb.priceSales > 0) {
+        b.priceSales = wb.priceSales;
+        if (typeof wb.priceList === 'number' && wb.priceList > 0) b.priceList = wb.priceList;
+        b.priceSource = 'worker';
+        touched = true;
+      }
+      if ((!b.pages || b.pages === 0) && typeof wb.pages === 'number' && wb.pages > 0) {
+        b.pages = wb.pages;
+        touched = true;
+      }
+      if (!b.publisher && wb.publisher) { b.publisher = wb.publisher; touched = true; }
+      if (!b.isbn && wb.isbn) { b.isbn = wb.isbn; touched = true; }
+      commit();
+    }
+  } catch (e) { /* 폴백으로 */ }
+
+  // ─── ② 폴백 — worker가 못 준 항목만 _enrichBookItem ───
+  if (typeof _enrichBookItem !== 'function') return;
+  const b0 = find();
+  if (!b0) return;
+  const enrichBook = {
+    title: originalItem.title,
+    author: originalItem.author,
+    isbn: b0.isbn || originalItem.isbn,
+  };
+
+  if (needCover()) {
+    try {
+      const r = await _enrichBookItem(enrichBook, 'cover');
+      const b = find();
+      if (b && !b.coverUrl && r && r.value) { b.coverUrl = r.value; touched = true; commit(); }
+    } catch (e) {}
+  }
+  if (needPrice()) {
+    try {
+      const r = await _enrichBookItem(enrichBook, 'price');
+      const b = find();
+      if (b && b.priceSales == null && r && r.priceSales) {
+        b.priceSales = r.priceSales;
+        b.priceList = r.priceList;
+        b.priceSource = r.source;
+        touched = true; commit();
+      }
+    } catch (e) {}
+  }
+  if (needPages()) {
+    try {
+      const r = await _enrichBookItem(enrichBook, 'pages');
+      const b = find();
+      if (b && (!b.pages || b.pages === 0) && r && r.value) {
+        b.pages = r.value;
+        touched = true; commit();
+      }
+    } catch (e) {}
+  }
 }
 
 async function selectBook(normalizedBook) {
@@ -21022,6 +21119,11 @@ function confirmAddBook() {
 
   BOOKS.unshift(newBook);
   STORE.set('books', BOOKS);
+
+  // v1.10.0 — 누락 메타데이터 백그라운드 보강 (성질급한 사용자 케이스)
+  //   confirm 화면에서 보강 도중 추가 눌러도 BOOKS에 들어간 책에 데이터 backfill
+  //   /book 캐시 hit이면 외부 API 0번
+  _backfillNewBook(newBook.id, b);
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
   const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
