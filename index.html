@@ -7377,6 +7377,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 13px;
 }
 
+/* v1.10.0 — 데이터 출처 표기 (약관 보호 + 사용자 정보 제공) */
+.bd-meta-source {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--c-border, #ebe8df);
+  font-size: 10px;
+  color: var(--c-muted, #b0b0b0);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
 /* v1.9.1 — footer: ISBN 강조 박스 + 검색 버튼 */
 .bd-meta-footer {
   display: flex;
@@ -16792,8 +16803,9 @@ body.cn-locked {
     <div class="ab-section">
       <div class="ab-sec-ttl">데이터 출처</div>
       <div class="ab-sec-body">
-        책 검색 및 표지: <strong>Kakao Books API</strong> · <strong>Google Books API</strong><br/>
-        페이지 정보: <strong>Aladin OpenAPI</strong><br/>
+        책 검색 · 표지 · 메타데이터: <strong>Kakao Books</strong> · <strong>Aladin OpenAPI</strong> · <strong>Google Books</strong> · <strong>네이버 책 검색</strong><br/>
+        가격 정보: <strong>Aladin</strong> · <strong>네이버</strong><br/>
+        페이지 정보: <strong>Aladin</strong> · <strong>Google Books</strong><br/>
         폰트: <strong>Pretendard</strong> · <strong>Noto Serif KR</strong><br/>
         <span class="ab-muted">표지·서지정보의 저작권은 각 출판사·저자에게 있습니다.</span>
       </div>
@@ -23857,6 +23869,7 @@ function renderBookDetail() {
               ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
               ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
+              <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
             </div>` : ''}
           </div>
         </div>
