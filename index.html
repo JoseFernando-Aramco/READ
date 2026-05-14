@@ -24535,8 +24535,10 @@ function wireBookDetailEvents() {
       // 데이터 즉시 저장
       updateBook(b.id, { isLifeBook: willBeActive });
       showToast(willBeActive ? '⭐ 인생책 등록' : '인생책 해제');
-      // v1.10.0 — 서재/통계 즉시 갱신 (명전 탭 필터링 등 백그라운드 반영)
+      // v1.10.0 — 모든 서재 뷰 즉시 갱신 (북카드/로그/명예의 전당 어디서 와도 백그라운드 반영)
       try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+      try { renderHallOfFame && renderHallOfFame(); } catch(e){}
+      try { renderLogList && renderLogList(); } catch(e){}
       try { renderAllStats && renderAllStats(); } catch(e){}
       // 애니메이션 끝나면 책 상세 렌더 (제목 옆 뱃지 등 갱신)
       setTimeout(() => {
