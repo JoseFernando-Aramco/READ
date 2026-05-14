@@ -3392,6 +3392,32 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .lifebook-star::before { content: '⭐'; font-size: 10px; margin-right: 0; line-height: 1; }
 
+/* v1.10.0 — H.O.F 리본 (인생책 책 표지 우상단) */
+.hof-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+.hof-ribbon::before {
+  content: 'H.O.F';
+  position: absolute;
+  top: 9px;
+  right: -18px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #f5d76e 0%, #d4a574 100%);
+  color: #5c3a0e;
+  padding: 2px 24px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
 /* 재독 횟수 pill */
 .reread-pill {
   display: inline-block;
@@ -22104,9 +22130,7 @@ function renderBookCard(b, idx) {
     : b.status === 'reading' && b.pages
       ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
       : b.status === 'done' && b.rating
-      ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}`
-      : b.status === 'done'
-      ? (b.isLifeBook ? '<span class="lifebook-star">인생책</span>' : esc(b.author))
+      ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>`
       : esc(b.author);
 
   // 하차 사유 첫번째 라벨
@@ -22154,6 +22178,7 @@ function renderBookCard(b, idx) {
         ${renderBookCoverInner(b, idx + 1)}
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
+        ${b.isLifeBook ? '<div class="hof-ribbon" aria-label="명예의 전당"></div>' : ''}
       </div>
       <div class="book-card-title">${esc(b.title)}${isBookIncomplete(b) ? '<span class="book-card-incomplete-dot" title="페이지·표지·가격·ISBN 중 누락된 정보가 있어요"></span>' : ''}</div>
       <div class="book-card-meta">${meta}</div>
@@ -22373,7 +22398,7 @@ function renderHallOfFame() {
 }
 
 /* 완독 섹션 "더보기" 상태 — 페이지 세션 내 유지 */
-let _visibleDoneCount = 10;
+let _visibleDoneCount = 12;
 const DONE_PAGE_SIZE = 20;
 const DONE_FULL_VIEW_THRESHOLD = 100;
 
