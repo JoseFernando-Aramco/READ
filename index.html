@@ -4837,11 +4837,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bas-stage.active { display: flex; }
 
 /* ─── 사진으로 추가 · 런처 버튼 (검색 스테이지 상단) ─── */
+/* v1.11.0: 바코드 카드 + 웹소설 정사각 버튼 row */
+.scan-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
 .scan-launch-btn {
-  width: 100%;
+  flex: 1;
   display: flex; align-items: center; gap: 12px;
   padding: 14px 14px;
-  margin-bottom: 14px;
   border: 1.5px solid var(--c-border-2);
   background: color-mix(in srgb, var(--primary) 4%, var(--c-surface));
   border-radius: 8px;
@@ -4849,12 +4854,54 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   text-align: left;
   transition: transform .12s, background .15s, border-color .15s;
   font-family: inherit;
+  min-width: 0;
 }
 .scan-launch-btn:hover {
   background: color-mix(in srgb, var(--primary) 7%, var(--c-surface));
   border-color: color-mix(in srgb, var(--primary) 30%, var(--c-border-2));
 }
 .scan-launch-btn:active { transform: scale(0.99); }
+
+/* v1.11.0 — 웹소설 정사각 진입 버튼 (검색 버튼과 너비 64px 동일) */
+.webnovel-quick-btn {
+  width: 64px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--primary) 4%, var(--c-surface));
+  border: 1.5px solid var(--c-border-2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 6px 4px;
+  font-family: inherit;
+  transition: transform .12s, background .15s, border-color .15s;
+}
+.webnovel-quick-btn:hover {
+  background: color-mix(in srgb, var(--primary) 7%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--c-border-2));
+}
+.webnovel-quick-btn:active { transform: scale(0.96); }
+.webnovel-quick-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--primary);
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.webnovel-quick-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
 .scan-launch-icon {
   width: 24px; height: 24px;
   color: var(--primary);
@@ -5124,14 +5171,18 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .search-input::placeholder { color: var(--c-label); }
 
 .search-btn {
-  padding: 0 20px;
+  /* v1.11.0 — 너비 64px 명시 (위 row의 웹소설 정사각 버튼과 동일 폭으로 세로 정렬) */
+  width: 64px;
+  padding: 0;
   background: var(--primary);
   color: #fff;
+  border: none;
   border-radius: 6px;
   font-family: inherit;
   font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em;
   flex-shrink: 0;
+  cursor: pointer;
 }
 .search-btn:active { background: var(--brand-primary-dk); }
 
@@ -5332,9 +5383,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; flex-direction: column; gap: 12px;
 }
 .form-field { display: flex; flex-direction: column; gap: 5px; }
+.form-field[hidden] { display: none !important; }
 .form-field-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
 }
+.form-field-row[hidden] { display: none !important; }
 .form-label {
   font-size: 10.5px; font-weight: 800;
   color: var(--c-label);
@@ -5452,6 +5505,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-text-2);
   animation: enrich-progress-fade 0.3s ease-out;
 }
+.enrich-progress[hidden] { display: none !important; }
 .enrich-progress.done {
   background: linear-gradient(90deg, #f7f0e5, #fef9e7);
   border-color: #d4b88e;
@@ -5829,7 +5883,16 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tag-chip.is-editable {
   padding-right: 30px;
   cursor: default;
-  animation: tagShake 0.4s ease-in-out;
+  /* v1.10.1 — iOS 스타일 jiggle: 편집 모드 동안 계속 흔들림 */
+  animation: tagShake 0.32s ease-in-out infinite;
+}
+/* 칩마다 살짝 다른 타이밍 (모두 동기화되면 어색) */
+.tag-chip.is-editable:nth-child(even) {
+  animation-duration: 0.36s;
+  animation-direction: reverse;
+}
+.tag-chip.is-editable:nth-child(3n) {
+  animation-duration: 0.30s;
 }
 .tag-chip.is-editable.is-hide-mode { border-color: #6B7280; }
 .tag-chip.is-editable.is-delete-mode { border-color: #DC2626; }
@@ -5838,9 +5901,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   padding-right: 34px;
 }
 @keyframes tagShake {
-  0%, 100% { transform: rotate(0); }
-  25% { transform: rotate(-1.2deg); }
-  75% { transform: rotate(1.2deg); }
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
 }
 .tag-chip .tc-action {
   position: absolute;
@@ -5931,6 +5993,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 태그 칩 (책 상세·북 추가·필터 공통) */
 .tag-chip {
+  position: relative; /* v1.10.1 — tc-action(편집 X 버튼) anchor */
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -6247,6 +6310,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-radius: 12px 12px 0 0;
   z-index: 110;
   overflow: hidden;
+  overflow-x: hidden; /* v1.10.1 — 모바일 좌우 스크롤 차단 */
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(25,31,40,.18);
@@ -6267,6 +6331,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .bd-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* v1.10.1 — 모달 전체 좌우 스크롤 차단 (가로가 필요한 자식은 자체 영역) */
   -webkit-overflow-scrolling: touch;
   padding: 0 0 32px;
 }
@@ -10072,7 +10137,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: fixed; inset: 0;
   z-index: 210;
   display: flex; align-items: center; justify-content: center;
-  padding: 20px;
+  /* v1.10.1 — iOS PWA에서 노치+홈 인디케이터 영역 침범 방지 */
+  padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -10083,7 +10149,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   border-radius: 12px;
   width: 100%;
   max-width: 380px;
-  max-height: 88vh;
+  /* v1.10.1 — dvh로 iOS 주소창 변동 반영, x버튼 항상 visible */
+  max-height: min(88vh, calc(100dvh - 40px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 26px 22px 20px;
@@ -10301,17 +10368,20 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 .wn-skip {
+  /* v1.10.1 — absolute 유지하되 z-index 강화 + 배경 진하게 (스크롤 시 카드 내용에 가려지지 않도록) */
   position: absolute;
-  top: 14px; right: 14px;
-  width: 30px; height: 30px;
+  top: 12px; right: 12px;
+  width: 32px; height: 32px;
   border-radius: 50%;
-  background: var(--c-surface-2);
+  background: var(--c-surface);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px var(--c-border-2);
   border: none;
   color: var(--c-label);
-  font-size: 13px;
+  font-size: 14px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background .15s;
+  z-index: 5;
 }
 .wn-skip:active { background: var(--c-border-2); }
 
@@ -15543,6 +15613,7 @@ body.cn-locked {
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
   <!-- 책 (닫힌) — 커버 fallback -->
   <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-webnovel" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><line x1="8.5" y1="7" x2="15.5" y2="7"/><line x1="8.5" y1="10" x2="15.5" y2="10"/><line x1="8.5" y1="13" x2="13" y2="13"/><circle cx="12" cy="18.5" r="0.6" fill="currentColor" stroke="none"/></symbol>
   <!-- 책 (펼친) -->
   <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
   <!-- 책 2권 스택 -->
@@ -16054,7 +16125,7 @@ body.cn-locked {
     <div class="kbm-section-lbl">More</div>
     <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
-      <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div><div class="kbm-item-sub">v1.9.0 · 패치노트</div></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
     <button class="kbm-item" onclick="kbmCall('openInstallGuide', '설치 안내 준비 중')">
@@ -16077,9 +16148,6 @@ body.cn-locked {
       <div class="kbm-item-main"><div class="kbm-item-ttl">앱 정보</div><div class="kbm-item-sub">버전 · 약관 · 라이선스</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
-  </div>
-  <div class="kbm-foot">
-    <div class="kbm-version">READ · v1.9.0</div>
   </div>
 </aside>
 
@@ -16194,20 +16262,26 @@ body.cn-locked {
       <button class="bas-close" id="basClose1" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="bas-body">
-      <!-- 사진으로 추가 (바코드 스캔) -->
-      <button class="scan-launch-btn" id="scanLaunchBtn" type="button">
-        <svg class="scan-launch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="6" width="18" height="12" rx="1"/>
-          <path d="M7 6v12M11 6v12M15 6v12M19 6v12"/>
-        </svg>
-        <div class="scan-launch-text">
-          <div class="scan-launch-ttl">바코드로 추가</div>
-          <div class="scan-launch-sub">책 뒷면 바코드를 찍어서 빠르게 등록</div>
-        </div>
-        <svg class="scan-launch-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m9 18 6-6-6-6"/>
-        </svg>
-      </button>
+      <!-- 사진으로 추가 (바코드 스캔) + 웹소설 직접 입력 (v1.11.0) -->
+      <div class="scan-row">
+        <button class="scan-launch-btn" id="scanLaunchBtn" type="button">
+          <svg class="scan-launch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="12" rx="1"/>
+            <path d="M7 6v12M11 6v12M15 6v12M19 6v12"/>
+          </svg>
+          <div class="scan-launch-text">
+            <div class="scan-launch-ttl">바코드로 추가</div>
+            <div class="scan-launch-sub">책 뒷면 바코드를 찍어서 빠르게 등록</div>
+          </div>
+          <svg class="scan-launch-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </button>
+        <button class="webnovel-quick-btn" id="webnovelQuickBtn" type="button" aria-label="웹소설 직접 추가">
+          <svg class="ic webnovel-quick-icon" aria-hidden="true"><use href="#i-webnovel"/></svg>
+          <span class="webnovel-quick-lbl">웹소설</span>
+        </button>
+      </div>
 
       <div class="search-wrap">
         <input class="search-input" id="bookSearchInput" type="text"
@@ -16240,12 +16314,12 @@ body.cn-locked {
           <label class="form-label">제목 <span class="req">*</span></label>
           <input class="form-input" type="text" name="title" required maxlength="120" placeholder="예: 데미안">
         </div>
-        <div class="form-field">
-          <label class="form-label">저자 <span class="req">*</span></label>
-          <input class="form-input" type="text" name="author" required maxlength="80" placeholder="예: 헤르만 헤세">
+        <div class="form-field" id="manualAuthorField">
+          <label class="form-label">저자 <span class="req" id="manualAuthorReq">*</span></label>
+          <input class="form-input" type="text" name="author" id="manualAuthorInput" required maxlength="80" placeholder="예: 헤르만 헤세">
         </div>
-        <!-- 매체 (종이/전자/오디오/웹소설) -->
-        <div class="form-field">
+        <!-- 매체 (종이/전자/오디오/웹소설) — 기본 hidden, 직접입력 fallback 진입 시에만 표시 -->
+        <div class="form-field" id="manualFormatRow" hidden>
           <label class="form-label">매체</label>
           <div class="format-toggle" id="manualFormatToggle">
             <button type="button" class="active" data-fmt="paper">
@@ -16261,14 +16335,14 @@ body.cn-locked {
               <span>오디오북</span>
             </button>
             <button type="button" data-fmt="webnovel">
-              <span class="fmt-emoji">📜</span>
+              <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-webnovel"/></svg>
               <span>웹소설</span>
             </button>
           </div>
         </div>
 
-        <!-- 일반 책 페이지 + 연도 (웹소설 아닐 때만) -->
-        <div class="form-field-row" id="manualPagesYearRow">
+        <!-- 일반 책 페이지 + 연도 — 기본 hidden, paper/ebook/audio 매체 선택 시에만 표시 -->
+        <div class="form-field-row" id="manualPagesYearRow" hidden>
           <div class="form-field">
             <label class="form-label">페이지 수 <span class="req">*</span></label>
             <input class="form-input" type="number" name="pages" required min="1" max="9999" placeholder="248">
@@ -16535,9 +16609,10 @@ body.cn-locked {
         <div class="tag-new-cat-row" id="tagNewCatRow">
           <span class="tnc-label">📂 어느 카테고리에?</span>
           <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
-          <button type="button" class="tnc-chip" data-cat="nonfiction">비픽션</button>
+          <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
           <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
           <button type="button" class="tnc-chip" data-cat="format">형식</button>
+          <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
         </div>
       </div>
 
@@ -17014,11 +17089,42 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.10.0 · 큰 업데이트</div>
+    <div class="wn-badge">v1.10.0 · 큰 업데이트 + 1건 추가</div>
     <div class="wn-ttl">이사고민, 끝났어요!</div>
     <div class="wn-sub">다른 앱·엑셀에서 옮겨오는 게 가장 큰 진입 장벽이었죠. 이번 업데이트로 해결했습니다.</div>
 
-    <!-- HERO — 책 가져오기 -->
+    <!-- v1.10.1 — 큰 HERO 섹션 (웹소설 추가) -->
+    <div style="background:linear-gradient(135deg,rgba(90,122,60,0.1),rgba(90,122,60,0.04));border:1.5px solid rgba(90,122,60,0.42);border-radius:10px;padding:16px 14px;margin-bottom:18px;">
+      <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#5a7a3c;color:#fff;border-radius:99px;font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:0.04em;">
+        <span style="font-size:11px;">📱</span>
+        v1.10.1 NEW · 방금 추가됨
+      </div>
+      <div style="font-size:18px;font-weight:800;background:linear-gradient(135deg,#5a7a3c,#466030);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;letter-spacing:-0.01em;">웹소설도 READ로!</div>
+      <div style="font-size:12px;color:var(--c-text);line-height:1.55;margin-bottom:14px;">
+        책 추가 시트에 <b style="color:#5a7a3c;font-weight:700;">[+ 웹소설]</b> 정사각 버튼이 새로 생겼어요. 페이지가 아닌 <b style="color:#5a7a3c;font-weight:700;">회차 단위</b>로 진도를 기록하고, 연재중인 작품은 새 회차가 나올 때마다 총 회차를 늘려가며 추적할 수 있어요.
+      </div>
+      <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(90,122,60,0.42);border-radius:6px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:40px;background:linear-gradient(135deg,#2a3f4e,#0d1f2a);border-radius:2px;flex-shrink:0;"></div>
+        <div style="font-size:11px;color:var(--c-text);">
+          <div><b style="font-weight:700;">화산귀환 · 비가</b></div>
+          <div style="font-size:10px;color:var(--c-muted);margin-top:2px;">287 / 423화 · 📡 연재중 · 68%</div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:6px;">
+        🏷️ 웹소설 태그 14종 (무협 · 회귀 · 환생 · 빙의 등) 함께 추가
+      </div>
+      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:4px;">
+        📲 PWA 설치 안내 모달 추가 — 홈 화면에 앱처럼 설치하는 방법을 iOS/Android별로 안내
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div style="text-align:center;margin:14px 0;position:relative;">
+      <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--c-border);"></div>
+      <span style="position:relative;display:inline-block;padding:0 10px;background:var(--c-surface);font-size:10px;color:var(--c-muted);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">v1.10.0 — 어제 업데이트 내용</span>
+    </div>
+
+    <!-- HERO — 책 가져오기 (v1.10.0 원본) -->
     <div class="wn-hero">
       <div class="wn-hero-tag">
         <span style="font-size:11px">📦</span>
@@ -17049,7 +17155,7 @@ body.cn-locked {
       </div>
     </div>
 
-    <!-- 메인 항목 -->
+    <!-- 메인 항목 (v1.10.0 원본) -->
     <ul class="wn-list">
       <li class="wn-item">
         <div class="wn-icon">🏆</div>
@@ -17074,7 +17180,7 @@ body.cn-locked {
       </li>
     </ul>
 
-    <!-- 자잘한 손질 -->
+    <!-- 자잘한 손질 (v1.10.0 원본) -->
     <div style="background:var(--c-surface);border-radius:6px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
       <div style="font-size:10.5px;font-weight:800;color:var(--c-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
         <span>🔧</span> 그 외 손질
@@ -17087,7 +17193,7 @@ body.cn-locked {
       </div>
     </div>
 
-    <!-- 개발자 노트 -->
+    <!-- 개발자 노트 (v1.10.0 원본 + v1.10.1 한 줄 추가) -->
     <div class="wn-devnote">
       <div class="wn-devnote-head">
         <span>🛠</span> 개발자 노트
@@ -17095,7 +17201,8 @@ body.cn-locked {
       <div class="wn-devnote-q">"이사가 너무 귀찮아서 못 옮기겠어요"</div>
       <div class="wn-devnote-a">
         새 앱으로 갈아탈 때 책 하나하나 다시 검색하는 시간 — 그게 가장 큰 진입 장벽이었어요. 어제 새벽부터 매달려서 그걸 거의 0으로 만들었습니다.<br><br>
-        다른 앱·엑셀 쓰시던 분, 이번엔 정말 한 번 <strong>이사해보시길</strong> 부탁드려요. 한 번에 됩니다.
+        다른 앱·엑셀 쓰시던 분, 이번엔 정말 한 번 <strong>이사해보시길</strong> 부탁드려요. 한 번에 됩니다.<br><br>
+        <em style="color:#5a7a3c;font-style:normal;font-weight:600;">— 그리고 오늘, 카페에서 받은 제안으로 웹소설 매체도 정식으로 추가했어요. 회차로 자유롭게 기록하세요.</em>
       </div>
     </div>
 
@@ -17119,7 +17226,7 @@ body.cn-locked {
         </svg>
       </div>
       <div class="ab-name">READ</div>
-      <div class="ab-ver">version 1.10.0</div>
+      <div class="ab-ver">version 1.10.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -18936,7 +19043,7 @@ function esc(s) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   📕📱🎧📜 매체(종이책/전자책/오디오북/웹소설) 헬퍼
+   📕📱🎧🌐 매체(종이책/전자책/오디오북/웹소설) 헬퍼
    - b.format: 'paper' (default) | 'ebook' | 'audio' | 'webnovel'
    - 전자책/오디오북은 진행률을 % 단위로 입력하고, 페이지는 환산해서 저장
    - 웹소설(v1.11.0): 회차(episodes/currentEpisode) + novelStatus('serial'|'completed')
@@ -18982,7 +19089,7 @@ function mediaIcon(book) {
   const f = getBookFormat(book);
   if (f === 'ebook') return '📱 ';
   if (f === 'audio') return '🎧 ';
-  if (f === 'webnovel') return '📜 ';
+  if (f === 'webnovel') return '🌐 ';
   return '';
 }
 
@@ -18990,7 +19097,7 @@ function mediaIcon(book) {
 function formatLabel(fmt) {
   if (fmt === 'ebook') return '📱 전자책';
   if (fmt === 'audio') return '🎧 오디오북';
-  if (fmt === 'webnovel') return '📜 웹소설';
+  if (fmt === 'webnovel') return '🌐 웹소설';
   return '📕 종이책';
 }
 
@@ -18998,7 +19105,7 @@ function formatLabel(fmt) {
 function formatLabelShort(fmt) {
   if (fmt === 'ebook') return '📱 전자';
   if (fmt === 'audio') return '🎧 오디오';
-  if (fmt === 'webnovel') return '📜 웹소설';
+  if (fmt === 'webnovel') return '🌐 웹소설';
   return '📕 종이';
 }
 
@@ -19019,6 +19126,12 @@ function pagesToPct(currentPage, totalPages) {
 /* 책의 현재 진행률 (%) — 매체 무관 */
 function getBookProgressPct(book) {
   if (!book) return 0;
+  // v1.11.0 — 웹소설은 회차 기반
+  if (isWebnovel(book)) {
+    if (!book.episodes || book.episodes <= 0) return 0;
+    const cur = Math.max(0, Math.min(book.episodes, Number(book.currentEpisode) || 0));
+    return Math.round((cur / book.episodes) * 100);
+  }
   return pagesToPct(book.currentPage || 0, book.pages || 0);
 }
 
@@ -19096,11 +19209,19 @@ function closeBookAdd() {
       b.classList.toggle('active', b.dataset.fmt === 'paper');
     });
   }
+  // v1.10.1 — 매체 토글 행·페이지·연도 행 다시 hidden으로 (다음 진입 시 경로별 핸들러가 풀어줌)
+  const fmtRow = document.getElementById('manualFormatRow');
+  if (fmtRow) fmtRow.hidden = true;
   // v1.11.0 — 웹소설 폼 초기화 (paper 기본이므로 hidden)
   const pagesYearRow = document.getElementById('manualPagesYearRow');
   const webnovelFields = document.getElementById('manualWebnovelFields');
-  if (pagesYearRow) pagesYearRow.hidden = false;
+  if (pagesYearRow) pagesYearRow.hidden = true;
   if (webnovelFields) webnovelFields.hidden = true;
+  // v1.10.1 — 저자 required 복원 (기본은 필수, 경로별 핸들러가 webnovel일 때 해제)
+  const authorInputReset = document.getElementById('manualAuthorInput');
+  const authorReqReset = document.getElementById('manualAuthorReq');
+  if (authorInputReset) authorInputReset.required = true;
+  if (authorReqReset) authorReqReset.style.display = '';
   const novelStatusToggle = webnovelFields ? webnovelFields.querySelector('.novel-status-toggle') : null;
   if (novelStatusToggle) {
     novelStatusToggle.querySelectorAll('button').forEach(b => {
@@ -20777,8 +20898,13 @@ function submitManual() {
   const episodes = parseInt(fd.get('episodes'), 10);
   const currentEpisode = parseInt(fd.get('currentEpisode'), 10) || 0;
 
-  if (!title || !author) {
-    showToast('제목·저자는 필수예요');
+  if (!title) {
+    showToast('제목은 필수예요');
+    return;
+  }
+  if (!isWebnovelFmt && !author) {
+    // v1.10.1 — 웹소설은 저자 선택 (불분명한 작품 많음). 일반 책은 저자 필수 유지
+    showToast('저자를 입력해주세요');
     return;
   }
   if (isWebnovelFmt) {
@@ -20824,18 +20950,33 @@ function renderConfirm() {
   // 매체 기본값 — 검색 결과에는 format 필드가 없으므로 'paper'로 초기화
   if (!b.format) b.format = 'paper';
 
-  // 매체 토글 UI 동기화
+  // v1.11.0 — 웹소설 여부 판단 (페이지/매체 행 동작 분기)
+  const isWebnov = b.format === 'webnovel';
+
+  // v1.10.1 — 웹소설은 직접 입력이라 메타데이터 조회 없음 → 조회중 스피너 강제 숨김
+  if (isWebnov) {
+    const enrichEl = document.getElementById('enrichProgress');
+    if (enrichEl) enrichEl.hidden = true;
+  }
+
+  // 매체 토글 UI 동기화 + 웹소설일 땐 매체 섹션 숨김
   const fmtToggle = document.getElementById('confirmFormatToggle');
   if (fmtToggle) {
     fmtToggle.querySelectorAll('button').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.fmt === b.format);
     });
+    // 부모 confirm-section 찾아서 hidden 토글
+    const fmtSection = fmtToggle.closest('.confirm-section');
+    if (fmtSection) fmtSection.hidden = isWebnov;
   }
 
-  // 미리보기
+  // 미리보기 — 웹소설은 페이지 대신 회차 표시
   const preview = document.getElementById('confirmPreview');
-  const metaParts = [b.year, `${b.pages}p`, b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
-    .filter(Boolean).join(' · ');
+  const metaParts = isWebnov
+    ? [b.episodes ? `${b.episodes}화` : '', b.novelStatus === 'serial' ? '📡 연재중' : '✅ 완결', b.publisher]
+        .filter(Boolean).join(' · ')
+    : [b.year, `${b.pages}p`, b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
+        .filter(Boolean).join(' · ');
   preview.innerHTML = `
     ${b.cover
       ? `<img class="confirm-cover" src="${esc(b.cover)}" alt=""
@@ -20843,14 +20984,16 @@ function renderConfirm() {
       : `<div class="confirm-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
     <div class="confirm-info">
       <div class="confirm-title">${esc(b.title)}</div>
-      <div class="confirm-author">${esc(b.author)}</div>
+      ${b.author ? `<div class="confirm-author">${esc(b.author)}</div>` : ''}
       <div class="confirm-meta">${esc(metaParts)}</div>
     </div>`;
 
-  // 페이지 수 input · 검색결과에서 못 받았으면 경고 hint
+  // 페이지 수 input — 웹소설일 땐 섹션 자체를 숨김
   const pagesInput = document.getElementById('confirmPages');
   const pagesHint = document.getElementById('pagesHint');
-  if (pagesInput) {
+  const pagesSection = pagesInput ? pagesInput.closest('.confirm-section') : null;
+  if (pagesSection) pagesSection.hidden = isWebnov;
+  if (pagesInput && !isWebnov) {
     pagesInput.value = b.pages > 0 ? b.pages : '';
     pagesInput.placeholder = '예: 248';
     // 확정 시 BA.selected.pages 동기화를 위한 input 이벤트
@@ -20867,7 +21010,7 @@ function renderConfirm() {
       }
     };
   }
-  if (pagesHint) {
+  if (pagesHint && !isWebnov) {
     if (BA.pagesFromApi) {
       pagesHint.className = 'pages-hint';
       pagesHint.textContent = '검색 결과에서 가져온 값이에요. 실제와 다르면 수정하세요';
@@ -21147,9 +21290,10 @@ function renderTagCategoryTabs() {
   if (!tabsEl) return;
   const cats = [
     { id: 'genre', label: '장르' },
-    { id: 'nonfiction', label: '비픽션' },
+    { id: 'nonfiction', label: '논픽션' },
     { id: 'growth', label: '자기개발' },
     { id: 'format', label: '형식' },
+    { id: 'webnovel', label: '웹소설' },
     { id: 'hidden', label: '숨김', hidden: true },
   ];
   tabsEl.innerHTML = cats.map(c => {
@@ -21341,9 +21485,10 @@ function renderBookDetailTags() {
   if (tabsEl) {
     const cats = [
       { id: 'genre', label: '장르' },
-      { id: 'nonfiction', label: '비픽션' },
+      { id: 'nonfiction', label: '논픽션' },
       { id: 'growth', label: '자기개발' },
       { id: 'format', label: '형식' },
+      { id: 'webnovel', label: '웹소설' },
       { id: 'hidden', label: '숨김', hidden: true },
     ];
     tabsEl.innerHTML = cats.map(c => {
@@ -21557,18 +21702,25 @@ function confirmAddBook() {
   const today = new Date().toISOString().slice(0, 10);
   const palette = pickPalette(b.title + b.author);
 
-  // 페이지 수 최종 검증 (사용자가 input에서 수정 가능)
-  const pagesInputEl = document.getElementById('confirmPages');
-  const inputPages = pagesInputEl ? parseInt(pagesInputEl.value, 10) : NaN;
-  if (isNaN(inputPages) || inputPages < 1) {
-    showToast('페이지 수를 올바르게 입력해주세요');
-    pagesInputEl?.focus();
-    return;
-  }
-  if (inputPages > 20000) {
-    showToast('페이지 수가 너무 커요. 다시 확인해주세요');
-    pagesInputEl?.focus();
-    return;
+  // v1.10.1 — 웹소설은 페이지 수 검증 건너뜀 (회차 기반)
+  const isWebnov = b.format === 'webnovel';
+  let inputPages;
+  if (isWebnov) {
+    inputPages = 0;
+  } else {
+    // 페이지 수 최종 검증 (사용자가 input에서 수정 가능)
+    const pagesInputEl = document.getElementById('confirmPages');
+    inputPages = pagesInputEl ? parseInt(pagesInputEl.value, 10) : NaN;
+    if (isNaN(inputPages) || inputPages < 1) {
+      showToast('페이지 수를 올바르게 입력해주세요');
+      pagesInputEl?.focus();
+      return;
+    }
+    if (inputPages > 20000) {
+      showToast('페이지 수가 너무 커요. 다시 확인해주세요');
+      pagesInputEl?.focus();
+      return;
+    }
   }
 
   // 사용자가 입력한 날짜 (없으면 오늘)
@@ -21596,6 +21748,8 @@ function confirmAddBook() {
     isLifeBook: status === 'done' ? !!BA.isLifeBook : false,
     rereads: [],
     format: (b.format === 'ebook' || b.format === 'paper' || b.format === 'audio' || b.format === 'webnovel') ? b.format : (BA.manualFormat || 'paper'),  // 매체 (paper | ebook | audio | webnovel) — 검색 결과면 BA.selected.format, 직접 입력이면 BA.manualFormat
+    // v1.10.1 — source 필드 보존: 'manual'이면 자동 보강에서 제외 (사용자 입력 보호)
+    source: b.source || null,
     // v1.11.0 — 웹소설 전용 필드 (다른 매체엔 undefined)
     novelStatus: b.format === 'webnovel' ? (b.novelStatus || 'serial') : undefined,
     episodes: b.format === 'webnovel' ? (b.episodes || 0) : undefined,
@@ -21622,7 +21776,11 @@ function confirmAddBook() {
   // v1.10.0 — 누락 메타데이터 백그라운드 보강 (성질급한 사용자 케이스)
   //   confirm 화면에서 보강 도중 추가 눌러도 BOOKS에 들어간 책에 데이터 backfill
   //   /book 캐시 hit이면 외부 API 0번
-  _backfillNewBook(newBook.id, b);
+  // v1.10.1 — 웹소설 + 직접 입력은 API 호출 금지 (사용자가 직접 입력한 데이터를 외부 검색 결과로 덮어쓰면 안 됨)
+  const skipBackfill = isWebnov || b.source === 'manual';
+  if (!skipBackfill) {
+    _backfillNewBook(newBook.id, b);
+  }
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
   const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
@@ -21681,7 +21839,50 @@ document.querySelectorAll('.bas-back').forEach(btn => {
 });
 
 // 수동 입력 이동
-document.getElementById('btnManualInput').addEventListener('click', () => goToStage('manual'));
+document.getElementById('btnManualInput').addEventListener('click', () => {
+  goToStage('manual');
+  // 직접입력 fallback: 매체 + 페이지·연도 행을 보이게 (사용자가 매체 선택 가능해야 함)
+  const fmtRow = document.getElementById('manualFormatRow');
+  const pagesYearRow = document.getElementById('manualPagesYearRow');
+  const webnovelFields = document.getElementById('manualWebnovelFields');
+  if (fmtRow) fmtRow.hidden = false;
+  if (pagesYearRow) pagesYearRow.hidden = false;
+  if (webnovelFields) webnovelFields.hidden = true;
+  // v1.10.1 — 일반 책 진입은 저자 필수
+  const authorInput = document.getElementById('manualAuthorInput');
+  const authorReq = document.getElementById('manualAuthorReq');
+  if (authorInput) authorInput.required = true;
+  if (authorReq) authorReq.style.display = '';
+});
+
+// v1.10.1 — 웹소설 정사각 버튼: manual stage로 진입 + 매체를 webnovel로 자동 선택 + 매체/페이지·연도 행 숨김
+document.getElementById('webnovelQuickBtn')?.addEventListener('click', () => {
+  goToStage('manual');
+  // 매체 토글: webnovel로 강제 설정
+  BA.manualFormat = 'webnovel';
+  const toggle = document.getElementById('manualFormatToggle');
+  if (toggle) {
+    toggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.fmt === 'webnovel');
+    });
+  }
+  // 웹소설 진입 시 UI 정리 — 매체 토글·페이지·연도 행 숨김, 웹소설 필드만 표시
+  const fmtRow = document.getElementById('manualFormatRow');
+  const pagesYearRow = document.getElementById('manualPagesYearRow');
+  const webnovelFields = document.getElementById('manualWebnovelFields');
+  const pagesInput = pagesYearRow ? pagesYearRow.querySelector('input[name="pages"]') : null;
+  const episodesInput = webnovelFields ? webnovelFields.querySelector('input[name="episodes"]') : null;
+  if (fmtRow) fmtRow.hidden = true;
+  if (pagesYearRow) pagesYearRow.hidden = true;
+  if (webnovelFields) webnovelFields.hidden = false;
+  if (pagesInput) pagesInput.required = false;
+  if (episodesInput) episodesInput.required = true;
+  // v1.10.1 — 웹소설은 저자도 선택 (불분명한 작품 많음)
+  const authorInput = document.getElementById('manualAuthorInput');
+  const authorReq = document.getElementById('manualAuthorReq');
+  if (authorInput) authorInput.required = false;
+  if (authorReq) authorReq.style.display = 'none';
+});
 document.getElementById('btnManualSubmit').addEventListener('click', submitManual);
 
 // 표지 직접 첨부 (직접 입력 폼)
@@ -21731,16 +21932,23 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
     const webnovelFields = document.getElementById('manualWebnovelFields');
     const pagesInput = pagesYearRow ? pagesYearRow.querySelector('input[name="pages"]') : null;
     const episodesInput = webnovelFields ? webnovelFields.querySelector('input[name="episodes"]') : null;
+    // v1.10.1 — 매체별 저자 필수/선택 동기화
+    const authorInput = document.getElementById('manualAuthorInput');
+    const authorReq = document.getElementById('manualAuthorReq');
     if (fmt === 'webnovel') {
       if (pagesYearRow) pagesYearRow.hidden = true;
       if (webnovelFields) webnovelFields.hidden = false;
       if (pagesInput) pagesInput.required = false;
       if (episodesInput) episodesInput.required = true;
+      if (authorInput) authorInput.required = false;
+      if (authorReq) authorReq.style.display = 'none';
     } else {
       if (pagesYearRow) pagesYearRow.hidden = false;
       if (webnovelFields) webnovelFields.hidden = true;
       if (pagesInput) pagesInput.required = true;
       if (episodesInput) episodesInput.required = false;
+      if (authorInput) authorInput.required = true;
+      if (authorReq) authorReq.style.display = '';
     }
   });
 })();
@@ -21861,7 +22069,7 @@ document.querySelectorAll('.chip').forEach(chip => {
 
 // v1.9.0 — 추천 태그 (앱 기본 제공, 4 카테고리)
 const DEFAULT_TAGS = {
-  // 장르 14개
+  // 장르 15개 (v1.10.1: 웹소설 추가)
   '국내고전':    { emoji: '📜', color: '#7c2d12', category: 'genre' },
   '해외고전':    { emoji: '🎭', color: '#92400e', category: 'genre' },
   '한국소설':    { emoji: '📖', color: '#9a3412', category: 'genre' },
@@ -21876,7 +22084,8 @@ const DEFAULT_TAGS = {
   '라틴아메리카':{ emoji: '🌏', color: '#b45309', category: 'genre' },
   '일본문학':    { emoji: '🇯🇵', color: '#9f1239', category: 'genre' },
   '역사소설':    { emoji: '📚', color: '#a16207', category: 'genre' },
-  // 비픽션 12개
+  '웹소설':      { emoji: '📱', color: '#0369a1', category: 'genre' },
+  // 논픽션 12개
   '심리':        { emoji: '🧠', color: '#0369a1', category: 'nonfiction' },
   '경영':        { emoji: '💼', color: '#1f2937', category: 'nonfiction' },
   '경제':        { emoji: '💰', color: '#059669', category: 'nonfiction' },
@@ -21902,14 +22111,30 @@ const DEFAULT_TAGS = {
   '전공서':      { emoji: '🎓', color: '#1d4ed8', category: 'format' },
   '아동/청소년':{ emoji: '👶', color: '#ec4899', category: 'format' },
   '인생책':      { emoji: '🌟', color: '#facc15', category: 'format' },
+  // v1.11.0 — 웹소설 카테고리 14개
+  '무협':         { emoji: '⚔️', color: '#7c2d12', category: 'webnovel' },
+  '현대판타지':   { emoji: '🏰', color: '#3730a3', category: 'webnovel' },
+  '정통판타지':   { emoji: '🐉', color: '#6b21a8', category: 'webnovel' },
+  '로맨스판타지': { emoji: '💘', color: '#be185d', category: 'webnovel' },
+  '게임판타지':   { emoji: '🎮', color: '#0e7490', category: 'webnovel' },
+  '먼치킨':       { emoji: '⚡', color: '#b45309', category: 'webnovel' },
+  '회귀':         { emoji: '🔁', color: '#9f1239', category: 'webnovel' },
+  '환생':         { emoji: '🌀', color: '#7e22ce', category: 'webnovel' },
+  '빙의':         { emoji: '👤', color: '#475569', category: 'webnovel' },
+  '사극·동양':    { emoji: '📜', color: '#92400e', category: 'webnovel' },
+  '현대물':       { emoji: '🏢', color: '#1f2937', category: 'webnovel' },
+  'BL':           { emoji: '🌃', color: '#1e1b4b', category: 'webnovel' },
+  '회사·재벌':    { emoji: '💼', color: '#0c4a6e', category: 'webnovel' },
+  '학원물':       { emoji: '🏫', color: '#0d9488', category: 'webnovel' },
 };
 
 // v1.9.0 — 카테고리 라벨 매핑
 const TAG_CATEGORIES = {
   genre: '장르',
-  nonfiction: '비픽션',
+  nonfiction: '논픽션',
   growth: '자기개발',
   format: '형식',
+  webnovel: '웹소설',
 };
 
 // v1.9.0 — 기존 시드 18개 → 새 카테고리 자동 마이그레이션 매핑
@@ -22095,6 +22320,28 @@ const NA = {
     //  필요하면 사용자가 직접 추가하시면 됨. 사용자 의도 침범 안 하는 게 우선)
     Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
     Object.keys(savedTags).forEach(k => { TAGS[k] = savedTags[k]; });
+
+    // v1.10.1 — 다음 두 경우에만 DEFAULT 태그를 자동 보강:
+    //  (1) 사용자가 본 적도 없는 신규 카테고리 (해당 category 태그가 savedTags에 0개)
+    //  (2) 이 버전에서 명시적으로 추가된 새 기본 태그 (화이트리스트)
+    // 그 외 savedTags에 없는 DEFAULT 태그는 사용자가 v1.9.0에서 영구 삭제했을 가능성이
+    // 있어 부활시키지 않음 (HIDDEN_TAGS와 구분 불가하므로 보수적으로).
+    const NEW_DEFAULT_TAGS_V1_10_1 = new Set([
+      '웹소설',      // 장르에 신규 추가
+      '무협', '현대판타지', '정통판타지', '로맨스판타지', '게임판타지',
+      '먼치킨', '회귀', '환생', '빙의', '사극·동양', '현대물', 'BL', '회사·재벌', '학원물',
+    ]);
+    const existingCategories = new Set(Object.values(TAGS).map(t => t.category).filter(Boolean));
+    Object.keys(DEFAULT_TAGS).forEach(name => {
+      if (TAGS[name]) return; // 이미 있으면 건드리지 않음
+      const defTag = DEFAULT_TAGS[name];
+      // (1) 신규 카테고리이거나 (2) v1.10.1 신규 태그면 보강
+      const isNewCategory = !existingCategories.has(defTag.category);
+      const isNewTag = NEW_DEFAULT_TAGS_V1_10_1.has(name);
+      if (isNewCategory || isNewTag) {
+        TAGS[name] = { ...defTag, source: 'default' };
+      }
+    });
   }
 
   /* v1.9.0 — 태그 시스템 마이그레이션 (1회만)
@@ -22202,7 +22449,12 @@ const NA = {
 
 /* ─── 표지 없는 책은 Kakao에서 자동 보강 (로드 후 백그라운드) ─── */
 async function _enrichMissingCovers() {
-  const targets = BOOKS.filter(b => !b.coverUrl && b.title);
+  // v1.10.1 — 웹소설 + 직접 입력은 API 호출 금지 (사용자 입력 보호)
+  const targets = BOOKS.filter(b =>
+    !b.coverUrl && b.title &&
+    b.format !== 'webnovel' &&
+    b.source !== 'manual'
+  );
   if (targets.length === 0) return;
 
   // API rate limit 고려해 순차 호출 (150ms 간격)
@@ -22248,9 +22500,12 @@ async function _enrichMissingPrices() {
   //
   // priceSales 없고 + 사용자가 직접 빈 값으로 저장한 게 아닌 책만 (메모리 #11)
   // priceSource === 'manual' 이면 사용자가 의도적으로 비웠을 수 있음 → 건드리지 않음
+  // v1.10.1 — 웹소설 + 직접 입력 책도 제외
   const targets = (BOOKS || []).filter(b =>
     (b.priceSales == null) &&
     (b.priceSource !== 'manual') &&
+    (b.source !== 'manual') &&
+    (b.format !== 'webnovel') &&
     (b.title)
   );
   if (targets.length === 0) return;
@@ -22513,7 +22768,11 @@ function renderTagRadar() {
 function renderLogEntry(b, isFirst, isLast) {
   const color    = PALETTE_DARK[b.palette] || '#64748b';
   const reading  = b.status === 'reading';
-  const progPct  = reading ? Math.round((b.currentPage || 0) / (b.pages || 1) * 100) : 100;
+  const progPct  = reading
+    ? (isWebnovel(b) && b.episodes
+        ? Math.round((b.currentEpisode || 0) / b.episodes * 100)
+        : Math.round((b.currentPage || 0) / (b.pages || 1) * 100))
+    : 100;
   const elapsed  = reading ? daysBetween(b.dateStart, todayStr()) : null;
   const duration = !reading ? daysBetween(b.dateStart, b.dateEnd) : null;
 
@@ -22615,6 +22874,10 @@ function renderBookCoverInner(b, number) {
 /* v1.9.1 — 책 데이터 미완성 검사 (페이지·표지·가격·ISBN 중 하나라도 누락) */
 function isBookIncomplete(b) {
   if (!b) return false;
+  // v1.10.1 — 웹소설은 페이지·표지·가격·ISBN 없는 게 정상 (회차 기반·직접 입력)
+  if (b.format === 'webnovel') return false;
+  // v1.10.1 — 직접 입력 책은 사용자가 의도적으로 비웠을 수 있으므로 경고 X
+  if (b.source === 'manual') return false;
   if (!b.coverUrl) return true;
   if (!b.pages || b.pages <= 0) return true;
   if (b.priceSales == null || b.priceSales <= 0) return true;
@@ -22625,10 +22888,15 @@ function isBookIncomplete(b) {
 function renderBookCard(b, idx) {
   const fmtMark = mediaIcon(b);
   const isDropped = b.status === 'dropped';
+  const isWebnov = isWebnovel(b);
   const meta = isDropped
-    ? (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author))
-    : b.status === 'reading' && b.pages
-      ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%`
+    ? (isWebnov && b.episodes
+        ? `${esc(b.author)} · ${b.currentEpisode || 0}/${b.episodes}화`
+        : (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author)))
+    : b.status === 'reading'
+      ? (isWebnov && b.episodes
+          ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentEpisode || 0) / b.episodes * 100)}%`
+          : (b.pages ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%` : esc(b.author)))
       : b.status === 'done' && b.rating
       ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>`
       : esc(b.author);
@@ -24331,7 +24599,7 @@ function renderBookDetail() {
   // v1.9.1 — 메타 정보를 컬러 dot 리스트로 분리 (가독성 + 정보 위계)
   const hasPrice = (typeof b.priceSales === 'number' && b.priceSales > 0);
   const isNonKo  = (b.language && b.language !== 'ko');
-  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo);
+  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo || (isWebnovel(b) && b.episodes));
 
   // 커버
   const cover = b.coverUrl
@@ -24359,10 +24627,13 @@ function renderBookDetail() {
             <input type="file" id="bdCoverFileInput" accept="image/*" style="display:none">
           </button>
           <!-- v1.10.0 — 책 정보 검색을 표지 아래로 이동 (표지 폭에 맞춤 + 메타 하단 정렬) -->
+          <!-- v1.10.1 — 웹소설은 직접 입력이므로 외부 API 호출 버튼 안 보이게 -->
+          ${isWebnovel(b) ? '' : `
           <button type="button" class="bd-enrich-pill bd-enrich-pill-stacked" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
             <span>책 정보 검색</span>
           </button>
+          `}
         </div>
         <div class="bd-hero-info">
           <div class="bd-title-row">
@@ -24375,6 +24646,12 @@ function renderBookDetail() {
           <div class="bd-hero-author">${esc(b.author)}</div>
           <div class="bd-hero-meta">
             <span class="fmt-pill" id="bdFmtPill">
+              ${isWebnovel(b) ? `
+              <button type="button" class="active" data-fmt="webnovel" aria-label="웹소설" disabled style="cursor:default;">
+                <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-webnovel"/></svg>
+                <span>웹소설</span>
+              </button>
+              ` : `
               <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
                 <span class="fmt-pill-emoji">📕</span>
                 <span>종이</span>
@@ -24387,12 +24664,15 @@ function renderBookDetail() {
                 <span class="fmt-pill-emoji">🎧</span>
                 <span>오디오</span>
               </button>
+              `}
             </span>
             ${hasAnyMeta ? `
             <div class="bd-meta-list">
               ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
               ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
-              ${b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : ''}
+              ${isWebnovel(b) && b.episodes
+                ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">회차</span><span class="bd-meta-val">${b.episodes}화${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
+                : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
               <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
             </div>` : ''}
@@ -24409,7 +24689,28 @@ function renderBookDetail() {
           <button class="status-seg-btn" data-view="notes" id="bdNotesTabBtn"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 노트</button>
         </div>
       </div>
-      ${reading ? (isDigital(b) ? `
+      ${reading ? (isWebnovel(b) ? `
+      <!-- 진행률 (웹소설 — 회차 입력) -->
+      <div class="bd-hero-prog">
+        <div class="bd-hero-prog-row">
+          <input type="number" class="bd-progress-input" id="bdEpisodeInput"
+                 value="${b.currentEpisode || 0}" min="0" max="${b.episodes || 9999}">
+          <span class="bd-progress-sep">/</span>
+          <input type="number" class="bd-progress-input bd-progress-total ${isSerialNovel(b) ? '' : 'readonly'}" id="bdTotalEpisodesInput"
+                 value="${b.episodes || 0}" min="1" max="20000" aria-label="총 회차"
+                 ${isSerialNovel(b) ? '' : 'readonly'}>
+          <span class="bd-progress-unit">화</span>
+          <span class="bd-progress-pct" id="bdProgressPct">${b.episodes ? Math.round((b.currentEpisode || 0) / b.episodes * 100) : 0}%</span>
+        </div>
+        <div class="bd-progress-bar">
+          <div class="bd-progress-fill" id="bdProgressFill" style="width:${b.episodes ? Math.round((b.currentEpisode || 0) / b.episodes * 100) : 0}%"></div>
+        </div>
+        <div class="bd-hero-prog-sub">
+          ${daysBetween(b.dateStart, todayStr())}일째 보는 중
+          ${isSerialNovel(b) ? '<span style="color:#b89968;font-weight:700;margin-left:6px;">📡 연재중</span>' : ''}
+        </div>
+      </div>
+      ` : (isDigital(b) ? `
       <!-- 진행률 (전자책 / 오디오북 — % 입력) -->
       <div class="bd-hero-prog">
         <div class="ebook-pct-row">
@@ -24443,7 +24744,7 @@ function renderBookDetail() {
         </div>
         <div class="bd-hero-prog-sub">${daysBetween(b.dateStart, todayStr())}일째 읽는 중</div>
       </div>
-      `) : (!b.pages ? `
+      `)) : (!b.pages && !isWebnovel(b) ? `
       <!-- 페이지 수 편집 (위시/완독) — v1.10.0: b.pages 비어있을 때만 fallback 표시 -->
       <div class="bd-hero-pages">
         <span class="bd-hero-pages-lbl">페이지 수</span>
@@ -24612,9 +24913,10 @@ function renderBookDetail() {
       <div class="tag-new-cat-row" id="bdTagNewCatRow">
         <span class="tnc-label">📂 어느 카테고리에?</span>
         <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
-        <button type="button" class="tnc-chip" data-cat="nonfiction">비픽션</button>
+        <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
         <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
         <button type="button" class="tnc-chip" data-cat="format">형식</button>
+        <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
       </div>
     </div>
     ` : ''}
@@ -25066,6 +25368,62 @@ function wireBookDetailEvents() {
     };
     progInput.addEventListener('change', applyProgress);
     progInput.addEventListener('blur', applyProgress);
+  }
+
+  // v1.11.0 — 웹소설 회차 입력 (현재 회차)
+  const episodeInput = document.getElementById('bdEpisodeInput');
+  if (episodeInput) {
+    const applyEpisode = () => {
+      let v = parseInt(episodeInput.value, 10);
+      if (isNaN(v) || v < 0) v = 0;
+      const maxEp = b.episodes || 0;
+      if (maxEp > 0 && v > maxEp) v = maxEp;
+      updateBook(b.id, { currentEpisode: v });
+      const pct = maxEp > 0 ? Math.round(v / maxEp * 100) : 0;
+      const fill = document.getElementById('bdProgressFill');
+      const pctEl = document.getElementById('bdProgressPct');
+      if (fill) fill.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+      episodeInput.value = v;
+    };
+    episodeInput.addEventListener('change', applyEpisode);
+    episodeInput.addEventListener('blur', applyEpisode);
+  }
+
+  // v1.11.0 — 웹소설 총 회차 입력 (연재중일 때만 수정 가능)
+  const totalEpisodesInput = document.getElementById('bdTotalEpisodesInput');
+  if (totalEpisodesInput && isSerialNovel(b)) {
+    const applyTotalEpisodes = () => {
+      let v = parseInt(totalEpisodesInput.value, 10);
+      if (isNaN(v) || v < 1) {
+        showToast('총 회차가 잘못됐어요');
+        totalEpisodesInput.value = b.episodes || 1;
+        return;
+      }
+      if (v > 20000) {
+        showToast('총 회차가 너무 커요');
+        totalEpisodesInput.value = b.episodes || 1;
+        return;
+      }
+      // 현재 회차가 새 총 회차보다 크면 cap
+      const newCurrent = Math.min(b.currentEpisode || 0, v);
+      updateBook(b.id, { episodes: v, currentEpisode: newCurrent });
+      b.episodes = v;
+      b.currentEpisode = newCurrent;
+      const pct = Math.round(newCurrent / v * 100);
+      const fill = document.getElementById('bdProgressFill');
+      const pctEl = document.getElementById('bdProgressPct');
+      if (fill) fill.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+      totalEpisodesInput.value = v;
+      if (episodeInput) {
+        episodeInput.value = newCurrent;
+        episodeInput.max = v;
+      }
+      showToast('총 회차 갱신');
+    };
+    totalEpisodesInput.addEventListener('change', applyTotalEpisodes);
+    totalEpisodesInput.addEventListener('blur', applyTotalEpisodes);
   }
 
   // 전자책 % 입력 — 입력값으로 currentPage 환산해서 저장
@@ -34041,9 +34399,9 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.10.0';
-const APP_VERSION_NICKNAME = '책 이사'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8';
+const APP_VERSION = '1.10.1';
+const APP_VERSION_NICKNAME = '책 이사 + 웹소설'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
 
 /* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨) */
 (function updateSettingsVersionSubs() {
