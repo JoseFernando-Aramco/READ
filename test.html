@@ -11892,7 +11892,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* iOS — "여기 꾹 누르세요" 펄스 마커 */
 .lt-press-hint {
   position: absolute;
-  top: 14px;
+  top: 30%;         /* 사진 우측 중간 — 책 옆 여백 부근 */
   right: 14px;
   z-index: 2;
   display: flex;
@@ -30773,7 +30773,7 @@ function _ltGuideHTML(platform) {
   if (platform === 'ios') {
     const liveTextIcon = '<svg class="lt-ios-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="10" x2="17" y2="10"/><line x1="7" y1="14" x2="14" y2="14"/></svg>';
     return [
-      step(1, '사진의 <b>글씨 없는 빈 영역</b>(모서리·여백)을 <b>꾹</b> 길게 누르기 <span style="color:#a05a1e;font-weight:700">(살짝 말고 꾹!)</span>'),
+      step(1, '사진 <b>가장자리 부근의 여백</b>을 <b>꾹</b> 길게 누르기 <span style="color:#a05a1e;font-weight:700">(살짝 말고 꾹!)</span>'),
       step(2, `메뉴에서 ${liveTextIcon} <b>"텍스트 보기"</b> 선택`),
       step(3, '강조된 텍스트에서 원하는 부분 <b>드래그</b>해서 선택 → <b>"복사하기"</b>'),
       step(4, '아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기'),
