@@ -31629,6 +31629,11 @@ function _renderSpendModal() {
       const fmt = _SPEND_SELECTED_FORMAT;
       const eligible = (BOOKS || []).filter(function(b) {
         if (b.status !== 'done') return false;
+        // v1.x — 연도 필터링
+        if (_SPEND_VIEW_YEAR != null) {
+          if (!b.dateEnd) return false;
+          if (new Date(b.dateEnd).getFullYear() !== _SPEND_VIEW_YEAR) return false;
+        }
         if (!fmt) return true;
         var bf = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
         return bf === fmt;
