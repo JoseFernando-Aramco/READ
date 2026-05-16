@@ -16795,7 +16795,7 @@ body.cn-locked {
           </div>
         </div>
 
-        <!-- 웹소설 전용: 연재 상태 + 회차 (webnovel 선택 시만 표시) -->
+        <!-- 웹소설 전용: 연재 상태 + 진행 단위 + 회차/권 (webnovel 선택 시만 표시) -->
         <div id="manualWebnovelFields" hidden>
           <div class="form-field">
             <label class="form-label">연재 상태</label>
@@ -16811,14 +16811,29 @@ body.cn-locked {
             </div>
             <div class="form-hint" id="novelStatusHint">연재 중인 작품은 총 회차를 나중에 늘릴 수 있어요</div>
           </div>
+          <!-- v1.11.x — 진행 단위 (회차/권) -->
+          <div class="form-field">
+            <label class="form-label">진행 단위</label>
+            <div class="format-toggle novel-unit-toggle">
+              <button type="button" class="active" data-novel-unit="episode">
+                <span class="fmt-emoji">📑</span>
+                <span>회차</span>
+              </button>
+              <button type="button" data-novel-unit="volume">
+                <span class="fmt-emoji">📚</span>
+                <span>권</span>
+              </button>
+            </div>
+            <div class="form-hint" id="novelUnitHint">한 작품 안에서는 회차로 추적해요</div>
+          </div>
           <div class="form-field-row">
             <div class="form-field">
-              <label class="form-label">총 회차 <span class="req">*</span></label>
-              <input class="form-input" type="number" name="episodes" min="1" max="9999" placeholder="423">
+              <label class="form-label" id="novelTotalLbl">총 회차 <span class="req">*</span></label>
+              <input class="form-input" type="number" name="episodes" id="novelTotalInput" min="1" max="9999" placeholder="423">
             </div>
             <div class="form-field">
-              <label class="form-label">현재 회차</label>
-              <input class="form-input" type="number" name="currentEpisode" min="0" max="9999" placeholder="0">
+              <label class="form-label" id="novelCurrentLbl">현재 회차</label>
+              <input class="form-input" type="number" name="currentEpisode" id="novelCurrentInput" min="0" max="9999" placeholder="0">
             </div>
           </div>
         </div>
@@ -19575,6 +19590,7 @@ const BA = {
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
   manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio' | 'webnovel')
   manualNovelStatus: 'serial', // v1.11.0 — 웹소설 연재 상태 ('serial' | 'completed')
+  manualNovelUnit: 'episode',  // v1.11.x — 웹소설 진행 단위 ('episode' | 'volume')
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -19625,6 +19641,15 @@ function isWebnovel(book) {
 /* 연재 중 여부 (웹소설만) — novelStatus === 'serial' */
 function isSerialNovel(book) {
   return isWebnovel(book) && book.novelStatus === 'serial';
+}
+
+/* v1.11.x — 웹소설 진행 단위 문자 ('화' | '권') — 기존 데이터(필드 없음)는 '화' */
+function getNovelUnitChar(book) {
+  return (book && book.episodeUnit === 'volume') ? '권' : '화';
+}
+/* v1.11.x — 웹소설 진행 단위 라벨 ('회차' | '권') */
+function getNovelUnitLabel(book) {
+  return (book && book.episodeUnit === 'volume') ? '권' : '회차';
 }
 
 /* 디지털 매체 여부 (전자책 또는 오디오북) — % 입력을 사용하는 매체 */
@@ -19744,6 +19769,7 @@ function closeBookAdd() {
   BA.manualCover = '';
   BA.manualFormat = 'paper';  // 매체 기본값으로 리셋
   BA.manualNovelStatus = 'serial';  // v1.11.0 — 웹소설 연재 상태 리셋
+  BA.manualNovelUnit = 'episode';   // v1.11.x — 웹소설 진행 단위 리셋
   document.getElementById('bookSearchInput').value = '';
   document.getElementById('manualForm').reset();
   // 표지 미리보기 초기화
@@ -19777,6 +19803,15 @@ function closeBookAdd() {
       b.classList.toggle('active', b.dataset.novelStatus === 'serial');
     });
   }
+  // v1.11.x — 진행 단위 초기화 (회차)
+  BA.manualNovelUnit = 'episode';
+  const novelUnitToggle = webnovelFields ? webnovelFields.querySelector('.novel-unit-toggle') : null;
+  if (novelUnitToggle) {
+    novelUnitToggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.novelUnit === 'episode');
+    });
+  }
+  if (typeof _applyNovelUnit === 'function') _applyNovelUnit('episode');
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
 }
 function goToStage(stage) {
@@ -21458,7 +21493,8 @@ function submitManual() {
   }
   if (isWebnovelFmt) {
     if (!episodes || episodes < 1) {
-      showToast('웹소설은 총 회차를 입력해주세요');
+      const unitWord = (BA.manualNovelUnit === 'volume') ? '총 권' : '총 회차';
+      showToast(`웹소설은 ${unitWord}를 입력해주세요`);
       return;
     }
   } else {
@@ -21482,6 +21518,7 @@ function submitManual() {
   // 웹소설 추가 필드
   if (isWebnovelFmt) {
     BA.selected.novelStatus = BA.manualNovelStatus || 'serial';
+    BA.selected.episodeUnit = BA.manualNovelUnit || 'episode';  // v1.11.x — 진행 단위
     BA.selected.episodes = episodes;
     BA.selected.currentEpisode = Math.min(currentEpisode, episodes);
   }
@@ -21522,7 +21559,7 @@ function renderConfirm() {
   // 미리보기 — 웹소설은 페이지 대신 회차 표시
   const preview = document.getElementById('confirmPreview');
   const metaParts = isWebnov
-    ? [b.episodes ? `${b.episodes}화` : '', b.novelStatus === 'serial' ? '📡 연재중' : '✅ 완결', b.publisher]
+    ? [b.episodes ? `${b.episodes}${getNovelUnitChar(b)}` : '', b.novelStatus === 'serial' ? '📡 연재중' : '✅ 완결', b.publisher]
         .filter(Boolean).join(' · ')
     : [b.year, `${b.pages}p`, b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
         .filter(Boolean).join(' · ');
@@ -22301,6 +22338,7 @@ function confirmAddBook() {
     source: b.source || null,
     // v1.11.0 — 웹소설 전용 필드 (다른 매체엔 undefined)
     novelStatus: b.format === 'webnovel' ? (b.novelStatus || 'serial') : undefined,
+    episodeUnit: b.format === 'webnovel' ? (b.episodeUnit || 'episode') : undefined,  // v1.11.x — 'episode' | 'volume'
     episodes: b.format === 'webnovel' ? (b.episodes || 0) : undefined,
     currentEpisode: b.format === 'webnovel' ? (b.currentEpisode || 0) : undefined,
     // v1.8.0 — 종이값: 검색 결과(알라딘)에서 가격이 있으면 그대로 저장, 출처 'aladin'
@@ -22518,10 +22556,61 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
       b.classList.toggle('active', b.dataset.novelStatus === status);
     });
     if (hint) {
+      // 현재 단위에 맞춰 라벨 변경
+      const unitWord = (BA.manualNovelUnit === 'volume') ? '총 권' : '총 회차';
       hint.textContent = (status === 'serial')
-        ? '연재 중인 작품은 총 회차를 나중에 늘릴 수 있어요'
-        : '완결된 작품은 총 회차가 고정돼요';
+        ? `연재 중인 작품은 ${unitWord}를 나중에 늘릴 수 있어요`
+        : `완결된 작품은 ${unitWord}가 고정돼요`;
     }
+  });
+})();
+
+/* v1.11.x — 진행 단위 토글 (회차/권) + 라벨 동적 갱신 */
+function _applyNovelUnit(unit) {
+  // 라벨
+  const totalLbl = document.getElementById('novelTotalLbl');
+  const currentLbl = document.getElementById('novelCurrentLbl');
+  const unitHint = document.getElementById('novelUnitHint');
+  const totalInput = document.getElementById('novelTotalInput');
+  const currentInput = document.getElementById('novelCurrentInput');
+  if (unit === 'volume') {
+    if (totalLbl) totalLbl.innerHTML = '총 권 <span class="req">*</span>';
+    if (currentLbl) currentLbl.textContent = '현재 권';
+    if (unitHint) unitHint.textContent = '한 작품 안에서는 권으로 추적해요';
+    if (totalInput) totalInput.placeholder = '10';
+    if (currentInput) currentInput.placeholder = '0';
+  } else {
+    if (totalLbl) totalLbl.innerHTML = '총 회차 <span class="req">*</span>';
+    if (currentLbl) currentLbl.textContent = '현재 회차';
+    if (unitHint) unitHint.textContent = '한 작품 안에서는 회차로 추적해요';
+    if (totalInput) totalInput.placeholder = '423';
+    if (currentInput) currentInput.placeholder = '0';
+  }
+  // 연재 상태 hint도 단위에 맞춰 갱신
+  const statusHint = document.getElementById('novelStatusHint');
+  if (statusHint) {
+    const unitWord = (unit === 'volume') ? '총 권' : '총 회차';
+    const status = BA.manualNovelStatus || 'serial';
+    statusHint.textContent = (status === 'serial')
+      ? `연재 중인 작품은 ${unitWord}를 나중에 늘릴 수 있어요`
+      : `완결된 작품은 ${unitWord}가 고정돼요`;
+  }
+}
+
+(function wireNovelUnitToggle() {
+  const fields = document.getElementById('manualWebnovelFields');
+  if (!fields) return;
+  const toggle = fields.querySelector('.novel-unit-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-novel-unit]');
+    if (!btn) return;
+    const unit = btn.dataset.novelUnit;
+    BA.manualNovelUnit = unit;
+    toggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.novelUnit === unit);
+    });
+    _applyNovelUnit(unit);
   });
 })();
 
@@ -23440,7 +23529,7 @@ function renderBookCard(b, idx) {
   const isWebnov = isWebnovel(b);
   const meta = isDropped
     ? (isWebnov && b.episodes
-        ? `${esc(b.author)} · ${b.currentEpisode || 0}/${b.episodes}화`
+        ? `${esc(b.author)} · ${b.currentEpisode || 0}/${b.episodes}${getNovelUnitChar(b)}`
         : (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author)))
     : b.status === 'reading'
       ? (isWebnov && b.episodes
@@ -25220,7 +25309,7 @@ function renderBookDetail() {
               ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
               ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
               ${isWebnovel(b) && b.episodes
-                ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">회차</span><span class="bd-meta-val">${b.episodes}화${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
+                ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">${getNovelUnitLabel(b)}</span><span class="bd-meta-val">${b.episodes}${getNovelUnitChar(b)}${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
                 : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
               <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
@@ -25239,16 +25328,16 @@ function renderBookDetail() {
         </div>
       </div>
       ${reading ? (isWebnovel(b) ? `
-      <!-- 진행률 (웹소설 — 회차 입력) -->
+      <!-- 진행률 (웹소설 — 회차/권 입력) -->
       <div class="bd-hero-prog">
         <div class="bd-hero-prog-row">
           <input type="number" class="bd-progress-input" id="bdEpisodeInput"
                  value="${b.currentEpisode || 0}" min="0" max="${b.episodes || 9999}">
           <span class="bd-progress-sep">/</span>
           <input type="number" class="bd-progress-input bd-progress-total ${isSerialNovel(b) ? '' : 'readonly'}" id="bdTotalEpisodesInput"
-                 value="${b.episodes || 0}" min="1" max="20000" aria-label="총 회차"
+                 value="${b.episodes || 0}" min="1" max="20000" aria-label="총 ${getNovelUnitLabel(b)}"
                  ${isSerialNovel(b) ? '' : 'readonly'}>
-          <span class="bd-progress-unit">화</span>
+          <span class="bd-progress-unit">${getNovelUnitChar(b)}</span>
           <span class="bd-progress-pct" id="bdProgressPct">${b.episodes ? Math.round((b.currentEpisode || 0) / b.episodes * 100) : 0}%</span>
         </div>
         <div class="bd-progress-bar">
@@ -25939,18 +26028,19 @@ function wireBookDetailEvents() {
     episodeInput.addEventListener('blur', applyEpisode);
   }
 
-  // v1.11.0 — 웹소설 총 회차 입력 (연재중일 때만 수정 가능)
+  // v1.11.0 — 웹소설 총 회차/권 입력 (연재중일 때만 수정 가능)
   const totalEpisodesInput = document.getElementById('bdTotalEpisodesInput');
   if (totalEpisodesInput && isSerialNovel(b)) {
+    const unitLbl = getNovelUnitLabel(b);  // '회차' | '권'
     const applyTotalEpisodes = () => {
       let v = parseInt(totalEpisodesInput.value, 10);
       if (isNaN(v) || v < 1) {
-        showToast('총 회차가 잘못됐어요');
+        showToast(`총 ${unitLbl}가 잘못됐어요`);
         totalEpisodesInput.value = b.episodes || 1;
         return;
       }
       if (v > 20000) {
-        showToast('총 회차가 너무 커요');
+        showToast(`총 ${unitLbl}가 너무 커요`);
         totalEpisodesInput.value = b.episodes || 1;
         return;
       }
@@ -25969,7 +26059,7 @@ function wireBookDetailEvents() {
         episodeInput.value = newCurrent;
         episodeInput.max = v;
       }
-      showToast('총 회차 갱신');
+      showToast(`총 ${unitLbl} 갱신`);
     };
     totalEpisodesInput.addEventListener('change', applyTotalEpisodes);
     totalEpisodesInput.addEventListener('blur', applyTotalEpisodes);
