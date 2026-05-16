@@ -11738,202 +11738,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   transition: width .3s;
 }
 
-/* ═══════════ OCR 풀스크린 모달 (북모리 스타일) ═══════════ */
-.ocr-modal {
-  position: fixed;
-  inset: 0;
-  background: #1a1a1a;
-  z-index: 10000;
-  display: none;
-  flex-direction: column;
-  -webkit-user-select: none;
-  user-select: none;
-}
-.ocr-modal.open { display: flex; }
-.ocr-modal * { box-sizing: border-box; }
-
-.ocr-head {
-  display: flex; align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #1a1a1a;
-  color: #fff;
-  flex-shrink: 0;
-}
-.ocr-back {
-  width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-}
-.ocr-back svg { width: 22px; height: 22px; }
-.ocr-hint {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-
-.ocr-stage {
-  flex: 1;
-  overflow: auto;
-  position: relative;
-  background: #1a1a1a;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 8px;
-  -webkit-overflow-scrolling: touch;
-}
-.ocr-canvas-wrap {
-  position: relative;
-  max-width: 100%;
-  margin: 0 auto;
-}
-.ocr-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  user-drag: none;
-  -webkit-user-drag: none;
-  pointer-events: none;
-}
-.ocr-words {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.ocr-word {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(96, 165, 250, 0.5);
-  border-radius: 3px;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: all .12s;
-  -webkit-tap-highlight-color: transparent;
-}
-.ocr-word:hover {
-  background: rgba(96, 165, 250, 0.2);
-  border-color: rgba(96, 165, 250, 1);
-}
-.ocr-word.selected {
-  background: rgba(96, 165, 250, 0.5);
-  border-color: #60A5FA;
-  box-shadow: 0 0 0 1.5px #60A5FA;
-}
-.ocr-word.endpoint {
-  background: rgba(96, 165, 250, 0.7);
-  border-color: #60A5FA;
-  box-shadow: 0 0 0 2px #fff;
-}
-
-.ocr-loading {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  padding: 24px 32px;
-  border-radius: 12px;
-  min-width: 280px;
-  max-width: 90vw;
-  text-align: center;
-  z-index: 10;
-}
-.ocr-loading-text {
-  font-size: 13.5px;
-  font-weight: 600;
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-}
-.ocr-loading-bar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.ocr-loading-fill {
-  height: 100%;
-  background: #60A5FA;
-  width: 0%;
-  transition: width .3s;
-}
-
-.ocr-action {
-  background: #fff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding: 16px;
-  flex-shrink: 0;
-  max-height: 40vh;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.ocr-preview {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #1a1a1a;
-  background: #f5f5f4;
-  border-radius: 8px;
-  padding: 12px 14px;
-  max-height: 22vh;
-  overflow-y: auto;
-  word-break: keep-all;
-  white-space: pre-wrap;
-  letter-spacing: -0.01em;
-  -webkit-user-select: text;
-  user-select: text;
-}
-.ocr-preview.empty {
-  color: #999;
-}
-.ocr-action-btns {
-  display: flex;
-  gap: 8px;
-}
-.ocr-btn-reset {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 14px;
-  background: #f5f5f4;
-  border: 1px solid #e5e5e4;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #525252;
-  cursor: pointer;
-  letter-spacing: -0.01em;
-}
-.ocr-btn-reset svg { width: 16px; height: 16px; }
-.ocr-btn-use {
-  flex: 1;
-  padding: 12px;
-  background: #2563EB;
-  border: none;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  letter-spacing: -0.01em;
-}
-.ocr-btn-use:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-}
 .na-fav-toggle {
   display: flex; align-items: center;
   gap: 10px;
@@ -17530,7 +17334,7 @@ body.cn-locked {
 
     <div class="na-field">
       <label class="na-lbl">내용</label>
-      <!-- v1.X — OCR: 사진에서 텍스트 추출 (북모리 스타일) -->
+      <!-- v1.X — OCR: 사진에서 텍스트 추출 (단순 버전) -->
       <button type="button" class="na-ocr-btn" id="naOcrBtn">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="3" y="6" width="18" height="14" rx="2"/>
@@ -17539,6 +17343,11 @@ body.cn-locked {
         </svg>
         <span>사진에서 문구 추출</span>
       </button>
+      <input type="file" id="naOcrInput" accept="image/*" capture="environment" style="display:none">
+      <div class="na-ocr-progress" id="naOcrProgress" style="display:none">
+        <div class="na-ocr-progress-text" id="naOcrProgressText">준비 중…</div>
+        <div class="na-ocr-progress-bar"><div class="na-ocr-progress-fill" id="naOcrProgressFill"></div></div>
+      </div>
       <textarea class="na-textarea" id="naBody" placeholder="인용구나 떠오른 생각을 적어보세요&#10;&#10;📷 위의 '사진에서 문구 추출' 버튼으로 책 사진에서 직접 가져올 수도 있어요"></textarea>
     </div>
 
@@ -17553,49 +17362,6 @@ body.cn-locked {
   </div>
 </aside>
 
-<!-- ═══════════ OCR 풀스크린 모달 (북모리 스타일) ═══════════ -->
-<div class="ocr-modal" id="ocrModal" aria-hidden="true">
-  <!-- 헤더: 닫기 + 안내 -->
-  <div class="ocr-head">
-    <button class="ocr-back" id="ocrBack" aria-label="닫기">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="19" y1="12" x2="5" y2="12"/>
-        <polyline points="12 19 5 12 12 5"/>
-      </svg>
-    </button>
-    <div class="ocr-hint" id="ocrHint">사진을 분석하고 있어요…</div>
-  </div>
-
-  <!-- 사진 + 단어 박스 영역 -->
-  <div class="ocr-stage" id="ocrStage">
-    <div class="ocr-canvas-wrap" id="ocrCanvasWrap">
-      <img class="ocr-img" id="ocrImg" alt="">
-      <div class="ocr-words" id="ocrWords"></div>
-    </div>
-  </div>
-
-  <!-- 진행률 (로딩 중에만) -->
-  <div class="ocr-loading" id="ocrLoading">
-    <div class="ocr-loading-text" id="ocrLoadingText">준비 중…</div>
-    <div class="ocr-loading-bar"><div class="ocr-loading-fill" id="ocrLoadingFill"></div></div>
-  </div>
-
-  <!-- 액션 영역 (시작/끝 선택 후) -->
-  <div class="ocr-action" id="ocrAction" style="display:none">
-    <div class="ocr-preview" id="ocrPreview">선택한 텍스트가 여기 표시돼요</div>
-    <div class="ocr-action-btns">
-      <button class="ocr-btn-reset" id="ocrReset" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-        </svg>
-        다시 선택
-      </button>
-      <button class="ocr-btn-use" id="ocrUse" type="button" disabled>사용하기</button>
-    </div>
-  </div>
-</div>
-<input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none">
 
 <!-- ═══════════ 온보딩 가이드 ═══════════ -->
 <div class="ob-backdrop" id="obBackdrop"></div>
@@ -30647,9 +30413,8 @@ document.getElementById('naFav').addEventListener('click', () => {
 document.getElementById('naSave').addEventListener('click', saveNote);
 
 // ═══════════════════════════════════════════════════════════
-// OCR (북모리 스타일) — 사진 → 단어 박스 → 시작/끝 선택 → 텍스트
+// OCR — 사진에서 텍스트 추출 (Tesseract.js v5, 한글, 단순 버전)
 // ═══════════════════════════════════════════════════════════
-// Tesseract.js v5 동적 로드 (~5MB) + 한글
 let _tesseractLoaded = false;
 let _tesseractLoading = null;
 
@@ -30665,6 +30430,15 @@ function _loadTesseract() {
     document.head.appendChild(script);
   });
   return _tesseractLoading;
+}
+
+function _cleanOcrText(raw) {
+  if (!raw) return '';
+  let t = raw;
+  t = t.split('\n').map(l => l.trim()).join('\n');
+  t = t.replace(/\n{3,}/g, '\n\n');
+  t = t.replace(/ {2,}/g, ' ');
+  return t.trim();
 }
 
 function _ocrStatusLabel(status, progress) {
@@ -30685,301 +30459,75 @@ function _ocrStatusLabel(status, progress) {
   }
 }
 
-// 핵심 알고리즘 (단위 테스트 16/16 통과)
-function _groupIntoLines(words) {
-  if (!words.length) return [];
-  const sorted = [...words].sort((a, b) => a.bbox.y0 - b.bbox.y0);
-  const lines = [];
-  for (const w of sorted) {
-    const cy = (w.bbox.y0 + w.bbox.y1) / 2;
-    const matchLine = lines.find(line => {
-      const lh = line[0].bbox.y1 - line[0].bbox.y0;
-      const tol = lh * 0.5;
-      const lineCY = (line[0].bbox.y0 + line[0].bbox.y1) / 2;
-      return Math.abs(cy - lineCY) < tol;
-    });
-    if (matchLine) matchLine.push(w);
-    else lines.push([w]);
-  }
-  lines.forEach(line => line.sort((a, b) => a.bbox.x0 - b.bbox.x0));
-  lines.sort((a, b) => a[0].bbox.y0 - b[0].bbox.y0);
-  return lines;
-}
-
-function _selectRange(words, startId, endId) {
-  if (!words.length || startId == null || endId == null) return [];
-  const lines = _groupIntoLines(words);
-  const ordered = [];
-  for (const line of lines) for (const w of line) ordered.push(w);
-  const startIdx = ordered.findIndex(w => w.id === startId);
-  const endIdx = ordered.findIndex(w => w.id === endId);
-  if (startIdx === -1 || endIdx === -1) return [];
-  const [lo, hi] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
-  return ordered.slice(lo, hi + 1);
-}
-
-function _composeText(selectedWords) {
-  if (!selectedWords.length) return '';
-  const lines = _groupIntoLines(selectedWords);
-  return lines.map(line => line.map(w => w.text).join(' ')).join('\n');
-}
-
-// OCR 모달 상태
-const _ocr = {
-  words: [],          // 인식된 모든 단어
-  imgNaturalW: 0,     // 원본 이미지 크기 (bbox 좌표계)
-  imgNaturalH: 0,
-  startId: null,
-  endId: null,
-};
-
-function _ocrShowLoading(label, pct) {
-  const el = document.getElementById('ocrLoading');
-  const text = document.getElementById('ocrLoadingText');
-  const fill = document.getElementById('ocrLoadingFill');
-  if (el) el.style.display = 'block';
+function _setOcrProgress(label, pct) {
+  const prog = document.getElementById('naOcrProgress');
+  const text = document.getElementById('naOcrProgressText');
+  const fill = document.getElementById('naOcrProgressFill');
+  if (prog) prog.style.display = 'block';
   if (text) text.textContent = label;
   if (fill) fill.style.width = (pct != null ? pct : 0) + '%';
 }
-function _ocrHideLoading() {
-  const el = document.getElementById('ocrLoading');
-  if (el) el.style.display = 'none';
-}
-function _ocrSetHint(text) {
-  const el = document.getElementById('ocrHint');
-  if (el) el.textContent = text;
+
+function _hideOcrProgress() {
+  const prog = document.getElementById('naOcrProgress');
+  if (prog) prog.style.display = 'none';
 }
 
-function _renderWords() {
-  const wrap = document.getElementById('ocrWords');
-  const img = document.getElementById('ocrImg');
-  if (!wrap || !img) return;
-  wrap.innerHTML = '';
-  // 표시 크기 / 원본 크기 비율
-  const dispW = img.clientWidth;
-  const dispH = img.clientHeight;
-  if (!dispW || !dispH || !_ocr.imgNaturalW) return;
-  const sx = dispW / _ocr.imgNaturalW;
-  const sy = dispH / _ocr.imgNaturalH;
-
-  for (const w of _ocr.words) {
-    const div = document.createElement('div');
-    div.className = 'ocr-word';
-    div.dataset.id = w.id;
-    div.style.left   = (w.bbox.x0 * sx) + 'px';
-    div.style.top    = (w.bbox.y0 * sy) + 'px';
-    div.style.width  = ((w.bbox.x1 - w.bbox.x0) * sx) + 'px';
-    div.style.height = ((w.bbox.y1 - w.bbox.y0) * sy) + 'px';
-    wrap.appendChild(div);
-  }
-  _updateWordHighlights();
-}
-
-function _updateWordHighlights() {
-  const wrap = document.getElementById('ocrWords');
-  if (!wrap) return;
-  const selected = (_ocr.startId && _ocr.endId)
-    ? new Set(_selectRange(_ocr.words, _ocr.startId, _ocr.endId).map(w => w.id))
-    : new Set();
-  wrap.querySelectorAll('.ocr-word').forEach(el => {
-    const id = el.dataset.id;
-    el.classList.toggle('selected', selected.has(id));
-    el.classList.toggle('endpoint', id === _ocr.startId || id === _ocr.endId);
-  });
-}
-
-function _updatePreview() {
-  const preview = document.getElementById('ocrPreview');
-  const useBtn = document.getElementById('ocrUse');
-  const action = document.getElementById('ocrAction');
-  if (!preview || !useBtn || !action) return;
-
-  if (!_ocr.startId) {
-    action.style.display = 'none';
-    return;
-  }
-
-  action.style.display = 'flex';
-
-  if (_ocr.startId && !_ocr.endId) {
-    preview.textContent = '끝 단어를 터치해 주세요';
-    preview.classList.add('empty');
-    useBtn.disabled = true;
-    return;
-  }
-
-  const selected = _selectRange(_ocr.words, _ocr.startId, _ocr.endId);
-  const text = _composeText(selected);
-  preview.textContent = text || '선택된 텍스트가 없어요';
-  preview.classList.toggle('empty', !text);
-  useBtn.disabled = !text;
-}
-
-function _updateHint() {
-  if (!_ocr.startId) {
-    _ocrSetHint('시작 단어를 터치해 주세요');
-  } else if (!_ocr.endId) {
-    _ocrSetHint('끝 단어를 터치해 주세요');
-  } else {
-    _ocrSetHint('확인 후 사용하기를 눌러주세요');
-  }
-}
-
-function _onWordClick(e) {
-  const wordEl = e.target.closest('.ocr-word');
-  if (!wordEl) return;
-  const id = wordEl.dataset.id;
-  if (!_ocr.startId) {
-    _ocr.startId = id;
-  } else if (!_ocr.endId) {
-    _ocr.endId = id;
-  } else {
-    // 이미 둘 다 있으면 다시 선택 시작
-    _ocr.startId = id;
-    _ocr.endId = null;
-  }
-  _updateWordHighlights();
-  _updatePreview();
-  _updateHint();
-}
-
-function _resetSelection() {
-  _ocr.startId = null;
-  _ocr.endId = null;
-  _updateWordHighlights();
-  _updatePreview();
-  _updateHint();
-}
-
-function _openOcrModal() {
-  const m = document.getElementById('ocrModal');
-  if (!m) return;
-  m.classList.add('open');
-  m.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-}
-
-function _closeOcrModal() {
-  const m = document.getElementById('ocrModal');
-  if (!m) return;
-  m.classList.remove('open');
-  m.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  // 상태 초기화
-  _ocr.words = [];
-  _ocr.startId = null;
-  _ocr.endId = null;
-  _ocr.imgNaturalW = 0;
-  _ocr.imgNaturalH = 0;
-  const img = document.getElementById('ocrImg');
-  if (img) img.src = '';
-  const wrap = document.getElementById('ocrWords');
-  if (wrap) wrap.innerHTML = '';
-  _ocrHideLoading();
-  document.getElementById('ocrAction').style.display = 'none';
-  // 같은 파일 재선택 가능하도록 input 초기화
-  const input = document.getElementById('ocrFileInput');
-  if (input) input.value = '';
-}
-
-async function _runOcrOnFile(file) {
-  _openOcrModal();
-  _ocrSetHint('사진을 분석하고 있어요…');
-  _ocrShowLoading('엔진 준비 중…', 0);
-
-  // 이미지 미리 표시 (분석 중에도 보이게)
-  const img = document.getElementById('ocrImg');
-  const url = URL.createObjectURL(file);
-  img.src = url;
+async function _runOcr(file) {
+  const btn = document.getElementById('naOcrBtn');
+  if (btn) btn.disabled = true;
+  _setOcrProgress('엔진 준비 중…', 0);
 
   try {
     await _loadTesseract();
     if (typeof Tesseract === 'undefined') throw new Error('Tesseract 미정의');
 
     const worker = await Tesseract.createWorker('kor', 1, {
-      logger: m => _ocrShowLoading(_ocrStatusLabel(m.status, m.progress),
+      logger: m => _setOcrProgress(_ocrStatusLabel(m.status, m.progress),
                                     Math.round((m.progress || 0) * 100)),
     });
 
-    const { data } = await worker.recognize(file);
+    const { data: { text } } = await worker.recognize(file);
     await worker.terminate();
 
-    // 단어 추출 (data.words 사용, 신뢰도 너무 낮은 건 제외)
-    const rawWords = (data.words || []).filter(w =>
-      w.text && w.text.trim() && (w.confidence == null || w.confidence > 30)
-    );
-    if (!rawWords.length) {
-      _ocrHideLoading();
-      _ocrSetHint('인식된 텍스트가 없어요');
-      showToast('더 밝은 곳에서 다시 시도해 주세요');
-      setTimeout(() => _closeOcrModal(), 1500);
+    const clean = _cleanOcrText(text);
+    if (!clean) {
+      showToast('인식된 텍스트가 없어요. 더 밝은 곳에서 다시 시도해 주세요');
       return;
     }
 
-    _ocr.words = rawWords.map((w, i) => ({
-      id: 'w' + i,
-      text: w.text.trim(),
-      bbox: w.bbox,
-    }));
-
-    // 이미지 자연 크기 (bbox 좌표계와 동일)
-    _ocr.imgNaturalW = img.naturalWidth;
-    _ocr.imgNaturalH = img.naturalHeight;
-
-    _ocrHideLoading();
-    _renderWords();
-    _updateHint();
-    _updatePreview();
+    // 기존 내용에 이어붙이기
+    const body = document.getElementById('naBody');
+    if (body) {
+      const cur = body.value || '';
+      body.value = cur ? cur + '\n\n' + clean : clean;
+      body.dispatchEvent(new Event('input', { bubbles: true }));
+      body.focus();
+    }
+    showToast('텍스트 추출 완료. 인식 오류는 직접 수정해 주세요');
   } catch (err) {
     console.error('[OCR] 실패:', err);
-    _ocrHideLoading();
     showToast('추출에 실패했어요. 잠시 후 다시 시도해 주세요');
-    setTimeout(() => _closeOcrModal(), 1500);
+  } finally {
+    _hideOcrProgress();
+    if (btn) btn.disabled = false;
+    const input = document.getElementById('naOcrInput');
+    if (input) input.value = '';
   }
 }
 
-// ── 이벤트 핸들러 ──
 document.getElementById('naOcrBtn').addEventListener('click', () => {
-  document.getElementById('ocrFileInput').click();
+  document.getElementById('naOcrInput').click();
 });
 
-document.getElementById('ocrFileInput').addEventListener('change', (e) => {
+document.getElementById('naOcrInput').addEventListener('change', (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('이미지 파일만 가능해요'); return; }
   if (file.size > 15 * 1024 * 1024) { showToast('15MB 이하 이미지만 가능해요'); return; }
-  _runOcrOnFile(file);
+  _runOcr(file);
 });
 
-document.getElementById('ocrWords').addEventListener('click', _onWordClick);
-document.getElementById('ocrBack').addEventListener('click', _closeOcrModal);
-document.getElementById('ocrReset').addEventListener('click', _resetSelection);
-
-document.getElementById('ocrUse').addEventListener('click', () => {
-  const selected = _selectRange(_ocr.words, _ocr.startId, _ocr.endId);
-  const text = _composeText(selected);
-  if (!text) return;
-  const body = document.getElementById('naBody');
-  if (body) {
-    const cur = body.value || '';
-    body.value = cur ? cur + '\n\n' + text : text;
-    body.dispatchEvent(new Event('input', { bubbles: true }));
-    body.focus();
-  }
-  _closeOcrModal();
-  showToast('텍스트 추가 완료. 필요하면 직접 수정해 주세요');
-});
-
-// 이미지 로드 후 단어 박스 재계산 (resize 대응)
-document.getElementById('ocrImg').addEventListener('load', () => {
-  if (_ocr.words.length > 0) _renderWords();
-});
-window.addEventListener('resize', () => {
-  const modal = document.getElementById('ocrModal');
-  if (modal && modal.classList.contains('open') && _ocr.words.length > 0) {
-    _renderWords();
-  }
-});
 
 // 삭제 (위임 — 동적 생성된 버튼)
 document.getElementById('naDeleteZone').addEventListener('click', (e) => {
