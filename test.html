@@ -11876,7 +11876,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   /* Live Text가 자동 작동하도록 user-select 막지 않음 */
   -webkit-user-select: auto;
   user-select: auto;
-  position: relative;  /* 펄스 마커 absolute 기준 */
 }
 .lt-img {
   display: block;
@@ -11887,46 +11886,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-user-select: auto;
   user-select: auto;
   pointer-events: auto;
-}
-
-/* iOS — "여기 꾹 누르세요" 펄스 마커 */
-.lt-press-hint {
-  position: absolute;
-  top: 30%;         /* 사진 우측 중간 — 책 옆 여백 부근 */
-  right: 14px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
-  transition: opacity .4s;
-}
-.lt-press-hint.fade {
-  opacity: 0;
-}
-.lt-press-hint-circle {
-  width: 38px;
-  height: 38px;
-  border: 3px solid #EF4444;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.12);
-  animation: ltPressPulse 1.4s ease-in-out infinite;
-}
-@keyframes ltPressPulse {
-  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
-  50%      { transform: scale(1.12); opacity: 0.85; box-shadow: 0 0 0 8px rgba(239,68,68,0); }
-}
-.lt-press-hint-label {
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
-  background: #EF4444;
-  padding: 2px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* 액션 영역 */
@@ -17628,10 +17587,6 @@ body.cn-locked {
     </div>
     <div class="lt-img-wrap">
       <img class="lt-img" id="ltImg" alt="">
-      <div class="lt-press-hint" id="ltPressHint" style="display:none">
-        <div class="lt-press-hint-circle"></div>
-        <div class="lt-press-hint-label">여기 꾹</div>
-      </div>
     </div>
   </div>
 
@@ -30803,16 +30758,9 @@ function _ltGuideHTML(platform) {
 function _ltShowPhoto(file) {
   const img = document.getElementById('ltImg');
   const guide = document.getElementById('ltGuide');
-  const hint = document.getElementById('ltPressHint');
   if (!img) return;
-  const platform = _ltDetectPlatform();
   // 가이드 OS별로 채우기
-  if (guide) guide.innerHTML = _ltGuideHTML(platform);
-  // iOS만 펄스 마커 표시
-  if (hint) {
-    hint.classList.remove('fade');
-    hint.style.display = (platform === 'ios') ? 'flex' : 'none';
-  }
+  if (guide) guide.innerHTML = _ltGuideHTML(_ltDetectPlatform());
   // 옛 blob URL 해제
   if (img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
   img.src = URL.createObjectURL(file);
@@ -30820,18 +30768,6 @@ function _ltShowPhoto(file) {
   document.getElementById('ltStage').style.display = 'block';
   document.getElementById('ltAction').style.display = 'flex';
 }
-
-// 사용자가 사진을 만지면 펄스 마커 페이드아웃 (방해 X)
-(function _ltHintAutoFade() {
-  const wrap = document.querySelector('.lt-img-wrap');
-  if (!wrap) return;
-  const fade = () => {
-    const hint = document.getElementById('ltPressHint');
-    if (hint) hint.classList.add('fade');
-  };
-  // touchstart로 첫 접촉 시 즉시 페이드 (Live Text 메뉴가 곧 뜨므로 방해 X)
-  wrap.addEventListener('touchstart', fade, { passive: true, once: false });
-})();
 
 async function _ltPasteFromClipboard() {
   let text = '';
