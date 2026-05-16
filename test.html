@@ -11674,9 +11674,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label);
 }
 .na-textarea {
-  resize: vertical;
+  resize: none;
   min-height: 220px;
+  max-height: 60vh;
   line-height: 1.6;
+  overflow-y: auto;
 }
 
 /* v1.X — OCR: 사진에서 텍스트 추출 */
@@ -30431,6 +30433,8 @@ function renderNA() {
 
   document.getElementById('naPage').value = NA.page || '';
   document.getElementById('naBody').value = NA.body || '';
+  // 기존 노트 편집 시 긴 텍스트면 자동 늘어남
+  if (typeof _naAutoGrow === 'function') _naAutoGrow();
 
   const fav = document.getElementById('naFav');
   fav.classList.toggle('on', NA.favorite);
@@ -30644,9 +30648,19 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
+// 노트 textarea 자동 높이 조정 (auto-grow)
+function _naAutoGrow() {
+  const ta = document.getElementById('naBody');
+  if (!ta) return;
+  ta.style.height = 'auto';
+  // CSS의 min-height(220px) / max-height(60vh)는 그대로 적용됨
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
 document.getElementById('naBody').addEventListener('input', (e) => {
   NA.body = e.target.value;
   updateNASaveBtn();
+  _naAutoGrow();
 });
 
 document.getElementById('naFav').addEventListener('click', () => {
