@@ -11832,14 +11832,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 }
 .lt-guide-step {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 11px;
   font-size: 13.5px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #1a1a1a;
   letter-spacing: -0.01em;
 }
@@ -11848,13 +11848,23 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex-shrink: 0;
   width: 22px; height: 22px;
   border-radius: 50%;
-  background: #1a1a1a;
+  background: var(--primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 800;
+  margin-top: 1px;
+}
+/* iOS "텍스트 보기" 메뉴 아이콘 (인라인 SVG) */
+.lt-ios-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  margin: 0 1px;
+  color: #1a1a1a;
 }
 .lt-img-wrap {
   background: #fff;
@@ -17564,21 +17574,14 @@ body.cn-locked {
   <div class="lt-start" id="ltStart">
     <div class="lt-start-icon">📸</div>
     <div class="lt-start-title">책 페이지를 촬영하세요</div>
-    <div class="lt-start-desc">평평한 곳, 밝은 조명에서<br>찍을수록 정확해요</div>
+    <div class="lt-start-desc">평평한 곳, 밝은 조명에서<br>그림자 없이 찍을수록 정확해요</div>
     <button type="button" class="lt-start-btn" id="ltPickBtn">사진 선택</button>
   </div>
 
   <!-- 사진 표시 + 가이드 -->
   <div class="lt-stage" id="ltStage" style="display:none">
     <div class="lt-guide" id="ltGuide">
-      <div class="lt-guide-step">
-        <span class="lt-guide-num">1</span>
-        <span>사진 안 글자를 <b>길게 눌러서</b> 선택 → <b>복사</b></span>
-      </div>
-      <div class="lt-guide-step">
-        <span class="lt-guide-num">2</span>
-        <span>아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기</span>
-      </div>
+      <!-- 가이드 내용은 JS에서 OS별로 채움 -->
     </div>
     <div class="lt-img-wrap">
       <img class="lt-img" id="ltImg" alt="">
@@ -30688,9 +30691,62 @@ function _ltClose() {
   if (input) input.value = '';
 }
 
+// 플랫폼 감지 (단위 테스트 9/9 통과)
+function _ltDetectPlatform() {
+  const ua = (navigator.userAgent || '').toLowerCase();
+  if (/iphone|ipod/.test(ua)) return 'ios';
+  if (/ipad/.test(ua)) return 'ios';
+  // iPadOS 13+는 macintosh로 보고됨 — maxTouchPoints로 구분
+  if (/macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1) return 'ios';
+  if (/android/.test(ua)) return 'android';
+  if (/macintosh|mac os x/.test(ua)) return 'macos';
+  if (/windows/.test(ua)) return 'windows';
+  return 'other';
+}
+
+// OS별 가이드 텍스트
+function _ltGuideHTML(platform) {
+  const step = (n, html) =>
+    `<div class="lt-guide-step"><span class="lt-guide-num">${n}</span><span>${html}</span></div>`;
+  const finalStep = step(99, '아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기').replace('99', '');
+  // 99 → 마지막 단계 표시용 (n 계산해서 다시 채움)
+
+  if (platform === 'ios') {
+    const liveTextIcon = '<svg class="lt-ios-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="10" x2="17" y2="10"/><line x1="7" y1="14" x2="14" y2="14"/></svg>';
+    return [
+      step(1, '사진의 <b>글씨 없는 빈 영역</b>을 <b>꾹</b> 길게 누르기 <span style="color:#a05a1e;font-weight:700">(살짝 말고 꾹!)</span>'),
+      step(2, `메뉴에서 ${liveTextIcon} <b>"텍스트 보기"</b> 선택`),
+      step(3, '강조된 텍스트에서 원하는 부분 <b>드래그</b>해서 선택 → <b>"복사하기"</b>'),
+      step(4, '아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기'),
+    ].join('');
+  }
+  if (platform === 'android') {
+    return [
+      step(1, '아래 사진을 <b>길게 누르기</b>'),
+      step(2, '"<b>Google Lens로 검색</b>" 선택 → 텍스트 선택 → <b>복사</b>'),
+      step(3, '뒤로 와서 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기'),
+    ].join('');
+  }
+  if (platform === 'macos') {
+    return [
+      step(1, '사진 글자에 마우스 호버 → 드래그로 선택 → <b>복사</b><br><span style="color:#6b6b66;font-size:12px">(macOS Live Text · Safari 권장)</span>'),
+      step(2, '아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기'),
+    ].join('');
+  }
+  // 기타 (Windows 등)
+  return [
+    step(1, '사진을 <b>우클릭</b> → "Google Lens로 이미지 검색"<br><span style="color:#6b6b66;font-size:12px">(Chrome 권장)</span>'),
+    step(2, '텍스트 선택 → <b>복사</b>'),
+    step(3, '아래 <b>"복사한 텍스트 가져오기"</b> 버튼 누르기'),
+  ].join('');
+}
+
 function _ltShowPhoto(file) {
   const img = document.getElementById('ltImg');
+  const guide = document.getElementById('ltGuide');
   if (!img) return;
+  // 가이드 OS별로 채우기
+  if (guide) guide.innerHTML = _ltGuideHTML(_ltDetectPlatform());
   // 옛 blob URL 해제
   if (img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
   img.src = URL.createObjectURL(file);
