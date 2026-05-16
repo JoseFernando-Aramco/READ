@@ -4192,6 +4192,65 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   box-shadow: 0 0 0 1.5px var(--c-terra-700), 0 0.5px 2px rgba(0, 0, 0, 0.18);
 }
 
+/* ── 캘린더 푸터: 이번 달 누적 (페이지 + 시간) ── */
+.month-cal-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+}
+.month-cal-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+.month-cal-footer-col { text-align: center; }
+.month-cal-footer-div { width: 1px; height: 30px; background: var(--c-border); }
+.month-cal-footer-lbl {
+  font-size: 10.5px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-bottom: 3px;
+  letter-spacing: 0.02em;
+}
+.month-cal-footer-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.month-cal-footer-val .unit {
+  font-size: 11px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-left: 2px;
+}
+.month-cal-footer-val.empty { color: var(--c-text-3, #c8c5be); }
+
+/* 시네마 모드 안내 박스 (타이머 미사용 시) */
+.timer-hint-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(212, 167, 106, 0.08);
+  border: 1px solid rgba(212, 167, 106, 0.25);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #6b5530;
+  line-height: 1.55;
+}
+.timer-hint-box .th-ic {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+.timer-hint-box b {
+  color: #4a3818;
+  font-weight: 700;
+}
+
 /* ═══════════════════════════════════════════════════════════
    목표탭 V2 — goal-strip + 도전과제 카드
    ═══════════════════════════════════════════════════════════ */
@@ -11674,10 +11733,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label);
 }
 .na-textarea {
-  resize: vertical;
-  min-height: 110px;
+  resize: none;
+  min-height: 220px;
+  max-height: 60vh;
   line-height: 1.6;
+  overflow-y: auto;
 }
+
 .na-fav-toggle {
   display: flex; align-items: center;
   gap: 10px;
@@ -12556,6 +12618,60 @@ body.cn-locked {
 }
 .dd-item:active { transform: scale(.995); background: var(--c-surface-2); }
 
+/* DAY 뷰 — 상단 통계 (페이지 + 시간, 타이머 세션 기반) */
+.dd-day-stat {
+  margin: 4px 4px 8px;
+  padding: 12px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.dd-day-stat-col { text-align: center; }
+.dd-day-stat-div { width: 1px; height: 24px; background: var(--c-border); }
+.dd-day-stat-lbl {
+  font-size: 10.5px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.dd-day-stat-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.dd-day-stat-val .unit {
+  font-size: 10.5px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-left: 1px;
+}
+.dd-day-stat-val.empty { color: var(--c-text-3, #c8c5be); }
+
+/* DAY 뷰 — 타이머 미사용 시 안내 박스 (모달 안 버전) */
+.dd-timer-hint {
+  margin: 4px 4px 12px;
+  padding: 10px 12px;
+  background: rgba(212, 167, 106, 0.08);
+  border: 1px solid rgba(212, 167, 106, 0.25);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #6b5530;
+  line-height: 1.55;
+}
+.dd-timer-hint .dh-ic {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+.dd-timer-hint b { color: #4a3818; font-weight: 700; }
+
 /* DAY 뷰 분리 렌더용 — 읽는 중 / 그 외 섹션 라벨 + 더 보기 */
 .dd-section-lbl {
   font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
@@ -12633,7 +12749,6 @@ body.cn-locked {
   color: var(--c-label);
   font-size: 14px;
 }
-
 
 /* ═══════════════════════════════════════════
    월별 드릴다운 · 화이트 미니멀 티켓 (시안 A)
@@ -12921,7 +13036,6 @@ body.cn-locked {
   opacity: 0.6;
   pointer-events: none;
 }
-
 
 .dd-grid {
   display: grid;
@@ -15983,7 +16097,6 @@ body.cn-locked {
   <symbol id="i-kakao" viewBox="0 0 20 20"><path d="M10 3C5.58 3 2 5.86 2 9.39c0 2.27 1.5 4.27 3.78 5.4l-.96 3.51c-.07.27.22.49.46.34l4.21-2.78c.17.01.34.02.51.02 4.42 0 8-2.86 8-6.39C18 5.86 14.42 3 10 3z"/></symbol>
 </svg>
 
-
 <div class="main-wrap">
 
   <!-- ═══════════ 헤더 ═══════════ -->
@@ -16149,6 +16262,9 @@ body.cn-locked {
         <span class="stat-card-v2-v" id="monthCalSub">—</span>
       </div>
       <div class="month-cal" id="monthCal"></div>
+
+      <!-- 이번 달 누적 통계 (페이지 + 시간) — 타이머 세션 기반 -->
+      <div class="month-cal-footer" id="monthCalFooter"></div>
 
       <div class="stat-card-v2-divider"></div>
 
@@ -26466,6 +26582,39 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
         const others  = sorted.filter(b => b.status !== 'reading');
         const COLLAPSE_THRESHOLD = 3;
 
+        // ── 상단 통계 (페이지 + 시간) — 타이머 세션 기반 ──
+        let statHtml = '';
+        if (opts.dayISO && typeof _getSessionsInRange === 'function') {
+          const sessions = _getSessionsInRange(opts.dayISO, opts.dayISO);
+          const sum = _sumSessionStats(sessions);
+          const hasData = sessions.length > 0;
+          const pageVal = hasData
+            ? `${sum.pages}<span class="unit">p</span>`
+            : '—';
+          const timeVal = hasData
+            ? _fmtSessionTime(sum.minutes).replace(/(\d+)(h|m)/g, '$1<span class="unit">$2</span>')
+            : '—';
+          statHtml = `
+            <div class="dd-day-stat">
+              <div class="dd-day-stat-col">
+                <div class="dd-day-stat-lbl">읽은 페이지</div>
+                <div class="dd-day-stat-val ${hasData ? '' : 'empty'}">${pageVal}</div>
+              </div>
+              <div class="dd-day-stat-div"></div>
+              <div class="dd-day-stat-col">
+                <div class="dd-day-stat-lbl">읽은 시간</div>
+                <div class="dd-day-stat-val ${hasData ? '' : 'empty'}">${timeVal}</div>
+              </div>
+            </div>`;
+          if (!hasData) {
+            statHtml += `
+              <div class="dd-timer-hint">
+                <span class="dh-ic">🎬</span>
+                <div>이 날은 <b>타이머 기록이 없어요</b>. 시네마 모드로 읽으면 자동으로 시간과 페이지가 기록됩니다.</div>
+              </div>`;
+          }
+        }
+
         // 섹션 한 개를 임계치+더보기로 렌더하는 헬퍼
         function renderSection(label, books, idSuffix) {
           if (!books.length) return '';
@@ -26482,7 +26631,7 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
           return out;
         }
 
-        let html = '';
+        let html = statHtml;
         html += renderSection('읽는 중', reading, 'reading');
         html += renderSection('완독', others, 'others');
         list.innerHTML = html;
@@ -27085,6 +27234,8 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     const books = ddBooksByDay(year, month, day);
     const dt = new Date(year, month, day);
     const dowStr = ['일','월','화','수','목','금','토'][dt.getDay()];
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const dayISO = `${year}-${pad2(month + 1)}-${pad2(day)}`;
     openDrillDown(
       `${month + 1}월 ${day}일 (${dowStr})`,
       `${books.length}권`,
@@ -27096,7 +27247,7 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
         if (b.rating) return `★ ${b.rating.toFixed(1)}`;
         return '';
       },
-      { dayContext: true }
+      { dayContext: true, dayISO }
     );
     return;
   }
@@ -27127,7 +27278,6 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     return;
   }
 });
-
 
 function allReadSessions() {
   const out = [];
@@ -28338,6 +28488,88 @@ function renderMonthCal() {
   }
   html += '</div>';
   cal.innerHTML = html;
+
+  // 푸터: 이번 달 누적 (페이지 + 시간) — 타이머 세션 기반
+  _renderMonthCalFooter(year, month);
+}
+
+/* ─── 캘린더 푸터 렌더: 이번 달 누적 페이지 + 시간 (타이머 세션 기반) ─── */
+function _getSessionsInRange(startISO, endISO) {
+  const out = [];
+  BOOKS.forEach(b => {
+    (b.readingSessions || []).forEach(s => {
+      if (s && s.date && s.date >= startISO && s.date <= endISO) {
+        out.push({
+          date: s.date,
+          minutes: Number(s.minutes) || 0,
+          pages: Number(s.pages) || 0,
+          book: b,
+        });
+      }
+    });
+  });
+  return out;
+}
+
+function _sumSessionStats(sessions) {
+  return sessions.reduce((acc, s) => {
+    acc.minutes += s.minutes;
+    acc.pages += s.pages;
+    return acc;
+  }, { minutes: 0, pages: 0 });
+}
+
+function _fmtSessionTime(min) {
+  if (!min || min <= 0) return '—';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h === 0) return m + 'm';
+  if (m === 0) return h + 'h';
+  return h + 'h ' + m + 'm';
+}
+
+function _renderMonthCalFooter(year, month) {
+  const el = document.getElementById('monthCalFooter');
+  if (!el) return;
+
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const startISO = `${year}-${pad2(month + 1)}-01`;
+  const endISO = `${year}-${pad2(month + 1)}-${pad2(lastDay)}`;
+
+  const sessions = _getSessionsInRange(startISO, endISO);
+  const sum = _sumSessionStats(sessions);
+  const hasData = sessions.length > 0;
+
+  const pageVal = hasData
+    ? `${sum.pages}<span class="unit">p</span>`
+    : `<span class="empty">—</span>`;
+  const timeVal = hasData
+    ? _fmtSessionTime(sum.minutes).replace(/(\d+)(h|m)/g, '$1<span class="unit">$2</span>')
+    : `<span class="empty">—</span>`;
+
+  let html = `
+    <div class="month-cal-footer-grid">
+      <div class="month-cal-footer-col">
+        <div class="month-cal-footer-lbl">누적 페이지</div>
+        <div class="month-cal-footer-val ${hasData ? '' : 'empty'}">${pageVal}</div>
+      </div>
+      <div class="month-cal-footer-div"></div>
+      <div class="month-cal-footer-col">
+        <div class="month-cal-footer-lbl">누적 시간</div>
+        <div class="month-cal-footer-val ${hasData ? '' : 'empty'}">${timeVal}</div>
+      </div>
+    </div>`;
+
+  if (!hasData) {
+    html += `
+      <div class="timer-hint-box">
+        <span class="th-ic">🎬</span>
+        <div><b>시네마 모드 타이머</b>로 읽으면 시간·페이지가 자동으로 기록돼요. 책 카드의 ▶ 버튼을 눌러 시작하세요.</div>
+      </div>`;
+  }
+
+  el.innerHTML = html;
 }
 
 /* ─── 전체 렌더 ─── */
@@ -30110,6 +30342,8 @@ function renderNA() {
 
   document.getElementById('naPage').value = NA.page || '';
   document.getElementById('naBody').value = NA.body || '';
+  // 기존 노트 편집 시 긴 텍스트면 자동 늘어남
+  if (typeof _naAutoGrow === 'function') _naAutoGrow();
 
   const fav = document.getElementById('naFav');
   fav.classList.toggle('on', NA.favorite);
@@ -30323,9 +30557,19 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
+// 노트 textarea 자동 높이 조정 (auto-grow)
+function _naAutoGrow() {
+  const ta = document.getElementById('naBody');
+  if (!ta) return;
+  ta.style.height = 'auto';
+  // CSS의 min-height(220px) / max-height(60vh)는 그대로 적용됨
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
 document.getElementById('naBody').addEventListener('input', (e) => {
   NA.body = e.target.value;
   updateNASaveBtn();
+  _naAutoGrow();
 });
 
 document.getElementById('naFav').addEventListener('click', () => {
@@ -30376,8 +30620,6 @@ document.getElementById('naDeleteZone').addEventListener('click', (e) => {
 
 /* 초기 렌더 */
 renderNotesTab();
-
-
 
 /* ═══════════════════════════════════════════════════════════
    ⬇️ 스와이프 다운으로 시트 닫기 + 바디 스크롤 완전 잠금
@@ -31649,8 +31891,6 @@ function _renderPriceCard(b) {
     }
   });
 })();
-
-
 
 /* ═══════════ 문의하기 모달 ═══════════ */
 const CONTACT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzPDLGGp86LXe11-Tn_bZ75XeTvNtSCwXfOjb-YXDyEaaCJZ18fbDhGEb7LxmmQ-h7vUw/exec';
@@ -35204,7 +35444,6 @@ window.kbmOpenMigration = kbmOpenMigration;
   });
   list.appendChild(row);
 })();
-
 
 /* ═══════════════════════════════════════════════════════════
    v1.6.0 — 하차(dropped) 책 관리 시스템
