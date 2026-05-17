@@ -16197,7 +16197,7 @@ body.cn-locked {
 }
 .av-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 .av-cell {
@@ -16209,6 +16209,7 @@ body.cn-locked {
   transition: all .15s;
   text-align: center;
   font-family: inherit;
+  min-width: 0;  /* grid 셀이 컨텐츠 폭에 끌려가지 않도록 */
 }
 .av-cell:active { transform: scale(0.97); }
 .av-cell.selected {
