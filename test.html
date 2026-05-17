@@ -16185,15 +16185,21 @@ body.cn-locked {
 .av-sheet-ttl {
   font-size: 17px;
   font-weight: 800;
+  color: #1a1a1a;
 }
 .av-sheet-close {
-  width: 32px; height: 32px;
-  background: rgba(0,0,0,0.06);
+  width: 36px; height: 36px;
+  background: rgba(0,0,0,0.08);
   border: none;
   border-radius: 50%;
-  color: #888;
-  font-size: 18px;
+  color: #1a1a1a;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 .av-grid {
   display: grid;
@@ -16272,15 +16278,17 @@ body.cn-locked {
 .av-sheet-foot button {
   background: transparent;
   border: none;
-  color: var(--c-muted);
+  color: #555;
   font-family: inherit;
-  font-size: 12px;
-  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
   cursor: pointer;
   text-decoration: underline;
-  text-decoration-color: #ccc;
+  text-decoration-color: #999;
   text-underline-offset: 3px;
 }
+.av-sheet-foot button:active { color: #1a1a1a; }
 
 </style>
 <!-- html2canvas for ticket sharing -->
