@@ -5213,6 +5213,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .search-input {
   flex: 1;
+  min-width: 0;  /* 안드로이드 Chrome에서 input intrinsic width 때문에 옆 검색 버튼이 컨테이너 밖으로 밀려나는 버그 픽스 (iOS는 영향 없음) */
   padding: 13px 16px;
   background: var(--c-surface);
   border: 1.5px solid var(--c-border-2);
