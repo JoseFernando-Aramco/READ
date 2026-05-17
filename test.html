@@ -16134,16 +16134,23 @@ body.cn-locked {
   padding: 0 6px;
 }
 .kbm-avatar-name {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--c-text);
-  letter-spacing: -.01em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 .kbm-avatar-epithet {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--c-muted);
   letter-spacing: -.01em;
+}
+.kbm-avatar-nick {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -.02em;
+  line-height: 1.1;
 }
 .kbm-avatar-sub {
   display: none;  /* 큰 카드 모드에서는 sub 텍스트 숨김 (이미지에서 'Jason'만 보임) */
@@ -19275,8 +19282,8 @@ const READ_AUTH = {
             '</div>' +
             '<div class="kbm-avatar-info">' +
               '<div class="kbm-avatar-name">' +
-                (getAvatarName(avatarId) ? '<span class="kbm-avatar-epithet">' + escape(getAvatarName(avatarId)) + '</span> ' : '') +
-                escape(user.nickname) +
+                (getAvatarName(avatarId) ? '<span class="kbm-avatar-epithet">' + escape(getAvatarName(avatarId)) + '</span>' : '') +
+                '<span class="kbm-avatar-nick">' + escape(user.nickname) + '</span>' +
               '</div>' +
               '<button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== \'undefined\' && READ_AUTH && typeof READ_AUTH.logout === \'function\') READ_AUTH.logout(); }, 220)">로그아웃</button>' +
             '</div>';
