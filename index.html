@@ -30434,13 +30434,13 @@ function renderBookPicker(query) {
       .slice(0, BOOK_PICKER_RECENT_DONE);
 
     let html = '';
-    if (reading.length > 0) {
-      html += `<div class="bp-group-head">📖 읽는 중 <span class="badge">${reading.length}</span></div>`;
-      html += reading.map(b => _bpItemHtml(b)).join('');
-    }
     if (doneBooks.length > 0) {
       html += `<div class="bp-group-head">✅ 최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
       html += doneBooks.map(b => _bpItemHtml(b)).join('');
+    }
+    if (reading.length > 0) {
+      html += `<div class="bp-group-head">📖 읽는 중 <span class="badge">${reading.length}</span></div>`;
+      html += reading.map(b => _bpItemHtml(b)).join('');
     }
 
     if (html === '') {
