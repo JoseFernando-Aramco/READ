@@ -16119,11 +16119,12 @@ body.cn-locked {
   position: absolute;
   top: 8px;
   right: 8px;
-  font-size: 20px;
+  width: 22px;
+  height: 22px;
+  color: var(--c-text);
   cursor: pointer;
   pointer-events: none;  /* 부모 클릭으로 통합 */
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
-  opacity: 0.85;
+  opacity: 0.7;
 }
 .kbm-avatar-info {
   display: flex;
@@ -16136,6 +16137,12 @@ body.cn-locked {
   font-size: 16px;
   font-weight: 800;
   color: var(--c-text);
+  letter-spacing: -.01em;
+}
+.kbm-avatar-epithet {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-muted);
   letter-spacing: -.01em;
 }
 .kbm-avatar-sub {
@@ -19264,10 +19271,13 @@ const READ_AUTH = {
           card.innerHTML =
             '<div class="kbm-avatar-big" onclick="openAvatarSheet()">' +
               '<img src="' + avatarUrl + '" alt="아바타">' +
-              '<div class="kbm-avatar-big-edit">✏️</div>' +
+              '<svg class="kbm-avatar-big-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
             '</div>' +
             '<div class="kbm-avatar-info">' +
-              '<div class="kbm-avatar-name">' + escape(user.nickname) + '</div>' +
+              '<div class="kbm-avatar-name">' +
+                (getAvatarName(avatarId) ? '<span class="kbm-avatar-epithet">' + escape(getAvatarName(avatarId)) + '</span> ' : '') +
+                escape(user.nickname) +
+              '</div>' +
               '<button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== \'undefined\' && READ_AUTH && typeof READ_AUTH.logout === \'function\') READ_AUTH.logout(); }, 220)">로그아웃</button>' +
             '</div>';
         } else {
@@ -19338,6 +19348,13 @@ function _placeholderAvatarDataUrl(id) {
 function getAvatarUrl(id) {
   if (!id) return null;
   return AVATAR_IMAGES[id] || _placeholderAvatarDataUrl(id);
+}
+
+// 아바타 id로 수식어(name) 반환 — 닉네임 앞 prefix용
+function getAvatarName(id) {
+  if (!id) return '';
+  const a = AVATARS.find(a => a.id === id);
+  return a ? a.name : '';
 }
 
 const SELECTED_AVATAR_KEY = 'read.selectedAvatar.v1';
