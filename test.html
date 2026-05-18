@@ -16859,7 +16859,7 @@ body.cn-locked {
 }
 .lt-guide-step {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   color: rgba(255,255,255,0.92);
   font-family: 'Pretendard Variable', Pretendard, sans-serif;
@@ -16877,14 +16877,67 @@ body.cn-locked {
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  margin-top: 1px;
 }
-.lt-step-txt {
+.lt-step-tx {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
-.lt-livetext-ic {
-  display: inline-block;
-  color: rgba(255,255,255,0.9);
-  margin: 0 3px;
+.lt-step-ttl {
+  display: block;
+  font-size: 13px;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.4;
+}
+.lt-step-sub {
+  display: block;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.4;
+  margin-top: 3px;
+  font-weight: 400;
+  letter-spacing: -.01em;
+}
+.lt-hl {
+  font-style: normal;
+  color: #FFD479;
+  font-weight: 700;
+}
+.lt-menu-mini {
+  display: inline-flex;
+  flex-direction: column;
+  background: rgba(60,60,67,0.92);
+  border-radius: 10px;
+  padding: 3px 0;
+  width: 180px;
+  margin-top: 10px;
+  border: 0.5px solid rgba(255,255,255,0.08);
+}
+.lt-mini-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 12px;
+  color: rgba(255,255,255,0.4);
+}
+.lt-mini-item-active {
+  background: rgba(255,212,121,0.18);
+  border-left: 2px solid #FFD479;
+  color: #FFD479;
+  padding-left: 10px;
+  font-weight: 600;
+}
+.lt-mini-ic {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.lt-mini-tx {
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', Pretendard, sans-serif;
+  line-height: 1.2;
 }
 .lt-paste-btn {
   margin-top: 6px;
@@ -16892,13 +16945,27 @@ body.cn-locked {
   color: #1a1a1a;
   border: none;
   border-radius: 12px;
-  padding: 13px 16px;
+  padding: 11px 16px 10px;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 .lt-paste-btn:active { opacity: 0.85; }
+.lt-paste-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.lt-paste-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
 
 
 .kbm-user {
@@ -17503,20 +17570,49 @@ body.cn-locked {
     <div class="lt-guide">
       <div class="lt-guide-step">
         <span class="lt-step-num">1</span>
-        <span class="lt-step-txt">사진 가장자리 부근의 여백을 꾹 누르세요</span>
+        <span class="lt-step-tx">
+          <span class="lt-step-ttl">사진의 <em class="lt-hl">여백</em>을 꾹 누르세요</span>
+          <span class="lt-step-sub">텍스트 위를 누르면 영역 지정이 어긋나요</span>
+        </span>
       </div>
       <div class="lt-guide-step">
         <span class="lt-step-num">2</span>
-        <span class="lt-step-txt">
-          <svg class="lt-livetext-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h2M11 8h6M7 12h10M7 16h6"/></svg>
-          라이브 텍스트 아이콘 탭
+        <span class="lt-step-tx">
+          <span class="lt-step-ttl">사진이 살짝 커졌다 줄어들면<br>메뉴에서 <em class="lt-hl">텍스트 보기</em> 선택</span>
+          <span class="lt-menu-mini" aria-hidden="true">
+            <span class="lt-mini-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lt-mini-ic"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span class="lt-mini-tx">공유...</span>
+            </span>
+            <span class="lt-mini-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lt-mini-ic"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span class="lt-mini-tx">사진 앱에 저장</span>
+            </span>
+            <span class="lt-mini-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lt-mini-ic"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="lt-mini-tx">복사하기</span>
+            </span>
+            <span class="lt-mini-item lt-mini-item-active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lt-mini-ic"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h2M11 8h6M7 12h10M7 16h6"/></svg>
+              <span class="lt-mini-tx">텍스트 보기</span>
+            </span>
+            <span class="lt-mini-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lt-mini-ic"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <span class="lt-mini-tx">찾아보기</span>
+            </span>
+          </span>
         </span>
       </div>
       <div class="lt-guide-step">
         <span class="lt-step-num">3</span>
-        <span class="lt-step-txt">원하는 문장 선택 → 복사 → 아래 버튼</span>
+        <span class="lt-step-tx">
+          <span class="lt-step-ttl">원하는 문장 선택 → 복사 → 아래 버튼</span>
+        </span>
       </div>
-      <button class="lt-paste-btn" id="ltPasteBtn" type="button">📋 복사한 텍스트 붙여넣기</button>
+      <button class="lt-paste-btn" id="ltPasteBtn" type="button">
+        <span class="lt-paste-ttl">📋 복사한 텍스트 가져오기</span>
+        <span class="lt-paste-sub">iOS가 "붙여넣기" 다시 물으면 허용</span>
+      </button>
     </div>
   </div>
 </div>
