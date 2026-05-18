@@ -1156,7 +1156,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   object-fit: cover;
   display: block;
   background: var(--c-border);
-  filter: saturate(0.55) brightness(0.95);
+  filter: saturate(0.775) brightness(0.975);
+}
+/* 서재의 밤(기본 테마)은 톤다운 효과를 25% 강도로 — 거의 원본에 가까운 채도. 다른 테마는 위 기본값(50%)을 사용 */
+html:not([data-theme]) .bc-img {
+  filter: saturate(0.8875) brightness(0.9875);
 }
 .bc-fallback {
   width: 100%;
