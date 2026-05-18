@@ -1370,6 +1370,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   opacity: 0.45;
   cursor: default;
 }
+/* v1.11.0 — 두 줄 그리드 액션바 (이동 3 + 묶기/삭제 2) */
+.lib-edit-bar-actions-bottom { margin-top: 6px; }
+.lib-edit-bar-action.lib-action-group:not(:disabled):hover {
+  border-color: #5b6b8a;
+  color: #5b6b8a;
+  background: rgba(91, 107, 138, 0.06);
+}
 
 /* 편집 모드 시 본문 하단 여백 확보 (액션바에 가려지지 않게) */
 body:has(.lib-edit-bar) .library-cards {
@@ -6986,6 +6993,154 @@ html:not([data-theme]) .bc-img {
   letter-spacing: -.2px;
 }
 .book-card { position: relative; }
+
+/* ═══════════════════════════════════════════════════════════
+   v1.11.0 시안 — 시리즈 묶기 (스택 카드)
+   ═══════════════════════════════════════════════════════════ */
+.book-card-stack { position: relative; }
+.book-card-stack > .book-card-stack-back-2,
+.book-card-stack > .book-card-stack-back-1 {
+  position: absolute;
+  width: 100%;
+  aspect-ratio: 108 / 156;
+  border-radius: 3px;
+  pointer-events: none;
+  top: 0; left: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.book-card-stack > .book-card-stack-back-2 {
+  background: rgba(58, 50, 40, 0.55);
+  transform: translate(8px, 8px);
+  z-index: 0;
+}
+.book-card-stack > .book-card-stack-back-1 {
+  background: rgba(78, 66, 52, 0.78);
+  transform: translate(4px, 4px);
+  z-index: 1;
+}
+.book-card-stack > .book-card-cover {
+  position: relative;
+  z-index: 2;
+}
+.book-card-stack-badge {
+  position: absolute;
+  top: -8px; right: -8px;
+  background: #1f2937;
+  color: #fff;
+  min-width: 30px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  border: 2px solid var(--c-card-bg, #fff);
+  z-index: 10;
+  letter-spacing: -0.2px;
+}
+.book-card-stack .book-card-meta { color: var(--c-muted, #888); }
+
+/* v1.11.0 시안 — 묶음 펼침 시트 (바텀시트 모달) */
+.grp-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.grp-sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.grp-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-surface);
+  border-radius: 20px 20px 0 0;
+  z-index: 201;
+  transition: transform .28s cubic-bezier(.2,.7,.2,1);
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 28px rgba(0,0,0,0.12);
+}
+.grp-sheet.open {
+  transform: translate(-50%, 0);
+}
+.grp-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 12px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 12px;
+}
+.grp-sheet-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--c-text);
+}
+.grp-sheet-sub {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-top: 2px;
+}
+.grp-sheet-close {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.grp-sheet-close:hover { background: var(--c-bg, #f5f5f5); color: var(--c-text); }
+.grp-sheet-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 4px 12px;
+  min-height: 0;
+}
+.grp-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 10px;
+}
+.grp-sheet-footer {
+  padding: 12px 4px 0;
+  border-top: 1px solid var(--c-border);
+}
+.grp-sheet-dissolve-btn {
+  width: 100%;
+  padding: 13px;
+  background: #fff;
+  color: #c33;
+  border: 1.5px solid #e9b3b3;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.grp-sheet-dissolve-btn:hover {
+  background: #fef0f0;
+  border-color: #c33;
+}
 
 /* ═══════════════════════════════════════════════════════════
    📕📱🎧 매체 토글 (종이책 / 전자책 / 오디오북)
@@ -23953,7 +24108,28 @@ function isBookIncomplete(b) {
   return false;
 }
 
+/* v1.11.0 — 묶음 스택 카드 렌더. cover 책 + 그룹 메타 + 묶음 안 책 전체를 받아 한 카드로. */
+function renderStackBookCard(coverBook, group, allBooks, idx) {
+  const count = allBooks.length;
+  const author = coverBook.author || (allBooks[0] && allBooks[0].author) || '';
+  const grpName = group.name || coverBook.title || '묶음';
+  return `
+    <div class="book-card book-card-stack" data-group-id="${esc(group.id)}" data-book-id="${coverBook.id}">
+      <div class="book-card-stack-back-2"></div>
+      <div class="book-card-stack-back-1"></div>
+      <div class="book-card-cover palette-${esc(coverBook.palette || 'demian')}">
+        ${renderBookCoverInner(coverBook, (idx||0) + 1)}
+      </div>
+      <div class="book-card-stack-badge">${count}권</div>
+      <div class="book-card-title">${esc(grpName)}</div>
+      <div class="book-card-meta">${esc(author)} · 묶음 ${count}권</div>
+    </div>`;
+}
+
 function renderBookCard(b, idx) {
+  if (b && b._isGroupCover && b._grp) {
+    return renderStackBookCard(b, b._grp, b._grpBooks || [], idx);
+  }
   const fmtMark = mediaIcon(b);
   const isDropped = b.status === 'dropped';
   const isWebnov = isWebnovel(b);
@@ -24142,13 +24318,15 @@ function renderMonthStrip() {
 /* 섹션 하나 (제목 + 책 카드들) */
 function renderBookSection(title, subLabel, books, trailing = '') {
   if (!books.length) return '';
+  // v1.11.0 — 묶음 entry가 섞여있으면 raw 책 수로 합산
+  const totalRaw = books.reduce((s, e) => s + (e._isGroupCover ? (e._grpBooks||[]).length : 1), 0);
   return `
     <div class="section">
       <div class="section-head">
         <div>
           <div class="section-title">${title}</div>
         </div>
-        <span class="section-sub">${books.length}권${subLabel ? ' · ' + esc(subLabel) : ''}</span>
+        <span class="section-sub">${totalRaw}권${subLabel ? ' · ' + esc(subLabel) : ''}</span>
       </div>
       <div class="book-row">
         ${books.map((b, i) => renderBookCard(b, i)).join('')}
@@ -24272,7 +24450,7 @@ function renderWishlistSection(wish) {
         <div>
           <div class="section-title">위시리스트</div>
         </div>
-        <span class="section-sub">${wish.length}권</span>
+        <span class="section-sub">${_libEntriesRawCount(wish)}권</span>
       </div>
       ${sortToggle}
       <div class="book-row">
@@ -24294,19 +24472,26 @@ function renderLibraryCards() {
   const container = document.getElementById('libCards');
   if (!container) return;
 
-  const reading = BOOKS.filter(b => b.status === 'reading');
+  // v1.11.0 — raw 책 리스트 (카테고리 카운트 + 정렬용)
+  const readingRaw = BOOKS.filter(b => b.status === 'reading');
   // 완독 · 최근순 (dateEnd 내림차순)
-  const doneAll = BOOKS.filter(b => b.status === 'done')
+  const doneAllRaw = BOOKS.filter(b => b.status === 'done')
                     .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
-  const done = doneAll.slice(0, _visibleDoneCount);
-  const wish = BOOKS.filter(b => b.status === 'wish');
+  const wishRaw = BOOKS.filter(b => b.status === 'wish');
   // v1.6.0 — 하차 책 · 하차일 최근순
-  const dropped = BOOKS.filter(b => b.status === 'dropped')
+  const droppedRaw = BOOKS.filter(b => b.status === 'dropped')
                     .sort((a, b) => {
                       const da = (a.dropped && a.dropped.at) || '';
                       const db = (b.dropped && b.dropped.at) || '';
                       return db.localeCompare(da);
                     });
+
+  // v1.11.0 — 묶음 압축 (같은 그룹의 책들을 dominant 카테고리에 cover 카드 1개로)
+  const reading = _libWrapByGroups(readingRaw, 'reading');
+  const doneAll = _libWrapByGroups(doneAllRaw, 'done');
+  const done = doneAll.slice(0, _visibleDoneCount);
+  const wish = _libWrapByGroups(wishRaw, 'wish');
+  const dropped = _libWrapByGroups(droppedRaw, 'dropped');
 
   // 빈 상태 처리
   if (!BOOKS.length) {
@@ -24320,35 +24505,37 @@ function renderLibraryCards() {
   }
 
   // 완독 섹션 하단 액션 영역 (더보기 + 전체 보기)
+  // v1.11.0 — 더보기/전체 보기 카운트는 raw 권수 기준 (묶음 흡수 합산)
   const hasMore = doneAll.length > _visibleDoneCount;
-  const showFullViewLink = doneAll.length > DONE_FULL_VIEW_THRESHOLD;
+  const showFullViewLink = doneAllRaw.length > DONE_FULL_VIEW_THRESHOLD;
   let doneTrailing = '';
   if (hasMore || showFullViewLink) {
     const buttons = [];
     if (hasMore) {
-      const remain = doneAll.length - _visibleDoneCount;
-      const nextBatch = Math.min(DONE_PAGE_SIZE, remain);
+      const nextEntries = doneAll.slice(_visibleDoneCount, _visibleDoneCount + DONE_PAGE_SIZE);
+      const nextBatchRaw = _libEntriesRawCount(nextEntries);
       buttons.push(`<button type="button" class="done-more-btn" data-action="done-more">
-        + 더보기 <span class="done-more-count">${nextBatch}권</span>
+        + 더보기 <span class="done-more-count">${nextBatchRaw}권</span>
       </button>`);
     }
     if (showFullViewLink) {
       buttons.push(`<button type="button" class="done-all-btn" data-action="done-all">
-        전체 ${doneAll.length}권 보기 ›
+        전체 ${doneAllRaw.length}권 보기 ›
       </button>`);
     }
     doneTrailing = `<div class="done-actions">${buttons.join('')}</div>`;
   }
 
-  // 완독 섹션 헤더 라벨
+  // 완독 섹션 헤더 라벨 (v1.11.0 — raw 권수 기준, totalRaw 중복 회피)
+  const doneVisibleRaw = _libEntriesRawCount(done);
   const doneSubLabel = doneAll.length > _visibleDoneCount
-    ? `최근 ${done.length}/${doneAll.length}권`
-    : (doneAll.length >= 10 ? `${done.length}권` : '');
+    ? `최근 ${doneVisibleRaw}/${doneAllRaw.length}권`
+    : '';
 
   // ─── 카테고리 탭 [TEST 시안] ───
   // 활성 탭 복원 (localStorage). 기본 'reading'. 빈 카테고리면 첫 비어있지 않은 것으로 폴백.
   let activeCat = _libGetActiveCat();
-  const catCounts = { wish: wish.length, reading: reading.length, done: doneAll.length, dropped: dropped.length };
+  const catCounts = { wish: wishRaw.length, reading: readingRaw.length, done: doneAllRaw.length, dropped: droppedRaw.length };
   // 신규 사용자/첫 진입 케이스만 자동 폴백 (활성 탭 미저장 + 독서중이 비어있을 때)
   // 사용자가 직접 클릭한 빈 탭은 그대로 보여줌 (빈 placeholder)
   let isFreshSession = false;
@@ -24365,7 +24552,7 @@ function renderLibraryCards() {
     </div>`;
 
   // 카테고리별 권수 (편집 버튼 가시성 판단용)
-  const catCountByName = { wish: wish.length, reading: reading.length, done: doneAll.length, dropped: dropped.length };
+  const catCountByName = catCounts;
 
   // 탭 헤더 (편집 버튼 — 활성 카테고리 + 책 1권 이상일 때만)
   const editBtnHtml = (catCountByName[activeCat] > 0 && !_libEdit.active)
@@ -24381,10 +24568,10 @@ function renderLibraryCards() {
   const tabsHtml = `
     <div class="lib-cat-tabs-wrap">
       <div class="lib-cat-tabs" role="tablist">
-        <button class="lib-cat-tab ${activeCat==='wish'?'active':''}" data-cat="wish" role="tab">위시 <span class="lib-cat-cnt">${wish.length}</span></button>
-        <button class="lib-cat-tab ${activeCat==='reading'?'active':''}" data-cat="reading" role="tab">독서중 <span class="lib-cat-cnt">${reading.length}</span></button>
-        <button class="lib-cat-tab ${activeCat==='done'?'active':''}" data-cat="done" role="tab">완독 <span class="lib-cat-cnt">${doneAll.length}</span></button>
-        <button class="lib-cat-tab ${activeCat==='dropped'?'active':''}" data-cat="dropped" role="tab">하차 <span class="lib-cat-cnt">${dropped.length}</span></button>
+        <button class="lib-cat-tab ${activeCat==='wish'?'active':''}" data-cat="wish" role="tab">위시 <span class="lib-cat-cnt">${wishRaw.length}</span></button>
+        <button class="lib-cat-tab ${activeCat==='reading'?'active':''}" data-cat="reading" role="tab">독서중 <span class="lib-cat-cnt">${readingRaw.length}</span></button>
+        <button class="lib-cat-tab ${activeCat==='done'?'active':''}" data-cat="done" role="tab">완독 <span class="lib-cat-cnt">${doneAllRaw.length}</span></button>
+        <button class="lib-cat-tab ${activeCat==='dropped'?'active':''}" data-cat="dropped" role="tab">하차 <span class="lib-cat-cnt">${droppedRaw.length}</span></button>
       </div>
       ${editBtnHtml}
     </div>
@@ -24411,7 +24598,7 @@ function renderLibraryCards() {
       ${doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing) : emptyPane('완독한 책이 아직 없어요')}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${dropped.length ? renderBookSection('하차', `${dropped.length}권 · 책갈피`, dropped) : emptyPane('하차한 책이 없어요')}
+      ${dropped.length ? renderBookSection('하차', '책갈피', dropped) : emptyPane('하차한 책이 없어요')}
     </div>
   `;
 
@@ -24430,6 +24617,125 @@ function _libGetActiveCat() {
 }
 function _libSetActiveCat(cat) {
   try { localStorage.setItem(LIB_CAT_KEY, cat); } catch(e){}
+}
+
+/* ─── v1.11.0 시안 — 시리즈 묶기 (스택 카드) ─── */
+function _grpGet() { return STORE.get('groups.v1', []); }
+function _grpSet(groups) { STORE.set('groups.v1', groups); }
+function _grpFindById(id) { return _grpGet().find(g => g.id === id) || null; }
+function _grpGenId() { return 'grp_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function _grpBooksOf(groupId) {
+  return BOOKS.filter(b => b.groupId === groupId)
+              .sort((a,b) => (a.groupOrder||0) - (b.groupOrder||0));
+}
+
+function _grpDominantCategory(groupId) {
+  // 가장 책 많은 카테고리 (동률 시 done > reading > wish > dropped 우선)
+  const books = _grpBooksOf(groupId);
+  if (!books.length) return 'done';
+  const counts = {};
+  books.forEach(b => { const s = b.status || 'reading'; counts[s] = (counts[s] || 0) + 1; });
+  const order = ['done', 'reading', 'wish', 'dropped'];
+  let best = order[0], bestCount = counts[order[0]] || 0;
+  order.forEach(s => { if ((counts[s]||0) > bestCount) { best = s; bestCount = counts[s]; } });
+  return best;
+}
+
+function _grpCoverBookId(groupId) {
+  // 대표 책 = dominant 카테고리 안 책 중 groupOrder 최대 (없으면 전체에서 groupOrder 최대)
+  const allBooks = _grpBooksOf(groupId);
+  if (!allBooks.length) return null;
+  const dom = _grpDominantCategory(groupId);
+  const inDom = allBooks.filter(b => b.status === dom);
+  const pool = inDom.length ? inDom : allBooks;
+  return pool[pool.length - 1].id;
+}
+
+function _grpInferName(bookIds) {
+  // 공통 prefix로 이름 추정. 끝의 권 번호 패턴 제거 후 prefix 매칭.
+  const titles = bookIds.map(id => {
+    const b = BOOKS.find(x => x.id === id);
+    return b ? (b.title || '') : '';
+  }).filter(Boolean);
+  if (!titles.length) return '묶음';
+  const stripped = titles.map(t => t.replace(/[\s]*[\d]+권?\s*$/u, '').trim());
+  let prefix = stripped[0];
+  for (let i = 1; i < stripped.length; i++) {
+    while (prefix.length && stripped[i].indexOf(prefix) !== 0) prefix = prefix.slice(0, -1);
+    if (!prefix.length) break;
+  }
+  prefix = prefix.trim();
+  return prefix || stripped[0] || '묶음';
+}
+
+function _grpCreate(bookIds, name) {
+  // 책 ID 배열로 새 그룹 생성. 책 메타에 groupId/groupOrder 부여 + GROUPS에 추가.
+  if (!bookIds || !bookIds.length) return null;
+  const groups = _grpGet();
+  const id = _grpGenId();
+  bookIds.forEach((bid, idx) => {
+    const b = BOOKS.find(x => x.id === bid);
+    if (b) { b.groupId = id; b.groupOrder = idx; }
+  });
+  const grp = { id, name: name || _grpInferName(bookIds), createdAt: Date.now() };
+  groups.push(grp);
+  _grpSet(groups);
+  try { STORE.set('books', BOOKS); } catch(e){}
+  return grp;
+}
+
+function _grpDissolve(groupId) {
+  // 그룹 해제. 책의 groupId/groupOrder 제거 + GROUPS에서 삭제.
+  BOOKS.forEach(b => {
+    if (b.groupId === groupId) { delete b.groupId; delete b.groupOrder; }
+  });
+  _grpSet(_grpGet().filter(g => g.id !== groupId));
+  try { STORE.set('books', BOOKS); } catch(e){}
+}
+
+function _grpRemoveBook(bookId) {
+  // 책 한 권을 묶음에서 분리. 남은 책이 1권 이하면 그룹 자동 해제.
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b || !b.groupId) return;
+  const gid = b.groupId;
+  delete b.groupId; delete b.groupOrder;
+  const remaining = BOOKS.filter(x => x.groupId === gid);
+  if (remaining.length < 2) _grpDissolve(gid);
+  else { try { STORE.set('books', BOOKS); } catch(e){} }
+}
+
+function _libWrapByGroups(booksInCategory, category) {
+  // 카테고리 안 책 리스트를 묶음 단위로 압축.
+  // - 묶음 dominant === category: 묶음 wrap 객체 1개만 표시 (cover book 기반)
+  // - 묶음 dominant !== category: 단일 책 그대로 표시
+  // - 묶음 없는 책: 그대로
+  // - 1권 이하 묶음 / GROUPS 메타 누락 묶음: 단일 책으로 처리 (안전)
+  const out = [];
+  const handledGroups = new Set();
+  booksInCategory.forEach(b => {
+    if (!b.groupId) { out.push(b); return; }
+    if (handledGroups.has(b.groupId)) return;
+    const dominant = _grpDominantCategory(b.groupId);
+    if (dominant === category) {
+      const grp = _grpFindById(b.groupId);
+      if (!grp) { out.push(b); return; }
+      const allBooks = _grpBooksOf(b.groupId);
+      if (allBooks.length < 2) { out.push(b); return; }
+      handledGroups.add(b.groupId);
+      const coverId = _grpCoverBookId(b.groupId);
+      const coverBook = BOOKS.find(x => x.id === coverId) || allBooks[allBooks.length - 1];
+      out.push({ ...coverBook, _grp: grp, _grpBooks: allBooks, _isGroupCover: true });
+    } else {
+      out.push(b);
+    }
+  });
+  return out;
+}
+
+function _libEntriesRawCount(entries) {
+  // 묶음 entry는 _grpBooks.length, 단일 entry는 1로 합산. 권수 표시용.
+  return entries.reduce((s, e) => s + (e._isGroupCover ? (e._grpBooks||[]).length : 1), 0);
 }
 
 /* ─── [TEST 시안] 카테고리별 편집 모드 (다중 선택 → 상태 이동) ─── */
@@ -24629,37 +24935,46 @@ function _libMountEditBar(activeCat) {
     ? `<span class="lib-edit-bar-hint">이동할 책을 선택하세요</span>`
     : `<span class="lib-edit-bar-hint"><strong>${cnt}권</strong>을 어디로 옮길까요?</span>`;
 
-  // 액션 버튼 — 현재 카테고리 제외한 이동 3개 + 삭제 1개
-  const buttons = [];
+  // 액션 버튼 — 현재 카테고리 제외한 이동 3개 (1행) + 묶기/삭제 2개 (2행)
+  const moveButtons = [];
   if (activeCat !== 'wish') {
-    buttons.push(`<button class="lib-edit-bar-action" data-move-to="wish">
+    moveButtons.push(`<button class="lib-edit-bar-action" data-move-to="wish">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
       위시
     </button>`);
   }
   if (activeCat !== 'reading') {
-    buttons.push(`<button class="lib-edit-bar-action" data-move-to="reading">
+    moveButtons.push(`<button class="lib-edit-bar-action" data-move-to="reading">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       독서중
     </button>`);
   }
   if (activeCat !== 'done') {
-    buttons.push(`<button class="lib-edit-bar-action" data-move-to="done">
+    moveButtons.push(`<button class="lib-edit-bar-action" data-move-to="done">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       완독
     </button>`);
   }
   if (activeCat !== 'dropped') {
-    buttons.push(`<button class="lib-edit-bar-action" data-move-to="dropped">
+    moveButtons.push(`<button class="lib-edit-bar-action" data-move-to="dropped">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       하차
     </button>`);
   }
-  // 4번째 — 삭제 (빨간 강조)
-  buttons.push(`<button class="lib-edit-bar-action lib-action-danger" data-action="lib-delete">
+
+  // v1.11.0 — 묶기 버튼 (selected ≥ 2 + 모두 단일 책일 때만 활성)
+  const selectedBooks = [...BOOKS].filter(b => _libEdit.selected.has(b.id));
+  const canGroup = selectedBooks.length >= 2 && selectedBooks.every(b => !b.groupId);
+  const groupBtn = `<button class="lib-edit-bar-action lib-action-group" data-action="lib-group"${canGroup ? '' : ' disabled'}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l3-3h12l3 3"/><path d="M3 7v13h18V7"/><path d="M8 11h8"/></svg>
+    묶기
+  </button>`;
+
+  // 삭제 버튼 (빨간 강조)
+  const deleteBtn = `<button class="lib-edit-bar-action lib-action-danger" data-action="lib-delete">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
     삭제
-  </button>`);
+  </button>`;
 
   const bar = document.createElement('div');
   bar.id = 'libEditBar';
@@ -24670,14 +24985,18 @@ function _libMountEditBar(activeCat) {
       <button class="lib-edit-bar-close" data-action="lib-edit-cancel" aria-label="편집 종료">취소</button>
     </div>
     <div class="lib-edit-bar-actions">
-      ${buttons.join('')}
+      ${moveButtons.join('')}
+    </div>
+    <div class="lib-edit-bar-actions lib-edit-bar-actions-bottom">
+      ${groupBtn}
+      ${deleteBtn}
     </div>
   `;
   document.body.appendChild(bar);
 
-  // 카운트 0이면 액션 비활성
+  // 카운트 0이면 이동/삭제 비활성 (묶기는 위에서 별도 처리)
   if (cnt === 0) {
-    bar.querySelectorAll('.lib-edit-bar-action').forEach(b => b.disabled = true);
+    bar.querySelectorAll('[data-move-to], [data-action="lib-delete"]').forEach(b => b.disabled = true);
   }
 
   // body에 마운트했으니 클릭 위임이 안 닿음 → 자체 핸들러 부착
@@ -24689,6 +25008,11 @@ function _libMountEditBar(activeCat) {
     if (e.target.closest('[data-action="lib-delete"]')) {
       const btn = e.target.closest('[data-action="lib-delete"]');
       if (!btn.disabled) _libEditApplyDelete();
+      return;
+    }
+    if (e.target.closest('[data-action="lib-group"]')) {
+      const btn = e.target.closest('[data-action="lib-group"]');
+      if (!btn.disabled) _libEditApplyGroup();
       return;
     }
     const moveBtn = e.target.closest('[data-move-to]');
@@ -24766,6 +25090,11 @@ function _libEditApplyDelete() {
   // 2단계: 실제 삭제
   const idsToDelete = [..._libEdit.selected];
   let deletedCount = 0;
+  // v1.11.0 — 묶음 안 책이면 먼저 묶음에서 분리 (남은 0~1권이면 자동 _grpDissolve, GROUPS stale 방지)
+  idsToDelete.forEach(id => {
+    const b = BOOKS.find(x => x.id === id);
+    if (b && b.groupId) _grpRemoveBook(id);
+  });
   // 뒤에서부터 삭제해야 인덱스 안 꼬임
   idsToDelete.forEach(id => {
     const idx = BOOKS.findIndex(b => b.id === id);
@@ -24793,6 +25122,137 @@ function _libEditApplyDelete() {
   // 안전망: 다른 sub-view/탭에 머물러있다 돌아와도 stale 안 되게
   try { renderHallOfFame && renderHallOfFame(); } catch(e){}
   try { renderNotesTab && renderNotesTab(); } catch(e){}
+}
+
+/* v1.11.0 — 선택된 책들을 새 묶음으로 묶기 */
+function _libEditApplyGroup() {
+  if (_libEdit.selected.size < 2) return;
+  // 묶음 카드 자체가 selected에 있을 수도 있지만, 묶기 활성 조건상 모두 단일 책. 안전망으로 한번 더 검증.
+  const bookIds = [...BOOKS]
+    .filter(b => _libEdit.selected.has(b.id) && !b.groupId)
+    .map(b => b.id);
+  if (bookIds.length < 2) {
+    if (typeof showToast === 'function') showToast('이미 묶인 책이 섞여있어요');
+    return;
+  }
+  _grpCreate(bookIds);
+  if (typeof showToast === 'function') showToast(`${bookIds.length}권 묶었어요`);
+  // 편집 모드 종료 + 리렌더
+  _libEdit.active = false;
+  _libEdit.cat = null;
+  _libEdit.selected.clear();
+  _libEdit.pendingMove = null;
+  _libEdit.pendingDelete = false;
+  try { renderLibraryCards(); } catch(e){}
+  try { renderLogList && renderLogList(); } catch(e){}
+  try { renderAllStats && renderAllStats(); } catch(e){}
+  try { renderTagRadar && renderTagRadar(); } catch(e){}
+  try { renderHallOfFame && renderHallOfFame(); } catch(e){}
+  try { renderNotesTab && renderNotesTab(); } catch(e){}
+}
+
+/* v1.11.0 — 묶음 카드 다중 토글. 묶음 안 모든 책 id를 selected에 추가/제거. */
+function _libEditToggleGroup(groupId) {
+  const books = _grpBooksOf(groupId);
+  if (!books.length) return;
+  const allSelected = books.every(b => _libEdit.selected.has(b.id));
+  if (allSelected) {
+    books.forEach(b => _libEdit.selected.delete(b.id));
+  } else {
+    books.forEach(b => _libEdit.selected.add(b.id));
+  }
+  _libEditUpdateUI();
+}
+
+/* v1.11.0 — 묶음 펼침 시트 (일반 모드에서 묶음 카드 탭 시 노출) */
+function _grpExpandSheet(groupId) {
+  const grp = _grpFindById(groupId);
+  if (!grp) return;
+  const books = _grpBooksOf(groupId);
+  if (!books.length) return;
+
+  // 기존 시트 제거 (방어)
+  document.querySelectorAll('.grp-sheet, .grp-sheet-backdrop').forEach(el => el.remove());
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'grp-sheet-backdrop';
+
+  const sheet = document.createElement('div');
+  sheet.className = 'grp-sheet';
+  sheet.dataset.groupId = groupId;
+  sheet.innerHTML = `
+    <div class="grp-sheet-head">
+      <div>
+        <div class="grp-sheet-title">${esc(grp.name)}</div>
+        <div class="grp-sheet-sub">묶음 ${books.length}권</div>
+      </div>
+      <button class="grp-sheet-close" data-action="grp-sheet-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="grp-sheet-body">
+      <div class="grp-sheet-grid">
+        ${books.map((b, i) => renderBookCard(b, i)).join('')}
+      </div>
+    </div>
+    <div class="grp-sheet-footer">
+      <button class="grp-sheet-dissolve-btn" data-action="grp-sheet-dissolve">묶음 해제</button>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  // 백드롭 클릭 = 닫기
+  backdrop.addEventListener('click', () => _grpCloseSheet());
+
+  // 시트 핸들러
+  sheet.addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="grp-sheet-close"]')) {
+      _grpCloseSheet();
+      return;
+    }
+    if (e.target.closest('[data-action="grp-sheet-dissolve"]')) {
+      const cnt = books.length;
+      _grpDissolve(groupId);
+      _grpCloseSheet();
+      if (typeof showToast === 'function') showToast(`묶음을 풀었어요 (${cnt}권은 그대로)`);
+      try { renderLibraryCards(); } catch(e){}
+      try { renderLogList && renderLogList(); } catch(e){}
+      try { renderAllStats && renderAllStats(); } catch(e){}
+      try { renderHallOfFame && renderHallOfFame(); } catch(e){}
+      try { renderNotesTab && renderNotesTab(); } catch(e){}
+      return;
+    }
+    // 시트 안 책 카드 클릭 — 일단 무반응 (다음 라운드에서 책 상세 또는 빼내기 옵션)
+  });
+
+  // 애니메이션 트리거
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  });
+
+  // ESC 키로 닫기
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      _grpCloseSheet();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+  sheet._escHandler = escHandler;
+}
+
+function _grpCloseSheet() {
+  const sheet = document.querySelector('.grp-sheet');
+  const backdrop = document.querySelector('.grp-sheet-backdrop');
+  if (sheet && sheet._escHandler) document.removeEventListener('keydown', sheet._escHandler);
+  if (sheet) sheet.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+  setTimeout(() => {
+    document.querySelectorAll('.grp-sheet, .grp-sheet-backdrop').forEach(el => el.remove());
+  }, 300);
 }
 
 /* _applyStatusChange의 update 객체 빌드 부분만 추출 — 다중 처리용 */
@@ -24893,8 +25353,14 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     if (_libEdit.active) {
       const card = e.target.closest('.book-card[data-book-id]');
       if (card) {
-        const id = parseInt(card.dataset.bookId, 10);
-        if (id) _libEditToggle(id);
+        // v1.11.0 — 묶음 카드면 12권 일괄 토글
+        const grpId = card.dataset.groupId;
+        if (grpId) {
+          _libEditToggleGroup(grpId);
+        } else {
+          const id = parseInt(card.dataset.bookId, 10);
+          if (id) _libEditToggle(id);
+        }
         return;  // 다른 동작(상세 모달 열기 등) 차단
       }
     }
@@ -24942,6 +25408,12 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     }
     const card = e.target.closest('[data-book-id]');
     if (card) {
+      // v1.11.0 — 일반 모드 묶음 카드 클릭 = 펼침 시트
+      const grpId = card.dataset.groupId;
+      if (grpId) {
+        _grpExpandSheet(grpId);
+        return;
+      }
       const id = parseInt(card.dataset.bookId, 10);
       if (id) openBookDetail(id);
     }
@@ -36228,8 +36700,8 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.10.1';
-const APP_VERSION_NICKNAME = '책 이사 + 웹소설'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
+const APP_VERSION = '1.10.3';
+const APP_VERSION_NICKNAME = '시리즈 묶기'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
 
 /* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨) */
@@ -36328,6 +36800,12 @@ function _versionLower(a, b) {
 
 /* 자동 열기: 온보딩 완료된 기존 유저 중, 이번 버전 처음 보는 사람만 */
 (function autoOpenWhatsNew() {
+  // v1.10.3 — 시리즈 묶기 조용히 배포 (업데이트 모달 자동 노출 X)
+  // lastSeen만 현재 버전으로 갱신 → 다음 버전 모달은 정상 노출
+  if (APP_VERSION === '1.10.3') {
+    try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
+    return;
+  }
   // v1.10.0 — 책 이사 업데이트 모달 활성화
   try {
     const onboarded = localStorage.getItem(ONBOARDING_KEY);
