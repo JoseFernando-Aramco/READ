@@ -16831,43 +16831,6 @@ body.cn-locked {
 }
 .lt-stage.active { display: flex; }
 
-/* Stage 1: 시작 화면 */
-.lt-stage-start {
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 40px 24px;
-}
-.lt-start-icon {
-  font-size: 80px;
-  filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1));
-}
-.lt-start-msg {
-  color: #fff;
-  font-family: 'Pretendard Variable', Pretendard, sans-serif;
-  font-size: 19px;
-  font-weight: 600;
-  text-align: center;
-  line-height: 1.5;
-  letter-spacing: -.01em;
-}
-.lt-keep-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  color: #1a1a1a;
-  border: none;
-  border-radius: 99px;
-  padding: 14px 32px;
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 12px;
-}
-.lt-keep-btn:active { opacity: 0.85; }
-
 /* Stage 2: 사진 + 가이드 */
 .lt-stage-guide {
   background: #000;
@@ -17531,17 +17494,8 @@ body.cn-locked {
 <!-- ═══════════ Live Text 인용구 추출 모달 ═══════════ -->
 <div class="lt-modal" id="ltModal" aria-hidden="true">
   <button class="lt-close" id="ltClose" type="button" aria-label="닫기">×</button>
-  <!-- Stage 1: 시작 화면 -->
-  <div class="lt-stage lt-stage-start" id="ltStageStart">
-    <div class="lt-start-icon">📸</div>
-    <div class="lt-start-msg">Keep하고 싶은 문장을<br>촬영하세요</div>
-    <button class="lt-keep-btn" id="ltKeepBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-      <span>Keep</span>
-    </button>
-    <input type="file" id="ltFileInput" accept="image/*" capture="environment" style="display:none">
-  </div>
-  <!-- Stage 2: 사진 + 가이드 -->
+  <input type="file" id="ltFileInput" accept="image/*" capture="environment" style="display:none">
+  <!-- 사진 + 가이드 -->
   <div class="lt-stage lt-stage-guide" id="ltStageGuide">
     <div class="lt-photo-wrap">
       <img id="ltPhoto" alt="">
@@ -20198,14 +20152,10 @@ function _ltSetStage(stage) {
 }
 
 function openLtModal() {
-  const m = document.getElementById('ltModal');
-  if (!m) return;
-  _ltSetStage('start');
-  // photo 초기화
-  const photo = document.getElementById('ltPhoto');
-  if (photo) photo.src = '';
-  m.classList.add('open');
-  m.setAttribute('aria-hidden', 'false');
+  // Stage 1 없음. 시스템 파일 시트 즉시 트리거.
+  // 모달은 사진 선택 완료 시 _ltShowPhoto에서 열림.
+  const fi = document.getElementById('ltFileInput');
+  if (fi) fi.click();
 }
 
 function closeLtModal() {
@@ -20225,12 +20175,16 @@ function closeLtModal() {
 
 function _ltShowPhoto(file) {
   if (!file) return;
+  const m = document.getElementById('ltModal');
   const photo = document.getElementById('ltPhoto');
-  if (!photo) return;
+  if (!photo || !m) return;
   const url = URL.createObjectURL(file);
   photo.onload = () => {};
   photo.src = url;
   _ltSetStage('guide');
+  // 사진 준비 완료 → 모달 열기 (Stage 1 제거로 여기서 처음 열림)
+  m.classList.add('open');
+  m.setAttribute('aria-hidden', 'false');
 }
 
 async function _ltPasteFromClipboard() {
@@ -20264,11 +20218,9 @@ async function _ltPasteFromClipboard() {
     if (!m) return;
     // × 닫기
     document.getElementById('ltClose')?.addEventListener('click', closeLtModal);
-    // Keep 버튼 → 파일 input 클릭
-    const keepBtn = document.getElementById('ltKeepBtn');
+    // 파일 input change → 사진 표시 + 모달 열기
     const fileInput = document.getElementById('ltFileInput');
-    if (keepBtn && fileInput) {
-      keepBtn.addEventListener('click', () => fileInput.click());
+    if (fileInput) {
       fileInput.addEventListener('change', (e) => {
         const f = e.target.files && e.target.files[0];
         if (f) _ltShowPhoto(f);
