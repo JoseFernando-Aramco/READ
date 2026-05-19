@@ -1507,14 +1507,6 @@ body:has(.lib-edit-bar) .library-cards {
   pointer-events: none; z-index: 10;
 }
 /* V3 톤 통일 — 실제 표지 이미지가 있을 때만 테마색 25% 덮기 */
-.book-card-cover:has(.bc-img)::before {
-  content: ''; position: absolute; inset: 0;
-  background: var(--brand-primary);
-  opacity: 0.25;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 5;
-}
 /* 책별 팔레트 (테마와 독립적 · 각 책 고유 아이덴티티) */
 .palette-demian     { --dark: #7c2d12; --pale: #fef0e4; --accent: #d4a574; }
 .palette-1984       { --dark: #1e293b; --pale: #e2e8f0; --accent: #dc2626; }
@@ -1543,11 +1535,6 @@ body:has(.lib-edit-bar) .library-cards {
   object-fit: cover;
   display: block;
   background: var(--c-border);
-  filter: saturate(0.775) brightness(0.975);
-}
-/* 서재의 밤(기본 테마)은 표지를 원본 그대로 표시. 다른 테마는 위 기본값(50% 톤다운)을 사용 */
-html:not([data-theme]) .bc-img {
-  filter: none;
 }
 .bc-fallback {
   width: 100%;
@@ -6919,15 +6906,7 @@ html:not([data-theme]) .bc-img {
   position: relative;
   isolation: isolate;
 }
-.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.55) brightness(0.95); }
-.bd-hero-cover:has(img)::after {
-  content: ''; position: absolute; inset: 0;
-  background: var(--brand-primary);
-  opacity: 0.25;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-
+.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* 표지 변경 버튼 (책 상세) */
 .bd-hero-cover-btn {
   cursor: pointer;
@@ -13865,7 +13844,6 @@ body.cn-locked {
 }
 .lib-search-result-cover img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: saturate(0.55) brightness(0.95);
 }
 .lib-search-result-info {
   flex: 1; min-width: 0;
