@@ -1569,11 +1569,6 @@ body:has(.lib-edit-bar) .library-cards {
   object-fit: cover;
   display: block;
   background: var(--c-border);
-  filter: saturate(0.775) brightness(0.975);
-}
-/* 서재의 밤(기본 테마)은 표지를 원본 그대로 표시. 다른 테마는 위 기본값(50% 톤다운)을 사용 */
-html:not([data-theme]) .bc-img {
-  filter: none;
 }
 .bc-fallback {
   width: 100%;
@@ -6945,7 +6940,7 @@ html:not([data-theme]) .bc-img {
   position: relative;
   isolation: isolate;
 }
-.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.55) brightness(0.95); }
+.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .bd-hero-cover:has(img)::after {
   content: ''; position: absolute; inset: 0;
   background: var(--brand-primary);
@@ -13883,7 +13878,6 @@ body.cn-locked {
 }
 .lib-search-result-cover img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: saturate(0.55) brightness(0.95);
 }
 .lib-search-result-info {
   flex: 1; min-width: 0;
