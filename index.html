@@ -27336,14 +27336,47 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     }
   };
   
+  // v1.0.1 픽스 — 카드 시각 클래스 즉시 토글 (액션바 재마운트는 디바운스로 분리)
+  const updateCardClass = (info) => {
+    if (!info) return;
+    const pane = document.querySelector('.lib-cat-pane.active');
+    if (!pane) return;
+    if (info.type === 'group') {
+      // 그룹 카드 — 그룹 안 모든 책 클래스 업데이트 (대표 카드만 보이지만 데이터 일관성)
+      const repCard = pane.querySelector(`.book-card[data-group-id="${info.id}"]`);
+      if (repCard) {
+        // 그룹 안 첫 책 id로 selected 여부 결정 (그룹 단위)
+        const books = (BOOKS || []).filter(b => b.groupId === info.id);
+        const isSel = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+        repCard.classList.toggle('lib-edit-selected', isSel);
+      }
+    } else {
+      const card = pane.querySelector(`.book-card[data-book-id="${info.id}"]:not([data-group-id])`);
+      if (card) {
+        card.classList.toggle('lib-edit-selected', _libEdit.selected.has(info.id));
+      }
+    }
+  };
+  
+  // 액션바는 무겁기 때문에 rAF로 묶기
+  let actionBarRafId = null;
+  const scheduleActionBarUpdate = () => {
+    if (actionBarRafId) return;
+    actionBarRafId = requestAnimationFrame(() => {
+      actionBarRafId = null;
+      if (_libEdit.active) {
+        _libMountEditBar(_libEdit.cat);
+      }
+    });
+  };
+  
   container.addEventListener('touchstart', (e) => {
     if (!_libEdit.active) return;
     if (e.touches.length !== 1) return;
     const t = e.touches[0];
     const info = cardInfoAtPoint(t.clientX, t.clientY);
-    if (!info) return;  // 빈 곳 터치
+    if (!info) return;
     
-    // 시작 카드의 선택 여부에 따라 드래그 모드 결정 (iOS 동일)
     let isSelected;
     if (info.type === 'group') {
       const books = (BOOKS || []).filter(b => b.groupId === info.id);
@@ -27355,10 +27388,9 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     startX = t.clientX;
     startY = t.clientY;
     moved = false;
-    dragging = false;  // 아직 드래그 시작 안 함 — touchmove에서 임계치 넘으면 시작
+    dragging = false;
     dragMode = isSelected ? 'deselect' : 'select';
     lastTouchedId = info.type + ':' + info.id;
-    // 시작 카드는 touchstart에선 적용 안 함 — 클릭과 드래그 구분을 위해
   }, { passive: true });
   
   container.addEventListener('touchmove', (e) => {
@@ -27367,44 +27399,54 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     const t = e.touches[0];
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
-    const dist = Math.sqrt(dx*dx + dy*dy);
     
-    // 임계치 — 10px 이상 움직여야 드래그 시작 (그 아래는 클릭으로 처리)
+    // v1.0.1 픽스 — 수평 드래그만 선택 모드 (수직은 페이지 스크롤에 양보)
+    // 초기 의도 판별: 수평이 수직보다 우세할 때만 드래그 시작
     if (!dragging) {
-      if (dist < 10) return;
-      // 좌우 슬라이드 의도 검출 — 수평이 수직보다 우세하면 paneTrack에 양보
-      if (Math.abs(dx) > Math.abs(dy) * 1.5) {
-        dragMode = null;  // 드래그 선택 포기
+      // 임계치 — 8px 이상 움직여야 의도 판별 시작
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      // 수평이 수직보다 우세 (1.2배 이상) 일 때만 드래그 선택 활성화
+      // 그렇지 않으면 수직 의도 → 스크롤에 양보, 드래그 포기
+      if (Math.abs(dx) <= Math.abs(dy) * 1.2) {
+        dragMode = null;
         return;
       }
-      // 드래그 시작 — 시작 카드 적용
+      // 수평 드래그 확정
       dragging = true;
       moved = true;
       const startInfo = cardInfoAtPoint(startX, startY);
       if (startInfo) {
         applyToCard(startInfo);
+        updateCardClass(startInfo);
       }
-      // 카드 위에서 드래그 = 스크롤 차단 (touch-action으로도 가능하지만 안전망)
+      scheduleActionBarUpdate();
       e.preventDefault();
     }
     
     // 진행 중 — 현재 손가락 아래 카드 찾기
     const info = cardInfoAtPoint(t.clientX, t.clientY);
-    if (!info) return;
+    if (!info) {
+      e.preventDefault();  // 빈 공간이어도 스크롤은 차단 (이미 수평 드래그 모드)
+      return;
+    }
     const key = info.type + ':' + info.id;
-    if (key === lastTouchedId) return;  // 같은 카드 위 — 중복 적용 방지
+    if (key === lastTouchedId) {
+      e.preventDefault();
+      return;
+    }
     lastTouchedId = key;
     applyToCard(info);
-    _libEditUpdateUI();
+    updateCardClass(info);
+    scheduleActionBarUpdate();
     e.preventDefault();
   }, { passive: false });
   
   container.addEventListener('touchend', () => {
-    // 드래그가 실제로 일어났다면 — click 핸들러가 토글 한 번 더 호출 안 하게 차단
     if (dragging && moved) {
-      // click 핸들러 차단 플래그 (다음 click 한 번만 무시)
       _libEdit._suppressNextClick = true;
       setTimeout(() => { _libEdit._suppressNextClick = false; }, 300);
+      // 드래그 종료 시 액션바 최종 동기화
+      if (_libEdit.active) _libMountEditBar(_libEdit.cat);
     }
     dragging = false;
     dragMode = null;
