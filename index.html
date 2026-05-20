@@ -21353,6 +21353,8 @@ window.addEventListener('resize', () => { snapToTab(currentTabIdx); }, { passive
     if (document.querySelector('.sheet.open, .backdrop.open')) return true;
     if (target.closest('input, textarea, [contenteditable="true"]')) return true;
     if (target.closest('[data-no-swipe]')) return true;
+    // v1.0.1 — 라이브러리 편집 모드 중엔 좌우 슬라이드 비활성화 (드래그 선택과 충돌 회피)
+    if (typeof _libEdit !== 'undefined' && _libEdit.active && target.closest('#libCards')) return true;
     // 내부 가로 스크롤 요소 우선
     let el = target;
     while (el && el !== viewport) {
@@ -26525,7 +26527,59 @@ const _libEdit = {
   selected: new Set(), // 선택된 book id Set
   pendingMove: null,   // 손실 안내 노출 중인 대상 status ('wish'|'reading'|'done'|'dropped'). null=일반 액션바
   pendingDelete: false, // 삭제 확인 안내 노출 중인지
+  lastClickedId: null,  // v1.0.1 — Shift 범위 선택 앵커 (마지막으로 단일 클릭한 book id)
 };
+
+/* v1.0.1 — DOM 순서대로 현재 활성 탭의 모든 카드 id 목록 반환 (그룹 카드 포함).
+   범위 선택 계산용. 카드 한 장당 하나의 id (그룹 카드는 대표 book id) */
+function _libGetVisibleCardIds() {
+  const pane = document.querySelector('.lib-cat-pane.active');
+  if (!pane) return [];
+  const cards = pane.querySelectorAll('.book-card[data-book-id]');
+  const ids = [];
+  cards.forEach(c => {
+    const grpId = c.dataset.groupId;
+    if (grpId) {
+      // 그룹 카드 — group id로 마킹
+      ids.push({ type: 'group', id: grpId });
+    } else {
+      const id = parseInt(c.dataset.bookId, 10);
+      if (id) ids.push({ type: 'book', id: id });
+    }
+  });
+  return ids;
+}
+
+/* v1.0.1 — anchor부터 target까지 범위 선택 (그 사이 모든 카드 추가) */
+function _libSelectRange(anchorId, targetId) {
+  const cards = _libGetVisibleCardIds();
+  if (!cards.length) return;
+  
+  // 카드 배열에서 anchorId와 targetId의 위치 찾기
+  const findIndex = (id) => cards.findIndex(c => c.id == id);  // == 의도 (book id는 숫자, group id는 문자열)
+  const a = findIndex(anchorId);
+  const b = findIndex(targetId);
+  
+  // 앵커가 없으면 (예: 첫 클릭 후 다른 탭으로 갔다 왔거나) → 그냥 target만 토글
+  if (a < 0 || b < 0) return;
+  
+  const start = Math.min(a, b);
+  const end = Math.max(a, b);
+  
+  // 범위 안의 모든 카드 선택
+  for (let i = start; i <= end; i++) {
+    const c = cards[i];
+    if (c.type === 'group') {
+      // 그룹 — 그룹 안 모든 책 추가
+      (BOOKS || []).filter(book => book.groupId === c.id).forEach(book => {
+        _libEdit.selected.add(book.id);
+      });
+    } else {
+      _libEdit.selected.add(c.id);
+    }
+  }
+  _libEditUpdateUI();
+}
 
 /* 선택된 책들을 newStatus로 옮길 때 사라지거나 변경되는 데이터 진단
    반환: { items: ['별점', '완독일', ...], affectedCount: N } — items가 비어있으면 안내 불필요 */
@@ -26570,6 +26624,7 @@ function _libEditCancel() {
   _libEdit.selected.clear();
   _libEdit.pendingMove = null;
   _libEdit.pendingDelete = false;
+  _libEdit.lastClickedId = null;
   renderLibraryCards();
 }
 /* 경고 카드에서 "취소" — 편집 모드는 유지하고 경고만 닫음 */
@@ -27131,15 +27186,27 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     }
     // ─── 편집 모드 — 책 카드 클릭 = 토글 (상세 모달 대신) ───
     if (_libEdit.active) {
+      // v1.0.1 — 드래그 직후의 click 이벤트는 무시 (중복 토글 방지)
+      if (_libEdit._suppressNextClick) {
+        _libEdit._suppressNextClick = false;
+        return;
+      }
       const card = e.target.closest('.book-card[data-book-id]');
       if (card) {
-        // v1.11.0 — 묶음 카드면 12권 일괄 토글
+        // v1.0.1 — Shift 클릭 = 앵커부터 이 카드까지 범위 선택
         const grpId = card.dataset.groupId;
-        if (grpId) {
-          _libEditToggleGroup(grpId);
+        const targetId = grpId || parseInt(card.dataset.bookId, 10);
+        if (e.shiftKey && _libEdit.lastClickedId != null) {
+          _libSelectRange(_libEdit.lastClickedId, targetId);
         } else {
-          const id = parseInt(card.dataset.bookId, 10);
-          if (id) _libEditToggle(id);
+          // 일반 클릭 — 토글 + 앵커 갱신
+          if (grpId) {
+            _libEditToggleGroup(grpId);
+          } else {
+            const id = parseInt(card.dataset.bookId, 10);
+            if (id) _libEditToggle(id);
+          }
+          _libEdit.lastClickedId = targetId;
         }
         return;  // 다른 동작(상세 모달 열기 등) 차단
       }
@@ -27221,6 +27288,135 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     _swipeStartX = null;
     _swipeStartY = null;
     _swipeOnHero = false;
+  });
+})();
+
+/* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일)
+   동작:
+     1. 편집 모드 중 책 카드에서 touchstart
+     2. 시작 카드의 현재 선택 상태 기억 → 반대 상태가 드래그 동작 ('select' or 'deselect')
+     3. touchmove — 손가락 아래 카드를 elementFromPoint로 찾기
+     4. 새 카드 만날 때마다 드래그 동작 적용
+     5. 좌우보다 수직 방향 우세하면 시작 — paneTrack 좌우 슬라이드와 충돌 회피 */
+(function wireLibraryDragSelect() {
+  const container = document.getElementById('libCards');
+  if (!container) return;
+  
+  let dragging = false;
+  let dragMode = null;  // 'select' | 'deselect'
+  let lastTouchedId = null;
+  let startX = 0, startY = 0;
+  let moved = false;
+  
+  // 카드 좌표에서 책/그룹 정보 추출
+  const cardInfoAtPoint = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const card = el.closest('.book-card[data-book-id]');
+    if (!card) return null;
+    const grpId = card.dataset.groupId;
+    if (grpId) return { type: 'group', id: grpId };
+    const id = parseInt(card.dataset.bookId, 10);
+    return id ? { type: 'book', id: id } : null;
+  };
+  
+  // 카드 토글 적용 — dragMode에 따라 일관되게 select 또는 deselect
+  const applyToCard = (info) => {
+    if (!info) return;
+    if (info.type === 'group') {
+      // 그룹 — 그룹 안 모든 책에 동일 동작
+      const books = (BOOKS || []).filter(b => b.groupId === info.id);
+      books.forEach(b => {
+        if (dragMode === 'select') _libEdit.selected.add(b.id);
+        else _libEdit.selected.delete(b.id);
+      });
+    } else {
+      if (dragMode === 'select') _libEdit.selected.add(info.id);
+      else _libEdit.selected.delete(info.id);
+    }
+  };
+  
+  container.addEventListener('touchstart', (e) => {
+    if (!_libEdit.active) return;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const info = cardInfoAtPoint(t.clientX, t.clientY);
+    if (!info) return;  // 빈 곳 터치
+    
+    // 시작 카드의 선택 여부에 따라 드래그 모드 결정 (iOS 동일)
+    let isSelected;
+    if (info.type === 'group') {
+      const books = (BOOKS || []).filter(b => b.groupId === info.id);
+      isSelected = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+    } else {
+      isSelected = _libEdit.selected.has(info.id);
+    }
+    
+    startX = t.clientX;
+    startY = t.clientY;
+    moved = false;
+    dragging = false;  // 아직 드래그 시작 안 함 — touchmove에서 임계치 넘으면 시작
+    dragMode = isSelected ? 'deselect' : 'select';
+    lastTouchedId = info.type + ':' + info.id;
+    // 시작 카드는 touchstart에선 적용 안 함 — 클릭과 드래그 구분을 위해
+  }, { passive: true });
+  
+  container.addEventListener('touchmove', (e) => {
+    if (!_libEdit.active || !dragMode) return;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    // 임계치 — 10px 이상 움직여야 드래그 시작 (그 아래는 클릭으로 처리)
+    if (!dragging) {
+      if (dist < 10) return;
+      // 좌우 슬라이드 의도 검출 — 수평이 수직보다 우세하면 paneTrack에 양보
+      if (Math.abs(dx) > Math.abs(dy) * 1.5) {
+        dragMode = null;  // 드래그 선택 포기
+        return;
+      }
+      // 드래그 시작 — 시작 카드 적용
+      dragging = true;
+      moved = true;
+      const startInfo = cardInfoAtPoint(startX, startY);
+      if (startInfo) {
+        applyToCard(startInfo);
+      }
+      // 카드 위에서 드래그 = 스크롤 차단 (touch-action으로도 가능하지만 안전망)
+      e.preventDefault();
+    }
+    
+    // 진행 중 — 현재 손가락 아래 카드 찾기
+    const info = cardInfoAtPoint(t.clientX, t.clientY);
+    if (!info) return;
+    const key = info.type + ':' + info.id;
+    if (key === lastTouchedId) return;  // 같은 카드 위 — 중복 적용 방지
+    lastTouchedId = key;
+    applyToCard(info);
+    _libEditUpdateUI();
+    e.preventDefault();
+  }, { passive: false });
+  
+  container.addEventListener('touchend', () => {
+    // 드래그가 실제로 일어났다면 — click 핸들러가 토글 한 번 더 호출 안 하게 차단
+    if (dragging && moved) {
+      // click 핸들러 차단 플래그 (다음 click 한 번만 무시)
+      _libEdit._suppressNextClick = true;
+      setTimeout(() => { _libEdit._suppressNextClick = false; }, 300);
+    }
+    dragging = false;
+    dragMode = null;
+    lastTouchedId = null;
+    moved = false;
+  });
+  
+  container.addEventListener('touchcancel', () => {
+    dragging = false;
+    dragMode = null;
+    lastTouchedId = null;
+    moved = false;
   });
 })();
 
