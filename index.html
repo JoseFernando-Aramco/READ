@@ -20318,6 +20318,28 @@ function _ltSetStage(stage) {
   document.getElementById('ltStageGuide')?.classList.toggle('active', stage === 'guide');
 }
 
+// ─────────────────────────────────────────────────────────────
+// Live Text OCR 버튼 노출 가드
+// iOS Live Text는 iOS Safari/PWA에서만 작동.
+// 안드로이드/데스크톱에서는 버튼 자체를 숨겨서 사용자 혼란 방지.
+// 페이지 로드 시 한 번만 검사 (디바이스 속성은 세션 중 변하지 않음).
+(function _hideOcrBtnIfNotIOS() {
+  function apply() {
+    const btn = document.getElementById('naOcrBtn');
+    if (!btn) return;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isIOS) {
+      btn.style.display = 'none';
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+})();
+
 function openLtModal() {
   // Stage 1 없음. 시스템 파일 시트 즉시 트리거.
   // 모달은 사진 선택 완료 시 _ltShowPhoto에서 열림.
