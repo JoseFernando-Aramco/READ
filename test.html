@@ -526,9 +526,9 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 .coin-btn:not(.unseen) .coin-new-dot { display: none; }
 
-/* v1.10.0 — 헤더 PWA 설치 안내 버튼 (검색 옆) */
-.install-btn { position: relative; padding: 6px; }
-.install-btn .ic-install {
+/* v1.0.0 — 헤더 동기화 버튼 (검색 옆) */
+.sync-btn { position: relative; padding: 6px; }
+.sync-btn .ic-sync {
   width: 22px; height: 22px;
   stroke: var(--c-text-2);
   stroke-width: 1.8;
@@ -537,37 +537,27 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   stroke-linejoin: round;
   display: block;
 }
-.install-btn.unseen::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: rgba(184, 153, 104, 0.32);
-  animation: install-pulse 1.8s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
+.sync-btn.busy .ic-sync {
+  animation: sync-spin 1.2s linear infinite;
+  transform-origin: center;
 }
-.install-btn.unseen .ic-install {
-  stroke: #b89968;
-  position: relative;
-  z-index: 1;
-}
-.install-new-dot {
+.sync-btn .sync-dot {
   position: absolute;
   top: 3px; right: 3px;
-  width: 7px; height: 7px;
-  background: #D4544A;
+  width: 8px; height: 8px;
+  background: #ef4444;
   border-radius: 50%;
   border: 2px solid var(--c-canvas);
   z-index: 2;
+  display: none;
 }
-.install-btn:not(.unseen) .install-new-dot { display: none; }
-/* PWA로 이미 실행 중이면 버튼 자체 숨김 */
-.install-btn.installed { display: none; }
+.sync-btn.dirty .sync-dot { display: block; }
+/* 로그아웃 상태에서는 버튼 자체 숨김 */
+.sync-btn.hidden { display: none; }
 
-@keyframes install-pulse {
-  0% { transform: scale(0.6); opacity: 0.7; }
-  100% { transform: scale(1.8); opacity: 0; }
+@keyframes sync-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @keyframes coin-pulse {
@@ -16351,6 +16341,7 @@ body.cn-locked {
   font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
   font-size: 10px;
   letter-spacing: .26em;
+  line-height: 1.7;
   color: var(--c-muted);
   text-transform: uppercase;
   font-weight: 700;
@@ -17050,6 +17041,8 @@ body.cn-locked {
   font-family: 'Helvetica Neue', 'Pretendard Variable', Pretendard, sans-serif;
   font-size: 11px;
   letter-spacing: .32em;
+  line-height: 1.7;
+  text-align: center;
   color: var(--c-muted, #7A7A75);
   animation: kbSplashFadeUp 1.1s 0.5s cubic-bezier(.2,.7,.2,1) both;
 }
@@ -17080,7 +17073,7 @@ body.cn-locked {
 <div class="kb-splash" id="kbSplash" aria-hidden="true">
   <span class="kb-splash-logo keepbook-logo">keepbook</span>
   <div class="kb-splash-rule"></div>
-  <div class="kb-splash-tag">READ. NOTE. REMEMBER.</div>
+  <div class="kb-splash-tag">Keep Reading.<br>Keep your Books.</div>
 </div>
 <script>
   (function kbSplashCleanup() {
@@ -17197,12 +17190,14 @@ body.cn-locked {
       <span class="read-mark keepbook-logo">keepbook</span>
     </div>
     <div class="header-actions">
-      <button class="header-btn install-btn unseen" id="installBtn" aria-label="앱처럼 설치하기">
-        <svg class="ic-install" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="5" y="2" width="14" height="20" rx="2"/>
-          <path d="M12 10 v6 M9 13 l3 3 3-3"/>
+      <button class="header-btn sync-btn hidden" id="syncBtn" aria-label="동기화">
+        <svg class="ic-sync" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/>
+          <path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M3 21v-5h5"/>
         </svg>
-        <span class="install-new-dot"></span>
+        <span class="sync-dot"></span>
       </button>
       <button class="header-btn" aria-label="검색"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-search"/></svg></button>
       
@@ -17691,7 +17686,7 @@ body.cn-locked {
 <aside class="kbm-panel" id="kbmPanel" aria-hidden="true">
   <div class="kbm-head">
     <div class="kbm-brand keepbook-logo">keepbook</div>
-    <div class="kbm-tag">Read · Note · Remember</div>
+    <div class="kbm-tag">Keep Reading<br>Keep your Books</div>
   </div>
   <div class="kbm-body">
 
@@ -20146,7 +20141,7 @@ const READ_AUTH = {
           <div class="kbm-login-av" onclick="openAvatarSheet()" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div class="kbm-login-main">
             <div class="kbm-login-name">${escape(user.nickname)}</div>
-            <div class="kbm-login-sub">아바타 선택하기 →</div>
+            <div class="kbm-login-sub">← 아바타 선택하기</div>
           </div>
           <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.logout === 'function') READ_AUTH.logout(); }, 220)">로그아웃</button>
         `;
@@ -20164,7 +20159,185 @@ const READ_AUTH = {
         `;
       }
     }
+    
+    // v1.0.0 — 헤더 동기화 버튼 상태 갱신 (로그인/로그아웃에 따라 노출)
+    if (window.KEEPBOOK_SYNC) window.KEEPBOOK_SYNC.updateButton();
   }
+};
+
+
+/* ═══════════════════════════════════════════════════════════
+   v1.0.0 — 헤더 동기화 버튼 (스마트 푸시/풀)
+   ─────────────────────────────────────────────────────────
+   로컬 vs 서버 상태 비교 후 자동 분기:
+     - 둘 다 같음 → "이미 최신" 토스트
+     - 로컬이 더 새거 → push (서버 갱신)
+     - 서버가 더 새거 → pull (로컬 갱신, 사용자 확인)
+     - 양쪽 다 변경 (충돌) → 모달로 선택
+   
+   상태:
+     - hidden: 비로그인 상태에서 버튼 숨김
+     - busy: 동기화 진행 중 (아이콘 회전)
+     - dirty: 로컬 변경 있음 (빨간 점) — 변경 추적은 후속 작업
+   ═══════════════════════════════════════════════════════════ */
+window.KEEPBOOK_SYNC = {
+  _busy: false,
+  
+  /* 버튼 상태 업데이트 — refreshUI에서 호출 */
+  updateButton() {
+    const btn = document.getElementById('syncBtn');
+    if (!btn) return;
+    const loggedIn = (typeof READ_AUTH !== 'undefined') && READ_AUTH.isLoggedIn();
+    if (loggedIn) {
+      btn.classList.remove('hidden');
+    } else {
+      btn.classList.add('hidden');
+      btn.classList.remove('dirty');
+    }
+  },
+  
+  /* 변경 있음 표시 (빨간 점) — 후속 작업에서 데이터 변경 시 호출 */
+  markDirty() {
+    const btn = document.getElementById('syncBtn');
+    if (btn) btn.classList.add('dirty');
+  },
+  markClean() {
+    const btn = document.getElementById('syncBtn');
+    if (btn) btn.classList.remove('dirty');
+  },
+  
+  /* 메인: 동기화 버튼 클릭 핸들러 — 스마트 분기 */
+  async onClick() {
+    if (this._busy) return;
+    if (typeof READ_AUTH === 'undefined' || !READ_AUTH.isLoggedIn()) {
+      if (typeof showToast === 'function') showToast('로그인 후 사용해주세요');
+      return;
+    }
+    
+    const btn = document.getElementById('syncBtn');
+    this._busy = true;
+    if (btn) btn.classList.add('busy');
+    
+    try {
+      // 1. 서버 상태 확인 (pull로 메타만 확인)
+      const serverState = await this._fetchServerState();
+      if (serverState === null) {
+        // 네트워크 오류 또는 권한 없음 (이미 토스트 띄움)
+        return;
+      }
+      
+      const localUpdatedAt = READ_AUTH._getBaseUpdatedAt();
+      const serverUpdatedAt = serverState.updatedAt;
+      const localDirty = btn && btn.classList.contains('dirty');
+      
+      // 2. 분기 결정
+      if (!serverUpdatedAt && !localDirty) {
+        // 서버 텅 빔 + 로컬 변경 없음 → 첫 백업
+        if (typeof showToast === 'function') showToast('처음으로 클라우드에 백업할게요');
+        await READ_AUTH.backupToCloud();
+        this.markClean();
+      } else if (!serverUpdatedAt && localDirty) {
+        // 서버 텅 빔 + 로컬에 데이터 → 첫 백업
+        await READ_AUTH.backupToCloud();
+        this.markClean();
+      } else if (serverUpdatedAt && !localUpdatedAt) {
+        // 서버에 데이터 있음 + 로컬은 아직 sync 안 함 (새 기기 시나리오)
+        await this._restoreWithConfirm(serverState);
+      } else if (serverUpdatedAt === localUpdatedAt && !localDirty) {
+        // 둘 다 같음, 로컬 변경 없음 → 이미 최신
+        if (typeof showToast === 'function') showToast('☁️ 이미 최신 상태예요');
+      } else if (serverUpdatedAt === localUpdatedAt && localDirty) {
+        // 서버 = 로컬, 로컬 변경 있음 → push
+        const result = await READ_AUTH.backupToCloud();
+        if (result.ok) this.markClean();
+      } else if (serverUpdatedAt > localUpdatedAt && !localDirty) {
+        // 서버가 더 새거 + 로컬 변경 없음 → 자동 pull
+        await this._restoreWithConfirm(serverState);
+      } else if (serverUpdatedAt > localUpdatedAt && localDirty) {
+        // 양쪽 다 변경 → 충돌 모달
+        await this._showConflictModal(serverState);
+      } else {
+        // 로컬이 더 새거? (정상이면 발생 안 함, 안전망)
+        const result = await READ_AUTH.backupToCloud();
+        if (result.ok) this.markClean();
+      }
+    } catch (e) {
+      console.error('[sync] onClick error', e);
+      if (typeof showToast === 'function') showToast('동기화 실패 · 잠시 후 다시 시도해주세요');
+    } finally {
+      this._busy = false;
+      if (btn) btn.classList.remove('busy');
+    }
+  },
+  
+  /* 서버 상태(updatedAt + deviceId)만 가져오기 — 전체 pull은 안 함 */
+  async _fetchServerState() {
+    try {
+      const res = await READ_AUTH.authFetch(ALADIN_PROXY_URL + '/sync/pull', { method: 'GET' });
+      if (res.status === 401) {
+        if (typeof showToast === 'function') showToast('로그인이 만료됐어요');
+        return null;
+      }
+      if (!res.ok) {
+        if (typeof showToast === 'function') showToast('서버 응답 오류');
+        return null;
+      }
+      return await res.json();
+    } catch (e) {
+      console.error('[sync] fetch state error', e);
+      if (typeof showToast === 'function') showToast('네트워크 오류');
+      return null;
+    }
+  },
+  
+  /* 복원 (서버가 더 새거 시) — 빈 로컬 가드 포함 */
+  async _restoreWithConfirm(serverState) {
+    const localCount = (typeof BOOKS !== 'undefined') ? (BOOKS || []).length : 0;
+    const date = serverState.updatedAt ? new Date(serverState.updatedAt) : null;
+    const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` : '최근';
+    
+    let msg;
+    if (localCount === 0) {
+      msg = `☁️ 다른 기기에서 백업된 데이터가 있어요.\n(${dateStr} 백업)\n\n가져올까요?`;
+    } else {
+      msg = `📲 다른 기기에서 더 최근에 백업한 데이터가 있어요.\n(${dateStr} 백업)\n\n⚠️ 이 기기의 ${localCount}권 데이터는 사라집니다.\n계속할까요?`;
+    }
+    
+    if (!confirm(msg)) {
+      if (typeof showToast === 'function') showToast('가져오기를 취소했어요');
+      return;
+    }
+    
+    await READ_AUTH.restoreFromCloud();
+    this.markClean();
+  },
+  
+  /* 충돌 모달 (양쪽 다 변경) */
+  async _showConflictModal(serverState) {
+    const localCount = (typeof BOOKS !== 'undefined') ? (BOOKS || []).length : 0;
+    const date = serverState.updatedAt ? new Date(serverState.updatedAt) : null;
+    const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` : '최근';
+    
+    // 1차: 사용자에게 어느 쪽을 살릴지 선택
+    const choice = confirm(
+      `⚠️ 충돌 발생\n\n` +
+      `이 기기와 다른 기기 양쪽에서 변경됐어요.\n` +
+      `- 다른 기기: ${dateStr} 백업\n` +
+      `- 이 기기: ${localCount}권의 변경사항\n\n` +
+      `[확인] = 이 기기 데이터로 덮어쓰기 (다른 기기 변경 사라짐)\n` +
+      `[취소] = 다른 기기 데이터 가져오기 (이 기기 변경 사라짐)`
+    );
+    
+    if (choice) {
+      // 이 기기 → 서버 (force push)
+      const result = await READ_AUTH.backupToCloud({ force: true });
+      if (result.ok) this.markClean();
+    } else {
+      // 서버 → 이 기기 (pull)
+      await READ_AUTH.restoreFromCloud();
+      this.markClean();
+    }
+  },
 };
 
 
@@ -20314,6 +20487,28 @@ function _ltSetStage(stage) {
   document.getElementById('ltStageStart')?.classList.toggle('active', stage === 'start');
   document.getElementById('ltStageGuide')?.classList.toggle('active', stage === 'guide');
 }
+
+// ─────────────────────────────────────────────────────────────
+// Live Text OCR 버튼 노출 가드
+// iOS Live Text는 iOS Safari/PWA에서만 작동.
+// 안드로이드/데스크톱에서는 버튼 자체를 숨겨서 사용자 혼란 방지.
+// 페이지 로드 시 한 번만 검사 (디바이스 속성은 세션 중 변하지 않음).
+(function _hideOcrBtnIfNotIOS() {
+  function apply() {
+    const btn = document.getElementById('naOcrBtn');
+    if (!btn) return;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isIOS) {
+      btn.style.display = 'none';
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+})();
 
 function openLtModal() {
   // Stage 1 없음. 시스템 파일 시트 즉시 트리거.
@@ -33315,31 +33510,18 @@ document.addEventListener('keydown', (e) => {
   });
 })();
 
-/* v1.10.0 — 헤더 PWA 설치 안내 버튼 (read.installSeen 펄스 토글) */
-(function wireInstallBtn() {
-  const btn = document.getElementById('installBtn');
-  if (!btn || btn.dataset.installWired) return;
-  btn.dataset.installWired = '1';
-
-  // 이미 PWA로 실행 중이면 버튼 자체 숨김 (설치 안내 불필요)
-  // - display-mode: standalone → 홈 화면 아이콘으로 열린 상태
-  // - iOS: navigator.standalone === true
-  const isStandalone =
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-    window.navigator.standalone === true;
-  if (isStandalone) {
-    btn.classList.add('installed');
-    return;
-  }
-
-  // 한 번이라도 본 사용자: 펄스만 끄고 버튼은 유지 (다시 보고 싶을 수 있으니)
-  if (STORE.get('installSeen', false)) btn.classList.remove('unseen');
-
+/* v1.0.0 — 헤더 동기화 버튼 클릭 핸들러 + 초기 상태 */
+(function wireSyncBtn() {
+  const btn = document.getElementById('syncBtn');
+  if (!btn || btn.dataset.syncWired) return;
+  btn.dataset.syncWired = '1';
+  
   btn.addEventListener('click', () => {
-    btn.classList.remove('unseen');
-    STORE.set('installSeen', true);
-    if (typeof openInstallGuide === 'function') openInstallGuide();
+    if (window.KEEPBOOK_SYNC) window.KEEPBOOK_SYNC.onClick();
   });
+  
+  // 페이지 로드 시 로그인 상태에 따라 버튼 노출/숨김 결정
+  if (window.KEEPBOOK_SYNC) window.KEEPBOOK_SYNC.updateButton();
 })();
 
 /* ═══════════════════════════════════════════════════════════
