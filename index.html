@@ -27291,22 +27291,24 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
   });
 })();
 
-/* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일)
+/* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일, 옵션 B)
    동작:
      1. 편집 모드 중 책 카드에서 touchstart
-     2. 시작 카드의 현재 선택 상태 기억 → 반대 상태가 드래그 동작 ('select' or 'deselect')
-     3. touchmove — 손가락 아래 카드를 elementFromPoint로 찾기
-     4. 새 카드 만날 때마다 드래그 동작 적용
-     5. 좌우보다 수직 방향 우세하면 시작 — paneTrack 좌우 슬라이드와 충돌 회피 */
+     2. 시작 카드의 현재 선택 상태 기억 → 반대 상태가 드래그 모드 ('select' or 'deselect')
+     3. touchmove — 손가락 아래 카드 추적
+     4. 새 카드 만남 → dragMode 적용 + visitedSeq에 push
+     5. 이미 만난 카드 만남 (방향 바뀜) → 그 카드 이후 카드들 원복 + visitedSeq에서 제거
+     6. 수평 드래그 우세할 때만 활성화 (수직은 페이지 스크롤에 양보) */
 (function wireLibraryDragSelect() {
   const container = document.getElementById('libCards');
   if (!container) return;
   
   let dragging = false;
   let dragMode = null;  // 'select' | 'deselect'
-  let lastTouchedId = null;
   let startX = 0, startY = 0;
   let moved = false;
+  let visitedSeq = [];        // 드래그 중 만난 카드 key 순서: ["book:1", "book:2", "group:gA", ...]
+  let originalState = new Map();  // key → bool (드래그 시작 전 selected 여부)
   
   // 카드 좌표에서 책/그룹 정보 추출
   const cardInfoAtPoint = (x, y) => {
@@ -27320,32 +27322,49 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     return id ? { type: 'book', id: id } : null;
   };
   
-  // 카드 토글 적용 — dragMode에 따라 일관되게 select 또는 deselect
-  const applyToCard = (info) => {
-    if (!info) return;
+  const infoKey = (info) => info.type + ':' + info.id;
+  
+  // 카드의 현재 선택 상태 (그룹이면 그룹 안 모든 책이 선택돼야 true)
+  const isInfoSelected = (info) => {
     if (info.type === 'group') {
-      // 그룹 — 그룹 안 모든 책에 동일 동작
+      const books = (BOOKS || []).filter(b => b.groupId === info.id);
+      return books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+    }
+    return _libEdit.selected.has(info.id);
+  };
+  
+  // 카드에 동작 적용 — mode: 'select' | 'deselect' | 'restore'
+  // restore = originalState 값으로 되돌리기
+  const applyToCard = (info, mode) => {
+    if (!info) return;
+    const key = infoKey(info);
+    let target;
+    if (mode === 'restore') {
+      target = originalState.get(key);
+      if (target == null) target = false;
+    } else {
+      target = (mode === 'select');
+    }
+    if (info.type === 'group') {
       const books = (BOOKS || []).filter(b => b.groupId === info.id);
       books.forEach(b => {
-        if (dragMode === 'select') _libEdit.selected.add(b.id);
-        else _libEdit.selected.delete(b.id);
+        if (target) _libEdit.selected.add(b.id);
+        else        _libEdit.selected.delete(b.id);
       });
     } else {
-      if (dragMode === 'select') _libEdit.selected.add(info.id);
-      else _libEdit.selected.delete(info.id);
+      if (target) _libEdit.selected.add(info.id);
+      else        _libEdit.selected.delete(info.id);
     }
   };
   
-  // v1.0.1 픽스 — 카드 시각 클래스 즉시 토글 (액션바 재마운트는 디바운스로 분리)
+  // 카드 시각 클래스만 즉시 토글 (액션바 재마운트는 디바운스로 분리)
   const updateCardClass = (info) => {
     if (!info) return;
     const pane = document.querySelector('.lib-cat-pane.active');
     if (!pane) return;
     if (info.type === 'group') {
-      // 그룹 카드 — 그룹 안 모든 책 클래스 업데이트 (대표 카드만 보이지만 데이터 일관성)
       const repCard = pane.querySelector(`.book-card[data-group-id="${info.id}"]`);
       if (repCard) {
-        // 그룹 안 첫 책 id로 selected 여부 결정 (그룹 단위)
         const books = (BOOKS || []).filter(b => b.groupId === info.id);
         const isSel = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
         repCard.classList.toggle('lib-edit-selected', isSel);
@@ -27370,6 +27389,15 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     });
   };
   
+  // 드래그 상태 초기화
+  const resetDragState = () => {
+    dragging = false;
+    dragMode = null;
+    moved = false;
+    visitedSeq = [];
+    originalState = new Map();
+  };
+  
   container.addEventListener('touchstart', (e) => {
     if (!_libEdit.active) return;
     if (e.touches.length !== 1) return;
@@ -27377,20 +27405,15 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     const info = cardInfoAtPoint(t.clientX, t.clientY);
     if (!info) return;
     
-    let isSelected;
-    if (info.type === 'group') {
-      const books = (BOOKS || []).filter(b => b.groupId === info.id);
-      isSelected = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
-    } else {
-      isSelected = _libEdit.selected.has(info.id);
-    }
+    const isSelected = isInfoSelected(info);
     
     startX = t.clientX;
     startY = t.clientY;
     moved = false;
     dragging = false;
     dragMode = isSelected ? 'deselect' : 'select';
-    lastTouchedId = info.type + ':' + info.id;
+    visitedSeq = [];
+    originalState = new Map();
   }, { passive: true });
   
   container.addEventListener('touchmove', (e) => {
@@ -27400,24 +27423,23 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
     
-    // v1.0.1 픽스 — 수평 드래그만 선택 모드 (수직은 페이지 스크롤에 양보)
-    // 초기 의도 판별: 수평이 수직보다 우세할 때만 드래그 시작
+    // 수평 드래그만 활성화 (수직은 페이지 스크롤에 양보)
     if (!dragging) {
-      // 임계치 — 8px 이상 움직여야 의도 판별 시작
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      // 수평이 수직보다 우세 (1.2배 이상) 일 때만 드래그 선택 활성화
-      // 그렇지 않으면 수직 의도 → 스크롤에 양보, 드래그 포기
       if (Math.abs(dx) <= Math.abs(dy) * 1.2) {
         dragMode = null;
         return;
       }
-      // 수평 드래그 확정
+      // 수평 드래그 확정 — 시작 카드 적용
       dragging = true;
       moved = true;
       const startInfo = cardInfoAtPoint(startX, startY);
       if (startInfo) {
-        applyToCard(startInfo);
+        const k = infoKey(startInfo);
+        originalState.set(k, isInfoSelected(startInfo));
+        applyToCard(startInfo, dragMode);
         updateCardClass(startInfo);
+        visitedSeq.push(k);
       }
       scheduleActionBarUpdate();
       e.preventDefault();
@@ -27426,17 +27448,42 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     // 진행 중 — 현재 손가락 아래 카드 찾기
     const info = cardInfoAtPoint(t.clientX, t.clientY);
     if (!info) {
-      e.preventDefault();  // 빈 공간이어도 스크롤은 차단 (이미 수평 드래그 모드)
-      return;
-    }
-    const key = info.type + ':' + info.id;
-    if (key === lastTouchedId) {
       e.preventDefault();
       return;
     }
-    lastTouchedId = key;
-    applyToCard(info);
-    updateCardClass(info);
+    const key = infoKey(info);
+    const lastKey = visitedSeq[visitedSeq.length - 1];
+    if (key === lastKey) {
+      e.preventDefault();
+      return;
+    }
+    
+    // 이미 만난 카드인지 확인 — 방향 바뀜
+    const existingIdx = visitedSeq.indexOf(key);
+    if (existingIdx !== -1) {
+      // 방향 바뀜 — 그 이후 만났던 카드들 모두 원복
+      const toRestore = visitedSeq.slice(existingIdx + 1);
+      for (let i = toRestore.length - 1; i >= 0; i--) {
+        const rkey = toRestore[i];
+        // rkey 파싱: "type:id" 형태에서 type과 id 분리 (id에 ':' 들어갈 수 있으니 첫 ':'만)
+        const colonIdx = rkey.indexOf(':');
+        if (colonIdx < 0) continue;
+        const rtype = rkey.slice(0, colonIdx);
+        const rid = rtype === 'book' ? parseInt(rkey.slice(colonIdx + 1), 10) : rkey.slice(colonIdx + 1);
+        const rinfo = { type: rtype, id: rid };
+        applyToCard(rinfo, 'restore');
+        updateCardClass(rinfo);
+      }
+      // visitedSeq에서 제거 (그 카드까지만 남김)
+      visitedSeq = visitedSeq.slice(0, existingIdx + 1);
+    } else {
+      // 새 카드 — originalState 기록 + dragMode 적용
+      originalState.set(key, isInfoSelected(info));
+      applyToCard(info, dragMode);
+      updateCardClass(info);
+      visitedSeq.push(key);
+    }
+    
     scheduleActionBarUpdate();
     e.preventDefault();
   }, { passive: false });
@@ -27445,20 +27492,13 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     if (dragging && moved) {
       _libEdit._suppressNextClick = true;
       setTimeout(() => { _libEdit._suppressNextClick = false; }, 300);
-      // 드래그 종료 시 액션바 최종 동기화
       if (_libEdit.active) _libMountEditBar(_libEdit.cat);
     }
-    dragging = false;
-    dragMode = null;
-    lastTouchedId = null;
-    moved = false;
+    resetDragState();
   });
   
   container.addEventListener('touchcancel', () => {
-    dragging = false;
-    dragMode = null;
-    lastTouchedId = null;
-    moved = false;
+    resetDragState();
   });
 })();
 
