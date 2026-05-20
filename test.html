@@ -19851,6 +19851,13 @@ const READ_AUTH = {
   _buildSyncPayload() {
     const goals = (typeof getGoals === 'function') ? getGoals() : { annual: 50 };
 
+    // v1.11.0 — 시리즈 묶음 메타 (BOOKS의 groupId/groupOrder는 books에 이미 포함)
+    const groups = (typeof STORE !== 'undefined') ? STORE.get('groups.v1', []) : [];
+    // 사용자 설정/상태 — UI 일관성을 위해 백업
+    const hiddenTags = (typeof STORE !== 'undefined') ? STORE.get('hiddenTags', []) : [];
+    const dropReasonsCustom = (typeof STORE !== 'undefined') ? STORE.get('dropReasons.custom', []) : [];
+    const milestoneReached = (typeof STORE !== 'undefined') ? STORE.get('milestoneReached', []) : [];
+
     // BOOKS에서 첨부 표지 제거 사본 만들기
     const attachedCovers = [];
     const booksClean = (BOOKS || []).map(b => {
@@ -19875,6 +19882,10 @@ const READ_AUTH = {
         notes: NOTES || [],
         tags: TAGS || {},
         goals,
+        groups,
+        hiddenTags,
+        dropReasonsCustom,
+        milestoneReached,
       },
       attachedCoverCount: attachedCovers.length,
     };
@@ -19977,6 +19988,28 @@ const READ_AUTH = {
       }
       if (data.goals && typeof saveGoals === 'function') {
         try { saveGoals(data.goals); } catch(e){}
+      }
+      // v1.11.0 — 시리즈 묶음 메타 복원 (groups.v1)
+      if (Array.isArray(data.groups)) {
+        try { STORE.set('groups.v1', data.groups); } catch(e){}
+      }
+      // 숨긴 태그 복원 — localStorage + HIDDEN_TAGS Set 메모리 동기화
+      if (Array.isArray(data.hiddenTags)) {
+        try {
+          STORE.set('hiddenTags', data.hiddenTags);
+          if (typeof HIDDEN_TAGS !== 'undefined') {
+            HIDDEN_TAGS.clear();
+            data.hiddenTags.forEach(n => HIDDEN_TAGS.add(n));
+          }
+        } catch(e){}
+      }
+      // 하차 사유 커스텀 복원
+      if (Array.isArray(data.dropReasonsCustom)) {
+        try { STORE.set('dropReasons.custom', data.dropReasonsCustom); } catch(e){}
+      }
+      // 마일스톤 달성 기록 복원 (재달성 알림 방지)
+      if (Array.isArray(data.milestoneReached)) {
+        try { STORE.set('milestoneReached', data.milestoneReached); } catch(e){}
       }
 
       this._setBaseUpdatedAt(body.updatedAt);
