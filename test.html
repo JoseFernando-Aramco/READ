@@ -19846,6 +19846,31 @@ const READ_AUTH = {
     else localStorage.removeItem('read.auth.baseUpdatedAt');
   },
 
+  /* v1.0.0 — 페이로드 해시 (변경 감지용)
+     마지막 동기화 시점의 페이로드 해시를 저장해두고,
+     동기화 시 현재 페이로드 해시와 비교해서 진짜 변경 있는지 판단.
+     djb2 변형 (충분히 빠르고 충돌률 낮음). */
+  _hashPayload(payload) {
+    try {
+      const s = JSON.stringify(payload);
+      let h = 5381;
+      for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+      }
+      // 길이도 같이 포함 — 같은 해시 다른 길이 방지
+      return s.length + ':' + (h >>> 0).toString(36);
+    } catch (e) {
+      return null;
+    }
+  },
+  _getLastSyncHash() {
+    return localStorage.getItem('read.auth.lastSyncHash') || null;
+  },
+  _setLastSyncHash(hash) {
+    if (hash) localStorage.setItem('read.auth.lastSyncHash', hash);
+    else localStorage.removeItem('read.auth.lastSyncHash');
+  },
+
   /* 현재 로컬 데이터를 동기화 가능한 형태로 직렬화
      - 첨부 표지(base64 data:image)는 제외 (용량 + Phase A 정책) */
   _buildSyncPayload() {
@@ -19931,6 +19956,8 @@ const READ_AUTH = {
 
       const { updatedAt } = await res.json();
       this._setBaseUpdatedAt(updatedAt);
+      // v1.0.0 — push한 페이로드 해시 저장 (다음 동기화 시 변경 감지용)
+      this._setLastSyncHash(this._hashPayload(payload));
 
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
@@ -20013,6 +20040,11 @@ const READ_AUTH = {
       }
 
       this._setBaseUpdatedAt(body.updatedAt);
+      // v1.0.0 — 복원 직후엔 로컬=서버 일치 상태. 현재 페이로드 해시 저장.
+      try {
+        const { payload: restoredPayload } = this._buildSyncPayload();
+        this._setLastSyncHash(this._hashPayload(restoredPayload));
+      } catch (e) { /* ignore */ }
 
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
@@ -20223,6 +20255,17 @@ window.KEEPBOOK_SYNC = {
     const loggedIn = (typeof READ_AUTH !== 'undefined') && READ_AUTH.isLoggedIn();
     if (loggedIn) {
       btn.classList.remove('hidden');
+      // v1.0.0 — 해시 비교로 빨간 점 자동 표시
+      try {
+        const { payload } = READ_AUTH._buildSyncPayload();
+        const currentHash = READ_AUTH._hashPayload(payload);
+        const lastHash = READ_AUTH._getLastSyncHash();
+        if (lastHash && currentHash !== lastHash) {
+          btn.classList.add('dirty');
+        } else {
+          btn.classList.remove('dirty');
+        }
+      } catch (e) { /* ignore */ }
     } else {
       btn.classList.add('hidden');
       btn.classList.remove('dirty');
@@ -20261,7 +20304,20 @@ window.KEEPBOOK_SYNC = {
       
       const localUpdatedAt = READ_AUTH._getBaseUpdatedAt();
       const serverUpdatedAt = serverState.updatedAt;
-      const localDirty = btn && btn.classList.contains('dirty');
+      // v1.0.0 — 해시 비교로 진짜 변경 감지
+      // (이전: btn.classList.contains('dirty') → markDirty() 훅 미구현으로 항상 false였음)
+      let localDirty = false;
+      try {
+        const { payload: currentPayload } = READ_AUTH._buildSyncPayload();
+        const currentHash = READ_AUTH._hashPayload(currentPayload);
+        const lastHash = READ_AUTH._getLastSyncHash();
+        // lastHash 없음 = 한 번도 sync 안 함 → 변경 있음으로 간주 (안전)
+        // lastHash 있음 + 현재 해시와 다름 = 변경 있음
+        localDirty = !lastHash || (currentHash !== lastHash);
+      } catch (e) {
+        // 해시 계산 실패 시 안전하게 변경 있음으로 간주
+        localDirty = true;
+      }
       
       // 2. 분기 결정
       if (!serverUpdatedAt && !localDirty) {
