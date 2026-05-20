@@ -19846,6 +19846,31 @@ const READ_AUTH = {
     else localStorage.removeItem('read.auth.baseUpdatedAt');
   },
 
+  /* v1.0.0 — 페이로드 해시 (변경 감지용)
+     마지막 동기화 시점의 페이로드 해시를 저장해두고,
+     동기화 시 현재 페이로드 해시와 비교해서 진짜 변경 있는지 판단.
+     djb2 변형 (충분히 빠르고 충돌률 낮음). */
+  _hashPayload(payload) {
+    try {
+      const s = JSON.stringify(payload);
+      let h = 5381;
+      for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+      }
+      // 길이도 같이 포함 — 같은 해시 다른 길이 방지
+      return s.length + ':' + (h >>> 0).toString(36);
+    } catch (e) {
+      return null;
+    }
+  },
+  _getLastSyncHash() {
+    return localStorage.getItem('read.auth.lastSyncHash') || null;
+  },
+  _setLastSyncHash(hash) {
+    if (hash) localStorage.setItem('read.auth.lastSyncHash', hash);
+    else localStorage.removeItem('read.auth.lastSyncHash');
+  },
+
   /* 현재 로컬 데이터를 동기화 가능한 형태로 직렬화
      - 첨부 표지(base64 data:image)는 제외 (용량 + Phase A 정책) */
   _buildSyncPayload() {
@@ -19931,6 +19956,8 @@ const READ_AUTH = {
 
       const { updatedAt } = await res.json();
       this._setBaseUpdatedAt(updatedAt);
+      // v1.0.0 — push한 페이로드 해시 저장 (다음 동기화 시 변경 감지용)
+      this._setLastSyncHash(this._hashPayload(payload));
 
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
@@ -20013,6 +20040,11 @@ const READ_AUTH = {
       }
 
       this._setBaseUpdatedAt(body.updatedAt);
+      // v1.0.0 — 복원 직후엔 로컬=서버 일치 상태. 현재 페이로드 해시 저장.
+      try {
+        const { payload: restoredPayload } = this._buildSyncPayload();
+        this._setLastSyncHash(this._hashPayload(restoredPayload));
+      } catch (e) { /* ignore */ }
 
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
@@ -20223,6 +20255,17 @@ window.KEEPBOOK_SYNC = {
     const loggedIn = (typeof READ_AUTH !== 'undefined') && READ_AUTH.isLoggedIn();
     if (loggedIn) {
       btn.classList.remove('hidden');
+      // v1.0.0 — 해시 비교로 빨간 점 자동 표시
+      try {
+        const { payload } = READ_AUTH._buildSyncPayload();
+        const currentHash = READ_AUTH._hashPayload(payload);
+        const lastHash = READ_AUTH._getLastSyncHash();
+        if (lastHash && currentHash !== lastHash) {
+          btn.classList.add('dirty');
+        } else {
+          btn.classList.remove('dirty');
+        }
+      } catch (e) { /* ignore */ }
     } else {
       btn.classList.add('hidden');
       btn.classList.remove('dirty');
@@ -20261,7 +20304,20 @@ window.KEEPBOOK_SYNC = {
       
       const localUpdatedAt = READ_AUTH._getBaseUpdatedAt();
       const serverUpdatedAt = serverState.updatedAt;
-      const localDirty = btn && btn.classList.contains('dirty');
+      // v1.0.0 — 해시 비교로 진짜 변경 감지
+      // (이전: btn.classList.contains('dirty') → markDirty() 훅 미구현으로 항상 false였음)
+      let localDirty = false;
+      try {
+        const { payload: currentPayload } = READ_AUTH._buildSyncPayload();
+        const currentHash = READ_AUTH._hashPayload(currentPayload);
+        const lastHash = READ_AUTH._getLastSyncHash();
+        // lastHash 없음 = 한 번도 sync 안 함 → 변경 있음으로 간주 (안전)
+        // lastHash 있음 + 현재 해시와 다름 = 변경 있음
+        localDirty = !lastHash || (currentHash !== lastHash);
+      } catch (e) {
+        // 해시 계산 실패 시 안전하게 변경 있음으로 간주
+        localDirty = true;
+      }
       
       // 2. 분기 결정
       if (!serverUpdatedAt && !localDirty) {
@@ -21889,6 +21945,11 @@ async function _autoAddBookFromScan(normalizedBook) {
     ? pickPalette(normalizedBook.title + normalizedBook.author)
     : 'ink';
 
+  // v1.12.0 — 알라딘 카테고리 기반 자동 태그 부여
+  const autoTags = (typeof mapAladinCategoryToTags === 'function')
+    ? mapAladinCategoryToTags(normalizedBook.categoryName || '')
+    : [];
+
   const newBook = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: normalizedBook.title,
@@ -21896,7 +21957,7 @@ async function _autoAddBookFromScan(normalizedBook) {
     pages: normalizedBook.pages || 0,  // 0이면 책 상세에서 나중에 수정
     palette,
     status: 'wish',
-    tags: [],
+    tags: autoTags,
     isbn: normalizedBook.isbn || '',
     language: normalizedBook.language || 'ko',
     coverUrl: normalizedBook.cover || '',
@@ -22224,6 +22285,8 @@ async function _searchAladin(q) {
       source: 'aladin',
       priceList: priceListRaw,
       priceSales: priceSalesRaw,
+      // v1.12.0 — 알라딘 카테고리 (자동 태그 부여용). Worker가 안 보내면 빈 값.
+      categoryName: it.categoryName || '',
     };
   });
 }
@@ -22781,6 +22844,17 @@ async function quickAddToWish(idx, btnEl) {
 
   // BOOKS에 위시로 추가
   const palette = pickPalette((item.title || '') + (item.author || ''));
+  // v1.12.0 — 알라딘 카테고리 기반 자동 태그 부여
+  const autoTags = (typeof mapAladinCategoryToTags === 'function')
+    ? mapAladinCategoryToTags(item.categoryName || '')
+    : [];
+  // v1.12.0 디버그 — categoryName 흐름 검증 (확인 후 제거)
+  console.log('[autoTag debug]', {
+    title: item.title,
+    categoryName: item.categoryName,
+    source: item.source,
+    autoTags: autoTags,
+  });
   const newBook = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: item.title || '',
@@ -22788,7 +22862,7 @@ async function quickAddToWish(idx, btnEl) {
     pages: item.pages || 0,
     palette,
     status: 'wish',
-    tags: [],
+    tags: autoTags,
     isbn: item.isbn || '',
     language: item.language || 'ko',
     coverUrl: item.cover || '',
@@ -23977,6 +24051,12 @@ function confirmAddBook() {
     return;
   }
 
+  // v1.12.0 — 알라딘 카테고리 기반 자동 태그 (사용자 선택과 머지, 중복 제거)
+  const autoTagsFromCategory = (typeof mapAladinCategoryToTags === 'function')
+    ? mapAladinCategoryToTags(b.categoryName || '')
+    : [];
+  const mergedTags = Array.from(new Set([...BA.tagsSelected, ...autoTagsFromCategory]));
+
   const newBook = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: b.title,
@@ -23984,7 +24064,7 @@ function confirmAddBook() {
     pages: inputPages,
     palette,
     status,
-    tags: BA.tagsSelected.slice(),
+    tags: mergedTags,
     isbn: b.isbn || '',
     language: b.language || 'ko',
     coverUrl: b.cover || '',
@@ -24422,7 +24502,198 @@ const DEFAULT_TAGS = {
   'BL':           { emoji: '🌃', color: '#1e1b4b', category: 'webnovel' },
   '회사·재벌':    { emoji: '💼', color: '#0c4a6e', category: 'webnovel' },
   '학원물':       { emoji: '🏫', color: '#0d9488', category: 'webnovel' },
+  // v1.12.0 — 알라딘 카테고리 자동 매핑용 신규 4개
+  '추리':         { emoji: '🕵️', color: '#1e293b', category: 'genre' },
+  '종교':         { emoji: '⛪', color: '#6d28d9', category: 'nonfiction' },
+  '외국어학습':   { emoji: '🗣️', color: '#0891b2', category: 'nonfiction' },
+  '수험서':       { emoji: '🎯', color: '#475569', category: 'format' },
 };
+
+/* ═══════════════════════════════════════════════════════════
+   v1.12.0 — 알라딘 categoryName → keepbook 기존 태그 매핑
+   ─────────────────────────────────────────────────────────
+   알라딘 API의 categoryName 필드는 ">" 구분자 트리 경로.
+   예: "국내도서>소설/시/희곡>한국소설>2000년대 이후 한국소설"
+   
+   여기서 키워드를 추출하여 DEFAULT_TAGS에 있는 태그만 부여.
+   - 매핑 안 되는 카테고리는 빈 배열 반환 (안전)
+   - 한국소설은 하나로 통일 (사용자 결정)
+   - 추리/스릴러 분류는 둘 다 부여 (사용자 결정)
+   ═══════════════════════════════════════════════════════════ */
+
+/* 알라딘 카테고리 키워드 → keepbook 태그 매핑 테이블.
+   카테고리 문자열에 키가 포함되어 있으면 값에 적힌 태그 부여.
+   배열 값이면 여러 태그 동시 부여. */
+const ALADIN_CATEGORY_MAP = [
+  // 한국문학 (현대/일반 — 한 태그로 통일)
+  { match: '한국시',          tags: ['시·시집'] },
+  { match: '한국문학단편선',  tags: ['한국소설'] },
+  { match: '한국소설',        tags: ['한국소설'] },
+  { match: '한국고전',        tags: ['국내고전'] },
+  
+  // 시 — 한국시 외 (위에서 안 잡힌 케이스)
+  { match: '시 일반',         tags: ['시·시집'] },
+  
+  // 외국문학 (국가별)
+  { match: '일본소설',        tags: ['일본문학'] },
+  { match: '일본문학',        tags: ['일본문학'] },
+  { match: '라틴아메리카',    tags: ['라틴아메리카'] },
+  { match: '영미소설',        tags: ['외국소설'] },
+  { match: '프랑스소설',      tags: ['외국소설'] },
+  { match: '독일소설',        tags: ['외국소설'] },
+  { match: '러시아소설',      tags: ['외국소설'] },
+  { match: '북유럽소설',      tags: ['외국소설'] },
+  { match: '중국소설',        tags: ['외국소설'] },
+  { match: '동남아시아',      tags: ['외국소설'] },
+  { match: '세계의문학',      tags: ['해외고전'] },  // 셰익스피어 등
+  
+  // 장르 (추리/스릴러는 둘 다 부여)
+  { match: '추리/스릴러',     tags: ['추리', '스릴러'] },
+  { match: '미스터리',        tags: ['미스터리', '추리'] },
+  { match: '공포/호러',       tags: ['스릴러'] },
+  { match: 'SF',              tags: ['SF'] },
+  { match: '판타지',          tags: ['판타지'] },
+  { match: '로맨스',          tags: ['로맨스'] },
+  { match: '역사소설',        tags: ['역사소설'] },
+  
+  // 웹소설/장르소설 세부 (먼저 매칭 — 일반 판타지/로맨스보다 우선)
+  { match: '무협',            tags: ['무협'] },
+  { match: '현대판타지',      tags: ['현대판타지'] },
+  { match: '로맨스판타지',    tags: ['로맨스판타지'] },
+  { match: '게임판타지',      tags: ['게임판타지'] },
+  
+  // 에세이/논픽션
+  { match: '에세이',          tags: ['에세이'] },
+  { match: '심리학',          tags: ['심리'] },
+  { match: '심리 일반',       tags: ['심리'] },
+  
+  // 경제경영
+  { match: '경영',            tags: ['경영'] },
+  { match: '마케팅',          tags: ['경영'] },
+  { match: '경제',            tags: ['경제'] },
+  
+  // 과학
+  { match: '과학',            tags: ['과학'] },
+  { match: '자연과학',        tags: ['과학'] },
+  
+  // 역사
+  { match: '한국사',          tags: ['역사'] },
+  { match: '세계사',          tags: ['역사'] },
+  { match: '역사',            tags: ['역사'] },
+  
+  // 기술/IT (컴퓨터/모바일 분야)
+  { match: '컴퓨터/모바일',   tags: ['기술/IT'] },
+  { match: '프로그래밍',      tags: ['기술/IT'] },
+  
+  // 예술
+  { match: '예술/대중문화',   tags: ['예술'] },
+  { match: '미술',            tags: ['예술'] },
+  { match: '음악',            tags: ['예술'] },
+  
+  // 환경/생활
+  { match: '환경',            tags: ['환경'] },
+  { match: '생태',            tags: ['환경'] },
+  
+  // 건강
+  { match: '건강/취미',       tags: ['건강'] },
+  
+  // 요리
+  { match: '요리/살림',       tags: ['요리'] },
+  { match: '요리',            tags: ['요리'] },
+  
+  // 여행
+  { match: '여행',            tags: ['여행'] },
+  
+  // 사회
+  { match: '사회과학',        tags: ['사회'] },
+  { match: '사회',            tags: ['사회'] },
+  
+  // 자기개발
+  { match: '자기계발',        tags: ['자기계발'] },
+  { match: '습관',            tags: ['습관/생산성'] },
+  { match: '명상',            tags: ['명상'] },
+  
+  // 종교 (신규)
+  { match: '종교/역학',       tags: ['종교'] },
+  { match: '기독교',          tags: ['종교'] },
+  { match: '불교',            tags: ['종교'] },
+  { match: '천주교',          tags: ['종교'] },
+  
+  // 외국어 (신규)
+  { match: '외국어',          tags: ['외국어학습'] },
+  { match: '영어 일반',       tags: ['외국어학습'] },
+  
+  // 수험서 (신규)
+  { match: '수험서',          tags: ['수험서'] },
+  { match: '자격증',          tags: ['수험서'] },
+  
+  // 육아 (기존 시드 태그)
+  { match: '좋은부모',        tags: ['육아'] },
+  { match: '육아',            tags: ['육아'] },
+  
+  // 형식/대상
+  { match: '어린이',          tags: ['아동/청소년'] },
+  { match: '청소년',          tags: ['아동/청소년'] },
+  { match: '유아',            tags: ['아동/청소년'] },
+  { match: '그래픽노블',      tags: ['그래픽노블'] },
+  { match: '만화',            tags: ['그래픽노블'] },
+  { match: '대학교재',        tags: ['전공서'] },
+  
+  // 외국도서 = 원서
+  { match: '외국도서',        tags: ['원서'] },
+];
+
+/* 알라딘 categoryName 문자열을 받아 매칭되는 keepbook 태그 배열 반환.
+   알라딘 카테고리는 "국내도서>대분야>중분야>소분야" 트리 구조.
+   가장 깊은(구체적인) 분류부터 매칭하고, 한 segment 내에서는
+   가장 긴 매칭 룰 1개만 적용 (substring 충돌 방지).
+   
+   예시:
+   - "한국소설>한국고전" → 마지막 segment '한국고전' → [국내고전]
+     (상위 '한국소설'은 보지 않음)
+   - "장르소설>판타지>현대판타지" → '현대판타지' → [현대판타지]
+     (substring '판타지'는 더 짧으므로 무시)
+   - "장르소설>추리/스릴러>한국추리/스릴러" → '한국추리/스릴러' →
+     '추리/스릴러' 룰 매칭 → [추리, 스릴러]
+   
+   안전 정책:
+   - 입력이 빈 값이면 빈 배열 반환
+   - 매칭 없으면 빈 배열 반환 (자동 태그 안 부여)
+   - 중복 태그는 제거
+   - DEFAULT_TAGS에 실제 존재하는 태그만 반환 (안전망) */
+function mapAladinCategoryToTags(categoryName) {
+  if (!categoryName || typeof categoryName !== 'string') return [];
+  
+  const segments = categoryName.split('>').map(s => s.trim()).filter(Boolean);
+  if (!segments.length) return [];
+  
+  // 한 segment 내에서 가장 긴 매칭 룰을 찾는 헬퍼
+  function findLongestMatchRule(segment) {
+    let bestRule = null;
+    let bestLen = 0;
+    for (const rule of ALADIN_CATEGORY_MAP) {
+      if (segment.indexOf(rule.match) !== -1 && rule.match.length > bestLen) {
+        bestRule = rule;
+        bestLen = rule.match.length;
+      }
+    }
+    return bestRule;
+  }
+  
+  // 가장 깊은 segment부터 거꾸로 — 첫 매칭에서 멈춤 (구체 우선)
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const rule = findLongestMatchRule(segments[i]);
+    if (rule) {
+      const result = new Set();
+      for (const tag of rule.tags) {
+        if (DEFAULT_TAGS[tag]) result.add(tag);
+      }
+      return Array.from(result);
+    }
+  }
+  
+  return [];
+}
 
 // v1.9.0 — 카테고리 라벨 매핑
 const TAG_CATEGORIES = {
