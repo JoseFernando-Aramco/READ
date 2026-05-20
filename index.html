@@ -9394,6 +9394,139 @@ body:has(.lib-edit-bar) .library-cards {
   cursor: not-allowed;
 }
 
+/* v1.0.1 — 동기화 충돌 모달 */
+.sc-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 220;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.sc-backdrop.open { opacity: 1; pointer-events: auto; }
+.sc-modal {
+  position: fixed; inset: 0;
+  z-index: 230;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.sc-modal.open { opacity: 1; pointer-events: auto; }
+.sc-card {
+  background: var(--c-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  padding: 20px 18px 18px;
+}
+.sc-modal.open .sc-card { transform: scale(1); }
+.sc-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.sc-head .sc-icn {
+  font-size: 18px;
+  color: #BA7517;
+  line-height: 1;
+}
+.sc-head .sc-ttl {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0;
+}
+.sc-desc {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+.sc-cards {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.sc-side {
+  flex: 1;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+  padding: 12px 10px;
+}
+.sc-side-hdr {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px;
+  color: var(--c-label);
+  margin-bottom: 10px;
+}
+.sc-side-main {
+  display: flex; align-items: baseline; gap: 4px;
+  margin-bottom: 10px;
+}
+.sc-side-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1;
+}
+.sc-side-num.muted { color: var(--c-text-2); }
+.sc-side-unit {
+  font-size: 11px;
+  color: var(--c-label);
+}
+.sc-side-diff {
+  font-size: 11px;
+  font-weight: 700;
+  color: #639922;
+  margin-left: 2px;
+}
+.sc-side-rows {
+  font-size: 11px;
+  color: var(--c-text-2);
+  line-height: 1.7;
+}
+.sc-side-row { display: flex; align-items: center; gap: 4px; }
+.sc-side-row .up { color: #639922; font-weight: 700; }
+.sc-time {
+  font-size: 11px;
+  color: var(--c-label);
+  text-align: center;
+  margin: 0 0 14px;
+}
+.sc-actions {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sc-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.sc-btn-primary {
+  background: var(--c-text);
+  color: #fff;
+}
+.sc-btn-secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 0.5px solid var(--c-border-2);
+}
+.sc-btn-ghost {
+  background: transparent;
+  color: var(--c-label);
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px;
+}
+
 /* v1.10.0 Phase 5 — 책 상세 "책 정보 검색" pill 버튼 */
 .bd-enrich-pill {
   display: inline-flex;
@@ -19298,6 +19431,62 @@ body.cn-locked {
   </div>
 </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- v1.0.1 — 동기화 충돌 모달 -->
+<div class="sc-backdrop" id="scBackdrop"></div>
+<div class="sc-modal" id="scModal" aria-hidden="true">
+  <div class="sc-card">
+    <div class="sc-head">
+      <span class="sc-icn">⚠️</span>
+      <p class="sc-ttl">동기화 충돌</p>
+    </div>
+    <p class="sc-desc">두 기기 모두 변경됐어요. 어느 쪽을 살릴까요?</p>
+    
+    <div class="sc-cards">
+      <!-- 이 기기 -->
+      <div class="sc-side">
+        <div class="sc-side-hdr">📱 이 기기</div>
+        <div class="sc-side-main">
+          <span class="sc-side-num" id="scLocalTotal">0</span>
+          <span class="sc-side-unit">권</span>
+          <span class="sc-side-diff" id="scLocalDiff"></span>
+        </div>
+        <div class="sc-side-rows">
+          <div class="sc-side-row">위시 · <span id="scLocalWish">0</span> <span class="up" id="scLocalWishUp"></span></div>
+          <div class="sc-side-row">독서중 · <span id="scLocalReading">0</span> <span class="up" id="scLocalReadingUp"></span></div>
+          <div class="sc-side-row">완독 · <span id="scLocalDone">0</span> <span class="up" id="scLocalDoneUp"></span></div>
+          <div class="sc-side-row">하차 · <span id="scLocalDropped">0</span> <span class="up" id="scLocalDroppedUp"></span></div>
+        </div>
+      </div>
+      <!-- 클라우드 -->
+      <div class="sc-side">
+        <div class="sc-side-hdr">☁️ 클라우드</div>
+        <div class="sc-side-main">
+          <span class="sc-side-num muted" id="scCloudTotal">0</span>
+          <span class="sc-side-unit">권</span>
+          <span class="sc-side-diff" id="scCloudDiff"></span>
+        </div>
+        <div class="sc-side-rows">
+          <div class="sc-side-row">위시 · <span id="scCloudWish">0</span> <span class="up" id="scCloudWishUp"></span></div>
+          <div class="sc-side-row">독서중 · <span id="scCloudReading">0</span> <span class="up" id="scCloudReadingUp"></span></div>
+          <div class="sc-side-row">완독 · <span id="scCloudDone">0</span> <span class="up" id="scCloudDoneUp"></span></div>
+          <div class="sc-side-row">하차 · <span id="scCloudDropped">0</span> <span class="up" id="scCloudDroppedUp"></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="sc-time" id="scTime">클라우드 · 백업 시각</p>
+    
+    <div class="sc-actions">
+      <button type="button" class="sc-btn sc-btn-primary" id="scBtnKeepLocal">이 기기 데이터 살리기</button>
+      <button type="button" class="sc-btn sc-btn-secondary" id="scBtnKeepCloud">클라우드 데이터 가져오기</button>
+      <button type="button" class="sc-btn sc-btn-ghost" id="scBtnLater">나중에 결정</button>
+    </div>
+  </div>
+</div>
+
 <!-- v1.10.0 Phase 5 — 책별 메타 정보 검색 모달 -->
 <div class="bde-backdrop" id="bdeBackdrop"></div>
 <div class="bde-modal" id="bdeModal" aria-hidden="true">
@@ -20437,31 +20626,112 @@ window.KEEPBOOK_SYNC = {
     this.markClean();
   },
   
-  /* 충돌 모달 (양쪽 다 변경) */
+  /* v1.0.1 — 책 배열에서 상태별 카운트 계산 */
+  _countByStatus(books) {
+    const c = { total: 0, wish: 0, reading: 0, done: 0, dropped: 0 };
+    if (!Array.isArray(books)) return c;
+    c.total = books.length;
+    for (const b of books) {
+      const s = b && b.status;
+      if (s === 'wish')         c.wish++;
+      else if (s === 'reading') c.reading++;
+      else if (s === 'done')    c.done++;
+      else if (s === 'dropped') c.dropped++;
+    }
+    return c;
+  },
+  
+  /* 충돌 모달 (양쪽 다 변경) — v1.0.1 커스텀 모달로 교체 */
   async _showConflictModal(serverState) {
-    const localCount = (typeof BOOKS !== 'undefined') ? (BOOKS || []).length : 0;
+    // 로컬 통계
+    const localBooks = (typeof BOOKS !== 'undefined') ? (BOOKS || []) : [];
+    const local = this._countByStatus(localBooks);
+    
+    // 클라우드 통계 — serverState.data.books에서 추출
+    const cloudData = serverState && serverState.data;
+    const cloudBooks = (cloudData && Array.isArray(cloudData.books)) ? cloudData.books : [];
+    const cloud = this._countByStatus(cloudBooks);
+    
+    // 시간 — 초까지 (예: "5/20 23:26:14")
     const date = serverState.updatedAt ? new Date(serverState.updatedAt) : null;
-    const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` : '최근';
+    const pad = (n) => String(n).padStart(2, '0');
+    const timeStr = date
+      ? `${date.getMonth()+1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+      : '최근';
     
-    // 1차: 사용자에게 어느 쪽을 살릴지 선택
-    const choice = confirm(
-      `⚠️ 충돌 발생\n\n` +
-      `이 기기와 다른 기기 양쪽에서 변경됐어요.\n` +
-      `- 다른 기기: ${dateStr} 백업\n` +
-      `- 이 기기: ${localCount}권의 변경사항\n\n` +
-      `[확인] = 이 기기 데이터로 덮어쓰기 (다른 기기 변경 사라짐)\n` +
-      `[취소] = 다른 기기 데이터 가져오기 (이 기기 변경 사라짐)`
-    );
+    // DOM에 값 박기
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('scLocalTotal', local.total);
+    set('scLocalWish', local.wish);
+    set('scLocalReading', local.reading);
+    set('scLocalDone', local.done);
+    set('scLocalDropped', local.dropped);
+    set('scCloudTotal', cloud.total);
+    set('scCloudWish', cloud.wish);
+    set('scCloudReading', cloud.reading);
+    set('scCloudDone', cloud.done);
+    set('scCloudDropped', cloud.dropped);
     
-    if (choice) {
-      // 이 기기 → 서버 (force push)
+    // 차이 (▲) 표시 — 양쪽이 자기가 더 많은 항목에만 표시
+    const diff = local.total - cloud.total;
+    set('scLocalDiff', diff > 0 ? `▲ +${diff}` : '');
+    set('scCloudDiff', diff < 0 ? `▲ +${-diff}` : '');
+    set('scLocalWishUp',    local.wish    > cloud.wish    ? '▲' : '');
+    set('scLocalReadingUp', local.reading > cloud.reading ? '▲' : '');
+    set('scLocalDoneUp',    local.done    > cloud.done    ? '▲' : '');
+    set('scLocalDroppedUp', local.dropped > cloud.dropped ? '▲' : '');
+    set('scCloudWishUp',    cloud.wish    > local.wish    ? '▲' : '');
+    set('scCloudReadingUp', cloud.reading > local.reading ? '▲' : '');
+    set('scCloudDoneUp',    cloud.done    > local.done    ? '▲' : '');
+    set('scCloudDroppedUp', cloud.dropped > local.dropped ? '▲' : '');
+    set('scTime', `클라우드 · ${timeStr} 백업`);
+    
+    // 모달 노출 + 버튼 핸들러 — Promise로 사용자 선택 대기
+    const backdrop = document.getElementById('scBackdrop');
+    const modal = document.getElementById('scModal');
+    if (!backdrop || !modal) {
+      console.error('[sync] 충돌 모달 DOM 못 찾음, fallback');
+      return;
+    }
+    
+    const choice = await new Promise((resolve) => {
+      const btnLocal  = document.getElementById('scBtnKeepLocal');
+      const btnCloud  = document.getElementById('scBtnKeepCloud');
+      const btnLater  = document.getElementById('scBtnLater');
+      
+      const close = () => {
+        backdrop.classList.remove('open');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      };
+      const onLocal = () => { close(); cleanup(); resolve('local'); };
+      const onCloud = () => { close(); cleanup(); resolve('cloud'); };
+      const onLater = () => { close(); cleanup(); resolve('later'); };
+      const cleanup = () => {
+        if (btnLocal) btnLocal.removeEventListener('click', onLocal);
+        if (btnCloud) btnCloud.removeEventListener('click', onCloud);
+        if (btnLater) btnLater.removeEventListener('click', onLater);
+        if (backdrop) backdrop.removeEventListener('click', onLater);
+      };
+      
+      if (btnLocal) btnLocal.addEventListener('click', onLocal);
+      if (btnCloud) btnCloud.addEventListener('click', onCloud);
+      if (btnLater) btnLater.addEventListener('click', onLater);
+      if (backdrop) backdrop.addEventListener('click', onLater);
+      
+      backdrop.classList.add('open');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    });
+    
+    if (choice === 'local') {
       const result = await READ_AUTH.backupToCloud({ force: true });
       if (result.ok) this.markClean();
-    } else {
-      // 서버 → 이 기기 (pull)
+    } else if (choice === 'cloud') {
       await READ_AUTH.restoreFromCloud();
       this.markClean();
     }
+    // 'later' → 아무것도 안 함
   },
 };
 
