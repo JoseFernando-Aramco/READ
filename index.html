@@ -28658,19 +28658,21 @@ function openBookDetail(id) {
   const sheet = document.getElementById('bdSheet');
   const backdrop = document.getElementById('bdBackdrop');
   
-  // v1.0.1 — 슬라이드 부드러움 픽스 (옵션 C):
+  // v1.0.1 — 슬라이드 부드러움 픽스 (옵션 C + B):
   //   1. 렌더 먼저 (DOM 작업 무거움 — 태그/노트/상태 패널 등)
-  //   2. requestAnimationFrame 한 프레임 양보 → 레이아웃 안정
-  //   3. 그 다음 프레임에서 슬라이드 시작 → 깔끔한 transform 애니메이션
-  // 이전 순서: open 클래스 → 렌더 동기 호출 → 첫 프레임 무거움 → 슬라이드 끊김
+  //   2. 백드롭 페이드인 시작 (스크롤된 페이지 가리기)
+  //   3. requestAnimationFrame → 백드롭이 가린 상태에서 lockBodyScroll + 시트 슬라이드
+  //      (lockBodyScroll은 페이지 점프 트리거 — 백드롭이 가려줘야 사용자가 못 봄)
+  // 이전 문제: 첫 카드는 scrollY=0이라 안 보였지만 더보기 카드는 scrollY > 0 →
+  //   lockBodyScroll의 top: -scrollY 적용 시 백그라운드 깜박임 발생
   renderBookDetail();
   document.getElementById('bdBody').scrollTo({ top: 0 });
+  backdrop.classList.add('open');  // 백드롭 페이드인 먼저 (0.22s)
   
   requestAnimationFrame(() => {
-    backdrop.classList.add('open');
-    sheet.classList.add('open');
+    lockBodyScroll();                       // 백드롭이 가린 상태에서 락 (점프 안 보임)
+    sheet.classList.add('open');            // 그 다음 시트 슬라이드
     sheet.setAttribute('aria-hidden', 'false');
-    lockBodyScroll();
   });
 
   // ModalStack 등록 — 시스템 뒤로가기로 닫을 수 있게
