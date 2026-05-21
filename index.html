@@ -1231,6 +1231,43 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-border);
   color: var(--c-text);
 }
+
+/* v1.0.1 — 플로팅 편집 버튼 (스크롤 시 편집 버튼이 viewport 밖으로 나가면 노출) */
+.lib-edit-fab {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #15110D;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(21, 17, 13, 0.25);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.lib-edit-fab.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.lib-edit-fab:active {
+  transform: translateY(0) scale(0.94);
+}
+.lib-edit-fab .ic {
+  width: 18px;
+  height: 18px;
+}
 .lib-cat-editing-banner {
   display: flex;
   align-items: center;
@@ -18427,6 +18464,14 @@ body.cn-locked {
   <button type="button" class="im-progress-cancel" id="imProgressCancel" aria-label="중단">✕</button>
 </div>
 
+<!-- v1.0.1 — 라이브러리 편집 플로팅 버튼 (편집 버튼이 viewport 밖이면 노출) -->
+<button type="button" class="lib-edit-fab" id="libEditFab" data-action="lib-edit-start" aria-label="편집" aria-hidden="true">
+  <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20h9"/>
+    <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+</button>
+
 <!-- ═══════════ 책 상세 페이지 ═══════════ -->
 <div class="bd-backdrop" id="bdBackdrop"></div>
 <aside class="bd-sheet" id="bdSheet" aria-hidden="true">
@@ -21275,6 +21320,10 @@ function switchTab(nextIdx, opts = {}) {
   snapToTab(currentTabIdx);
   if (opts.scrollTop !== false) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  // v1.0.1 — 탭 전환 시 플로팅 편집 버튼 observer 갱신 (라이브러리 탭 가/나기 모두 대응)
+  if (typeof window._libEditFabRefresh === 'function') {
+    window._libEditFabRefresh();
   }
 }
 
@@ -26353,6 +26402,11 @@ function renderLibraryCards() {
       }
     });
   }
+  
+  // v1.0.1 — 플로팅 편집 버튼 observer 재연결 (편집 버튼이 새 DOM으로 그려졌으므로)
+  if (typeof window._libEditFabRefresh === 'function') {
+    window._libEditFabRefresh();
+  }
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
@@ -27488,6 +27542,90 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
   container.addEventListener('touchcancel', () => {
     resetDragState();
   });
+})();
+
+/* v1.0.1 — 라이브러리 편집 플로팅 버튼 (편집 버튼이 viewport 밖이면 노출)
+   동작:
+     - IntersectionObserver로 편집 버튼이 viewport에 보이는지 감지
+     - 보이면 FAB 숨김, 안 보이면 FAB 노출 (페이드 인/아웃)
+     - 편집 모드 진입 시 편집 버튼 자체가 사라지므로 자동으로 FAB도 사라짐
+     - renderLibraryCards 후 DOM이 새로 생성되니 매 렌더 후 observer 재연결 */
+(function wireLibraryEditFab() {
+  const fab = document.getElementById('libEditFab');
+  if (!fab) return;
+  
+  // v1.0.1 — 플로팅 버튼 클릭 시 편집 모드 진입 (libCards 컨테이너 밖이라 별도 핸들러 필요)
+  fab.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const activeCat = (typeof _libGetActiveCat === 'function') ? _libGetActiveCat() : 'reading';
+    if (typeof _libEditStart === 'function') _libEditStart(activeCat);
+  });
+  
+  let observer = null;
+  let observedBtn = null;
+  
+  const showFab = () => {
+    fab.classList.add('visible');
+    fab.setAttribute('aria-hidden', 'false');
+  };
+  const hideFab = () => {
+    fab.classList.remove('visible');
+    fab.setAttribute('aria-hidden', 'true');
+  };
+  
+  // 편집 버튼 감시 시작/재시작 (renderLibraryCards 후마다 호출)
+  const attachObserver = () => {
+    // 이전 observer 정리
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+      observedBtn = null;
+    }
+    hideFab();  // 기본은 숨김 (편집 버튼 안 보이는 상태 등 모든 케이스 대응)
+    
+    // 라이브러리 탭 활성 상태가 아니면 FAB 절대 노출 X
+    // (다른 탭에선 편집 버튼이 paneTrack transform으로 viewport 밖이라 FAB가 잘못 노출될 위험)
+    if (typeof currentTabIdx !== 'undefined' && currentTabIdx !== 0) {
+      return;
+    }
+    
+    // 편집 모드 중엔 편집 버튼 자체가 없으므로 FAB도 X
+    if (typeof _libEdit !== 'undefined' && _libEdit.active) return;
+    
+    // 현재 활성 탭 안의 편집 버튼 찾기
+    const editBtn = document.querySelector('.lib-cat-edit-btn[data-action="lib-edit-start"]');
+    if (!editBtn) return;  // 책 1권 이상 조건 만족 안 함 (편집 버튼 자체 없음)
+    
+    observedBtn = editBtn;
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          hideFab();
+        } else {
+          // 편집 버튼이 보이지 않을 때만 FAB 노출
+          // 단, 시트/모달 같은 게 열려있으면 숨김 (사용자가 다른 작업 중)
+          const anySheetOpen = document.querySelector('.bd-sheet.open, .bas-sheet.open, .dd-sheet.open, .settings-sheet.open, .na-sheet.open, .tm-sheet.open');
+          if (anySheetOpen) {
+            hideFab();
+          } else {
+            showFab();
+          }
+        }
+      });
+    }, { threshold: 0 });
+    
+    observer.observe(editBtn);
+  };
+  
+  // 전역 노출 — renderLibraryCards 끝에서 호출
+  window._libEditFabRefresh = attachObserver;
+  
+  // 초기 시도 (페이지 로드 후 라이브러리 첫 렌더 후)
+  if (document.readyState === 'complete') {
+    setTimeout(attachObserver, 100);
+  } else {
+    window.addEventListener('load', () => setTimeout(attachObserver, 100));
+  }
 })();
 
 /* 로그 리스트 전체 렌더 (계절별 그룹) */
