@@ -27605,6 +27605,12 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       return;
     }
     
+    // v1.0.1 — 북카드 뷰일 때만 FAB 노출 (로그/명예의 전당 뷰에선 편집 버튼 자체가 안 보임)
+    //   libCards가 display:none이면 안의 편집 버튼도 안 보이는 상태 → FAB도 X
+    //   IntersectionObserver는 display:none 요소를 항상 isIntersecting:false로 보고하므로 사전 차단 필요
+    const libCards = document.getElementById('libCards');
+    if (!libCards || libCards.offsetParent === null) return;
+    
     // 편집 모드 중엔 편집 버튼 자체가 없으므로 FAB도 X
     if (typeof _libEdit !== 'undefined' && _libEdit.active) return;
     
@@ -27737,6 +27743,8 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
     document.getElementById('libLog').style.display   = view === 'log'   ? 'block' : 'none';
     document.getElementById('libHall').style.display  = view === 'hall'  ? 'block' : 'none';
     if (view === 'hall') { try { renderHallOfFame(); } catch(e) { console.error('[hall]', e); } }
+    // v1.0.1 — 뷰 토글 시 플로팅 편집 버튼 갱신 (북카드 뷰일 때만 노출)
+    if (typeof window._libEditFabRefresh === 'function') window._libEditFabRefresh();
   });
 });
 
