@@ -34338,6 +34338,9 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
       currentY = 0;
       isDragging = true;
       sheet.style.transition = 'none';
+      // v1.0.1 — 강제 reflow로 transition:none 즉시 적용 (드래그 첫 프레임 버벅임 픽스)
+      // 이게 없으면 다음 paint cycle까지 0.32s transition이 살아있어 손가락 따라가지 못함
+      void sheet.offsetHeight;
     }, { passive: true });
 
     zone.addEventListener('touchmove', (e) => {
