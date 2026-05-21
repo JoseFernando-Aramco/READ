@@ -34286,6 +34286,7 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
+  let touchMoveCount = 0;  // v1.0.1 — iOS Safari 첫 touchmove jump 회피용
 
   const finish = () => {
     if (!isDragging) return;
@@ -34341,6 +34342,7 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
       startY = e.touches[0].clientY;
       currentY = 0;
       isDragging = true;
+      touchMoveCount = 0;  // v1.0.1 — iOS Safari 첫 touchmove jump 회피용 카운터 리셋
       sheet.style.transition = 'none';
       // v1.0.1 — 강제 reflow로 transition:none 즉시 적용 (드래그 첫 프레임 버벅임 픽스)
       // 이게 없으면 다음 paint cycle까지 0.32s transition이 살아있어 손가락 따라가지 못함
@@ -34349,6 +34351,17 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
 
     zone.addEventListener('touchmove', (e) => {
       if (!isDragging) return;
+      touchMoveCount++;
+      
+      // v1.0.1 — iOS Safari 첫 touchmove jump 회피
+      //   WebKit은 첫 touchmove에 불규칙한 큰 점프(수 ~ 수십 px)가 자주 발생 (Apple Developer Forum 확인)
+      //   → 첫 프레임은 startY만 그 시점으로 재보정하고 transform은 건드리지 않음
+      //   → 둘째 프레임부터 startY 기준 정상 추적
+      if (touchMoveCount === 1) {
+        startY = e.touches[0].clientY;
+        return;
+      }
+      
       const delta = e.touches[0].clientY - startY;
       if (delta < 0) {
         // 위로 드래그 → 본문 영역이면 드래그 취소 (내부 스크롤로 넘김)
