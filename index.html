@@ -18882,124 +18882,74 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.10.0 · 큰 업데이트 + 1건 추가</div>
-    <div class="wn-ttl">이사고민, 끝났어요!</div>
-    <div class="wn-sub">다른 앱·엑셀에서 옮겨오는 게 가장 큰 진입 장벽이었죠. 이번 업데이트로 해결했습니다.</div>
+    <div class="wn-badge">v1.0.1 · 업데이트 소식</div>
+    <div class="wn-ttl">자동 태그 + 다중 선택</div>
+    <div class="wn-sub">책 정리가 좀 더 편해졌습니다.</div>
 
-    <!-- v1.10.1 — 큰 HERO 섹션 (웹소설 추가) -->
-    <div style="background:linear-gradient(135deg,rgba(90,122,60,0.1),rgba(90,122,60,0.04));border:1.5px solid rgba(90,122,60,0.42);border-radius:10px;padding:16px 14px;margin-bottom:18px;">
-      <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#5a7a3c;color:#fff;border-radius:99px;font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:0.04em;">
-        <span style="font-size:11px;">📱</span>
-        v1.10.1 NEW · 방금 추가됨
+    <!-- 1. 자동 태그 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(212,165,116,0.10),rgba(212,165,116,0.04));border:1px solid rgba(212,165,116,0.35);">
+      <div class="wn-hero-tag" style="background:#D4A574;color:#fff;">
+        <span style="font-size:11px;">🏷</span>
+        NEW · 자동 태그
       </div>
-      <div style="font-size:18px;font-weight:800;background:linear-gradient(135deg,#5a7a3c,#466030);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;letter-spacing:-0.01em;">웹소설도 keepbook으로!</div>
-      <div style="font-size:12px;color:var(--c-text);line-height:1.55;margin-bottom:14px;">
-        책 추가 시트에 <b style="color:#5a7a3c;font-weight:700;">[+ 웹소설]</b> 정사각 버튼이 새로 생겼어요. 페이지가 아닌 <b style="color:#5a7a3c;font-weight:700;">회차 단위</b>로 진도를 기록하고, 연재중인 작품은 새 회차가 나올 때마다 총 회차를 늘려가며 추적할 수 있어요.
-      </div>
-      <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(90,122,60,0.42);border-radius:6px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-        <div style="width:28px;height:40px;background:linear-gradient(135deg,#2a3f4e,#0d1f2a);border-radius:2px;flex-shrink:0;"></div>
-        <div style="font-size:11px;color:var(--c-text);">
-          <div><b style="font-weight:700;">화산귀환 · 비가</b></div>
-          <div style="font-size:10px;color:var(--c-muted);margin-top:2px;">287 / 423화 · 📡 연재중 · 68%</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">책 추가하면 태그 자동 부여</div>
+      <div class="wn-hero-sub" style="margin-bottom:14px;">책의 분야와 장르에 맞는 태그가 자동으로 붙습니다. 신규 태그 4종(추리·종교·외국어학습·수험서)도 함께 추가됐어요.</div>
+
+      <!-- 예시 박스 -->
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:10px 12px;border:1px solid rgba(212,165,116,0.25);">
+        <div style="font-size:11px;color:var(--c-text);line-height:1.8;">
+          <div><b style="font-weight:700;">용의자 X의 헌신</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">추리·스릴러·일본문학</span></div>
+          <div><b style="font-weight:700;">베르세르크</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">그래픽노블</span></div>
+          <div><b style="font-weight:700;">채식주의자</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">한국소설</span></div>
         </div>
       </div>
-      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:6px;">
-        🏷️ 웹소설 태그 14종 (무협 · 회귀 · 환생 · 빙의 등) 함께 추가
-      </div>
-      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:4px;">
-        📲 PWA 설치 안내 모달 추가 — 홈 화면에 앱처럼 설치하는 방법을 iOS/Android별로 안내
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 한국 일반소설은 장르 정보가 누락될 수 있어요 — 직접 추가하시면 됩니다
       </div>
     </div>
 
-    <!-- 구분선 -->
-    <div style="text-align:center;margin:14px 0;position:relative;">
-      <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--c-border);"></div>
-      <span style="position:relative;display:inline-block;padding:0 10px;background:var(--c-surface);font-size:10px;color:var(--c-muted);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">v1.10.0 — 어제 업데이트 내용</span>
-    </div>
-
-    <!-- HERO — 책 가져오기 (v1.10.0 원본) -->
-    <div class="wn-hero">
-      <div class="wn-hero-tag">
-        <span style="font-size:11px">📦</span>
-        NEW · 책 데이터 가져오기
+    <!-- 2. 다중 선택 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(90,122,60,0.10),rgba(90,122,60,0.04));border:1px solid rgba(90,122,60,0.42);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#5a7a3c;color:#fff;">
+        <span style="font-size:11px;">👆</span>
+        NEW · 다중 선택
       </div>
-      <div class="wn-hero-ttl" style="font-style:italic;background:linear-gradient(135deg,#D4A574,#B8956A 50%,#8B6D3D);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:22px;letter-spacing:0.005em;line-height:1.25;padding:2px 12px 2px 2px;overflow:visible;display:inline-block;">한 번에 이사</div>
-      <div class="wn-hero-sub">엑셀이나 CSV에 <strong>제목·저자만</strong> 적혀있어도 충분해요. 표지·가격·페이지·출판사를 자동으로 채워드려요.<br>100권이든 1,000권이든 한 번에.</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">한 번에 여러 권 선택</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">편집 모드에서 책을 한 권씩 누르지 않아도 돼요.</div>
 
-      <!-- 미리보기 -->
-      <div style="margin-top:16px;background:rgba(255,255,255,0.7);border-radius:6px;padding:14px 12px;border:1px solid rgba(212,165,116,0.25);">
-        <div style="font-size:10.5px;font-weight:700;color:#8B6D3D;letter-spacing:0.04em;margin-bottom:10px;">엑셀 한 줄에서 →</div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.7);border-radius:4px;border:1px solid rgba(212,165,116,0.2);margin-bottom:8px;">
-          <div style="font-family:monospace;font-size:11px;color:#6B5430;">데미안</div>
-          <div style="color:#aaa;font-size:10px;">·</div>
-          <div style="font-family:monospace;font-size:11px;color:#6B5430;">헤르만 헤세</div>
-        </div>
-        <div style="font-size:10.5px;font-weight:700;color:#8B6D3D;letter-spacing:0.04em;margin-bottom:8px;">완성된 책 정보로</div>
-        <div style="display:flex;gap:10px;align-items:center;padding:8px;background:linear-gradient(135deg,#fff,#fef9e7);border-radius:4px;border:1px solid rgba(212,165,116,0.3);">
-          <div style="width:32px;height:44px;background:linear-gradient(135deg,#8b4513,#5c2e0e);border-radius:2px;flex-shrink:0;"></div>
-          <div style="font-size:11px;color:#1c1c1c;">
-            <div style="font-weight:700;margin-bottom:2px;">데미안 · 헤르만 헤세</div>
-            <div style="color:#888;font-size:10.5px;">민음사 · 14,000원 · 268p</div>
-          </div>
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(90,122,60,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.7;">
+          <div style="margin-bottom:6px;"><b style="font-weight:700;color:#5a7a3c;">PC</b> · 첫 책 클릭 후 <b style="font-weight:700;">Shift + 다른 책</b> 클릭 → 사이 전부 선택</div>
+          <div><b style="font-weight:700;color:#5a7a3c;">모바일</b> · 손가락으로 <b style="font-weight:700;">쭉 드래그</b> → 경로 위 책 모두 선택</div>
         </div>
       </div>
-      <div class="wn-sync-status" style="margin-top:14px;">
-        <span class="dot"></span> 검색해서 한 권씩 추가할 때도, + 버튼으로 일괄 추가할 때도 동일하게 동작해요
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 모바일은 iOS 사진 앱 방식 그대로
       </div>
     </div>
 
-    <!-- 메인 항목 (v1.10.0 원본) -->
-    <ul class="wn-list">
-      <li class="wn-item">
-        <div class="wn-icon">🏆</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">H.O.F (Hall of Fame) 리본</div>
-          <div class="wn-item-sub">인생책 표지 우상단에 골드 리본 · 책 상세 큰 별 버튼으로 등록·해제 · 100권 제한 풀림</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">📊</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">Bookflex 전면 재설계</div>
-          <div class="wn-item-sub">"내 서재의 가치" — 환산 카드 · 마일스톤 7단계 (10만 → 300만, 황금서재달성) · 매체별 리스트</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">⭐</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">명예의 전당 즉시 반영</div>
-          <div class="wn-item-sub">명전 탭에서 책 인생책 해제 → 모달 내리면 그 자리에서 바로 사라져요 (다른 탭 갔다 올 필요 X)</div>
-        </div>
-      </li>
-    </ul>
-
-    <!-- 자잘한 손질 (v1.10.0 원본) -->
-    <div style="background:var(--c-surface);border-radius:6px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
-      <div style="font-size:10.5px;font-weight:800;color:var(--c-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
-        <span>🔧</span> 그 외 손질
+    <!-- 3. 동기화 버튼 안내 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,109,167,0.10),rgba(74,109,167,0.04));border:1px solid rgba(74,109,167,0.38);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#4a6da7;color:#fff;">
+        <span style="font-size:11px;">☁️</span>
+        다시 안내 · 동기화
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">책 상세 hero 컴팩트</b> · 긴 제목도 깔끔하게 들어와요</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">완독 첫 화면 12권</b> · 10권 → 12권으로 확장</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">매체 카드 리스트화</b> · 0원 매체는 흐리게 표시</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">데이터 출처 표기</b> · 책 정보 옆 네이버·알라딘·카카오·Google Books 명시</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">우측 상단 동기화 버튼</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">버튼 하나로 백업·복원 모두 처리됩니다. 카카오 로그인 후 사용해주세요.</div>
+
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(74,109,167,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:4px;">📤 변경 있으면 자동 업로드</div>
+          <div style="margin-bottom:4px;">📥 클라우드가 더 새거면 자동으로 받아옴</div>
+          <div>⚠️ 양쪽 다 변경됐을 땐 안내 화면에서 선택</div>
+        </div>
+      </div>
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 자동이 아닙니다 — 동기화 버튼을 직접 눌러주셔야 작동해요
       </div>
     </div>
 
-    <!-- 개발자 노트 (v1.10.0 원본 + v1.10.1 한 줄 추가) -->
-    <div class="wn-devnote">
-      <div class="wn-devnote-head">
-        <span>🛠</span> 개발자 노트
-      </div>
-      <div class="wn-devnote-q">"이사가 너무 귀찮아서 못 옮기겠어요"</div>
-      <div class="wn-devnote-a">
-        새 앱으로 갈아탈 때 책 하나하나 다시 검색하는 시간 — 그게 가장 큰 진입 장벽이었어요. 어제 새벽부터 매달려서 그걸 거의 0으로 만들었습니다.<br><br>
-        다른 앱·엑셀 쓰시던 분, 이번엔 정말 한 번 <strong>이사해보시길</strong> 부탁드려요. 한 번에 됩니다.<br><br>
-        <em style="color:#5a7a3c;font-style:normal;font-weight:600;">— 그리고 오늘, 카페에서 받은 제안으로 웹소설 매체도 정식으로 추가했어요. 회차로 자유롭게 기록하세요.</em>
-      </div>
-    </div>
-
-    <div class="wn-actions">
+    <div class="wn-actions" style="margin-top:18px;">
       <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
     </div>
   </div>
@@ -19013,7 +18963,7 @@ body.cn-locked {
 
     <div class="ab-head">
       <div class="ab-name keepbook-logo">keepbook</div>
-      <div class="ab-ver">version 1.0.0</div>
+      <div class="ab-ver" id="abVer">version 1.0.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -34545,6 +34495,11 @@ scheduleNextNotif();
 
 /* ═══════════ 앱 정보 모달 ═══════════ */
 function openAboutModal() {
+  // v1.0.1 — APP_VERSION 동적 주입 (하드코딩으로 인한 버전 미갱신 방지)
+  const verEl = document.getElementById('abVer');
+  if (verEl && typeof APP_VERSION !== 'undefined') {
+    verEl.textContent = `version ${APP_VERSION}`;
+  }
   document.getElementById('abBackdrop').classList.add('open');
   document.getElementById('abModal').classList.add('open');
   document.getElementById('abModal').setAttribute('aria-hidden', 'false');
@@ -38831,7 +38786,8 @@ document.addEventListener('keydown', (e) => {
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
 const APP_VERSION = '1.0.1';
-const APP_VERSION_NICKNAME = 'keepbook 1.0'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
+// v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
+const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
 
 /* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨) */
@@ -38930,12 +38886,8 @@ function _versionLower(a, b) {
 
 /* 자동 열기: 온보딩 완료된 기존 유저 중, 이번 버전 처음 보는 사람만 */
 (function autoOpenWhatsNew() {
-  // v1.0.0/1.0.1 — keepbook 정식 출시 + 패치, 조용히 배포 (업데이트 모달 자동 노출 X)
-  if (APP_VERSION === '1.0.1') {
-    try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
-    return;
-  }
-  // v1.10.0 — 책 이사 업데이트 모달 활성화
+  // v1.0.1 — 새 업데이트 모달 (자동 태그 + 다중 선택 + 동기화 안내) 자동 노출
+  // v1.10.0 — 책 이사 업데이트 모달 활성화 흐름 그대로 사용
   try {
     const onboarded = localStorage.getItem(ONBOARDING_KEY);
     // 신규 유저(온보딩 미완료)는 패스 — 온보딩이 먼저
