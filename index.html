@@ -34319,12 +34319,28 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
 
     if (currentY > threshold) {
       // 닫기: 현재 위치에서 아래로 이어서 슬라이드
+      // v1.0.1 — 배경 깜박임 픽스
+      //   1. 시트 슬라이드 다운 시작과 동시에 백드롭도 페이드 아웃
+      //   2. 슬라이드 끝나면 closeFn() 호출 (.open 제거 — 시각 변화 거의 없음)
+      //   3. 다음 프레임에 inline style 정리
       sheet.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
       sheet.style.transform = 'translate(-50%, 100vh)';
+      // 백드롭도 같이 페이드 (자연스러운 동시 닫힘)
+      const backdrop = sheet.previousElementSibling;  // 시트 바로 위 형제 = 백드롭 (페어 패턴)
+      if (backdrop && /backdrop/i.test(backdrop.className)) {
+        backdrop.style.transition = 'opacity .22s ease';
+        backdrop.style.opacity = '0';
+      }
       setTimeout(() => {
-        sheet.style.transition = '';
-        sheet.style.transform = '';
-        closeFn();
+        closeFn();  // .open 클래스 제거 (시트/백드롭 둘 다 이미 시각적으로 사라진 상태)
+        requestAnimationFrame(() => {
+          sheet.style.transition = '';
+          sheet.style.transform = '';
+          if (backdrop) {
+            backdrop.style.transition = '';
+            backdrop.style.opacity = '';
+          }
+        });
       }, 260);
     } else {
       // 원상복귀
