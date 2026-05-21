@@ -2611,11 +2611,52 @@ body:has(.lib-edit-bar) .library-cards {
   border-radius: 3px;
   background: var(--c-border);
 }
-/* 테마 연동: 모든 단계가 --primary 기반으로 파생 */
-.hm-cell.lv1 { background: color-mix(in srgb, var(--primary) 22%, var(--c-surface)); }
-.hm-cell.lv2 { background: color-mix(in srgb, var(--primary) 52%, var(--c-surface)); }
-.hm-cell.lv3 { background: var(--primary); }
-.hm-cell.lv4 { background: color-mix(in srgb, var(--primary) 70%, var(--c-text)); }
+/* v1.0.1 — 계절별 색상 (가을 브라운 / 겨울 블루 / 봄 핑크 / 여름 그린)
+   data-season="spring|summer|autumn|winter" + lv1/lv2/lv3/lv4 조합 */
+.hm-cell[data-season="autumn"].lv1 { background: #F0E5DA; }
+.hm-cell[data-season="autumn"].lv2 { background: #D8B895; }
+.hm-cell[data-season="autumn"].lv3 { background: #C2956E; }
+.hm-cell[data-season="autumn"].lv4 { background: #9E7548; }
+.hm-cell[data-season="winter"].lv1 { background: #E4ECF2; }
+.hm-cell[data-season="winter"].lv2 { background: #A8BFD0; }
+.hm-cell[data-season="winter"].lv3 { background: #5A7A99; }
+.hm-cell[data-season="winter"].lv4 { background: #3D5A78; }
+.hm-cell[data-season="spring"].lv1 { background: #F5E0E6; }
+.hm-cell[data-season="spring"].lv2 { background: #E0A8BA; }
+.hm-cell[data-season="spring"].lv3 { background: #D88FA5; }
+.hm-cell[data-season="spring"].lv4 { background: #A6677F; }
+.hm-cell[data-season="summer"].lv1 { background: #DCEDE5; }
+.hm-cell[data-season="summer"].lv2 { background: #A0CFBE; }
+.hm-cell[data-season="summer"].lv3 { background: #5A8C7C; }
+.hm-cell[data-season="summer"].lv4 { background: #3A6655; }
+/* v1.0.1 — 독서 메트릭 박스 (스트릭/최장/독서율) */
+.heatmap-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+}
+.heatmap-metric {
+  text-align: center;
+}
+.heatmap-metric + .heatmap-metric {
+  border-left: 0.5px solid var(--c-border);
+}
+.heatmap-metric-lbl {
+  font-size: 11px;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.heatmap-metric-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
 .heatmap-foot {
   display: flex; justify-content: flex-start; align-items: center;
   margin-top: 14px; padding-top: 12px;
@@ -17839,6 +17880,21 @@ body.cn-locked {
         <div class="heatmap-ttl">독서 캘린더</div>
         <div class="heatmap-sub">최근 26주</div>
       </div>
+      <!-- v1.0.1 — 독서 메트릭 (스트릭/최장/독서율) -->
+      <div class="heatmap-metrics" id="heatmapMetrics">
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">현재 연속</div>
+          <div class="heatmap-metric-val" id="hmMetricStreak">—</div>
+        </div>
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">최장 기록</div>
+          <div class="heatmap-metric-val" id="hmMetricBest">—</div>
+        </div>
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">독서율</div>
+          <div class="heatmap-metric-val" id="hmMetricRate">—</div>
+        </div>
+      </div>
       <div class="heatmap-months" id="heatmapMonths" aria-hidden="true">
         <!-- JS로 월 라벨 생성 -->
       </div>
@@ -21677,8 +21733,19 @@ function renderHeatmap() {
   };
 
   // 셀 렌더 (row-first: 행=요일, 열=주차)
+  // v1.0.1 — 계절 색상 적용: 날짜의 월로 계절 판단
+  //   봄: 3-5월, 여름: 6-8월, 가을: 9-11월, 겨울: 12-2월
+  const seasonOf = (date) => {
+    const m = date.getMonth() + 1;
+    if (m >= 3 && m <= 5) return 'spring';
+    if (m >= 6 && m <= 8) return 'summer';
+    if (m >= 9 && m <= 11) return 'autumn';
+    return 'winter';
+  };
   grid.innerHTML = '';
   let readDays = 0;
+  // 메트릭 계산용: 날짜 순서대로 lv 배열 (오늘 포함, 미래 제외)
+  const dayLvs = [];  // [{ key, lv, isPast }]
   for (let row = 0; row < 7; row++) {          // 요일 (0=일)
     for (let col = 0; col < WEEKS; col++) {    // 주차
       const d = new Date(firstSunday);
@@ -21688,12 +21755,50 @@ function renderHeatmap() {
       const lv = lvOf(a);
       const cell = document.createElement('div');
       cell.className = 'hm-cell';
+      cell.setAttribute('data-season', seasonOf(d));  // v1.0.1 — 계절 속성
       if (lv) { cell.classList.add('lv' + lv); readDays++; }
       // 아직 오지 않은 날짜는 보이지 않게 (그리드 구조는 유지)
       if (k > todayKey) cell.style.visibility = 'hidden';
       grid.appendChild(cell);
     }
   }
+  
+  // v1.0.1 — 메트릭 계산: 시간순 배열로 다시 만들기 (firstSunday부터 today까지)
+  const allDays = [];
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(firstSunday);
+    d.setDate(firstSunday.getDate() + i);
+    const k = keyOf(d);
+    if (k > todayKey) break;  // 미래 제외
+    const a = activity.get(k) || { minutes: 0, pages: 0, inRange: false };
+    allDays.push({ key: k, lv: lvOf(a) });
+  }
+  
+  // 1) 현재 연속 (오늘 기준 거꾸로 — 오늘 안 읽었으면 0일)
+  let currentStreak = 0;
+  for (let i = allDays.length - 1; i >= 0; i--) {
+    if (allDays[i].lv > 0) currentStreak++;
+    else break;
+  }
+  
+  // 2) 최장 연속 (26주 안)
+  let bestStreak = 0, run = 0;
+  for (const d of allDays) {
+    if (d.lv > 0) { run++; bestStreak = Math.max(bestStreak, run); }
+    else run = 0;
+  }
+  
+  // 3) 독서율 (읽은 날 / 전체 경과일)
+  const readCount = allDays.filter(d => d.lv > 0).length;
+  const rate = allDays.length > 0 ? Math.round(readCount / allDays.length * 100) : 0;
+  
+  // 메트릭 DOM 반영
+  const streakEl = document.getElementById('hmMetricStreak');
+  const bestEl = document.getElementById('hmMetricBest');
+  const rateEl = document.getElementById('hmMetricRate');
+  if (streakEl) streakEl.textContent = currentStreak > 0 ? `🔥 ${currentStreak}일` : '0일';
+  if (bestEl) bestEl.textContent = `${bestStreak}일`;
+  if (rateEl) rateEl.textContent = `${rate}%`;
 
   // 총 독서일 반영
   const totalEl = document.querySelector('.heatmap-total');
