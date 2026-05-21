@@ -1233,10 +1233,20 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* v1.0.1 — 플로팅 편집 버튼 (스크롤 시 편집 버튼이 viewport 밖으로 나가면 노출) */
-.lib-edit-fab {
+/* v1.0.1 — 플로팅 편집 버튼 wrapper (앱 영역 480px 안 우측 정렬) */
+.lib-edit-fab-wrap {
   position: fixed;
-  top: 132px;
-  right: 16px;
+  top: calc(132px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 448px;  /* 480px - 좌우 16px씩 여백 */
+  display: flex;
+  justify-content: flex-end;
+  z-index: 100;
+  pointer-events: none;
+}
+.lib-edit-fab {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -1248,24 +1258,21 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(21, 17, 13, 0.18);
-  z-index: 100;
   opacity: 0;
-  transform: translateY(-8px);
   pointer-events: none;
-  transition: opacity .22s ease, transform .22s ease;
+  transition: opacity .22s ease;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
 }
 .lib-edit-fab.visible {
   opacity: 0.92;
-  transform: translateY(0);
   pointer-events: auto;
 }
 .lib-edit-fab.visible:hover {
   opacity: 1;
 }
 .lib-edit-fab:active {
-  transform: translateY(0) scale(0.94);
+  opacity: 1;
 }
 .lib-edit-fab .ic {
   width: 16px;
@@ -18468,12 +18475,14 @@ body.cn-locked {
 </div>
 
 <!-- v1.0.1 — 라이브러리 편집 플로팅 버튼 (편집 버튼이 viewport 밖이면 노출) -->
-<button type="button" class="lib-edit-fab" id="libEditFab" data-action="lib-edit-start" aria-label="편집" aria-hidden="true">
-  <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 20h9"/>
-    <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
-  </svg>
-</button>
+<div class="lib-edit-fab-wrap" id="libEditFabWrap" aria-hidden="true">
+  <button type="button" class="lib-edit-fab" id="libEditFab" data-action="lib-edit-start" aria-label="편집">
+    <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"/>
+      <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
+  </button>
+</div>
 
 <!-- ═══════════ 책 상세 페이지 ═══════════ -->
 <div class="bd-backdrop" id="bdBackdrop"></div>
@@ -27570,10 +27579,14 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
   const showFab = () => {
     fab.classList.add('visible');
     fab.setAttribute('aria-hidden', 'false');
+    const wrap = document.getElementById('libEditFabWrap');
+    if (wrap) wrap.setAttribute('aria-hidden', 'false');
   };
   const hideFab = () => {
     fab.classList.remove('visible');
     fab.setAttribute('aria-hidden', 'true');
+    const wrap = document.getElementById('libEditFabWrap');
+    if (wrap) wrap.setAttribute('aria-hidden', 'true');
   };
   
   // 편집 버튼 감시 시작/재시작 (renderLibraryCards 후마다 호출)
