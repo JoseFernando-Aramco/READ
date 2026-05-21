@@ -26386,6 +26386,22 @@ function renderLibraryCards() {
 
   // 액션바를 body에 직접 마운트 (편집 모드일 때만)
   _libMountEditBar(activeCat);
+  
+  // v1.0.1 — 편집 모드라면 카드의 selected 클래스 복원
+  // (더보기/탭 전환 등으로 재렌더된 카드는 클래스가 새로 그려지므로 selected Set 기준으로 동기화)
+  if (_libEdit.active) {
+    document.querySelectorAll('.lib-cat-pane.active .book-card[data-book-id]').forEach(card => {
+      const grpId = card.dataset.groupId;
+      if (grpId) {
+        const books = (BOOKS || []).filter(b => b.groupId === grpId);
+        const isSel = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+        card.classList.toggle('lib-edit-selected', isSel);
+      } else {
+        const id = parseInt(card.dataset.bookId, 10);
+        card.classList.toggle('lib-edit-selected', _libEdit.selected.has(id));
+      }
+    });
+  }
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
@@ -27477,11 +27493,32 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       // visitedSeq에서 제거 (그 카드까지만 남김)
       visitedSeq = visitedSeq.slice(0, existingIdx + 1);
     } else {
-      // 새 카드 — originalState 기록 + dragMode 적용
-      originalState.set(key, isInfoSelected(info));
-      applyToCard(info, dragMode);
-      updateCardClass(info);
-      visitedSeq.push(key);
+      // v1.0.1 — 새 카드 + 직전 카드와 떨어져 있으면 사이의 카드들도 DOM 순서로 채우기
+      // (줄바꿈/빠른 손가락 점프 시 iOS 사진 앱처럼 사이 카드 자동 포함)
+      const cards = _libGetVisibleCardIds();
+      const newIdx = cards.findIndex(c => (c.type + ':' + c.id) === key);
+      const prevIdx = lastKey ? cards.findIndex(c => (c.type + ':' + c.id) === lastKey) : -1;
+      
+      if (newIdx >= 0 && prevIdx >= 0 && Math.abs(newIdx - prevIdx) > 1) {
+        // 사이 카드들 채우기 (작은 → 큰 방향으로 순회)
+        const dir = newIdx > prevIdx ? 1 : -1;
+        for (let i = prevIdx + dir; i !== newIdx + dir; i += dir) {
+          const c = cards[i];
+          const ckey = c.type + ':' + c.id;
+          if (visitedSeq.indexOf(ckey) !== -1) continue;  // 이미 만난 카드는 건너뛰기 (안전망)
+          const cinfo = { type: c.type, id: c.id };
+          originalState.set(ckey, isInfoSelected(cinfo));
+          applyToCard(cinfo, dragMode);
+          updateCardClass(cinfo);
+          visitedSeq.push(ckey);
+        }
+      } else {
+        // 인접 또는 첫 카드 — 그냥 추가
+        originalState.set(key, isInfoSelected(info));
+        applyToCard(info, dragMode);
+        updateCardClass(info);
+        visitedSeq.push(key);
+      }
     }
     
     scheduleActionBarUpdate();
