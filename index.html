@@ -28680,13 +28680,12 @@ function _closeBookDetailActual() {
   const sheet = document.getElementById('bdSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  // v1.0.0 — 시트 슬라이드 다운(0.32s)이 끝난 후 body fixed 해제 + scroll 복원.
-  // 트랜지션 시작과 동시에 unlock하면 iOS PWA에서 scroll 복원이 무시되는 케이스 있음.
-  // 350ms는 CSS transition .32s + 약간의 버퍼.
+  // v1.0.1 — 닫기 후 페이지 스크롤 딜레이 픽스:
+  //   unlockBodyScroll 즉시 호출 (이전엔 350ms 후에 호출 — 사용자가 곧바로 스크롤 시작하면 딜레이 인지)
+  //   lockBodyScroll이 overflow:hidden만 쓰는 단순 버전이라 즉시 해제해도 안전 (페이지 점프 없음)
+  unlockBodyScroll();
+  // v1.0.1 — DOM 리셋은 transition 종료 후로 (슬라이드 다운 중 깜박임 방지)
   setTimeout(() => { 
-    unlockBodyScroll();
-    // v1.0.1 — 슬라이드 다운 부드러움 픽스: DOM 리셋도 transition 종료 후로 이동
-    //   (이전엔 close 호출 시점에 DOM 변경 → slide 시작 직전 reflow → 끊김)
     const ttlEl = document.getElementById('bdHeadTtl');
     if (ttlEl) ttlEl.textContent = '책 상세';
     // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
@@ -34298,6 +34297,9 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
       //   1. 시트 슬라이드 다운 시작과 동시에 백드롭도 페이드 아웃
       //   2. 슬라이드 끝나면 closeFn() 호출 (.open 제거 — 시각 변화 거의 없음)
       //   3. 다음 프레임에 inline style 정리
+      // v1.0.1 — 닫기 후 페이지 스크롤 딜레이 픽스 (옵션 B):
+      //   슬라이드 시작 시점에 unlockBodyScroll 즉시 호출 → 시트 사라지는 동안 페이지 스크롤 가능
+      //   시트는 position:fixed라 페이지 스크롤과 무관 → 부작용 없음
       sheet.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
       sheet.style.transform = 'translate(-50%, 100vh)';
       // 백드롭도 같이 페이드 (자연스러운 동시 닫힘)
@@ -34306,6 +34308,8 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
         backdrop.style.transition = 'opacity .22s ease';
         backdrop.style.opacity = '0';
       }
+      // 사용자 손가락 뗀 직후 페이지 반응 즉시 가능하게
+      if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
       setTimeout(() => {
         closeFn();  // .open 클래스 제거 (시트/백드롭 둘 다 이미 시각적으로 사라진 상태)
         requestAnimationFrame(() => {
