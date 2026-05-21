@@ -31032,14 +31032,12 @@ function _renderMonthGrid(books) {
     const lifebook = b.isLifeBook
       ? `<div class="dd-grid-lifebook">LIFE</div>`
       : '';
-    // CORS-safe URL: 프록시 경유 + crossorigin anonymous
-    // 이미지가 "CORS-clean" 상태로 브라우저 캐시에 들어가서
-    // 저장 시점에 html2canvas가 fetch 없이 바로 읽을 수 있음
-    const proxyUrl = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL)
-      ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl || '')}`
-      : b.coverUrl;
+    // v1.0.1 — 표지 표시 픽스
+    //   이전: 프록시 URL + crossorigin="anonymous" → CORS 차단으로 표지가 안 뜨는 케이스 다수
+    //   변경: 원본 URL 직접 사용 (다른 곳과 동일 패턴) → 화면 표시 정상
+    //   캡처용 base64 교체는 _prewarmCoverCache가 백그라운드에서 처리하므로 저장 기능 영향 없음
     const coverHtml = hasCover
-      ? `<img src="${esc(proxyUrl)}" alt="${esc(b.title)}" loading="eager" crossorigin="anonymous"
+      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="eager" referrerpolicy="no-referrer"
              onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
       : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
 
