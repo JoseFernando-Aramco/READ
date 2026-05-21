@@ -30468,9 +30468,15 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
           ? formatReadDateRange(b.dateStart, b.dateEnd)
           : '미독';
         const val = valFormatter ? valFormatter(b) : '';
+        // v1.0.1 — 실제 표지 있으면 img, 없으면 색상 + 첫 글자 fallback
+        // 이미지 로드 실패 시 onerror로 fallback 디자인 자동 적용 (네트워크 오류 등)
+        const fallbackBg = PALETTE_DARK[b.palette] || '#64748b';
+        const coverHtml = b.coverUrl
+          ? `<div class="dd-item-cover" style="background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;"></div>`
+          : `<div class="dd-item-cover palette-${pal}" style="background:${fallbackBg}">${esc(initial)}</div>`;
         return `
           <div class="dd-item" data-book-id="${b.id}">
-            <div class="dd-item-cover palette-${pal}" style="background:${PALETTE_DARK[b.palette] || '#64748b'}">${esc(initial)}</div>
+            ${coverHtml}
             <div class="dd-item-info">
               <div class="dd-item-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
               <div class="dd-item-meta">${esc(b.author)} · ${esc(dateStr)}</div>
