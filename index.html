@@ -1235,10 +1235,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 /* v1.0.1 — 플로팅 편집 버튼 (스크롤 시 편집 버튼이 viewport 밖으로 나가면 노출) */
 .lib-edit-fab {
   position: fixed;
-  top: 60px;
+  top: 144px;
   right: 16px;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #15110D;
   color: #fff;
@@ -1247,7 +1247,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(21, 17, 13, 0.25);
+  box-shadow: 0 4px 12px rgba(21, 17, 13, 0.18);
   z-index: 100;
   opacity: 0;
   transform: translateY(-8px);
@@ -1257,16 +1257,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-tap-highlight-color: transparent;
 }
 .lib-edit-fab.visible {
-  opacity: 1;
+  opacity: 0.92;
   transform: translateY(0);
   pointer-events: auto;
+}
+.lib-edit-fab.visible:hover {
+  opacity: 1;
 }
 .lib-edit-fab:active {
   transform: translateY(0) scale(0.94);
 }
 .lib-edit-fab .ic {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 .lib-cat-editing-banner {
   display: flex;
