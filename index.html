@@ -2457,6 +2457,57 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.45;
 }
 
+/* v1.0.1 — D 시안 (책 + 연속 동등 컴팩트) */
+.annual-hero-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.annual-hero-row .annual-hero-num {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.annual-hero-row-icon {
+  font-size: 14px;
+  margin-right: 2px;
+}
+.annual-hero-row-target {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: -0.01em;
+}
+.annual-hero-row-right {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: -0.01em;
+}
+.annual-hero-row-right strong {
+  color: #fff;
+  font-weight: 700;
+}
+/* 연속 row 색상 — 미세하게 따뜻한 톤 강조 (선택) */
+.annual-hero-row-streak {
+  margin-top: 4px;
+}
+.annual-hero-streak-fill {
+  background: #FFB87A;  /* 부드러운 오렌지 — 🔥 톤 */
+  box-shadow: 0 0 8px rgba(255, 184, 122, 0.4);
+}
+
+/* v1.0.1 — strip 단일 아이템 (이번달만 남았을 때) */
+.goal-strip-item-full {
+  flex: 1;
+  border-right: none;
+}
+
 /* ── 이번 달 목표 카드 ── */
 .monthly-card {
   background: var(--c-surface);
@@ -17817,28 +17868,42 @@ body.cn-locked {
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
   <section class="pane" id="pane-goals">
 
-    <!-- 연간 목표 히어로 (재설계) -->
+    <!-- 연간 목표 + 연속독서일 히어로 (v1.0.1 — D 시안: 상하 동등 컴팩트) -->
     <div class="annual-hero">
       <button class="annual-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
         <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
         <span>수정</span>
       </button>
-      <div class="annual-hero-lbl">올해 읽은 책</div>
-      <div class="annual-hero-main">
-        <span class="annual-hero-num">6</span><span class="annual-hero-unit">권</span>
-      </div>
-      <div class="annual-hero-sub">
-        목표 <span class="annual-hero-target">30권</span> · <span class="annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
+      <div class="annual-hero-lbl">올해 목표</div>
+      
+      <!-- 책 권수 (한 줄 컴팩트) -->
+      <div class="annual-hero-row">
+        <span class="annual-hero-row-icon">📚</span>
+        <span class="annual-hero-num">6</span>
+        <span class="annual-hero-row-target">/ <span class="annual-hero-target">30권</span></span>
+        <span class="annual-hero-row-right annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
       </div>
       <div class="annual-hero-track">
         <div class="annual-hero-fill" style="width:20%"></div>
       </div>
-      <div class="annual-hero-pace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
+      
+      <!-- 연속독서일 (한 줄 컴팩트) -->
+      <div class="annual-hero-row annual-hero-row-streak">
+        <span class="annual-hero-row-icon">🔥</span>
+        <span class="annual-hero-num annual-hero-streak-num">0</span>
+        <span class="annual-hero-row-target">/ <span class="annual-hero-streak-target">7일</span></span>
+        <span class="annual-hero-row-right">최고 <strong class="annual-hero-streak-best">0</strong>일</span>
+      </div>
+      <div class="annual-hero-track">
+        <div class="annual-hero-fill annual-hero-streak-fill" style="width:0%"></div>
+      </div>
+      
+      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
     </div>
 
-    <!-- 이번달 + 연속·최고 통합 strip -->
+    <!-- 이번달 strip (v1.0.1 — 연속·최고는 위 히어로로 이동, 이번달만 남김) -->
     <div class="goal-strip" id="goalMonthly">
-      <div class="goal-strip-item">
+      <div class="goal-strip-item goal-strip-item-full">
         <div class="goal-strip-lbl">이번달</div>
         <div class="goal-strip-val">
           <span class="num">2</span>
@@ -17848,17 +17913,6 @@ body.cn-locked {
           <div class="monthly-fill" style="width:67%"></div>
         </div>
         <div class="monthly-sub goal-strip-sub">한 권만 더 읽으면 완료예요</div>
-      </div>
-      <div class="goal-strip-divider" aria-hidden="true"></div>
-      <div class="goal-strip-item">
-        <div class="goal-strip-lbl">연속 · 최고</div>
-        <div class="goal-strip-val">
-          <span class="streak-current-num">12</span>
-          <span class="goal-strip-mid">·</span>
-          <span class="streak-best-num">34</span>
-          <span class="unit">일</span>
-        </div>
-        <div class="goal-strip-meta">현재 / 역대</div>
       </div>
     </div>
 
@@ -31588,14 +31642,20 @@ function renderPaceCard() {
    ═══════════════════════════════════════════════════════════ */
 const GOALS_KEY = 'goals';
 const DEFAULT_GOAL_ANNUAL = 30;
+// v1.0.1 — 연속독서일 목표 (사용자 설정 + 자동 단계)
+const DEFAULT_GOAL_STREAK = 7;
+const STREAK_GOAL_STAGES = [7, 14, 30, 60, 100, 200, 365];
 
 function getGoals() {
   try {
     const raw = localStorage.getItem(GOALS_KEY);
     const parsed = raw ? JSON.parse(raw) : {};
-    return { annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL };
+    return {
+      annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL,
+      streak: Number(parsed.streak) || DEFAULT_GOAL_STREAK,
+    };
   } catch (e) {
-    return { annual: DEFAULT_GOAL_ANNUAL };
+    return { annual: DEFAULT_GOAL_ANNUAL, streak: DEFAULT_GOAL_STREAK };
   }
 }
 function saveGoals(partial) {
@@ -31603,6 +31663,12 @@ function saveGoals(partial) {
   const merged = { ...cur, ...partial };
   localStorage.setItem(GOALS_KEY, JSON.stringify(merged));
   return merged;
+}
+
+// v1.0.1 — 연속 목표 다음 단계 (현재 단계보다 큰 첫 단계, 없으면 +100)
+function nextStreakGoal(current) {
+  const next = STREAK_GOAL_STAGES.find(s => s > current);
+  return next || (current + 100);
 }
 
 /* 올해/이번달 완독 수 계산 (renderAnnualLedger 패턴 재사용) */
@@ -32223,24 +32289,47 @@ function renderGoalsPane() {
   if (bestEl) bestEl.textContent = streak.best;
 
   const hero = pane.querySelector('.annual-hero');
-  const numEl = pane.querySelector('.annual-hero-num');
-  const subEl = pane.querySelector('.annual-hero-sub');
-  const fillEl = pane.querySelector('.annual-hero-fill');
+  // v1.0.1 — D 시안: row 안 num은 첫 번째(책), streak-num은 두 번째(연속)
+  const rows = pane.querySelectorAll('.annual-hero-row');
+  const bookNumEl = rows[0] ? rows[0].querySelector('.annual-hero-num') : null;
+  const streakNumEl = pane.querySelector('.annual-hero-streak-num');
+  const streakBestEl = pane.querySelector('.annual-hero-streak-best');
+  const streakTargetEl = pane.querySelector('.annual-hero-streak-target');
+  const targetEl = pane.querySelector('.annual-hero-target');
+  const remainEl = pane.querySelector('.annual-hero-remain');
+  const fills = pane.querySelectorAll('.annual-hero-fill');
+  const bookFillEl = fills[0] || null;
+  const streakFillEl = pane.querySelector('.annual-hero-streak-fill');
   const paceEl = pane.querySelector('.annual-hero-pace');
 
-  if (numEl) numEl.textContent = done;
-  if (fillEl) fillEl.style.width = `${pct}%`;
+  // ── 책 권수 row ──
+  if (bookNumEl) bookNumEl.textContent = done;
+  if (targetEl) targetEl.textContent = `${target}권`;
+  if (remainEl) remainEl.textContent = `${remaining}권`;
+  if (bookFillEl) bookFillEl.style.width = `${pct}%`;
 
   const achieved = done >= target && target > 0;
   if (hero) hero.classList.toggle('achieved', achieved);
 
-  if (subEl) {
-    if (achieved) {
-      subEl.innerHTML = `목표 <strong>${target}권</strong> 달성 완료`;
-    } else {
-      subEl.innerHTML = `목표 ${target}권 · 남은 <strong>${remaining}권</strong>`;
+  // ── 연속독서일 row ──
+  // v1.0.1 — 달성 자동 승급 + 토스트
+  let streakTarget = goals.streak || DEFAULT_GOAL_STREAK;
+  const streakAchieved = streak.current >= streakTarget && streakTarget > 0;
+  if (streakAchieved) {
+    // 다음 단계로 자동 승급
+    const nextTarget = nextStreakGoal(streakTarget);
+    saveGoals({ streak: nextTarget });
+    // 토스트 알림 (있으면)
+    if (typeof showToast === 'function') {
+      showToast(`🎉 ${streakTarget}일 연속 독서 달성! 다음 목표는 ${nextTarget}일이에요`);
     }
+    streakTarget = nextTarget;
   }
+  const streakPct = streakTarget > 0 ? Math.min(100, Math.round(streak.current / streakTarget * 100)) : 0;
+  if (streakNumEl) streakNumEl.textContent = streak.current;
+  if (streakBestEl) streakBestEl.textContent = streak.best;
+  if (streakTargetEl) streakTargetEl.textContent = `${streakTarget}일`;
+  if (streakFillEl) streakFillEl.style.width = `${streakPct}%`;
 
   if (paceEl) {
     if (achieved) {
@@ -32325,17 +32414,39 @@ function renderGoalSettingsRow() {
 /* 목표 편집 — 모바일에선 숫자 키패드가 자동으로 뜨는 prompt 사용 */
 function openGoalEditor() {
   const goals = getGoals();
-  const input = window.prompt('올해 목표 권수를 입력하세요 (1–999)', String(goals.annual));
-  if (input == null) return; // 취소
-  const n = parseInt(String(input).trim(), 10);
-  if (!Number.isFinite(n) || n < 1 || n > 999) {
-    try { showToast('1부터 999 사이의 숫자로 입력해주세요'); } catch(e){}
+  
+  // 1) 올해 책 목표
+  const annualInput = window.prompt('올해 목표 권수를 입력하세요 (1–999)', String(goals.annual));
+  if (annualInput == null) return; // 취소
+  const annualN = parseInt(String(annualInput).trim(), 10);
+  if (!Number.isFinite(annualN) || annualN < 1 || annualN > 999) {
+    try { showToast('권수는 1부터 999 사이로 입력해주세요'); } catch(e){}
     return;
   }
-  saveGoals({ annual: n });
+  
+  // 2) 연속독서일 목표 (v1.0.1)
+  const streakInput = window.prompt('연속독서일 목표를 입력하세요 (1–365일)', String(goals.streak));
+  if (streakInput == null) {
+    // 연속 목표는 취소해도 책 목표는 저장
+    saveGoals({ annual: annualN });
+    try { renderGoalsPane(); } catch(e){}
+    try { renderGoalSettingsRow(); } catch(e){}
+    try { showToast(`올해 목표 ${annualN}권으로 저장됨`); } catch(e){}
+    return;
+  }
+  const streakN = parseInt(String(streakInput).trim(), 10);
+  if (!Number.isFinite(streakN) || streakN < 1 || streakN > 365) {
+    try { showToast('연속일은 1부터 365 사이로 입력해주세요'); } catch(e){}
+    // 책 목표만이라도 저장
+    saveGoals({ annual: annualN });
+    try { renderGoalsPane(); } catch(e){}
+    return;
+  }
+  
+  saveGoals({ annual: annualN, streak: streakN });
   try { renderGoalsPane(); } catch(e){}
   try { renderGoalSettingsRow(); } catch(e){}
-  try { showToast(`올해 목표 ${n}권으로 저장됨`); } catch(e){}
+  try { showToast(`목표 저장: ${annualN}권 · 연속 ${streakN}일`); } catch(e){}
 }
 
 /* ─── ⑦ 이번달 캘린더 (V2) ─── */
