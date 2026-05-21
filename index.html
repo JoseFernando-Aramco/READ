@@ -6769,6 +6769,7 @@ body:has(.lib-edit-bar) .library-cards {
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(25,31,40,.18);
   pointer-events: none;
+  will-change: transform; /* v1.0.1 — GPU 레이어 사전 준비 (모바일 부드러움) */
 }
 .bd-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
 
@@ -28653,14 +28654,24 @@ function openBookDetail(id) {
   BD.book = book;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
-
-  document.getElementById('bdBackdrop').classList.add('open');
+  
   const sheet = document.getElementById('bdSheet');
-  sheet.classList.add('open');
-  sheet.setAttribute('aria-hidden', 'false');
-  lockBodyScroll();
+  const backdrop = document.getElementById('bdBackdrop');
+  
+  // v1.0.1 — 슬라이드 부드러움 픽스 (옵션 C):
+  //   1. 렌더 먼저 (DOM 작업 무거움 — 태그/노트/상태 패널 등)
+  //   2. requestAnimationFrame 한 프레임 양보 → 레이아웃 안정
+  //   3. 그 다음 프레임에서 슬라이드 시작 → 깔끔한 transform 애니메이션
+  // 이전 순서: open 클래스 → 렌더 동기 호출 → 첫 프레임 무거움 → 슬라이드 끊김
   renderBookDetail();
   document.getElementById('bdBody').scrollTo({ top: 0 });
+  
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    lockBodyScroll();
+  });
 
   // ModalStack 등록 — 시스템 뒤로가기로 닫을 수 있게
   ModalStack.open('bd', _closeBookDetailActual);
@@ -28675,21 +28686,25 @@ function _closeBookDetailActual() {
   // v1.0.0 — 시트 슬라이드 다운(0.32s)이 끝난 후 body fixed 해제 + scroll 복원.
   // 트랜지션 시작과 동시에 unlock하면 iOS PWA에서 scroll 복원이 무시되는 케이스 있음.
   // 350ms는 CSS transition .32s + 약간의 버퍼.
-  setTimeout(() => { unlockBodyScroll(); }, 350);
-  const ttlEl = document.getElementById('bdHeadTtl');
-  if (ttlEl) ttlEl.textContent = '책 상세';
-  // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
-  const body = document.getElementById('bdBody');
-  const notesBody = document.getElementById('bdNotesBody');
-  if (body) body.style.display = '';
-  if (notesBody) {
-    notesBody.style.display = 'none';
-    notesBody.innerHTML = '';
-  }
-  BD.book = null;
-  BD.showRereadForm = false;
-  BD.confirmDelete = false;
-  BD.tagEditMode = false;
+  setTimeout(() => { 
+    unlockBodyScroll();
+    // v1.0.1 — 슬라이드 다운 부드러움 픽스: DOM 리셋도 transition 종료 후로 이동
+    //   (이전엔 close 호출 시점에 DOM 변경 → slide 시작 직전 reflow → 끊김)
+    const ttlEl = document.getElementById('bdHeadTtl');
+    if (ttlEl) ttlEl.textContent = '책 상세';
+    // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
+    const body = document.getElementById('bdBody');
+    const notesBody = document.getElementById('bdNotesBody');
+    if (body) body.style.display = '';
+    if (notesBody) {
+      notesBody.style.display = 'none';
+      notesBody.innerHTML = '';
+    }
+    BD.book = null;
+    BD.showRereadForm = false;
+    BD.confirmDelete = false;
+    BD.tagEditMode = false;
+  }, 350);
 }
 
 // UI 이벤트 핸들러·코드 내부 auto-close가 호출하는 함수
