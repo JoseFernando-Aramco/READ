@@ -1202,6 +1202,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* ─── 편집 모드 (다중 선택 → 상태 이동) ─── */
 .lib-cat-tabs-wrap {
+  /* v1.0.1 — 카테고리 탭(위시/독서중/완독/하차) sticky 고정
+     상위 탭 바(.tab-bar)가 top: calc(68px + safe-area)에 sticky 되어있고 높이 ~50px
+     → 그 직후에 붙도록 top: calc(118px + safe-area) */
+  position: sticky;
+  top: calc(118px + env(safe-area-inset-top, 0px));
+  z-index: 40;
+  background: var(--c-canvas);
   display: flex;
   align-items: stretch;
   gap: 6px;
@@ -15099,6 +15106,110 @@ body.cn-locked {
   color: #3D2F00;
 }
 
+/* v1.0.1 — 분류 통계 카드 (장르/논픽션 권수 랭킹, 산책 앱 스타일) */
+.cat-stat-list {
+  margin-top: 4px;
+}
+.cat-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-top: 0.5px solid var(--c-border);
+  cursor: pointer;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-stat-row:first-child {
+  border-top: none;
+}
+.cat-stat-row:hover {
+  background: var(--c-surface-2);
+}
+.cat-stat-row:active {
+  background: var(--c-border);
+}
+.cat-stat-cover {
+  width: 36px;
+  height: 50px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--c-surface-2);
+  background-size: cover;
+  background-position: center;
+  border: 0.5px solid var(--c-border);
+}
+.cat-stat-cover-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--c-muted);
+}
+.cat-stat-rank {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-muted);
+  width: 24px;
+  flex-shrink: 0;
+}
+.cat-stat-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-stat-cnt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.cat-stat-arrow {
+  font-size: 14px;
+  color: var(--c-border);
+  flex-shrink: 0;
+}
+.cat-stat-empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.cat-stat-more {
+  width: 100%;
+  padding: 12px 4px;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  border-top: 0.5px solid var(--c-border);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--c-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: background .12s, color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-stat-more:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.cat-stat-more:active {
+  background: var(--c-border);
+}
+
 /* ═══════════════════════════════════════════════════════════
    v1.8.0 — 종이값 (책에 들인 돈) 시트
    매체 무관 합산 · 동전 골드 톤 · 알라딘 자동 + 수동 편집
@@ -17586,6 +17697,17 @@ body.cn-locked {
       </div>
       <div class="weekday-chart" id="weekdayChart"></div>
       <div class="weekday-insight" id="weekdayInsight"></div>
+    </div>
+
+    <!-- v1.0.1 — 분류별 정리 (장르 + 논픽션 랭킹, 상위 5 + 더보기) -->
+    <div class="stat-card-v2">
+      <div class="stat-card-v2-head">
+        <div class="stat-card-v2-bar"></div>
+        <div class="stat-card-v2-ttl">분류별 정리</div>
+      </div>
+      <div class="cat-stat-list" id="catStatList">
+        <!-- JS 렌더 · renderCategoryStats() -->
+      </div>
     </div>
 
     <!-- ═══ V2 시안 B: 취향 카드 (장르 + 별점) ═══ -->
@@ -32374,9 +32496,151 @@ function renderAllStats() {
   try { renderMonthCal();         } catch(e) { console.error('[monthcal]', e); }
   try { renderTasteInsight();     } catch(e) { console.error('[taste]', e); }
   try { renderDropStatCard();     } catch(e) { console.error('[drop-stat]', e); }
+  try { renderCategoryStats();    } catch(e) { console.error('[cat-stat]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
+
+/* v1.0.1 — 분류별 정리 (장르 + 논픽션 권수 랭킹, 상위 5 + 더보기) */
+const CAT_STAT_INITIAL_LIMIT = 5;
+let _catStatExpanded = false;
+
+function renderCategoryStats() {
+  const container = document.getElementById('catStatList');
+  if (!container) return;
+  
+  // 1) 카운트: 장르 + 논픽션 카테고리 태그만 대상, 전체 책(모든 상태) 포함
+  //    한 책이 여러 태그를 가질 수 있으므로 태그마다 ++
+  const counts = {};      // tagName → 권수
+  const repBooks = {};    // tagName → 대표 책 후보 배열
+  
+  if (typeof DEFAULT_TAGS === 'undefined' || !Array.isArray(BOOKS)) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  // 대상 태그 목록 (genre + nonfiction 카테고리만, HIDDEN_TAGS 제외)
+  const targetTags = new Set();
+  Object.entries(DEFAULT_TAGS).forEach(([name, info]) => {
+    if (info.category !== 'genre' && info.category !== 'nonfiction') return;
+    if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(name)) return;
+    targetTags.add(name);
+  });
+  
+  // 카운트
+  BOOKS.forEach(book => {
+    const tags = Array.isArray(book.tags) ? book.tags : [];
+    tags.forEach(t => {
+      if (!targetTags.has(t)) return;
+      counts[t] = (counts[t] || 0) + 1;
+      if (!repBooks[t]) repBooks[t] = [];
+      repBooks[t].push(book);
+    });
+  });
+  
+  // 2) 정렬: 권수 많은 순. 0인 분류는 자동 제외 (counts에 없으니까)
+  const sorted = Object.keys(counts)
+    .map(name => ({ name, count: counts[name], books: repBooks[name] }))
+    .sort((a, b) => b.count - a.count);
+  
+  if (!sorted.length) {
+    container.innerHTML = '<div class="cat-stat-empty">분류 태그가 부여된 책이 아직 없어요</div>';
+    return;
+  }
+  
+  // 3) 대표 책 선정: 인생책(isLifeBook) → 최근(updatedAt or addedAt or dateEnd) → 별점 우선
+  const pickRepBook = (books) => {
+    if (!books || !books.length) return null;
+    // 인생책 먼저
+    const lifeBook = books.find(b => b.isLifeBook);
+    if (lifeBook) return lifeBook;
+    // 최근 → 별점 순 정렬
+    const sortedBooks = [...books].sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+      const aRating = a.rating || 0;
+      const bRating = b.rating || 0;
+      return bRating - aRating;
+    });
+    return sortedBooks[0];
+  };
+  
+  // 4) 상위 5 + 더보기 처리
+  const total = sorted.length;
+  const visible = _catStatExpanded ? sorted : sorted.slice(0, CAT_STAT_INITIAL_LIMIT);
+  const hiddenCount = Math.max(0, total - visible.length);
+  
+  // 5) 렌더
+  const tagInfo = DEFAULT_TAGS;
+  const rowsHtml = visible.map((entry, idx) => {
+    const rank = idx + 1;
+    const rep = pickRepBook(entry.books);
+    const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
+    const info = tagInfo[entry.name] || {};
+    const emoji = info.emoji || '📚';
+    const coverStyle = cover ? `style="background-image:url('${esc(cover)}');"` : '';
+    const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
+    return `
+      <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
+        <span class="cat-stat-rank">#${rank}</span>
+        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}" ${coverStyle}>${fallback}</span>
+        <span class="cat-stat-name">${esc(entry.name)}</span>
+        <span class="cat-stat-cnt">${entry.count}</span>
+        <span class="cat-stat-arrow">›</span>
+      </button>`;
+  }).join('');
+  
+  let moreHtml = '';
+  if (hiddenCount > 0) {
+    moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-more">+ 더보기 ${hiddenCount}개</button>`;
+  } else if (_catStatExpanded && total > CAT_STAT_INITIAL_LIMIT) {
+    moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-collapse">접기</button>`;
+  }
+  
+  container.innerHTML = rowsHtml + moreHtml;
+}
+
+/* v1.0.1 — 분류 행 클릭 → drilldown 시트 + 더보기/접기 토글 */
+(function wireCategoryStatsClick() {
+  const container = document.getElementById('catStatList');
+  if (!container) return;
+  container.addEventListener('click', (e) => {
+    // 더보기 / 접기
+    const moreBtn = e.target.closest('[data-action="cat-stat-more"]');
+    if (moreBtn) {
+      _catStatExpanded = true;
+      renderCategoryStats();
+      return;
+    }
+    const collapseBtn = e.target.closest('[data-action="cat-stat-collapse"]');
+    if (collapseBtn) {
+      _catStatExpanded = false;
+      renderCategoryStats();
+      return;
+    }
+    // 분류 행 클릭 → drilldown
+    const btn = e.target.closest('[data-action="cat-stat-open"]');
+    if (!btn) return;
+    const tagName = btn.dataset.tag;
+    if (!tagName) return;
+    // 해당 태그가 부여된 모든 책 추출 (전체 상태)
+    const books = (BOOKS || []).filter(b => Array.isArray(b.tags) && b.tags.includes(tagName));
+    if (!books.length) return;
+    // 정렬: 최근 → 별점 우선 (드릴다운 안에서 일관성)
+    const sorted = books.sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+    const info = (typeof DEFAULT_TAGS !== 'undefined' ? DEFAULT_TAGS[tagName] : null) || {};
+    const emoji = info.emoji || '🏷';
+    if (typeof openDrillDown === 'function') {
+      openDrillDown(`${emoji} ${tagName}`, `총 ${sorted.length}권`, sorted);
+    }
+  });
+})();
 
 /* ─── 통계 연도 선택 상태 ─── */
 const STATS_YEAR = {
