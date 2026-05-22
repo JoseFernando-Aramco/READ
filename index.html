@@ -5493,6 +5493,64 @@ body:has(.lib-edit-bar) .library-cards {
   padding: 6px 0;
   font-weight: 500;
 }
+
+/* v1.x — 숫자 대시보드 (5칸 + 다음 단계 힌트) */
+.nd-dashboard {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 14px 0 16px;
+  margin-bottom: 8px;
+  border-bottom: 0.5px solid var(--c-border);
+}
+.nd-cell {
+  text-align: center;
+  padding: 0 4px;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+.nd-cell + .nd-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 0.5px;
+  background: var(--c-border);
+}
+.nd-cell-val {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nd-cell-lbl {
+  font-size: 10px;
+  color: var(--c-text-2);
+  margin-top: 3px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.nd-cell-next {
+  font-size: 9px;
+  color: #E24B4A;
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nd-cell-next-done {
+  color: var(--c-gold-deep, #B8860B);
+}
+
 .achv-sub-name {
   font-size: 10px;
   color: var(--c-text-2);
@@ -5506,46 +5564,123 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* step progression */
+/* v1.x — 마일스톤 단계 (가로 스크롤 + 펄스, 노드 정렬 정밀 재설계)
+   구조:
+     .achv-step-wrap (relative, overflow hidden)
+       .achv-step-nodes (flex, scroll-x, scroll-snap)
+         각 .achv-step-col (셀 폭 = 화면/6, position relative)
+           ::before (셀 절반 왼쪽 연결선)
+           ::after  (셀 절반 오른쪽 연결선)
+           .achv-node (원, 셀 중앙)
+           .achv-node-lbl (라벨)
+       .achv-step-fade-l, .achv-step-fade-r (좌우 fade mask) */
+
+@keyframes _achvPulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(226, 75, 74, 0.55); }
+  50%      { box-shadow: 0 0 0 7px rgba(226, 75, 74, 0); }
+}
+@keyframes _achvSparkle {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
+/* 변수 — 한 곳에서 조정 */
 .achv-step {
+  --achv-node-size: 26px;        /* 노드 지름 */
+  --achv-line-h: 2px;            /* 연결선 두께 */
+  --achv-pad-top: 10px;          /* 노드 위 여백 (펄스 그림자 잘리지 않게) */
+  --achv-cell-h: calc(var(--achv-pad-top) + var(--achv-node-size) / 2);  /* 노드 중심 Y */
   position: relative;
-  padding: 0 4px;
+  padding: 0;
+  margin-top: 6px;
 }
-.achv-step-line {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 12px;
-  height: 2px;
-  background: var(--c-border-2);
-  z-index: 0;
+
+.achv-step-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;  /* fade mask가 깔끔하게 잘리도록 */
 }
-.achv-step-prog {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  height: 2px;
-  background: var(--c-terra-700);
-  z-index: 1;
-  transition: width .5s ease;
-}
+
+/* 옛 .achv-step-line / .achv-step-prog 제거 — 셀 내 라인으로 대체 */
+.achv-step-line, .achv-step-prog { display: none; }
+
 .achv-step-nodes {
   display: flex;
-  justify-content: space-between;
-  position: relative;
-  z-index: 2;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding: 0;
+  -webkit-overflow-scrolling: touch;
 }
+.achv-step-nodes::-webkit-scrollbar { display: none; }
+
+/* 셀 — 폭 = 컨테이너 / 6, 최소 48px 보장 */
 .achv-step-col {
-  text-align: center;
-  flex-shrink: 0;
+  flex: 0 0 calc(100% / 6);
+  min-width: 48px;
+  position: relative;
+  padding: var(--achv-pad-top) 0 4px;
   cursor: pointer;
+  scroll-snap-align: center;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
 }
+
+/* 연결선 — 셀의 왼쪽 절반 (이전 노드와 잇기) */
+.achv-step-col::before {
+  content: '';
+  position: absolute;
+  top: var(--achv-cell-h);
+  left: 0;
+  width: 50%;
+  height: var(--achv-line-h);
+  background: var(--c-border-2);
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+/* 연결선 — 셀의 오른쪽 절반 (다음 노드와 잇기) */
+.achv-step-col::after {
+  content: '';
+  position: absolute;
+  top: var(--achv-cell-h);
+  left: 50%;
+  width: 50%;
+  height: var(--achv-line-h);
+  background: var(--c-border-2);
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+/* 첫/마지막 셀은 한쪽 라인만 — 양 끝 라인이 허공으로 안 나가게 */
+.achv-step-col:first-child::before { display: none; }
+.achv-step-col:last-child::after { display: none; }
+
+/* 달성한 셀: 라인도 진한 색 */
+.achv-step-col[data-achv-status="done"]::before,
+.achv-step-col[data-achv-status="done"]::after,
+.achv-step-col[data-achv-status="master"]::before,
+.achv-step-col[data-achv-status="master"]::after {
+  background: var(--c-terra-700);
+}
+/* done → next로 가는 경계: 셀 자체가 next/lock인데 왼쪽 라인은 이전이 done이면 진해야 함
+   → 이전 셀의 ::after가 처리하니까 OK
+   현재 셀의 ::before는 본인 상태 기준 — current/next/lock이면 회색 유지가 자연스러움 */
+
 .achv-step-col:active .achv-node {
   transform: scale(0.92);
   transition: transform .12s ease;
 }
+
+/* 노드 — 셀 중앙, position relative (스파클 ::after 기준점) */
 .achv-node {
-  width: 24px;
-  height: 24px;
+  position: relative;
+  z-index: 2;
+  width: var(--achv-node-size);
+  height: var(--achv-node-size);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -5554,48 +5689,78 @@ body:has(.lib-edit-bar) .library-cards {
   font-size: 11px;
   font-weight: 700;
   font-family: inherit;
+  flex-shrink: 0;
+  background: var(--c-canvas);  /* 배경 깔아서 라인이 노드 뒤로 안 보임 */
 }
 .achv-node.done {
   background: var(--c-terra-700);
   color: #fff;
 }
-.achv-node.current {
-  background: var(--c-surface);
-  border: 2px solid var(--c-terra-700);
-  color: var(--c-terra-700);
+.achv-node.next {
+  background: #E24B4A;
+  color: #fff;
   font-size: 9px;
   font-weight: 800;
+  animation: _achvPulseRed 1.8s ease-in-out infinite;
+}
+.achv-node.next::after {
+  content: '✦';
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  font-size: 11px;
+  color: #FFB87A;
+  animation: _achvSparkle 1.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
 }
 .achv-node.lock {
-  background: var(--c-border-2);
+  background: var(--c-canvas);
+  border: 1.5px solid var(--c-border-2);
   color: var(--c-text-2);
-  opacity: 0.5;
-  font-size: 11px;
+  opacity: 0.65;
+  font-size: 10px;
+  font-weight: 600;
 }
 .achv-node.master {
   background: var(--c-gold-deep, #B8860B);
   color: #fff;
   font-size: 13px;
 }
+
+/* 라벨 */
 .achv-node-lbl {
   font-size: 10px;
   font-weight: 600;
   color: var(--c-text-2);
-  margin-top: 4px;
+  margin-top: 6px;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
 }
-.achv-node-lbl.current {
-  color: var(--c-terra-700);
+.achv-node-lbl.next {
+  color: #E24B4A;
   font-weight: 700;
 }
 .achv-node-lbl.lock {
   color: var(--c-text-2);
-  opacity: 0.45;
+  opacity: 0.55;
   font-weight: 500;
 }
 .achv-node-lbl.master {
   color: var(--c-gold-deep, #B8860B);
   font-weight: 800;
 }
+
+/* 좌우 fade mask — 잘려있다는 시각 단서 */
+.achv-step-fade-l, .achv-step-fade-r {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  z-index: 3;
+}
+.achv-step-fade-l { left: 0; background: linear-gradient(90deg, var(--c-surface) 30%, transparent); }
+.achv-step-fade-r { right: 0; background: linear-gradient(-90deg, var(--c-surface) 30%, transparent); }
 
 /* 사이드 미션 칩 */
 .achv-chips {
@@ -18423,15 +18588,15 @@ body.cn-locked {
       </div>
     </div>
 
-    <!-- 도전과제 -->
+    <!-- 도전과제 → 내 기록 (v1.x: 칭호 제거, 숫자 대시보드로 변경) -->
     <div class="achv-card">
       <div class="achv-head">
         <div class="achv-bar"></div>
-        <span class="achv-ttl">도전과제</span>
-        <span class="achv-meta" id="achvMeta">달성 — · 진행 —</span>
+        <span class="achv-ttl">내 기록</span>
+        <span class="achv-meta" id="achvMeta"></span>
       </div>
       <div class="achv-body" id="achvBody">
-        <!-- JS로 4개 카테고리 렌더 -->
+        <!-- JS로 숫자 대시보드 + 4개 카테고리 렌더 -->
       </div>
     </div>
 
@@ -33152,11 +33317,11 @@ function _achvNextStep(arr, current) {
   return next != null ? next : arr[arr.length - 1];
 }
 
-/* 카테고리 summary 동적 계산 (현재 칭호 · 다음 칭호) */
+/* 카테고리 summary 동적 계산 (v1.x — 현재 달성한 칭호만, 다음 칭호 노출 X) */
 function _achvComputeSummary(cat) {
   // 깊이처럼 미리 정의된 summary 있으면 그대로
   if (cat.summary) return cat.summary;
-  // single group 카테고리 (권수/페이지/연속): 칭호명 흐름
+  // single group 카테고리 (권수/페이지/연속): 현재 달성한 칭호만 표시 (다음 칭호는 노출 X)
   const g = cat.groups[0];
   const lastStep = g.steps[g.steps.length - 1];
   if (g.current >= lastStep.n) {
@@ -33166,9 +33331,10 @@ function _achvComputeSummary(cat) {
   if (currentIdx === -1) return `${lastStep.title} · 마스터`;
   const lastDoneIdx = currentIdx - 1;
   if (lastDoneIdx >= 0) {
-    return `${g.steps[lastDoneIdx].title} · 다음 ${g.steps[currentIdx].title}`;
+    // v1.x — 다음 칭호 노출 제거: 현재 달성한 칭호만
+    return g.steps[lastDoneIdx].title;
   }
-  return `다음 ${g.steps[currentIdx].title}`;
+  return '';  // 아직 첫 단계도 미달성
 }
 
 function _achvRenderStep(group) {
@@ -33211,9 +33377,9 @@ function _achvRenderStep(group) {
         status = 'done';
       }
     } else if (i === currentIdx && current > 0) {
-      cls += 'current';
+      cls += 'next';  // v1.x — 빨간 펄스 + ✦ 반짝 (다음 달성 목표)
       inner = currentLabel;
-      lblCls = 'current';
+      lblCls = 'next';
       status = 'current';
     } else {
       cls += 'lock';
@@ -33229,9 +33395,11 @@ function _achvRenderStep(group) {
 
   return `
     <div class="achv-step">
-      <div class="achv-step-line"></div>
-      <div class="achv-step-prog" style="width:${progPct}%"></div>
-      <div class="achv-step-nodes">${nodesHtml}</div>
+      <div class="achv-step-wrap">
+        <div class="achv-step-nodes">${nodesHtml}</div>
+        <div class="achv-step-fade-l"></div>
+        <div class="achv-step-fade-r"></div>
+      </div>
     </div>`;
 }
 
@@ -33242,19 +33410,12 @@ function renderAchievements() {
 
   const a = computeAchievements();
 
-  // 카테고리 정의
+  // 카테고리 정의 — v1.x: 권수/페이지/연속 단계 자동 확장
   const cats = [
     {
       icon: '📚', name: '권수',
       groups: [{
-        steps: [
-          { n: 1,   label: '1권',   title: '첫 책' },
-          { n: 5,   label: '5권',   title: '한 자릿수 클럽' },
-          { n: 10,  label: '10권',  title: '두 자릿수 독자' },
-          { n: 30,  label: '30권',  title: '꾸준한 독서가' },
-          { n: 50,  label: '50권',  title: '독서 마라토너' },
-          { n: 100, label: '100권', title: '백권 클럽' },
-        ],
+        steps: extendBookStages(a.bookCount),
         current: a.bookCount,
         currentLabel: a.bookCount,
       }],
@@ -33263,11 +33424,7 @@ function renderAchievements() {
     {
       icon: '📄', name: '페이지',
       groups: [{
-        steps: [
-          { n: 10000,  label: '1만p',  title: '종이의 조타수' },
-          { n: 50000,  label: '5만p',  title: '종이의 항해사' },
-          { n: 100000, label: '10만p', title: '종이의 선장' },
-        ],
+        steps: extendPageStages(a.pageTotal),
         current: a.pageTotal,
         currentLabel: _achvFmtPagesShort(a.pageTotal),
       }],
@@ -33278,11 +33435,7 @@ function renderAchievements() {
     {
       icon: '🔥', name: '연속',
       groups: [{
-        steps: [
-          { n: 7,   label: '7일',   title: '일주일 독서가' },
-          { n: 30,  label: '30일',  title: '한달 독서가' },
-          { n: 100, label: '100일', title: '백일의 독서가' },
-        ],
+        steps: extendStreakStages(a.bestStreak),
         current: a.bestStreak,
         currentLabel: a.bestStreak,
       }],
@@ -33296,21 +33449,13 @@ function renderAchievements() {
       groups: [
         {
           subName: '메모',
-          steps: [
-            { n: 10,  label: '10개',  title: '기록의 시작' },
-            { n: 50,  label: '50개',  title: '메모 마스터' },
-            { n: 200, label: '200개', title: '사색의 기록자' },
-          ],
+          steps: extendMemoStages(a.memoCount),
           current: a.memoCount,
           currentLabel: a.memoCount,
         },
         {
           subName: '인생책',
-          steps: [
-            { n: 10,  label: '10권',  title: '첫 컬렉션' },
-            { n: 50,  label: '50권',  title: '선별된 책장' },
-            { n: 100, label: '100권', title: '인생의 전당' },
-          ],
+          steps: extendLifeBookStages(a.lifeCount),
           current: a.lifeCount,
           currentLabel: a.lifeCount,
         },
@@ -33322,61 +33467,76 @@ function renderAchievements() {
     },
   ];
 
-  // 달성/진행 카운트 + 트로피 수집
-  let achieved = 0, inProgress = 0;
-  const trophies = [];
-  cats.forEach(cat => {
-    cat.groups.forEach(g => {
-      g.steps.forEach((s, i) => {
-        if (g.current >= s.n) {
-          achieved++;
-          if (s.title) {
-            trophies.push({
-              icon: cat.icon,
-              title: s.title,
-              isMaster: i === g.steps.length - 1,
-            });
-          }
-        }
-      });
-      const nextIdx = g.steps.findIndex(s => g.current < s.n);
-      if (nextIdx !== -1 && g.current > 0) inProgress++;
-    });
-    cat.chips.forEach(c => {
-      if (c.current >= c.target) {
-        achieved++;
-        trophies.push({ icon: c.icon, title: c.name, isMaster: false });
-      } else if (c.current > 0) inProgress++;
-    });
-  });
-  if (meta) meta.textContent = `달성 ${achieved} · 진행 ${inProgress}`;
-
-  // 트로피 영역 마크업
-  let trophiesHtml = '';
-  if (trophies.length === 0) {
-    trophiesHtml = `
-      <div class="achv-trophies">
-        <div class="achv-trophies-head">
-          <span class="achv-trophies-ttl">🏆 획득한 칭호</span>
-        </div>
-        <div class="achv-trophies-empty">아직 없어요. 첫 책 완독으로 시작해볼까요?</div>
-      </div>`;
-  } else {
-    const list = trophies.map(t =>
-      `<span class="achv-trophy${t.isMaster ? ' master' : ''}"><span>${t.icon}</span><span>${esc(t.title)}</span></span>`
-    ).join('');
-    trophiesHtml = `
-      <div class="achv-trophies">
-        <div class="achv-trophies-head">
-          <span class="achv-trophies-ttl">🏆 획득한 칭호</span>
-          <span class="achv-trophies-count">${trophies.length}개</span>
-        </div>
-        <div class="achv-trophies-list">${list}</div>
+  // v1.x — 트로피/칭호 시스템 제거, 숫자 대시보드 (5칸 + 다음 단계 힌트)
+  // a.bookCount / a.pageTotal / a.bestStreak / a.memoCount / a.lifeCount 사용
+  if (meta) meta.textContent = ''; // 옛 "달성 N · 진행 N" 비움
+  
+  // 각 카테고리의 다음 단계 계산 (extendXxxStages 함수 활용)
+  function _nextStageInfo(stages, current) {
+    const next = stages.find(s => s.n > current);
+    if (!next) return null;
+    return { n: next.n, remaining: next.n - current, label: next.label };
+  }
+  
+  const _bookStages   = extendBookStages(a.bookCount);
+  const _pageStages   = extendPageStages(a.pageTotal);
+  const _streakStages = extendStreakStages(a.bestStreak);
+  const _memoStages   = extendMemoStages(a.memoCount);
+  const _lifeStages   = extendLifeBookStages(a.lifeCount);
+  
+  const _bookNext   = _nextStageInfo(_bookStages, a.bookCount);
+  const _pageNext   = _nextStageInfo(_pageStages, a.pageTotal);
+  const _streakNext = _nextStageInfo(_streakStages, a.bestStreak);
+  const _memoNext   = _nextStageInfo(_memoStages, a.memoCount);
+  const _lifeNext   = _nextStageInfo(_lifeStages, a.lifeCount);
+  
+  // 숫자 짧게 포맷 (76540 → 76.5천, 100000 → 10만)
+  function _fmtCompact(n) {
+    if (n >= 10000) {
+      const v = n / 10000;
+      return (v >= 100 ? Math.round(v) : (v >= 10 ? v.toFixed(0) : v.toFixed(1).replace('.0',''))) + '만';
+    }
+    if (n >= 1000) {
+      const v = n / 1000;
+      return v.toFixed(1).replace('.0','') + '천';
+    }
+    return n.toLocaleString('ko-KR');
+  }
+  function _fmtRemaining(n) {
+    if (n >= 10000) return Math.round(n/1000) + 'K';
+    if (n >= 1000) return Math.round(n/100)/10 + 'K';
+    return String(n);
+  }
+  
+  function _statCellHtml(icon, name, value, nextInfo, formatter) {
+    const valStr = formatter ? formatter(value) : value.toLocaleString('ko-KR');
+    let nextHtml = '';
+    if (nextInfo) {
+      const nextLabel = nextInfo.label;
+      const remaining = formatter === _fmtCompact ? _fmtRemaining(nextInfo.remaining) : nextInfo.remaining.toLocaleString('ko-KR');
+      nextHtml = `<div class="nd-cell-next">→${esc(nextLabel)} +${remaining}</div>`;
+    } else {
+      nextHtml = `<div class="nd-cell-next nd-cell-next-done">★ MAX</div>`;
+    }
+    return `
+      <div class="nd-cell">
+        <div class="nd-cell-val">${esc(valStr)}</div>
+        <div class="nd-cell-lbl">${icon} ${esc(name)}</div>
+        ${nextHtml}
       </div>`;
   }
+  
+  const dashboardHtml = `
+    <div class="nd-dashboard">
+      ${_statCellHtml('📚', '권수',   a.bookCount,  _bookNext)}
+      ${_statCellHtml('📄', '페이지', a.pageTotal,  _pageNext, _fmtCompact)}
+      ${_statCellHtml('🔥', '연속',   a.bestStreak, _streakNext)}
+      ${_statCellHtml('💭', '메모',   a.memoCount,  _memoNext)}
+      ${_statCellHtml('★',  '인생책', a.lifeCount,  _lifeNext)}
+    </div>`;
 
   // 마크업 생성
-  let html = trophiesHtml;
+  let html = dashboardHtml;
   cats.forEach((cat, idx) => {
     if (idx > 0) html += `<div class="achv-divider"></div>`;
     const summary = _achvComputeSummary(cat);
@@ -33412,6 +33572,22 @@ function renderAchievements() {
     html += `</div>`;
   });
   body.innerHTML = html;
+  
+  // v1.x — 각 .achv-step-nodes에서 'next' 노드가 중앙에 오도록 자동 스크롤
+  // (단계 늘어난 카테고리만 의미 있음, 기본 범위면 어차피 다 보임)
+  setTimeout(() => {
+    body.querySelectorAll('.achv-step-nodes').forEach(track => {
+      const nextEl = track.querySelector('.achv-node.next');
+      if (!nextEl) return;
+      const col = nextEl.closest('.achv-step-col');
+      if (!col) return;
+      // 가로 중앙 정렬
+      const trackRect = track.getBoundingClientRect();
+      const colRect = col.getBoundingClientRect();
+      const offset = (colRect.left - trackRect.left) - (trackRect.width / 2) + (colRect.width / 2);
+      track.scrollLeft = Math.max(0, offset);
+    });
+  }, 50);
 }
 
 /* 칭호 토스트 — step 노드 탭 시 */
@@ -33433,6 +33609,118 @@ function renderAchievements() {
     if (typeof showToast === 'function') showToast(msg);
   });
 })();
+
+/* v1.x — 마일스톤 단계 자동 확장
+   룰: 권수 100권 이후 +50, 페이지 10만p 이후 +5만, 연속 100일 이후 +50일
+   조건: 마지막 기본 단계 도달 시에만 확장. 현재값 + 5단계 미리 표시 */
+function _extendStages(base, lastBase, step, current, makeStage) {
+  const stages = [...base];
+  if (current < lastBase) return stages;
+  let next = lastBase + step;
+  const horizon = Math.max(current, lastBase) + step * 5;
+  while (next <= horizon) {
+    stages.push(makeStage(next));
+    next += step;
+  }
+  return stages;
+}
+
+function extendBookStages(current) {
+  const base = [
+    { n: 1,   label: '1권',   title: '첫 한 권' },
+    { n: 5,   label: '5권',   title: '발을 들여놓은 자' },
+    { n: 10,  label: '10권',  title: '취미가 된 독서' },
+    { n: 30,  label: '30권',  title: '서점이 반가운' },
+    { n: 50,  label: '50권',  title: '책장이 휘는 중' },
+    { n: 100, label: '100권', title: '백권 클럽' },
+  ];
+  return _extendStages(base, 100, 50, current, n => ({
+    n, label: `${n}권`, title: '책으로 사는 사람'
+  }));
+}
+
+function extendPageStages(current) {
+  // 초반 6개 — 모두 trophy 칭호 부여
+  const stages = [
+    { n: 100,  label: '100p',  title: '백 쪽 통과' },
+    { n: 500,  label: '500p',  title: '오백 쪽의 흐름' },
+    { n: 1000, label: '1천p',  title: '네 자릿수 진입' },
+    { n: 1500, label: '1.5천p', title: '엄지가 단단해진' },
+    { n: 2000, label: '2천p',  title: '단편집을 다 본 분량' },
+    { n: 2500, label: '2.5천p', title: '두께의 맛을 안다' },
+  ];
+  // 2500 ~ 1만: +1000 (채움 단계 — 그룹 공통 칭호)
+  for (let n = 3500; n <= 9500; n += 1000) {
+    stages.push({ n, label: `${(n/1000)}천p`, title: '천 단위 클라이머' });
+  }
+  // 1만 (특별 마일스톤)
+  stages.push({ n: 10000, label: '1만p', title: '만 쪽의 항해사' });
+  // 1만 ~ 5만: +5000 (채움 — 그룹 공통)
+  for (let n = 15000; n <= 45000; n += 5000) {
+    const lbl = n % 10000 === 0 ? `${n/10000}만p` : `${(n/10000).toFixed(1)}만p`;
+    stages.push({ n, label: lbl, title: '만 단위로 헤엄치는' });
+  }
+  // 5만 (특별 마일스톤)
+  stages.push({ n: 50000, label: '5만p', title: '오만 쪽의 선장' });
+  // 5만 ~ 10만: +1만 (채움 — 그룹 공통)
+  for (let n = 60000; n <= 90000; n += 10000) {
+    stages.push({ n, label: `${n/10000}만p`, title: '먼 바다의 탐험가' });
+  }
+  // 10만 (특별 마일스톤)
+  stages.push({ n: 100000, label: '10만p', title: '십만 쪽의 등대지기' });
+  // 10만 이후 — 동적 확장 (+5만씩, current+5단계까지)
+  if (current >= 100000) {
+    let next = 150000;
+    const horizon = Math.max(current, 100000) + 50000 * 5;
+    while (next <= horizon) {
+      stages.push({ n: next, label: `${next/10000}만p`, title: '쪽수로 측량되지 않는' });
+      next += 50000;
+    }
+  }
+  return stages;
+}
+
+function extendStreakStages(current) {
+  const base = [
+    { n: 3,   label: '3일',   title: '불씨 점화' },
+    { n: 7,   label: '7일',   title: '일주일의 의지' },
+    { n: 14,  label: '14일',  title: '습관이 되려는' },
+    { n: 30,  label: '30일',  title: '한 달 챔피언' },
+    { n: 50,  label: '50일',  title: '멈출 수 없는' },
+    { n: 100, label: '100일', title: '백일의 독서가' },
+  ];
+  return _extendStages(base, 100, 50, current, n => ({
+    n, label: `${n}일`, title: '하루 안 읽으면 어색한'
+  }));
+}
+
+function extendMemoStages(current) {
+  const base = [
+    { n: 1,   label: '1개',   title: '첫 줄을 남기다' },
+    { n: 5,   label: '5개',   title: '손이 근질근질' },
+    { n: 10,  label: '10개',  title: '밑줄이 늘어간다' },
+    { n: 30,  label: '30개',  title: '생각을 적는 사람' },
+    { n: 100, label: '100개', title: '메모장 한 권' },
+    { n: 200, label: '200개', title: '사색의 기록자' },
+  ];
+  return _extendStages(base, 200, 100, current, n => ({
+    n, label: `${n}개`, title: '읽기보다 쓰는 게 더'
+  }));
+}
+
+function extendLifeBookStages(current) {
+  const base = [
+    { n: 1,  label: '1권',  title: '인생의 한 권' },
+    { n: 3,  label: '3권',  title: '세 권이면 충분한' },
+    { n: 5,  label: '5권',  title: '나만의 정전' },
+    { n: 10, label: '10권', title: '엄선의 안목' },
+    { n: 30, label: '30권', title: '취향의 지도' },
+    { n: 50, label: '50권', title: '인생의 전당' },
+  ];
+  return _extendStages(base, 50, 25, current, n => ({
+    n, label: `${n}권`, title: '모두가 인생책인'
+  }));
+}
 
 function renderGoalsPane() {
   const pane = document.getElementById('pane-goals');
