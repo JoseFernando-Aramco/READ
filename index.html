@@ -2634,6 +2634,478 @@ body:has(.lib-edit-bar) .library-cards {
   background: var(--c-border);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   v1.x — 도서 대여 반납 알림
+   ═══════════════════════════════════════════════════════════ */
+/* 서재 상단 알림 바 (지금 읽는 책 블록 아래) — B 시안 */
+.return-alert-bar {
+  margin-top: 8px;
+  background: #FCEBEB;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.return-alert-bar:active { background: #F7C1C1; }
+.return-alert-bar-icon { font-size: 14px; flex-shrink: 0; }
+.return-alert-bar-text { color: var(--c-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.return-alert-bar-text strong { color: #E24B4A; font-weight: 700; }
+.return-alert-bar-chevron { color: #999; font-size: 11px; flex-shrink: 0; }
+
+/* v1.x — 책 카드 좌상단 대여 D-N 배지 (시안 A 라운드 필)
+   ※ 우상단은 인생책 H.O.F 리본 자리라 좌상단으로 분리 */
+.bc-rent-dday {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  z-index: 4;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  line-height: 1;
+}
+.bc-rent-dday.sev-overdue { background: #B91C1C; color: #fff; }
+.bc-rent-dday.sev-urgent  { background: #E24B4A; color: #fff; }
+.bc-rent-dday.sev-warning { background: #FFB87A; color: #5a3a20; }
+.bc-rent-dday.sev-normal  {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* 통계 탭 — 곧 반납할 책 카드 */
+.rent-stat-card {
+  background: var(--c-surface);
+  border-radius: 14px;
+  padding: 18px 16px;
+  border: 0.5px solid var(--c-border);
+  margin-bottom: 16px;
+  /* v1.x — scrollIntoView 시 sticky 헤더(68px) + 탭 바(50px) + safe-area 아래로 정렬 */
+  scroll-margin-top: calc(130px + env(safe-area-inset-top, 0px));
+}
+.rent-stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.rent-stat-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.rent-stat-sub {
+  font-size: 11.5px;
+  color: var(--c-label);
+}
+.rent-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rent-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.rent-stat-item:active { opacity: 0.7; }
+.rent-stat-item.sev-overdue { background: #FCEBEB; border-left: 3px solid #B91C1C; }
+.rent-stat-item.sev-urgent  { background: #FCEBEB; border-left: 3px solid #E24B4A; }
+.rent-stat-item.sev-warning { background: #FAEEDA; border-left: 3px solid #FFB87A; }
+.rent-stat-item.sev-normal  { background: var(--c-canvas); }
+.rent-stat-cover {
+  width: 30px; height: 42px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+}
+.rent-stat-info { flex: 1; min-width: 0; }
+.rent-stat-book-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rent-stat-book-meta {
+  font-size: 10px;
+  color: var(--c-label);
+  margin-top: 2px;
+}
+.rent-stat-dday {
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.rent-stat-dday.sev-overdue { color: #B91C1C; }
+.rent-stat-dday.sev-urgent  { color: #E24B4A; }
+.rent-stat-dday.sev-warning { color: #b87530; }
+.rent-stat-dday.sev-normal  { color: var(--c-label); }
+
+/* 책 상세 메타 row — 소유 (D-N 라벨 포함) */
+.bd-meta-row .bd-meta-dot-acq { background: #888; }
+.bd-meta-row .bd-meta-dot-acq.sev-overdue,
+.bd-meta-row .bd-meta-dot-acq.sev-urgent { background: #E24B4A; }
+.bd-meta-row .bd-meta-dot-acq.sev-warning { background: #FFB87A; }
+.bd-meta-val-acq strong.dday-overdue,
+.bd-meta-val-acq strong.dday-urgent  { color: #E24B4A; font-weight: 700; }
+.bd-meta-val-acq strong.dday-warning { color: #b87530; font-weight: 700; }
+.bd-meta-acq-empty { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bd-meta-acq-empty:active { opacity: 0.6; }
+
+/* v1.x — 소유 편집 시트 (구매/대여/소장/도서관 입력) */
+.acq-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-surface);
+  border-radius: 18px 18px 0 0;
+  z-index: 9999;
+  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.acq-sheet.open { transform: translateX(-50%) translateY(0); }
+.acq-sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.acq-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 8px;
+  flex-shrink: 0;
+}
+.acq-sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.acq-sheet-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--c-label);
+  cursor: pointer;
+  padding: 4px 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.acq-sheet-body {
+  padding: 8px 20px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.acq-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.acq-type-opt {
+  display: block;
+  padding: 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.acq-type-opt input[type="radio"] { display: none; }
+.acq-type-opt span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+.acq-type-opt:has(input:checked) {
+  background: var(--c-text);
+  border-color: var(--c-text);
+}
+.acq-type-opt:has(input:checked) span { color: var(--c-canvas); }
+.acq-form { display: flex; flex-direction: column; gap: 12px; }
+.acq-field { display: block; }
+.acq-field-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-bottom: 5px;
+  letter-spacing: -0.01em;
+}
+.acq-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--c-text);
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.acq-input:focus {
+  outline: none;
+  border-color: var(--c-text);
+}
+.acq-textarea {
+  resize: none;
+  line-height: 1.4;
+}
+.acq-duration-lbl {
+  font-size: 12px;
+  color: #888;
+  padding: 4px 0;
+}
+.acq-field-memo { margin-top: 14px; }
+.acq-sheet-footer {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px 20px;
+  border-top: 0.5px solid var(--c-border);
+  flex-shrink: 0;
+}
+.acq-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+.acq-btn-clear {
+  background: var(--c-canvas);
+  color: #E24B4A;
+  border: 1px solid var(--c-border);
+}
+.acq-btn-save {
+  background: var(--c-text);
+  color: var(--c-canvas);
+}
+.acq-btn:active { opacity: 0.7; }
+
+/* ═══════════════════════════════════════════════════════════
+   v1.x — iOS 캘린더 스타일 DatePicker (인라인 그리드, 컴팩트)
+   ═══════════════════════════════════════════════════════════ */
+.dp-wrap {
+  position: relative;
+}
+/* 트리거 버튼 (날짜 표시) */
+.dp-trigger {
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--c-text);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease;
+}
+.dp-trigger:active { opacity: 0.7; }
+.dp-trigger.is-open { border-color: var(--c-text); }
+.dp-trigger.is-empty .dp-trigger-label { color: var(--c-label); }
+.dp-trigger-label { font-weight: 500; }
+.dp-trigger.is-empty .dp-trigger-label { font-weight: 400; }
+.dp-trigger-chevron {
+  font-size: 10px;
+  color: var(--c-label);
+  transition: transform 0.2s ease;
+}
+.dp-trigger.is-open .dp-trigger-chevron { transform: rotate(180deg); color: var(--c-text); }
+
+/* 펼쳐진 캘린더 */
+.dp-cal {
+  margin-top: 6px;
+  padding: 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  display: none;
+  animation: dp-fade-in 0.18s ease-out;
+}
+.dp-cal.is-open { display: block; }
+@keyframes dp-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* 헤더 (월 라벨 + 이동 화살표) */
+.dp-cal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.dp-cal-month-lbl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.dp-cal-nav {
+  display: flex;
+  gap: 4px;
+}
+.dp-cal-nav-btn {
+  width: 26px; height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.dp-cal-nav-btn:active { background: var(--c-border); }
+/* 요일 헤더 */
+.dp-cal-wdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  margin-bottom: 4px;
+}
+.dp-cal-wday {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--c-label);
+  padding: 3px 0;
+}
+.dp-cal-wday.is-sun { color: #E24B4A; }
+.dp-cal-wday.is-sat { color: #5A7A99; }
+/* 날짜 그리드 */
+.dp-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+.dp-cell {
+  aspect-ratio: 1;
+  min-height: 26px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-text);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  position: relative;
+  transition: background 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dp-cell:active { background: var(--c-border); }
+.dp-cell.is-other { color: var(--c-label); opacity: 0.35; }
+.dp-cell.is-sun:not(.is-other) { color: #E24B4A; }
+.dp-cell.is-today {
+  color: #E24B4A;
+  font-weight: 700;
+}
+.dp-cell.is-today::after {
+  content: '';
+  position: absolute;
+  width: 3px; height: 3px;
+  background: #E24B4A;
+  border-radius: 50%;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dp-cell.is-selected {
+  background: #E24B4A !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+.dp-cell.is-selected::after { background: #fff !important; }
+.dp-cell.is-disabled {
+  color: var(--c-label);
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.dp-cell.is-disabled:active { background: transparent; }
+/* "오늘로" 단축 */
+.dp-cal-shortcut {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.dp-cal-shortcut-btn {
+  padding: 5px 12px;
+  background: transparent;
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.dp-cal-shortcut-btn:active { background: var(--c-border); }
+
+/* v1.x — Bookflex에서 acqPrice 기반 가격 시각 구분 (살짝 강조) */
+.sp-row-price.acq-based {
+  color: var(--c-text);
+  position: relative;
+}
+.sp-row-price.acq-based::after {
+  content: '실지출';
+  position: absolute;
+  bottom: -14px;
+  right: 0;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+}
+
 /* ── 독서 캘린더 (히트맵 · 월 라벨 포함) ── */
 .heatmap-card {
   background: var(--c-surface);
@@ -17772,6 +18244,17 @@ body.cn-locked {
       <span class="fold-arrow arrow-right">›</span>
     </button>
 
+    <!-- v1.x — 곧 반납할 책 (대여 책이 1권 이상 있을 때만 노출, JS에서 display 토글) -->
+    <div class="rent-stat-card" id="rentStatCard" style="display:none;">
+      <div class="rent-stat-head">
+        <div class="rent-stat-title">곧 반납할 책</div>
+        <div class="rent-stat-sub" id="rentStatSub">—</div>
+      </div>
+      <div class="rent-stat-list" id="rentStatList">
+        <!-- JS 렌더 · renderRentStatCard() -->
+      </div>
+    </div>
+
     <!-- ═══ V2 시안 B: 활동 카드 (이번달 캘린더 + 월별 + 요일별) ═══ -->
     <div class="stat-card-v2">
       <div class="stat-card-v2-head">
@@ -25635,6 +26118,19 @@ const NA = {
     BOOKS.length = 0;
     BOOKS.push(...savedBooks);
   }
+  
+  // v1.x — acquisition 'library' → 'rent' 자동 마이그레이션 (도서관 = 대여의 한 케이스)
+  // 기존 사용자가 도서관으로 입력했던 책은 대여로 자동 전환, 도서관명은 대여처로 유지
+  let _libMigrated = 0;
+  BOOKS.forEach(b => {
+    if (b && b.acquisition === 'library') {
+      b.acquisition = 'rent';
+      _libMigrated++;
+    }
+  });
+  if (_libMigrated > 0) {
+    try { STORE.set('books', BOOKS); } catch(e){}
+  }
   const savedTags = STORE.get('tags', null);
   if (savedTags && typeof savedTags === 'object') {
     // 저장본이 있으면 저장본이 진실 — 사용자가 삭제한 기본 태그는 다시 살리지 않는다.
@@ -26290,6 +26786,7 @@ function renderBookCard(b, idx) {
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
         ${b.isLifeBook ? '<div class="hof-ribbon" aria-label="명예의 전당"></div>' : ''}
+        ${renderRentDdayBadge(b)}
       </div>
       <div class="book-card-title">${esc(b.title)}${isBookIncomplete(b) ? '<span class="book-card-incomplete-dot" title="페이지·표지·가격·ISBN 중 누락된 정보가 있어요"></span>' : ''}</div>
       <div class="book-card-meta">${meta}</div>
@@ -26679,12 +27176,17 @@ function renderLibraryCards() {
   // NowHero + MonthStrip은 독서중 책이 있으면 항상 노출 (탭/편집모드와 무관)
   const heroHtml = reading.length ? renderNowHero(reading) : '';
   const monthStripHtml = renderMonthStrip();
+  // v1.x — 대여 반납 알림 바 (D-3 이내 책이 있을 때만 노출)
+  const returnAlertHtml = (typeof renderReturnAlertBar === 'function')
+    ? renderReturnAlertBar()
+    : '';
 
   // 편집 모드 하단 액션바 — body에 직접 마운트 (paneTrack의 transform 때문에 fixed가 깨지는 문제 회피)
   // 렌더 후 _libMountEditBar()로 body에 append
 
   container.innerHTML = `
     ${heroHtml}
+    ${returnAlertHtml}
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
@@ -29226,7 +29728,7 @@ function renderBookDetail() {
   // v1.9.1 — 메타 정보를 컬러 dot 리스트로 분리 (가독성 + 정보 위계)
   const hasPrice = (typeof b.priceSales === 'number' && b.priceSales > 0);
   const isNonKo  = (b.language && b.language !== 'ko');
-  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo || (isWebnovel(b) && b.episodes));
+  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo || (isWebnovel(b) && b.episodes) || b.acquisition);
 
   // 커버
   const cover = b.coverUrl
@@ -29301,6 +29803,7 @@ function renderBookDetail() {
                 ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">${getNovelUnitLabel(b)}</span><span class="bd-meta-val">${b.episodes}${getNovelUnitChar(b)}${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
                 : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
+              ${renderAcqMetaRow(b)}
               <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
             </div>` : ''}
           </div>
@@ -31695,6 +32198,711 @@ function nextStreakGoal(current) {
   return next || (current + 100);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   v1.x — 도서 구매/대여 기록 (acquisition)
+   책 객체 신규 필드:
+     acquisition: 'purchase' | 'rent' | 'own' | null
+     acqDate: 'YYYY-MM-DD' (구매일 / 대여일)
+     acqPlace: '교보문고 광화문점' (구매처 / 대여처)
+     acqPrice: 18000 (구매가, 구매만)
+     acqReturnDate: 'YYYY-MM-DD' (반납예정일, 대여만)
+     acqMemo: '선물받음' (선택)
+   ═══════════════════════════════════════════════════════════ */
+const ACQ_TYPES = {
+  purchase: { label: '구매', icon: '🛒' },
+  rent:     { label: '대여', icon: '📚' },
+  own:      { label: '소장', icon: '📖' },
+};
+
+/* 오늘 날짜 YYYY-MM-DD */
+function _todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* 두 날짜 사이 일수 (target - today, 시간 무시) */
+function daysUntil(targetDateStr, todayStr) {
+  if (!targetDateStr) return null;
+  const today = todayStr || _todayStr();
+  const t = new Date(targetDateStr + 'T00:00:00');
+  const n = new Date(today + 'T00:00:00');
+  if (isNaN(t.getTime()) || isNaN(n.getTime())) return null;
+  const ms = t.getTime() - n.getTime();
+  return Math.round(ms / (24 * 60 * 60 * 1000));
+}
+
+/* D-N 상태: { days, label, severity }
+   severity: 'overdue' (연체) | 'urgent' (D-3 이내) | 'warning' (D-7 이내) | 'normal' */
+function ddayStatus(targetDateStr, todayStr) {
+  const days = daysUntil(targetDateStr, todayStr);
+  if (days === null) return null;
+  if (days < 0) return { days, label: `D+${-days}`, severity: 'overdue' };
+  if (days === 0) return { days, label: 'D-day', severity: 'urgent' };
+  if (days <= 3) return { days, label: `D-${days}`, severity: 'urgent' };
+  if (days <= 7) return { days, label: `D-${days}`, severity: 'warning' };
+  return { days, label: `D-${days}`, severity: 'normal' };
+}
+
+/* 대여 알림 바에 노출할 책들 (D-3 이내 + 연체) */
+function getReturnAlertBooks() {
+  if (!Array.isArray(BOOKS)) return [];
+  const today = _todayStr();
+  return BOOKS
+    .filter(b => b.acquisition === 'rent' && b.acqReturnDate && b.status !== 'done' && b.status !== 'dropped')
+    .map(b => ({ book: b, dday: ddayStatus(b.acqReturnDate, today) }))
+    .filter(x => x.dday && x.dday.days >= 0 && x.dday.days <= 3)  // v1.x — 0~3일만, 연체 제외
+    .sort((a, b) => a.dday.days - b.dday.days);
+}
+
+/* 대여 중인 모든 책 (통계 탭 카드용 — D-N 무관) */
+function getActiveRentBooks() {
+  if (!Array.isArray(BOOKS)) return [];
+  const today = _todayStr();
+  return BOOKS
+    .filter(b => b.acquisition === 'rent' && b.acqReturnDate && b.status !== 'done' && b.status !== 'dropped')
+    .map(b => ({ book: b, dday: ddayStatus(b.acqReturnDate, today) }))
+    .filter(x => x.dday && x.dday.days >= 0)  // v1.x — 연체 제외
+    .sort((a, b) => a.dday.days - b.dday.days);
+}
+
+/* v1.x — 책 카드 좌상단 D-N 배지 (대여 중인 책만 노출, 시안 A 라운드 필)
+   - 상태 'done'/'dropped' 책은 미노출
+   - 연체(days < 0)는 미노출 — 반납 처리 UI 없이는 알림 의미 없음
+   - 색상: urgent → 빨강 / warning → 노랑 / normal → 검정 반투명 */
+function renderRentDdayBadge(b) {
+  if (!b || b.acquisition !== 'rent' || !b.acqReturnDate) return '';
+  if (b.status === 'done' || b.status === 'dropped') return '';
+  const dday = ddayStatus(b.acqReturnDate);
+  if (!dday) return '';
+  if (dday.days < 0) return '';  // v1.x — 연체는 미노출
+  return `<div class="bc-rent-dday sev-${dday.severity}" aria-label="반납 ${dday.label}">${dday.label}</div>`;
+}
+
+/* v1.x — 서재 상단 대여 반납 알림 바 HTML
+   B 시안: "🔔 반납 임박 · 사피엔스 (D-2) · +N권"
+   클릭 시 통계 탭으로 이동 */
+function renderReturnAlertBar() {
+  const items = getReturnAlertBooks();
+  if (items.length === 0) return '';
+  const first = items[0];
+  const ddayLabel = first.dday.label;
+  const restCount = items.length - 1;
+  const restSuffix = restCount > 0 ? ` · +${restCount}권` : '';
+  return `
+    <div class="return-alert-bar" onclick="window._goToRentStatCard && window._goToRentStatCard()">
+      <span class="return-alert-bar-icon">🔔</span>
+      <span class="return-alert-bar-text">반납 임박 · <strong>${esc(first.book.title)} (${ddayLabel})</strong>${restSuffix}</span>
+      <span class="return-alert-bar-chevron">›</span>
+    </div>`;
+}
+
+/* 알림 바 클릭 → 통계 탭 이동 + 카드로 스크롤
+   v1.x — switchTab은 인덱스 인자 (0=서재, 1=통계, 2=목표, 3=노트) */
+window._goToRentStatCard = function() {
+  try {
+    if (typeof switchTab === 'function') switchTab(1);  // 통계 탭 인덱스
+    // 탭 전환 시 scrollTop이 0으로 가니까, 그 다음 카드로 스크롤
+    setTimeout(() => {
+      const el = document.getElementById('rentStatCard');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);  // switchTab 애니메이션 + scrollTo 완료 후
+  } catch(e){}
+};
+
+/* v1.x — 책 상세 메타 row "소유" HTML
+   - acquisition 없으면 "기록하기" 버튼
+   - 있으면 요약 + D-N 표시 (대여만), 탭하면 편집 시트 */
+function renderAcqMetaRow(b) {
+  if (!b.acquisition) {
+    return `<div class="bd-meta-row bd-meta-acq-empty" onclick="openAcqSheet(${b.id})">
+      <span class="bd-meta-dot bd-meta-dot-acq"></span>
+      <span class="bd-meta-lbl">소유</span>
+      <span class="bd-meta-val bd-meta-val-acq" style="color:var(--c-label);">기록하기 ›</span>
+    </div>`;
+  }
+  
+  const type = ACQ_TYPES[b.acquisition];
+  if (!type) return '';
+  
+  let valHtml = `${type.icon} ${type.label}`;
+  let sevClass = '';
+  
+  if (b.acquisition === 'purchase') {
+    // 구매: 날짜 · 구매처 · 가격
+    const parts = [];
+    if (b.acqDate) parts.push(b.acqDate.replace(/-/g, '.'));
+    if (b.acqPlace) parts.push(esc(b.acqPlace));
+    if (b.acqPrice) parts.push(`${Number(b.acqPrice).toLocaleString('ko-KR')}원`);
+    if (parts.length > 0) valHtml += ` · ${parts.join(' · ')}`;
+  } else if (b.acquisition === 'rent') {
+    // 대여: 대여처 + D-N (연체는 라벨 없이 날짜만)
+    if (b.acqPlace) valHtml += ` · ${esc(b.acqPlace)}`;
+    if (b.acqReturnDate) {
+      const dday = ddayStatus(b.acqReturnDate);
+      const dateLabel = b.acqReturnDate.replace(/-/g, '.');
+      if (dday && dday.days >= 0) {
+        // v1.x — 미래/오늘만 D-N 라벨 표시, 연체는 날짜만
+        sevClass = `sev-${dday.severity}`;
+        const ddayClass = `dday-${dday.severity}`;
+        valHtml += ` · <strong class="${ddayClass}">${dday.label}</strong> (~${dateLabel.slice(5)})`;
+      } else if (dday) {
+        // 연체: 라벨 없이 반납일만 회색으로 표시
+        valHtml += ` · ~${dateLabel.slice(5)}`;
+      }
+    }
+  } else {
+    // 소장 / 도서관: 단순 표시
+    const parts = [];
+    if (b.acqDate) parts.push(b.acqDate.replace(/-/g, '.'));
+    if (b.acqPlace) parts.push(esc(b.acqPlace));
+    if (parts.length > 0) valHtml += ` · ${parts.join(' · ')}`;
+  }
+  
+  return `<div class="bd-meta-row" onclick="openAcqSheet(${b.id})" style="cursor:pointer;">
+    <span class="bd-meta-dot bd-meta-dot-acq ${sevClass}"></span>
+    <span class="bd-meta-lbl">소유</span>
+    <span class="bd-meta-val bd-meta-val-acq">${valHtml}</span>
+  </div>`;
+}
+
+/* v1.x — 소유 편집 시트 열기 (구매/대여/소장/도서관 입력 폼) */
+function openAcqSheet(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  
+  // 시트가 이미 있으면 제거
+  const old = document.getElementById('acqSheet');
+  if (old) old.remove();
+  const oldBd = document.getElementById('acqSheetBackdrop');
+  if (oldBd) oldBd.remove();
+  
+  // 백드롭
+  const backdrop = document.createElement('div');
+  backdrop.id = 'acqSheetBackdrop';
+  backdrop.className = 'bd-backdrop acq-backdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;opacity:0;transition:opacity 0.25s ease;';
+  document.body.appendChild(backdrop);
+  
+  // 시트
+  const sheet = document.createElement('div');
+  sheet.id = 'acqSheet';
+  sheet.className = 'acq-sheet';
+  sheet.dataset.bookId = String(bookId);
+  sheet.innerHTML = _acqSheetHtml(b);
+  document.body.appendChild(sheet);
+  
+  // 애니메이션
+  void sheet.offsetHeight;
+  requestAnimationFrame(() => {
+    backdrop.style.opacity = '1';
+    sheet.classList.add('open');
+  });
+  
+  // body scroll lock
+  if (typeof lockBodyScroll === 'function') lockBodyScroll();
+  
+  // 이벤트
+  backdrop.onclick = closeAcqSheet;
+  
+  // 라디오 변경 시 폼 토글
+  sheet.querySelectorAll('input[name="acqType"]').forEach(r => {
+    r.addEventListener('change', () => _acqUpdateFormView(r.value));
+  });
+  
+  // v1.x — 초기 상태: 책에 기록 있으면 해당 폼, 없으면 '구매'로 기본 선택
+  const initType = b.acquisition || 'purchase';
+  const initRadio = sheet.querySelector(`input[name="acqType"][value="${initType}"]`);
+  if (initRadio) initRadio.checked = true;
+  _acqUpdateFormView(initType);
+  
+  // v1.x — DatePicker 초기화 (모든 .dp-wrap 이벤트 바인딩)
+  initDatePickers(sheet);
+  
+  // v1.x — 대여 기간 자동 계산 — dp:change 이벤트 기반
+  const dateWrap = sheet.querySelector('.dp-wrap[data-dp-id="acqDateR"]');
+  const retWrap = sheet.querySelector('.dp-wrap[data-dp-id="acqReturnDateR"]');
+  const durEl = sheet.querySelector('#acqDurationLbl');
+  const updateDur = () => {
+    if (!durEl || !dateWrap || !retWrap) return;
+    const dateVal = dateWrap.dataset.dpValue;
+    const retVal = retWrap.dataset.dpValue;
+    if (dateVal && retVal) {
+      const d = daysUntil(retVal, dateVal);
+      if (d !== null && d >= 0) {
+        durEl.textContent = `대여 기간: ${d}일`;
+        durEl.style.display = '';
+        return;
+      }
+    }
+    durEl.style.display = 'none';
+  };
+  if (dateWrap) dateWrap.addEventListener('dp:change', updateDur);
+  if (retWrap) retWrap.addEventListener('dp:change', updateDur);
+  updateDur();
+  
+  // 시트 바깥 클릭으로 dp 닫기 (시트 내부 다른 곳 클릭 시)
+  sheet.addEventListener('click', (e) => {
+    if (e.target.closest('.dp-wrap')) return;
+    sheet.querySelectorAll('.dp-wrap').forEach(w => _dpClose(w));
+  });
+  
+  // 쓸어내려 닫기
+  if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
+}
+
+function closeAcqSheet() {
+  const sheet = document.getElementById('acqSheet');
+  const bd = document.getElementById('acqSheetBackdrop');
+  if (!sheet) return;
+  sheet.classList.remove('open');
+  if (bd) bd.style.opacity = '0';
+  if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
+  setTimeout(() => {
+    if (sheet) sheet.remove();
+    if (bd) bd.remove();
+  }, 280);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v1.x — DatePicker (iOS 그리드 캘린더 스타일, 인라인 펼쳐짐)
+   사용:
+     <div class="dp-wrap" data-dp-id="acqDate" data-dp-value="2026-05-22" data-dp-max="2026-05-22"></div>
+   초기화:
+     initDatePickers(rootEl)   // root 안의 모든 .dp-wrap 초기화
+   값 읽기:
+     wrap.dataset.dpValue      // 'YYYY-MM-DD' or ''
+   ═══════════════════════════════════════════════════════════ */
+
+const _DP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const _DP_MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+function _dpFormatDisplay(yyyy_mm_dd) {
+  if (!yyyy_mm_dd) return '';
+  const d = new Date(yyyy_mm_dd + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const dd = d.getDate();
+  const w = _DP_WEEKDAYS[d.getDay()];
+  return `${y}년 ${m}월 ${dd}일 (${w})`;
+}
+
+function _dpPad(n) { return String(n).padStart(2, '0'); }
+
+function _dpRenderCalendar(wrap) {
+  // 현재 표시 중인 연/월 (없으면 선택값 or 오늘)
+  let viewY = parseInt(wrap.dataset.dpViewY, 10);
+  let viewM = parseInt(wrap.dataset.dpViewM, 10);
+  if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) {
+    const selVal = wrap.dataset.dpValue;
+    const base = selVal ? new Date(selVal + 'T00:00:00') : new Date();
+    viewY = base.getFullYear();
+    viewM = base.getMonth();
+    wrap.dataset.dpViewY = String(viewY);
+    wrap.dataset.dpViewM = String(viewM);
+  }
+  
+  // 제약: min/max (YYYY-MM-DD)
+  const minStr = wrap.dataset.dpMin || '';
+  const maxStr = wrap.dataset.dpMax || '';
+  
+  // 1일의 요일 + 일수
+  const firstDay = new Date(viewY, viewM, 1);
+  const firstDow = firstDay.getDay();  // 0=일
+  const lastDate = new Date(viewY, viewM + 1, 0).getDate();
+  const prevLastDate = new Date(viewY, viewM, 0).getDate();
+  
+  // 오늘 + 선택값
+  const today = new Date();
+  const todayY = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
+  const selVal = wrap.dataset.dpValue;
+  let selY = null, selM = null, selD = null;
+  if (selVal) {
+    const sd = new Date(selVal + 'T00:00:00');
+    if (!isNaN(sd.getTime())) {
+      selY = sd.getFullYear(); selM = sd.getMonth(); selD = sd.getDate();
+    }
+  }
+  
+  // 6주 그리드 = 42칸
+  let html = '';
+  // 이전 달 마지막 날들
+  for (let i = firstDow - 1; i >= 0; i--) {
+    html += `<button type="button" class="dp-cell is-other" data-d="-">${prevLastDate - i}</button>`;
+  }
+  // 이번 달
+  for (let d = 1; d <= lastDate; d++) {
+    const dow = (firstDow + d - 1) % 7;
+    const dateStr = `${viewY}-${_dpPad(viewM+1)}-${_dpPad(d)}`;
+    const isToday = (viewY === todayY && viewM === todayM && d === todayD);
+    const isSelected = (selY === viewY && selM === viewM && selD === d);
+    const isSun = (dow === 0);
+    const isDisabled = (minStr && dateStr < minStr) || (maxStr && dateStr > maxStr);
+    let cls = 'dp-cell';
+    if (isSun) cls += ' is-sun';
+    if (isToday) cls += ' is-today';
+    if (isSelected) cls += ' is-selected';
+    if (isDisabled) cls += ' is-disabled';
+    html += `<button type="button" class="${cls}" data-d="${dateStr}"${isDisabled ? ' disabled' : ''}>${d}</button>`;
+  }
+  // 다음 달 시작 (42칸 채우기)
+  const used = firstDow + lastDate;
+  const nextCount = (used <= 35) ? (35 - used) : (42 - used);
+  for (let d = 1; d <= nextCount; d++) {
+    html += `<button type="button" class="dp-cell is-other" data-d="-">${d}</button>`;
+  }
+  
+  const grid = wrap.querySelector('.dp-cal-grid');
+  if (grid) grid.innerHTML = html;
+  
+  const monthLbl = wrap.querySelector('.dp-cal-month-lbl');
+  if (monthLbl) monthLbl.textContent = `${viewY}년 ${_DP_MONTHS_KO[viewM]}`;
+}
+
+function _dpUpdateTrigger(wrap) {
+  const trigger = wrap.querySelector('.dp-trigger');
+  const label = wrap.querySelector('.dp-trigger-label');
+  if (!trigger || !label) return;
+  const val = wrap.dataset.dpValue;
+  if (val) {
+    label.textContent = _dpFormatDisplay(val);
+    trigger.classList.remove('is-empty');
+  } else {
+    label.textContent = wrap.dataset.dpPlaceholder || '날짜 선택';
+    trigger.classList.add('is-empty');
+  }
+}
+
+function _dpOpen(wrap) {
+  const cal = wrap.querySelector('.dp-cal');
+  const trigger = wrap.querySelector('.dp-trigger');
+  if (!cal || !trigger) return;
+  // 같은 시트의 다른 dp 닫기
+  const sheet = wrap.closest('.acq-sheet');
+  if (sheet) {
+    sheet.querySelectorAll('.dp-wrap').forEach(w => {
+      if (w !== wrap) _dpClose(w);
+    });
+  }
+  cal.classList.add('is-open');
+  trigger.classList.add('is-open');
+  _dpRenderCalendar(wrap);
+}
+
+function _dpClose(wrap) {
+  const cal = wrap.querySelector('.dp-cal');
+  const trigger = wrap.querySelector('.dp-trigger');
+  if (cal) cal.classList.remove('is-open');
+  if (trigger) trigger.classList.remove('is-open');
+}
+
+function _dpToggle(wrap) {
+  const cal = wrap.querySelector('.dp-cal');
+  if (!cal) return;
+  if (cal.classList.contains('is-open')) _dpClose(wrap);
+  else _dpOpen(wrap);
+}
+
+/* DatePicker HTML 생성 — _acqSheetHtml에서 사용 */
+function renderDatePicker(opts) {
+  const id = opts.id || '';
+  const value = opts.value || '';
+  const max = opts.max || '';
+  const min = opts.min || '';
+  const placeholder = opts.placeholder || '날짜 선택';
+  const showTodayShortcut = opts.todayShortcut !== false;
+  
+  return `
+    <div class="dp-wrap" 
+         data-dp-id="${esc(id)}" 
+         data-dp-value="${esc(value)}" 
+         data-dp-min="${esc(min)}" 
+         data-dp-max="${esc(max)}"
+         data-dp-placeholder="${esc(placeholder)}">
+      <button type="button" class="dp-trigger ${value ? '' : 'is-empty'}">
+        <span class="dp-trigger-label">${value ? _dpFormatDisplay(value) : esc(placeholder)}</span>
+        <span class="dp-trigger-chevron">▼</span>
+      </button>
+      <div class="dp-cal">
+        <div class="dp-cal-head">
+          <div class="dp-cal-month-lbl">—</div>
+          <div class="dp-cal-nav">
+            <button type="button" class="dp-cal-nav-btn" data-dp-nav="-1" aria-label="이전 달">‹</button>
+            <button type="button" class="dp-cal-nav-btn" data-dp-nav="1" aria-label="다음 달">›</button>
+          </div>
+        </div>
+        <div class="dp-cal-wdays">
+          <div class="dp-cal-wday is-sun">일</div>
+          <div class="dp-cal-wday">월</div>
+          <div class="dp-cal-wday">화</div>
+          <div class="dp-cal-wday">수</div>
+          <div class="dp-cal-wday">목</div>
+          <div class="dp-cal-wday">금</div>
+          <div class="dp-cal-wday is-sat">토</div>
+        </div>
+        <div class="dp-cal-grid"></div>
+        ${showTodayShortcut ? `
+        <div class="dp-cal-shortcut">
+          <button type="button" class="dp-cal-shortcut-btn" data-dp-today>오늘로</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+/* DatePicker 이벤트 바인딩 — root 안의 모든 .dp-wrap 초기화 */
+function initDatePickers(root) {
+  if (!root) return;
+  root.querySelectorAll('.dp-wrap').forEach(wrap => {
+    // 트리거 클릭 → 토글
+    const trigger = wrap.querySelector('.dp-trigger');
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        _dpToggle(wrap);
+      });
+    }
+    
+    // 월 이동
+    wrap.querySelectorAll('[data-dp-nav]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const delta = parseInt(btn.dataset.dpNav, 10) || 0;
+        let viewY = parseInt(wrap.dataset.dpViewY, 10);
+        let viewM = parseInt(wrap.dataset.dpViewM, 10);
+        if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) return;
+        viewM += delta;
+        while (viewM < 0) { viewM += 12; viewY--; }
+        while (viewM > 11) { viewM -= 12; viewY++; }
+        wrap.dataset.dpViewY = String(viewY);
+        wrap.dataset.dpViewM = String(viewM);
+        _dpRenderCalendar(wrap);
+      });
+    });
+    
+    // 날짜 셀 클릭 (이벤트 위임)
+    const grid = wrap.querySelector('.dp-cal-grid');
+    if (grid) {
+      grid.addEventListener('click', (e) => {
+        const cell = e.target.closest('.dp-cell');
+        if (!cell) return;
+        if (cell.disabled || cell.classList.contains('is-disabled')) return;
+        const dateStr = cell.dataset.d;
+        if (!dateStr || dateStr === '-') return;
+        wrap.dataset.dpValue = dateStr;
+        _dpUpdateTrigger(wrap);
+        _dpRenderCalendar(wrap);
+        // 약간 딜레이 후 닫기 (선택 피드백 보여줌)
+        setTimeout(() => _dpClose(wrap), 180);
+        // 변경 이벤트 발생 — 대여 기간 자동 계산 등 listener 트리거
+        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
+      });
+    }
+    
+    // "오늘로"
+    const todayBtn = wrap.querySelector('[data-dp-today]');
+    if (todayBtn) {
+      todayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}-${_dpPad(today.getMonth()+1)}-${_dpPad(today.getDate())}`;
+        // min/max 검증
+        const minStr = wrap.dataset.dpMin || '';
+        const maxStr = wrap.dataset.dpMax || '';
+        if ((minStr && dateStr < minStr) || (maxStr && dateStr > maxStr)) return;
+        wrap.dataset.dpValue = dateStr;
+        wrap.dataset.dpViewY = String(today.getFullYear());
+        wrap.dataset.dpViewM = String(today.getMonth());
+        _dpUpdateTrigger(wrap);
+        _dpRenderCalendar(wrap);
+        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
+        setTimeout(() => _dpClose(wrap), 180);
+      });
+    }
+  });
+}
+
+/* DatePicker 값 읽기 (편의 함수) */
+function getDatePickerValue(root, dpId) {
+  if (!root) return '';
+  const wrap = root.querySelector(`.dp-wrap[data-dp-id="${dpId}"]`);
+  return wrap ? (wrap.dataset.dpValue || '') : '';
+}
+
+function _acqSheetHtml(b) {
+  const acq = b.acquisition || '';
+  const escVal = (v) => v ? esc(String(v)) : '';
+  const today = _todayStr();
+  return `
+    <div class="acq-sheet-handle"></div>
+    <div class="acq-sheet-head">
+      <div class="acq-sheet-title">소유 기록</div>
+      <button class="acq-sheet-close" onclick="closeAcqSheet()" aria-label="닫기">✕</button>
+    </div>
+    <div class="acq-sheet-body">
+      <!-- 타입 라디오 -->
+      <div class="acq-type-grid">
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="purchase" ${acq==='purchase'?'checked':''}><span>🛒 구매</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="rent" ${acq==='rent'?'checked':''}><span>📚 대여</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="own" ${acq==='own'?'checked':''}><span>📖 소장</span></label>
+      </div>
+      
+      <!-- 구매 폼 -->
+      <div class="acq-form" id="acqForm-purchase" style="display:none;">
+        <div class="acq-field">
+          <span class="acq-field-lbl">구매일</span>
+          ${renderDatePicker({ id: 'acqDateP', value: b.acqDate || '', max: today, placeholder: '날짜 선택' })}
+        </div>
+        <label class="acq-field">
+          <span class="acq-field-lbl">구매처</span>
+          <input type="text" class="acq-input" id="acqPlaceInputP" value="${escVal(b.acqPlace)}" placeholder="예: 교보문고 광화문점" maxlength="40">
+        </label>
+        <label class="acq-field">
+          <span class="acq-field-lbl">가격 (원)</span>
+          <input type="number" class="acq-input" id="acqPriceInput" value="${b.acqPrice || ''}" placeholder="18000" min="0" max="9999999" inputmode="numeric">
+        </label>
+      </div>
+      
+      <!-- 대여 폼 -->
+      <div class="acq-form" id="acqForm-rent" style="display:none;">
+        <div class="acq-field">
+          <span class="acq-field-lbl">대여일</span>
+          ${renderDatePicker({ id: 'acqDateR', value: b.acqDate || '', placeholder: '날짜 선택' })}
+        </div>
+        <div class="acq-field">
+          <span class="acq-field-lbl">반납 예정일</span>
+          ${renderDatePicker({ id: 'acqReturnDateR', value: b.acqReturnDate || '', placeholder: '날짜 선택' })}
+        </div>
+        <div class="acq-duration-lbl" id="acqDurationLbl" style="display:none;"></div>
+        <label class="acq-field">
+          <span class="acq-field-lbl">대여처</span>
+          <input type="text" class="acq-input" id="acqPlaceInputR" value="${escVal(b.acqPlace)}" placeholder="예: 광화문 도서관" maxlength="40">
+        </label>
+      </div>
+      
+      <!-- 소장 폼 -->
+      <div class="acq-form" id="acqForm-own" style="display:none;">
+        <div class="acq-field">
+          <span class="acq-field-lbl">소장일 (선택)</span>
+          ${renderDatePicker({ id: 'acqDateO', value: b.acqDate || '', max: today, placeholder: '날짜 선택' })}
+        </div>
+        <label class="acq-field">
+          <span class="acq-field-lbl">출처 (선택)</span>
+          <input type="text" class="acq-input" id="acqPlaceInputO" value="${escVal(b.acqPlace)}" placeholder="예: 선물 받음" maxlength="40">
+        </label>
+      </div>
+      
+      <!-- 메모 (공통) -->
+      <label class="acq-field acq-field-memo">
+        <span class="acq-field-lbl">메모 (선택)</span>
+        <textarea class="acq-input acq-textarea" id="acqMemoInput" rows="2" maxlength="120" placeholder="예: 선물 받음 · 사인본">${escVal(b.acqMemo)}</textarea>
+      </label>
+    </div>
+    
+    <div class="acq-sheet-footer">
+      ${acq ? `<button class="acq-btn acq-btn-clear" onclick="clearAcq(${b.id})">기록 삭제</button>` : '<div></div>'}
+      <button class="acq-btn acq-btn-save" onclick="saveAcq(${b.id})">저장</button>
+    </div>
+  `;
+}
+
+function _acqUpdateFormView(type) {
+  ['purchase','rent','own'].forEach(t => {
+    const f = document.getElementById('acqForm-' + t);
+    if (f) f.style.display = (t === type) ? '' : 'none';
+  });
+}
+
+function saveAcq(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  const sheet = document.getElementById('acqSheet');
+  if (!sheet) return;
+  
+  const typeRadio = sheet.querySelector('input[name="acqType"]:checked');
+  if (!typeRadio) {
+    try { showToast('소유 형태를 선택해주세요'); } catch(e){}
+    return;
+  }
+  const type = typeRadio.value;
+  
+  // 폼별 데이터 수집 — v1.x DatePicker 사용 (getDatePickerValue)
+  let acqDate = '', acqPlace = '', acqPrice = null, acqReturnDate = '';
+  
+  if (type === 'purchase') {
+    acqDate = getDatePickerValue(sheet, 'acqDateP');
+    acqPlace = (sheet.querySelector('#acqPlaceInputP')?.value || '').trim();
+    const p = parseInt(sheet.querySelector('#acqPriceInput')?.value || '', 10);
+    acqPrice = Number.isFinite(p) && p > 0 ? p : null;
+  } else if (type === 'rent') {
+    acqDate = getDatePickerValue(sheet, 'acqDateR');
+    acqReturnDate = getDatePickerValue(sheet, 'acqReturnDateR');
+    acqPlace = (sheet.querySelector('#acqPlaceInputR')?.value || '').trim();
+    // 반납일 < 대여일 검증
+    if (acqDate && acqReturnDate) {
+      const d = daysUntil(acqReturnDate, acqDate);
+      if (d !== null && d < 0) {
+        try { showToast('반납 예정일은 대여일 이후여야 합니다'); } catch(e){}
+        return;
+      }
+    }
+  } else if (type === 'own') {
+    acqDate = getDatePickerValue(sheet, 'acqDateO');
+    acqPlace = (sheet.querySelector('#acqPlaceInputO')?.value || '').trim();
+  }
+  
+  const acqMemo = (sheet.querySelector('#acqMemoInput')?.value || '').trim();
+  
+  // 책 업데이트 — updateBook 사용 (BD.book 참조 자동 갱신 + 모든 렌더 호출)
+  updateBook(bookId, {
+    acquisition: type,
+    acqDate: acqDate || null,
+    acqPlace: acqPlace || null,
+    acqPrice: acqPrice,
+    acqReturnDate: acqReturnDate || null,
+    acqMemo: acqMemo || null,
+  });
+  
+  // 책 상세 모달 갱신 (열려있으면)
+  try {
+    if (typeof renderBookDetail === 'function' && BD.book) {
+      renderBookDetail(BD.book);
+    }
+  } catch(e){}
+  
+  try { showToast('소유 기록이 저장되었어요'); } catch(e){}
+  closeAcqSheet();
+}
+
+function clearAcq(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  if (!confirm('소유 기록을 삭제할까요?')) return;
+  
+  // updateBook은 partial merge라 null로 덮어쓰면 키는 남음 — 직접 제거 + STORE 갱신
+  delete b.acquisition;
+  delete b.acqDate;
+  delete b.acqPlace;
+  delete b.acqPrice;
+  delete b.acqReturnDate;
+  delete b.acqMemo;
+  
+  try { STORE.set('books', BOOKS); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+  try { renderLibraryCards(); } catch(e){}
+  try {
+    if (typeof renderBookDetail === 'function' && BD.book) {
+      renderBookDetail(BD.book);
+    }
+  } catch(e){}
+  
+  try { showToast('기록이 삭제되었어요'); } catch(e){}
+  closeAcqSheet();
+}
+
+
 /* 올해/이번달 완독 수 계산 (renderAnnualLedger 패턴 재사용) */
 function countFinishedThisYear() {
   if (!Array.isArray(BOOKS)) return 0;
@@ -32741,8 +33949,55 @@ function renderAllStats() {
   try { renderTasteInsight();     } catch(e) { console.error('[taste]', e); }
   try { renderDropStatCard();     } catch(e) { console.error('[drop-stat]', e); }
   try { renderCategoryStats();    } catch(e) { console.error('[cat-stat]', e); }
+  try { renderRentStatCard();     } catch(e) { console.error('[rent-stat]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
+}
+
+/* v1.x — 곧 반납할 책 카드 (통계 탭, B 시안)
+   - 대여 중인 책 1권 이상이면 노출, 0권이면 카드 자체 숨김
+   - severity 정렬: overdue → urgent → warning → normal */
+function renderRentStatCard() {
+  const card = document.getElementById('rentStatCard');
+  const list = document.getElementById('rentStatList');
+  const sub = document.getElementById('rentStatSub');
+  if (!card || !list) return;
+  
+  const items = getActiveRentBooks();
+  
+  if (items.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  
+  card.style.display = '';
+  if (sub) sub.textContent = `대여 중 ${items.length}권`;
+  
+  const PALETTE_DARK_LOCAL = (typeof PALETTE_DARK !== 'undefined') ? PALETTE_DARK : {};
+  
+  list.innerHTML = items.map(({ book: b, dday }) => {
+    const sev = dday.severity;
+    const palColor = PALETTE_DARK_LOCAL[b.palette] || '#64748b';
+    const coverStyle = b.coverUrl
+      ? `background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;`
+      : `background:${palColor};`;
+    const returnDateLabel = b.acqReturnDate
+      ? b.acqReturnDate.replace(/-/g, '.').slice(5) + '까지'
+      : '';
+    const placeLabel = b.acqPlace ? esc(b.acqPlace) : '대여';
+    const metaLine = b.acqReturnDate
+      ? `${placeLabel} · ${returnDateLabel}`
+      : placeLabel;
+    return `
+      <div class="rent-stat-item sev-${sev}" data-book-id="${b.id}" onclick="openBookDetail(${b.id})">
+        <div class="rent-stat-cover" style="${coverStyle}"></div>
+        <div class="rent-stat-info">
+          <div class="rent-stat-book-title">${esc(b.title)}</div>
+          <div class="rent-stat-book-meta">${metaLine}</div>
+        </div>
+        <div class="rent-stat-dday sev-${sev}">${dday.label}</div>
+      </div>`;
+  }).join('');
 }
 
 /* v1.0.1 — 분류별 정리 (장르 + 논픽션 권수 랭킹, 상위 5 + 더보기) */
@@ -35374,6 +36629,19 @@ function _bfCalcEquivalents(amount) {
   })).filter(it => it.count > 0);
 }
 
+/* v1.x — 책의 "실효 가격" 헬퍼 (Bookflex 등 책장 가치 계산에 사용)
+   우선순위: acqPrice (사용자가 실제 지불) > priceSales (정가/판매가 fallback)
+   "책장 가치"는 정가가 아니라 사용자가 실제 쓴 돈의 합이라는 정책 */
+function getEffectivePrice(b) {
+  if (!b) return 0;
+  if (typeof b.acqPrice === 'number' && b.acqPrice > 0) return b.acqPrice;
+  if (typeof b.priceSales === 'number' && b.priceSales > 0) return b.priceSales;
+  return 0;
+}
+function hasEffectivePrice(b) {
+  return getEffectivePrice(b) > 0;
+}
+
 function _calcSpend(year) {
   // v1.x — year 파라미터: null/undefined면 전체, 숫자면 그 연도에 dateEnd 있는 책만
   const allDone = (BOOKS || []).filter(b => b.status === 'done');
@@ -35391,8 +36659,9 @@ function _calcSpend(year) {
   });
 
   function aggregate(books) {
-    const withPrice = books.filter(b => typeof b.priceSales === 'number' && b.priceSales > 0);
-    const total = withPrice.reduce((s, b) => s + (b.priceSales || 0), 0);
+    // v1.x — acqPrice 우선, priceSales fallback (getEffectivePrice)
+    const withPrice = books.filter(hasEffectivePrice);
+    const total = withPrice.reduce((s, b) => s + getEffectivePrice(b), 0);
     return { count: books.length, registered: withPrice.length, total };
   }
 
@@ -35403,8 +36672,9 @@ function _calcSpend(year) {
   const grandCount = paper.count + ebook.count + audio.count;
   const grandRegistered = paper.registered + ebook.registered + audio.registered;
 
-  const priced = all.filter(b => typeof b.priceSales === 'number' && b.priceSales > 0);
-  priced.sort((a, b) => b.priceSales - a.priceSales);
+  // v1.x — highest/lowest도 실효 가격 기준
+  const priced = all.filter(hasEffectivePrice);
+  priced.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a));
   const highest = priced[0] || null;
   const lowest  = priced[priced.length - 1] || null;
 
@@ -35493,14 +36763,17 @@ function _renderSpendBookRow(b, rank) {
   const editList = list != null ? list.toLocaleString('ko-KR') : '';
   const editSale = sale != null ? sale.toLocaleString('ko-KR') : '';
 
-  const priceHtml = (sale != null)
-    ? '<div class="sp-row-price">\u20A9' + sale.toLocaleString('ko-KR') + '</div>'
+  // v1.x — 표시는 effective 가격 (acqPrice 우선, priceSales fallback)
+  const effective = getEffectivePrice(b);
+  const isAcqBased = (typeof b.acqPrice === 'number' && b.acqPrice > 0);
+  const priceHtml = (effective > 0)
+    ? '<div class="sp-row-price' + (isAcqBased ? ' acq-based' : '') + '">\u20A9' + effective.toLocaleString('ko-KR') + '</div>'
     : '<div class="sp-row-price empty">빈칸</div>';
 
   // v1.10.0 — rank 번호 (1위는 골드, 가격 미입력은 muted)
   const rankNum = (typeof rank === 'number' && rank > 0) ? rank : 0;
   let rankCls = '';
-  if (sale == null) rankCls = ' muted';
+  if (effective <= 0) rankCls = ' muted';
   else if (rankNum === 1) rankCls = ' gold';
   const rankStr = rankNum > 0 ? String(rankNum).padStart(2, '0') : '—';
   const rankHtml = '<div class="sp-row-rank' + rankCls + '">' + rankStr + '</div>';
@@ -35682,7 +36955,7 @@ function _renderSpendModal() {
     highestHtml =
       '<div class="sp-detail-card">' +
         '<div class="sp-detail-card-label">가장 두꺼웠던</div>' +
-        '<div class="sp-detail-card-val">\u20A9' + s.highest.priceSales.toLocaleString('ko-KR') + '</div>' +
+        '<div class="sp-detail-card-val">\u20A9' + getEffectivePrice(s.highest).toLocaleString('ko-KR') + '</div>' +
         '<div class="sp-detail-card-sub">' + _spEsc(s.highest.title) + '</div>' +
       '</div>';
   }
@@ -35690,7 +36963,7 @@ function _renderSpendModal() {
     lowestHtml =
       '<div class="sp-detail-card">' +
         '<div class="sp-detail-card-label">가장 가벼웠던</div>' +
-        '<div class="sp-detail-card-val">\u20A9' + s.lowest.priceSales.toLocaleString('ko-KR') + '</div>' +
+        '<div class="sp-detail-card-val">\u20A9' + getEffectivePrice(s.lowest).toLocaleString('ko-KR') + '</div>' +
         '<div class="sp-detail-card-sub">' + _spEsc(s.lowest.title) + '</div>' +
       '</div>';
   }
@@ -35814,10 +37087,10 @@ function _renderSpendModal() {
       });
 
       const priced = eligible
-        .filter(function(b) { return typeof b.priceSales === 'number' && b.priceSales > 0; })
-        .sort(function(a, b) { return b.priceSales - a.priceSales; });
+        .filter(hasEffectivePrice)
+        .sort(function(a, b) { return getEffectivePrice(b) - getEffectivePrice(a); });
       const empty = eligible
-        .filter(function(b) { return !(typeof b.priceSales === 'number' && b.priceSales > 0); });
+        .filter(function(b) { return !hasEffectivePrice(b); });
       const allBooks = priced.concat(empty);
 
       const fmtIcon = fmt === 'paper' ? '\uD83D\uDCD5' : fmt === 'ebook' ? '\uD83D\uDCF1' : fmt === 'audio' ? '\uD83C\uDFA7' : '';
