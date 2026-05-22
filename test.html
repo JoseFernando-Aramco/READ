@@ -9,6 +9,25 @@
 <meta name="apple-mobile-web-app-title" content="keepbook">
 <meta name="theme-color" content="#5A7A3C">
 
+<!-- v1.0.1 — 공유 미리보기 메타 태그 (네이버 카페, 카톡, 페북, 디스코드 등) -->
+<meta name="description" content="읽은 책, 읽고 있는 책, 읽고 싶은 책. 조용히 기록하는 독서 일기.">
+<!-- Open Graph (페북, 카톡, 네이버 카페, 디스코드 공통) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="keepbook — 독서기록">
+<meta property="og:description" content="읽은 책, 읽고 있는 책, 읽고 싶은 책. 조용히 기록하는 독서 일기.">
+<meta property="og:image" content="https://josefernando-aramco.github.io/READ/icons/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="keepbook — Keep Reading. Keep your Books.">
+<meta property="og:url" content="https://josefernando-aramco.github.io/READ/">
+<meta property="og:site_name" content="keepbook">
+<meta property="og:locale" content="ko_KR">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="keepbook — 독서기록">
+<meta name="twitter:description" content="읽은 책, 읽고 있는 책, 읽고 싶은 책. 조용히 기록하는 독서 일기.">
+<meta name="twitter:image" content="https://josefernando-aramco.github.io/READ/icons/og-image.png">
+
 <!-- PWA: 아이콘 + Manifest -->
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -1202,6 +1221,13 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* ─── 편집 모드 (다중 선택 → 상태 이동) ─── */
 .lib-cat-tabs-wrap {
+  /* v1.0.1 — 카테고리 탭(위시/독서중/완독/하차) sticky 고정
+     상위 탭 바(.tab-bar)가 top: calc(68px + safe-area)에 sticky 되어있고 높이 ~50px
+     → 그 직후에 붙도록 top: calc(118px + safe-area) */
+  position: sticky;
+  top: calc(118px + env(safe-area-inset-top, 0px));
+  z-index: 40;
+  background: var(--c-canvas);
   display: flex;
   align-items: stretch;
   gap: 6px;
@@ -1230,6 +1256,53 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .lib-cat-edit-btn:hover {
   background: var(--c-border);
   color: var(--c-text);
+}
+
+/* v1.0.1 — 플로팅 편집 버튼 (스크롤 시 편집 버튼이 viewport 밖으로 나가면 노출) */
+/* v1.0.1 — 플로팅 편집 버튼 wrapper (앱 영역 480px 안 우측 정렬) */
+.lib-edit-fab-wrap {
+  position: fixed;
+  top: calc(132px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 448px;  /* 480px - 좌우 16px씩 여백 */
+  display: flex;
+  justify-content: flex-end;
+  z-index: 100;
+  pointer-events: none;
+}
+.lib-edit-fab {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #15110D;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(21, 17, 13, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.lib-edit-fab.visible {
+  opacity: 0.92;
+  pointer-events: auto;
+}
+.lib-edit-fab.visible:hover {
+  opacity: 1;
+}
+.lib-edit-fab:active {
+  opacity: 1;
+}
+.lib-edit-fab .ic {
+  width: 16px;
+  height: 16px;
 }
 .lib-cat-editing-banner {
   display: flex;
@@ -2397,10 +2470,65 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .annual-hero-pace {
   position: relative;
-  font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,0.95);
+  font-size: 12px; font-weight: 600;
+  color: #FFB87A;  /* v1.0.1 — 오렌지 (연속독서일 fill과 같은 톤) */
   letter-spacing: -0.01em;
   line-height: 1.45;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.1);  /* v1.0.1 — 구분선 */
+}
+
+/* v1.0.1 — D 시안 (책 + 연속 동등 컴팩트) */
+.annual-hero-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.annual-hero-row .annual-hero-num {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.annual-hero-row-icon {
+  font-size: 14px;
+  margin-right: 2px;
+}
+.annual-hero-row-target {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: -0.01em;
+}
+.annual-hero-row-right {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: -0.01em;
+}
+.annual-hero-row-right strong {
+  color: #fff;
+  font-weight: 700;
+}
+/* 연속 row 색상 — 미세하게 따뜻한 톤 강조 (선택) */
+.annual-hero-row-streak {
+  margin-top: 4px;
+}
+.annual-hero-streak-fill {
+  background: #FFB87A;  /* 부드러운 오렌지 — 🔥 톤 */
+  box-shadow: 0 0 8px rgba(255, 184, 122, 0.4);
+}
+
+/* v1.0.1 — strip 단일 아이템 (이번달만 남았을 때) */
+.goal-strip-item-full {
+  flex: 1;
+  border-right: none;
 }
 
 /* ── 이번 달 목표 카드 ── */
@@ -2506,6 +2634,260 @@ body:has(.lib-edit-bar) .library-cards {
   background: var(--c-border);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   v1.x — 도서 대여 반납 알림
+   ═══════════════════════════════════════════════════════════ */
+/* 서재 상단 알림 바 (지금 읽는 책 블록 아래) — B 시안 */
+.return-alert-bar {
+  margin-top: 8px;
+  background: #FCEBEB;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.return-alert-bar:active { background: #F7C1C1; }
+.return-alert-bar-icon { font-size: 14px; flex-shrink: 0; }
+.return-alert-bar-text { color: var(--c-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.return-alert-bar-text strong { color: #E24B4A; font-weight: 700; }
+.return-alert-bar-chevron { color: #999; font-size: 11px; flex-shrink: 0; }
+
+/* 통계 탭 — 곧 반납할 책 카드 */
+.rent-stat-card {
+  background: var(--c-surface);
+  border-radius: 14px;
+  padding: 18px 16px;
+  border: 0.5px solid var(--c-border);
+  margin-bottom: 16px;
+}
+.rent-stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.rent-stat-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.rent-stat-sub {
+  font-size: 11.5px;
+  color: var(--c-label);
+}
+.rent-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rent-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.rent-stat-item:active { opacity: 0.7; }
+.rent-stat-item.sev-overdue { background: #FCEBEB; border-left: 3px solid #B91C1C; }
+.rent-stat-item.sev-urgent  { background: #FCEBEB; border-left: 3px solid #E24B4A; }
+.rent-stat-item.sev-warning { background: #FAEEDA; border-left: 3px solid #FFB87A; }
+.rent-stat-item.sev-normal  { background: var(--c-canvas); }
+.rent-stat-cover {
+  width: 30px; height: 42px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+}
+.rent-stat-info { flex: 1; min-width: 0; }
+.rent-stat-book-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rent-stat-book-meta {
+  font-size: 10px;
+  color: var(--c-label);
+  margin-top: 2px;
+}
+.rent-stat-dday {
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.rent-stat-dday.sev-overdue { color: #B91C1C; }
+.rent-stat-dday.sev-urgent  { color: #E24B4A; }
+.rent-stat-dday.sev-warning { color: #b87530; }
+.rent-stat-dday.sev-normal  { color: var(--c-label); }
+
+/* 책 상세 메타 row — 소유 (D-N 라벨 포함) */
+.bd-meta-row .bd-meta-dot-acq { background: #888; }
+.bd-meta-row .bd-meta-dot-acq.sev-overdue,
+.bd-meta-row .bd-meta-dot-acq.sev-urgent { background: #E24B4A; }
+.bd-meta-row .bd-meta-dot-acq.sev-warning { background: #FFB87A; }
+.bd-meta-val-acq strong.dday-overdue,
+.bd-meta-val-acq strong.dday-urgent  { color: #E24B4A; font-weight: 700; }
+.bd-meta-val-acq strong.dday-warning { color: #b87530; font-weight: 700; }
+.bd-meta-acq-empty { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bd-meta-acq-empty:active { opacity: 0.6; }
+
+/* v1.x — 소유 편집 시트 (구매/대여/소장/도서관 입력) */
+.acq-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-surface);
+  border-radius: 18px 18px 0 0;
+  z-index: 9999;
+  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.acq-sheet.open { transform: translateX(-50%) translateY(0); }
+.acq-sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.acq-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 8px;
+  flex-shrink: 0;
+}
+.acq-sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
+.acq-sheet-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--c-label);
+  cursor: pointer;
+  padding: 4px 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.acq-sheet-body {
+  padding: 8px 20px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.acq-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.acq-type-opt {
+  display: block;
+  padding: 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.acq-type-opt input[type="radio"] { display: none; }
+.acq-type-opt span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+.acq-type-opt:has(input:checked) {
+  background: var(--c-text);
+  border-color: var(--c-text);
+}
+.acq-type-opt:has(input:checked) span { color: var(--c-canvas); }
+.acq-form { display: flex; flex-direction: column; gap: 12px; }
+.acq-field { display: block; }
+.acq-field-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-bottom: 5px;
+  letter-spacing: -0.01em;
+}
+.acq-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--c-text);
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.acq-input:focus {
+  outline: none;
+  border-color: var(--c-text);
+}
+.acq-textarea {
+  resize: none;
+  line-height: 1.4;
+}
+.acq-duration-lbl {
+  font-size: 12px;
+  color: #888;
+  padding: 4px 0;
+}
+.acq-field-memo { margin-top: 14px; }
+.acq-sheet-footer {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px 20px;
+  border-top: 0.5px solid var(--c-border);
+  flex-shrink: 0;
+}
+.acq-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+.acq-btn-clear {
+  background: var(--c-canvas);
+  color: #E24B4A;
+  border: 1px solid var(--c-border);
+}
+.acq-btn-save {
+  background: var(--c-text);
+  color: var(--c-canvas);
+}
+.acq-btn:active { opacity: 0.7; }
+
 /* ── 독서 캘린더 (히트맵 · 월 라벨 포함) ── */
 .heatmap-card {
   background: var(--c-surface);
@@ -2557,11 +2939,52 @@ body:has(.lib-edit-bar) .library-cards {
   border-radius: 3px;
   background: var(--c-border);
 }
-/* 테마 연동: 모든 단계가 --primary 기반으로 파생 */
-.hm-cell.lv1 { background: color-mix(in srgb, var(--primary) 22%, var(--c-surface)); }
-.hm-cell.lv2 { background: color-mix(in srgb, var(--primary) 52%, var(--c-surface)); }
-.hm-cell.lv3 { background: var(--primary); }
-.hm-cell.lv4 { background: color-mix(in srgb, var(--primary) 70%, var(--c-text)); }
+/* v1.0.1 — 계절별 색상 (가을 브라운 / 겨울 블루 / 봄 핑크 / 여름 그린)
+   data-season="spring|summer|autumn|winter" + lv1/lv2/lv3/lv4 조합 */
+.hm-cell[data-season="autumn"].lv1 { background: #F0E5DA; }
+.hm-cell[data-season="autumn"].lv2 { background: #D8B895; }
+.hm-cell[data-season="autumn"].lv3 { background: #C2956E; }
+.hm-cell[data-season="autumn"].lv4 { background: #9E7548; }
+.hm-cell[data-season="winter"].lv1 { background: #E4ECF2; }
+.hm-cell[data-season="winter"].lv2 { background: #A8BFD0; }
+.hm-cell[data-season="winter"].lv3 { background: #5A7A99; }
+.hm-cell[data-season="winter"].lv4 { background: #3D5A78; }
+.hm-cell[data-season="spring"].lv1 { background: #F5E0E6; }
+.hm-cell[data-season="spring"].lv2 { background: #E0A8BA; }
+.hm-cell[data-season="spring"].lv3 { background: #D88FA5; }
+.hm-cell[data-season="spring"].lv4 { background: #A6677F; }
+.hm-cell[data-season="summer"].lv1 { background: #DCEDE5; }
+.hm-cell[data-season="summer"].lv2 { background: #A0CFBE; }
+.hm-cell[data-season="summer"].lv3 { background: #5A8C7C; }
+.hm-cell[data-season="summer"].lv4 { background: #3A6655; }
+/* v1.0.1 — 독서 메트릭 박스 (스트릭/최장/독서율) */
+.heatmap-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+}
+.heatmap-metric {
+  text-align: center;
+}
+.heatmap-metric + .heatmap-metric {
+  border-left: 0.5px solid var(--c-border);
+}
+.heatmap-metric-lbl {
+  font-size: 11px;
+  color: var(--c-label);
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.heatmap-metric-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+}
 .heatmap-foot {
   display: flex; justify-content: flex-start; align-items: center;
   margin-top: 14px; padding-top: 12px;
@@ -6769,6 +7192,7 @@ body:has(.lib-edit-bar) .library-cards {
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
   box-shadow: 0 -10px 40px rgba(25,31,40,.18);
   pointer-events: none;
+  will-change: transform; /* v1.0.1 — GPU 레이어 사전 준비 (모바일 부드러움) */
 }
 .bd-sheet.open { transform: translate(-50%, 0); pointer-events: auto; }
 
@@ -8244,6 +8668,42 @@ body:has(.lib-edit-bar) .library-cards {
   border-bottom: 1px solid var(--c-border);
 }
 .bd-section:last-child { border-bottom: none; }
+
+/* v1.12.0 — 위시 상태 태그 표시 전용 (편집 X, 보기만) */
+.bd-tag-readonly-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bd-tag-readonly-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--c-bg-2, #f5f3ed);
+  color: var(--c-text);
+  border: 0.5px solid var(--c-border);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.bd-tag-readonly-empty {
+  font-size: 12px;
+  color: var(--c-text-2);
+  font-style: italic;
+  padding: 2px 0;
+}
+/* v1.12.0 — 독서중/완독 모달의 태그 요약 (편집 패널 위에 항상 표시) */
+.bd-tag-summary {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  background: var(--c-bg-2, #f5f3ed);
+  border-radius: 8px;
+}
+.bd-tag-summary .bd-tag-readonly-chip {
+  background: var(--c-bg, #fff);
+}
 .bd-section-lbl {
   font-family: inherit;
   font-size: 11px; font-weight: 700;
@@ -9356,6 +9816,139 @@ body:has(.lib-edit-bar) .library-cards {
 .bf-btn-primary:disabled {
   opacity: .4;
   cursor: not-allowed;
+}
+
+/* v1.0.1 — 동기화 충돌 모달 */
+.sc-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 17, 23, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 220;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.sc-backdrop.open { opacity: 1; pointer-events: auto; }
+.sc-modal {
+  position: fixed; inset: 0;
+  z-index: 230;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.sc-modal.open { opacity: 1; pointer-events: auto; }
+.sc-card {
+  background: var(--c-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: scale(.94);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  padding: 20px 18px 18px;
+}
+.sc-modal.open .sc-card { transform: scale(1); }
+.sc-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.sc-head .sc-icn {
+  font-size: 18px;
+  color: #BA7517;
+  line-height: 1;
+}
+.sc-head .sc-ttl {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0;
+}
+.sc-desc {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+.sc-cards {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.sc-side {
+  flex: 1;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+  padding: 12px 10px;
+}
+.sc-side-hdr {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px;
+  color: var(--c-label);
+  margin-bottom: 10px;
+}
+.sc-side-main {
+  display: flex; align-items: baseline; gap: 4px;
+  margin-bottom: 10px;
+}
+.sc-side-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1;
+}
+.sc-side-num.muted { color: var(--c-text-2); }
+.sc-side-unit {
+  font-size: 11px;
+  color: var(--c-label);
+}
+.sc-side-diff {
+  font-size: 11px;
+  font-weight: 700;
+  color: #639922;
+  margin-left: 2px;
+}
+.sc-side-rows {
+  font-size: 11px;
+  color: var(--c-text-2);
+  line-height: 1.7;
+}
+.sc-side-row { display: flex; align-items: center; gap: 4px; }
+.sc-side-row .up { color: #639922; font-weight: 700; }
+.sc-time {
+  font-size: 11px;
+  color: var(--c-label);
+  text-align: center;
+  margin: 0 0 14px;
+}
+.sc-actions {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sc-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.sc-btn-primary {
+  background: var(--c-text);
+  color: #fff;
+}
+.sc-btn-secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 0.5px solid var(--c-border-2);
+}
+.sc-btn-ghost {
+  background: transparent;
+  color: var(--c-label);
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px;
 }
 
 /* v1.10.0 Phase 5 — 책 상세 "책 정보 검색" pill 버튼 */
@@ -14882,6 +15475,110 @@ body.cn-locked {
   color: #3D2F00;
 }
 
+/* v1.0.1 — 분류 통계 카드 (장르/논픽션 권수 랭킹, 산책 앱 스타일) */
+.cat-stat-list {
+  margin-top: 4px;
+}
+.cat-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-top: 0.5px solid var(--c-border);
+  cursor: pointer;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-stat-row:first-child {
+  border-top: none;
+}
+.cat-stat-row:hover {
+  background: var(--c-surface-2);
+}
+.cat-stat-row:active {
+  background: var(--c-border);
+}
+.cat-stat-cover {
+  width: 36px;
+  height: 50px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--c-surface-2);
+  background-size: cover;
+  background-position: center;
+  border: 0.5px solid var(--c-border);
+}
+.cat-stat-cover-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--c-muted);
+}
+.cat-stat-rank {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-muted);
+  width: 24px;
+  flex-shrink: 0;
+}
+.cat-stat-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-stat-cnt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.cat-stat-arrow {
+  font-size: 14px;
+  color: var(--c-border);
+  flex-shrink: 0;
+}
+.cat-stat-empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.cat-stat-more {
+  width: 100%;
+  padding: 12px 4px;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  border-top: 0.5px solid var(--c-border);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--c-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: background .12s, color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-stat-more:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.cat-stat-more:active {
+  background: var(--c-border);
+}
+
 /* ═══════════════════════════════════════════════════════════
    v1.8.0 — 종이값 (책에 들인 돈) 시트
    매체 무관 합산 · 동전 골드 톤 · 알라딘 자동 + 수동 편집
@@ -17329,6 +18026,17 @@ body.cn-locked {
       <span class="fold-arrow arrow-right">›</span>
     </button>
 
+    <!-- v1.x — 곧 반납할 책 (대여 책이 1권 이상 있을 때만 노출, JS에서 display 토글) -->
+    <div class="rent-stat-card" id="rentStatCard" style="display:none;">
+      <div class="rent-stat-head">
+        <div class="rent-stat-title">곧 반납할 책</div>
+        <div class="rent-stat-sub" id="rentStatSub">—</div>
+      </div>
+      <div class="rent-stat-list" id="rentStatList">
+        <!-- JS 렌더 · renderRentStatCard() -->
+      </div>
+    </div>
+
     <!-- ═══ V2 시안 B: 활동 카드 (이번달 캘린더 + 월별 + 요일별) ═══ -->
     <div class="stat-card-v2">
       <div class="stat-card-v2-head">
@@ -17369,6 +18077,17 @@ body.cn-locked {
       </div>
       <div class="weekday-chart" id="weekdayChart"></div>
       <div class="weekday-insight" id="weekdayInsight"></div>
+    </div>
+
+    <!-- v1.0.1 — 분류별 정리 (장르 + 논픽션 랭킹, 상위 5 + 더보기) -->
+    <div class="stat-card-v2">
+      <div class="stat-card-v2-head">
+        <div class="stat-card-v2-bar"></div>
+        <div class="stat-card-v2-ttl">분류별 정리</div>
+      </div>
+      <div class="cat-stat-list" id="catStatList">
+        <!-- JS 렌더 · renderCategoryStats() -->
+      </div>
     </div>
 
     <!-- ═══ V2 시안 B: 취향 카드 (장르 + 별점) ═══ -->
@@ -17437,28 +18156,43 @@ body.cn-locked {
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
   <section class="pane" id="pane-goals">
 
-    <!-- 연간 목표 히어로 (재설계) -->
+    <!-- 연간 목표 + 연속독서일 히어로 (v1.0.1 — D 시안: 상하 동등 컴팩트) -->
     <div class="annual-hero">
       <button class="annual-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
         <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
         <span>수정</span>
       </button>
-      <div class="annual-hero-lbl">올해 읽은 책</div>
-      <div class="annual-hero-main">
-        <span class="annual-hero-num">6</span><span class="annual-hero-unit">권</span>
-      </div>
-      <div class="annual-hero-sub">
-        목표 <span class="annual-hero-target">30권</span> · <span class="annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
+      <div class="annual-hero-lbl">올해 목표</div>
+      
+      <!-- 책 권수 (한 줄 컴팩트) -->
+      <div class="annual-hero-row">
+        <span class="annual-hero-row-icon">📚</span>
+        <span class="annual-hero-num">6</span>
+        <span class="annual-hero-row-target">/ <span class="annual-hero-target">30권</span></span>
+        <span class="annual-hero-row-right annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
       </div>
       <div class="annual-hero-track">
         <div class="annual-hero-fill" style="width:20%"></div>
       </div>
-      <div class="annual-hero-pace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
+      
+      <!-- v1.0.1 — pace 안내 (책 진행률 바 아래 + 구분선으로 분리) -->
+      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
+      
+      <!-- 연속독서일 (한 줄 컴팩트) -->
+      <div class="annual-hero-row annual-hero-row-streak">
+        <span class="annual-hero-row-icon">🔥</span>
+        <span class="annual-hero-num annual-hero-streak-num">0</span>
+        <span class="annual-hero-row-target">/ <span class="annual-hero-streak-target">7일</span></span>
+        <span class="annual-hero-row-right">최고 <strong class="annual-hero-streak-best">0</strong>일</span>
+      </div>
+      <div class="annual-hero-track">
+        <div class="annual-hero-fill annual-hero-streak-fill" style="width:0%"></div>
+      </div>
     </div>
 
-    <!-- 이번달 + 연속·최고 통합 strip -->
+    <!-- 이번달 strip (v1.0.1 — 연속·최고는 위 히어로로 이동, 이번달만 남김) -->
     <div class="goal-strip" id="goalMonthly">
-      <div class="goal-strip-item">
+      <div class="goal-strip-item goal-strip-item-full">
         <div class="goal-strip-lbl">이번달</div>
         <div class="goal-strip-val">
           <span class="num">2</span>
@@ -17468,17 +18202,6 @@ body.cn-locked {
           <div class="monthly-fill" style="width:67%"></div>
         </div>
         <div class="monthly-sub goal-strip-sub">한 권만 더 읽으면 완료예요</div>
-      </div>
-      <div class="goal-strip-divider" aria-hidden="true"></div>
-      <div class="goal-strip-item">
-        <div class="goal-strip-lbl">연속 · 최고</div>
-        <div class="goal-strip-val">
-          <span class="streak-current-num">12</span>
-          <span class="goal-strip-mid">·</span>
-          <span class="streak-best-num">34</span>
-          <span class="unit">일</span>
-        </div>
-        <div class="goal-strip-meta">현재 / 역대</div>
       </div>
     </div>
 
@@ -17499,6 +18222,21 @@ body.cn-locked {
       <div class="heatmap-head">
         <div class="heatmap-ttl">독서 캘린더</div>
         <div class="heatmap-sub">최근 26주</div>
+      </div>
+      <!-- v1.0.1 — 독서 메트릭 (스트릭/최장/독서율) -->
+      <div class="heatmap-metrics" id="heatmapMetrics">
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">현재 연속</div>
+          <div class="heatmap-metric-val" id="hmMetricStreak">—</div>
+        </div>
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">최장 기록</div>
+          <div class="heatmap-metric-val" id="hmMetricBest">—</div>
+        </div>
+        <div class="heatmap-metric">
+          <div class="heatmap-metric-lbl">독서율</div>
+          <div class="heatmap-metric-val" id="hmMetricRate">—</div>
+        </div>
       </div>
       <div class="heatmap-months" id="heatmapMonths" aria-hidden="true">
         <!-- JS로 월 라벨 생성 -->
@@ -18257,6 +18995,16 @@ body.cn-locked {
   <button type="button" class="im-progress-cancel" id="imProgressCancel" aria-label="중단">✕</button>
 </div>
 
+<!-- v1.0.1 — 라이브러리 편집 플로팅 버튼 (편집 버튼이 viewport 밖이면 노출) -->
+<div class="lib-edit-fab-wrap" id="libEditFabWrap" aria-hidden="true">
+  <button type="button" class="lib-edit-fab" id="libEditFab" data-action="lib-edit-start" aria-label="편집">
+    <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"/>
+      <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
+  </button>
+</div>
+
 <!-- ═══════════ 책 상세 페이지 ═══════════ -->
 <div class="bd-backdrop" id="bdBackdrop"></div>
 <aside class="bd-sheet" id="bdSheet" aria-hidden="true">
@@ -18713,124 +19461,74 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.10.0 · 큰 업데이트 + 1건 추가</div>
-    <div class="wn-ttl">이사고민, 끝났어요!</div>
-    <div class="wn-sub">다른 앱·엑셀에서 옮겨오는 게 가장 큰 진입 장벽이었죠. 이번 업데이트로 해결했습니다.</div>
+    <div class="wn-badge">v1.0.1 · 업데이트 소식</div>
+    <div class="wn-ttl">자동 태그 + 다중 선택</div>
+    <div class="wn-sub">책 정리가 좀 더 편해졌습니다.</div>
 
-    <!-- v1.10.1 — 큰 HERO 섹션 (웹소설 추가) -->
-    <div style="background:linear-gradient(135deg,rgba(90,122,60,0.1),rgba(90,122,60,0.04));border:1.5px solid rgba(90,122,60,0.42);border-radius:10px;padding:16px 14px;margin-bottom:18px;">
-      <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#5a7a3c;color:#fff;border-radius:99px;font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:0.04em;">
-        <span style="font-size:11px;">📱</span>
-        v1.10.1 NEW · 방금 추가됨
+    <!-- 1. 자동 태그 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(212,165,116,0.10),rgba(212,165,116,0.04));border:1px solid rgba(212,165,116,0.35);">
+      <div class="wn-hero-tag" style="background:#D4A574;color:#fff;">
+        <span style="font-size:11px;">🏷</span>
+        NEW · 자동 태그
       </div>
-      <div style="font-size:18px;font-weight:800;background:linear-gradient(135deg,#5a7a3c,#466030);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;letter-spacing:-0.01em;">웹소설도 keepbook으로!</div>
-      <div style="font-size:12px;color:var(--c-text);line-height:1.55;margin-bottom:14px;">
-        책 추가 시트에 <b style="color:#5a7a3c;font-weight:700;">[+ 웹소설]</b> 정사각 버튼이 새로 생겼어요. 페이지가 아닌 <b style="color:#5a7a3c;font-weight:700;">회차 단위</b>로 진도를 기록하고, 연재중인 작품은 새 회차가 나올 때마다 총 회차를 늘려가며 추적할 수 있어요.
-      </div>
-      <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(90,122,60,0.42);border-radius:6px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-        <div style="width:28px;height:40px;background:linear-gradient(135deg,#2a3f4e,#0d1f2a);border-radius:2px;flex-shrink:0;"></div>
-        <div style="font-size:11px;color:var(--c-text);">
-          <div><b style="font-weight:700;">화산귀환 · 비가</b></div>
-          <div style="font-size:10px;color:var(--c-muted);margin-top:2px;">287 / 423화 · 📡 연재중 · 68%</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">책 추가하면 태그 자동 부여</div>
+      <div class="wn-hero-sub" style="margin-bottom:14px;">책의 분야와 장르에 맞는 태그가 자동으로 붙습니다. 신규 태그 4종(추리·종교·외국어학습·수험서)도 함께 추가됐어요.</div>
+
+      <!-- 예시 박스 -->
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:10px 12px;border:1px solid rgba(212,165,116,0.25);">
+        <div style="font-size:11px;color:var(--c-text);line-height:1.8;">
+          <div><b style="font-weight:700;">용의자 X의 헌신</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">추리·스릴러·일본문학</span></div>
+          <div><b style="font-weight:700;">베르세르크</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">그래픽노블</span></div>
+          <div><b style="font-weight:700;">채식주의자</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">한국소설</span></div>
         </div>
       </div>
-      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:6px;">
-        🏷️ 웹소설 태그 14종 (무협 · 회귀 · 환생 · 빙의 등) 함께 추가
-      </div>
-      <div style="font-size:10.5px;color:#5a7a3c;font-weight:700;margin-top:4px;">
-        📲 PWA 설치 안내 모달 추가 — 홈 화면에 앱처럼 설치하는 방법을 iOS/Android별로 안내
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 한국 일반소설은 장르 정보가 누락될 수 있어요 — 직접 추가하시면 됩니다
       </div>
     </div>
 
-    <!-- 구분선 -->
-    <div style="text-align:center;margin:14px 0;position:relative;">
-      <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--c-border);"></div>
-      <span style="position:relative;display:inline-block;padding:0 10px;background:var(--c-surface);font-size:10px;color:var(--c-muted);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">v1.10.0 — 어제 업데이트 내용</span>
-    </div>
-
-    <!-- HERO — 책 가져오기 (v1.10.0 원본) -->
-    <div class="wn-hero">
-      <div class="wn-hero-tag">
-        <span style="font-size:11px">📦</span>
-        NEW · 책 데이터 가져오기
+    <!-- 2. 다중 선택 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(90,122,60,0.10),rgba(90,122,60,0.04));border:1px solid rgba(90,122,60,0.42);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#5a7a3c;color:#fff;">
+        <span style="font-size:11px;">👆</span>
+        NEW · 다중 선택
       </div>
-      <div class="wn-hero-ttl" style="font-style:italic;background:linear-gradient(135deg,#D4A574,#B8956A 50%,#8B6D3D);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:22px;letter-spacing:0.005em;line-height:1.25;padding:2px 12px 2px 2px;overflow:visible;display:inline-block;">한 번에 이사</div>
-      <div class="wn-hero-sub">엑셀이나 CSV에 <strong>제목·저자만</strong> 적혀있어도 충분해요. 표지·가격·페이지·출판사를 자동으로 채워드려요.<br>100권이든 1,000권이든 한 번에.</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">한 번에 여러 권 선택</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">편집 모드에서 책을 한 권씩 누르지 않아도 돼요.</div>
 
-      <!-- 미리보기 -->
-      <div style="margin-top:16px;background:rgba(255,255,255,0.7);border-radius:6px;padding:14px 12px;border:1px solid rgba(212,165,116,0.25);">
-        <div style="font-size:10.5px;font-weight:700;color:#8B6D3D;letter-spacing:0.04em;margin-bottom:10px;">엑셀 한 줄에서 →</div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.7);border-radius:4px;border:1px solid rgba(212,165,116,0.2);margin-bottom:8px;">
-          <div style="font-family:monospace;font-size:11px;color:#6B5430;">데미안</div>
-          <div style="color:#aaa;font-size:10px;">·</div>
-          <div style="font-family:monospace;font-size:11px;color:#6B5430;">헤르만 헤세</div>
-        </div>
-        <div style="font-size:10.5px;font-weight:700;color:#8B6D3D;letter-spacing:0.04em;margin-bottom:8px;">완성된 책 정보로</div>
-        <div style="display:flex;gap:10px;align-items:center;padding:8px;background:linear-gradient(135deg,#fff,#fef9e7);border-radius:4px;border:1px solid rgba(212,165,116,0.3);">
-          <div style="width:32px;height:44px;background:linear-gradient(135deg,#8b4513,#5c2e0e);border-radius:2px;flex-shrink:0;"></div>
-          <div style="font-size:11px;color:#1c1c1c;">
-            <div style="font-weight:700;margin-bottom:2px;">데미안 · 헤르만 헤세</div>
-            <div style="color:#888;font-size:10.5px;">민음사 · 14,000원 · 268p</div>
-          </div>
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(90,122,60,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.7;">
+          <div style="margin-bottom:6px;"><b style="font-weight:700;color:#5a7a3c;">PC</b> · 첫 책 클릭 후 <b style="font-weight:700;">Shift + 다른 책</b> 클릭 → 사이 전부 선택</div>
+          <div><b style="font-weight:700;color:#5a7a3c;">모바일</b> · 손가락으로 <b style="font-weight:700;">쭉 드래그</b> → 경로 위 책 모두 선택</div>
         </div>
       </div>
-      <div class="wn-sync-status" style="margin-top:14px;">
-        <span class="dot"></span> 검색해서 한 권씩 추가할 때도, + 버튼으로 일괄 추가할 때도 동일하게 동작해요
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 모바일은 iOS 사진 앱 방식 그대로
       </div>
     </div>
 
-    <!-- 메인 항목 (v1.10.0 원본) -->
-    <ul class="wn-list">
-      <li class="wn-item">
-        <div class="wn-icon">🏆</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">H.O.F (Hall of Fame) 리본</div>
-          <div class="wn-item-sub">인생책 표지 우상단에 골드 리본 · 책 상세 큰 별 버튼으로 등록·해제 · 100권 제한 풀림</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">📊</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">Bookflex 전면 재설계</div>
-          <div class="wn-item-sub">"내 서재의 가치" — 환산 카드 · 마일스톤 7단계 (10만 → 300만, 황금서재달성) · 매체별 리스트</div>
-        </div>
-      </li>
-      <li class="wn-item">
-        <div class="wn-icon">⭐</div>
-        <div class="wn-text">
-          <div class="wn-item-ttl">명예의 전당 즉시 반영</div>
-          <div class="wn-item-sub">명전 탭에서 책 인생책 해제 → 모달 내리면 그 자리에서 바로 사라져요 (다른 탭 갔다 올 필요 X)</div>
-        </div>
-      </li>
-    </ul>
-
-    <!-- 자잘한 손질 (v1.10.0 원본) -->
-    <div style="background:var(--c-surface);border-radius:6px;padding:14px 16px;margin-bottom:18px;border:1px solid var(--c-border);">
-      <div style="font-size:10.5px;font-weight:800;color:var(--c-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
-        <span>🔧</span> 그 외 손질
+    <!-- 3. 동기화 버튼 안내 -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,109,167,0.10),rgba(74,109,167,0.04));border:1px solid rgba(74,109,167,0.38);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#4a6da7;color:#fff;">
+        <span style="font-size:11px;">☁️</span>
+        다시 안내 · 동기화
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">책 상세 hero 컴팩트</b> · 긴 제목도 깔끔하게 들어와요</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">완독 첫 화면 12권</b> · 10권 → 12권으로 확장</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">매체 카드 리스트화</b> · 0원 매체는 흐리게 표시</div>
-        <div style="font-size:12px;color:var(--c-text-2);line-height:1.45;padding-left:14px;position:relative;"><span style="position:absolute;left:4px;color:var(--c-coin-deep);font-weight:900;">·</span><b style="color:var(--c-text);font-weight:700;">데이터 출처 표기</b> · 책 정보 옆 네이버·알라딘·카카오·Google Books 명시</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">우측 상단 동기화 버튼</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">버튼 하나로 백업·복원 모두 처리됩니다. 카카오 로그인 후 사용해주세요.</div>
+
+      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(74,109,167,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:4px;">📤 변경 있으면 자동 업로드</div>
+          <div style="margin-bottom:4px;">📥 클라우드가 더 새거면 자동으로 받아옴</div>
+          <div>⚠️ 양쪽 다 변경됐을 땐 안내 화면에서 선택</div>
+        </div>
+      </div>
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 자동이 아닙니다 — 동기화 버튼을 직접 눌러주셔야 작동해요
       </div>
     </div>
 
-    <!-- 개발자 노트 (v1.10.0 원본 + v1.10.1 한 줄 추가) -->
-    <div class="wn-devnote">
-      <div class="wn-devnote-head">
-        <span>🛠</span> 개발자 노트
-      </div>
-      <div class="wn-devnote-q">"이사가 너무 귀찮아서 못 옮기겠어요"</div>
-      <div class="wn-devnote-a">
-        새 앱으로 갈아탈 때 책 하나하나 다시 검색하는 시간 — 그게 가장 큰 진입 장벽이었어요. 어제 새벽부터 매달려서 그걸 거의 0으로 만들었습니다.<br><br>
-        다른 앱·엑셀 쓰시던 분, 이번엔 정말 한 번 <strong>이사해보시길</strong> 부탁드려요. 한 번에 됩니다.<br><br>
-        <em style="color:#5a7a3c;font-style:normal;font-weight:600;">— 그리고 오늘, 카페에서 받은 제안으로 웹소설 매체도 정식으로 추가했어요. 회차로 자유롭게 기록하세요.</em>
-      </div>
-    </div>
-
-    <div class="wn-actions">
+    <div class="wn-actions" style="margin-top:18px;">
       <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
     </div>
   </div>
@@ -18844,7 +19542,7 @@ body.cn-locked {
 
     <div class="ab-head">
       <div class="ab-name keepbook-logo">keepbook</div>
-      <div class="ab-ver">version 1.0.0</div>
+      <div class="ab-ver" id="abVer">version 1.0.1</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -19258,6 +19956,62 @@ body.cn-locked {
       <div class="bf-footer">
         <button type="button" class="bf-btn-primary" id="bfBtnClose">확인</button>
       </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- v1.0.1 — 동기화 충돌 모달 -->
+<div class="sc-backdrop" id="scBackdrop"></div>
+<div class="sc-modal" id="scModal" aria-hidden="true">
+  <div class="sc-card">
+    <div class="sc-head">
+      <span class="sc-icn">⚠️</span>
+      <p class="sc-ttl">동기화 충돌</p>
+    </div>
+    <p class="sc-desc">두 기기 모두 변경됐어요. 어느 쪽을 살릴까요?</p>
+    
+    <div class="sc-cards">
+      <!-- 이 기기 -->
+      <div class="sc-side">
+        <div class="sc-side-hdr">📱 이 기기</div>
+        <div class="sc-side-main">
+          <span class="sc-side-num" id="scLocalTotal">0</span>
+          <span class="sc-side-unit">권</span>
+          <span class="sc-side-diff" id="scLocalDiff"></span>
+        </div>
+        <div class="sc-side-rows">
+          <div class="sc-side-row">위시 · <span id="scLocalWish">0</span> <span class="up" id="scLocalWishUp"></span></div>
+          <div class="sc-side-row">독서중 · <span id="scLocalReading">0</span> <span class="up" id="scLocalReadingUp"></span></div>
+          <div class="sc-side-row">완독 · <span id="scLocalDone">0</span> <span class="up" id="scLocalDoneUp"></span></div>
+          <div class="sc-side-row">하차 · <span id="scLocalDropped">0</span> <span class="up" id="scLocalDroppedUp"></span></div>
+        </div>
+      </div>
+      <!-- 클라우드 -->
+      <div class="sc-side">
+        <div class="sc-side-hdr">☁️ 클라우드</div>
+        <div class="sc-side-main">
+          <span class="sc-side-num muted" id="scCloudTotal">0</span>
+          <span class="sc-side-unit">권</span>
+          <span class="sc-side-diff" id="scCloudDiff"></span>
+        </div>
+        <div class="sc-side-rows">
+          <div class="sc-side-row">위시 · <span id="scCloudWish">0</span> <span class="up" id="scCloudWishUp"></span></div>
+          <div class="sc-side-row">독서중 · <span id="scCloudReading">0</span> <span class="up" id="scCloudReadingUp"></span></div>
+          <div class="sc-side-row">완독 · <span id="scCloudDone">0</span> <span class="up" id="scCloudDoneUp"></span></div>
+          <div class="sc-side-row">하차 · <span id="scCloudDropped">0</span> <span class="up" id="scCloudDroppedUp"></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="sc-time" id="scTime">클라우드 · 백업 시각</p>
+    
+    <div class="sc-actions">
+      <button type="button" class="sc-btn sc-btn-primary" id="scBtnKeepLocal">이 기기 데이터 살리기</button>
+      <button type="button" class="sc-btn sc-btn-secondary" id="scBtnKeepCloud">클라우드 데이터 가져오기</button>
+      <button type="button" class="sc-btn sc-btn-ghost" id="scBtnLater">나중에 결정</button>
     </div>
   </div>
 </div>
@@ -20401,31 +21155,112 @@ window.KEEPBOOK_SYNC = {
     this.markClean();
   },
   
-  /* 충돌 모달 (양쪽 다 변경) */
+  /* v1.0.1 — 책 배열에서 상태별 카운트 계산 */
+  _countByStatus(books) {
+    const c = { total: 0, wish: 0, reading: 0, done: 0, dropped: 0 };
+    if (!Array.isArray(books)) return c;
+    c.total = books.length;
+    for (const b of books) {
+      const s = b && b.status;
+      if (s === 'wish')         c.wish++;
+      else if (s === 'reading') c.reading++;
+      else if (s === 'done')    c.done++;
+      else if (s === 'dropped') c.dropped++;
+    }
+    return c;
+  },
+  
+  /* 충돌 모달 (양쪽 다 변경) — v1.0.1 커스텀 모달로 교체 */
   async _showConflictModal(serverState) {
-    const localCount = (typeof BOOKS !== 'undefined') ? (BOOKS || []).length : 0;
+    // 로컬 통계
+    const localBooks = (typeof BOOKS !== 'undefined') ? (BOOKS || []) : [];
+    const local = this._countByStatus(localBooks);
+    
+    // 클라우드 통계 — serverState.data.books에서 추출
+    const cloudData = serverState && serverState.data;
+    const cloudBooks = (cloudData && Array.isArray(cloudData.books)) ? cloudData.books : [];
+    const cloud = this._countByStatus(cloudBooks);
+    
+    // 시간 — 초까지 (예: "5/20 23:26:14")
     const date = serverState.updatedAt ? new Date(serverState.updatedAt) : null;
-    const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}` : '최근';
+    const pad = (n) => String(n).padStart(2, '0');
+    const timeStr = date
+      ? `${date.getMonth()+1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+      : '최근';
     
-    // 1차: 사용자에게 어느 쪽을 살릴지 선택
-    const choice = confirm(
-      `⚠️ 충돌 발생\n\n` +
-      `이 기기와 다른 기기 양쪽에서 변경됐어요.\n` +
-      `- 다른 기기: ${dateStr} 백업\n` +
-      `- 이 기기: ${localCount}권의 변경사항\n\n` +
-      `[확인] = 이 기기 데이터로 덮어쓰기 (다른 기기 변경 사라짐)\n` +
-      `[취소] = 다른 기기 데이터 가져오기 (이 기기 변경 사라짐)`
-    );
+    // DOM에 값 박기
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('scLocalTotal', local.total);
+    set('scLocalWish', local.wish);
+    set('scLocalReading', local.reading);
+    set('scLocalDone', local.done);
+    set('scLocalDropped', local.dropped);
+    set('scCloudTotal', cloud.total);
+    set('scCloudWish', cloud.wish);
+    set('scCloudReading', cloud.reading);
+    set('scCloudDone', cloud.done);
+    set('scCloudDropped', cloud.dropped);
     
-    if (choice) {
-      // 이 기기 → 서버 (force push)
+    // 차이 (▲) 표시 — 양쪽이 자기가 더 많은 항목에만 표시
+    const diff = local.total - cloud.total;
+    set('scLocalDiff', diff > 0 ? `▲ +${diff}` : '');
+    set('scCloudDiff', diff < 0 ? `▲ +${-diff}` : '');
+    set('scLocalWishUp',    local.wish    > cloud.wish    ? '▲' : '');
+    set('scLocalReadingUp', local.reading > cloud.reading ? '▲' : '');
+    set('scLocalDoneUp',    local.done    > cloud.done    ? '▲' : '');
+    set('scLocalDroppedUp', local.dropped > cloud.dropped ? '▲' : '');
+    set('scCloudWishUp',    cloud.wish    > local.wish    ? '▲' : '');
+    set('scCloudReadingUp', cloud.reading > local.reading ? '▲' : '');
+    set('scCloudDoneUp',    cloud.done    > local.done    ? '▲' : '');
+    set('scCloudDroppedUp', cloud.dropped > local.dropped ? '▲' : '');
+    set('scTime', `클라우드 · ${timeStr} 백업`);
+    
+    // 모달 노출 + 버튼 핸들러 — Promise로 사용자 선택 대기
+    const backdrop = document.getElementById('scBackdrop');
+    const modal = document.getElementById('scModal');
+    if (!backdrop || !modal) {
+      console.error('[sync] 충돌 모달 DOM 못 찾음, fallback');
+      return;
+    }
+    
+    const choice = await new Promise((resolve) => {
+      const btnLocal  = document.getElementById('scBtnKeepLocal');
+      const btnCloud  = document.getElementById('scBtnKeepCloud');
+      const btnLater  = document.getElementById('scBtnLater');
+      
+      const close = () => {
+        backdrop.classList.remove('open');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      };
+      const onLocal = () => { close(); cleanup(); resolve('local'); };
+      const onCloud = () => { close(); cleanup(); resolve('cloud'); };
+      const onLater = () => { close(); cleanup(); resolve('later'); };
+      const cleanup = () => {
+        if (btnLocal) btnLocal.removeEventListener('click', onLocal);
+        if (btnCloud) btnCloud.removeEventListener('click', onCloud);
+        if (btnLater) btnLater.removeEventListener('click', onLater);
+        if (backdrop) backdrop.removeEventListener('click', onLater);
+      };
+      
+      if (btnLocal) btnLocal.addEventListener('click', onLocal);
+      if (btnCloud) btnCloud.addEventListener('click', onCloud);
+      if (btnLater) btnLater.addEventListener('click', onLater);
+      if (backdrop) backdrop.addEventListener('click', onLater);
+      
+      backdrop.classList.add('open');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    });
+    
+    if (choice === 'local') {
       const result = await READ_AUTH.backupToCloud({ force: true });
       if (result.ok) this.markClean();
-    } else {
-      // 서버 → 이 기기 (pull)
+    } else if (choice === 'cloud') {
       await READ_AUTH.restoreFromCloud();
       this.markClean();
     }
+    // 'later' → 아무것도 안 함
   },
 };
 
@@ -21019,6 +21854,10 @@ function switchTab(nextIdx, opts = {}) {
   if (opts.scrollTop !== false) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  // v1.0.1 — 탭 전환 시 플로팅 편집 버튼 observer 갱신 (라이브러리 탭 가/나기 모두 대응)
+  if (typeof window._libEditFabRefresh === 'function') {
+    window._libEditFabRefresh();
+  }
 }
 
 // 초기 위치
@@ -21047,6 +21886,8 @@ window.addEventListener('resize', () => { snapToTab(currentTabIdx); }, { passive
     if (document.querySelector('.sheet.open, .backdrop.open')) return true;
     if (target.closest('input, textarea, [contenteditable="true"]')) return true;
     if (target.closest('[data-no-swipe]')) return true;
+    // v1.0.1 — 라이브러리 편집 모드 중엔 좌우 슬라이드 비활성화 (드래그 선택과 충돌 회피)
+    if (typeof _libEdit !== 'undefined' && _libEdit.active && target.closest('#libCards')) return true;
     // 내부 가로 스크롤 요소 우선
     let el = target;
     while (el && el !== viewport) {
@@ -21235,8 +22076,19 @@ function renderHeatmap() {
   };
 
   // 셀 렌더 (row-first: 행=요일, 열=주차)
+  // v1.0.1 — 계절 색상 적용: 날짜의 월로 계절 판단
+  //   봄: 3-5월, 여름: 6-8월, 가을: 9-11월, 겨울: 12-2월
+  const seasonOf = (date) => {
+    const m = date.getMonth() + 1;
+    if (m >= 3 && m <= 5) return 'spring';
+    if (m >= 6 && m <= 8) return 'summer';
+    if (m >= 9 && m <= 11) return 'autumn';
+    return 'winter';
+  };
   grid.innerHTML = '';
   let readDays = 0;
+  // 메트릭 계산용: 날짜 순서대로 lv 배열 (오늘 포함, 미래 제외)
+  const dayLvs = [];  // [{ key, lv, isPast }]
   for (let row = 0; row < 7; row++) {          // 요일 (0=일)
     for (let col = 0; col < WEEKS; col++) {    // 주차
       const d = new Date(firstSunday);
@@ -21246,12 +22098,50 @@ function renderHeatmap() {
       const lv = lvOf(a);
       const cell = document.createElement('div');
       cell.className = 'hm-cell';
+      cell.setAttribute('data-season', seasonOf(d));  // v1.0.1 — 계절 속성
       if (lv) { cell.classList.add('lv' + lv); readDays++; }
       // 아직 오지 않은 날짜는 보이지 않게 (그리드 구조는 유지)
       if (k > todayKey) cell.style.visibility = 'hidden';
       grid.appendChild(cell);
     }
   }
+  
+  // v1.0.1 — 메트릭 계산: 시간순 배열로 다시 만들기 (firstSunday부터 today까지)
+  const allDays = [];
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(firstSunday);
+    d.setDate(firstSunday.getDate() + i);
+    const k = keyOf(d);
+    if (k > todayKey) break;  // 미래 제외
+    const a = activity.get(k) || { minutes: 0, pages: 0, inRange: false };
+    allDays.push({ key: k, lv: lvOf(a) });
+  }
+  
+  // 1) 현재 연속 (오늘 기준 거꾸로 — 오늘 안 읽었으면 0일)
+  let currentStreak = 0;
+  for (let i = allDays.length - 1; i >= 0; i--) {
+    if (allDays[i].lv > 0) currentStreak++;
+    else break;
+  }
+  
+  // 2) 최장 연속 (26주 안)
+  let bestStreak = 0, run = 0;
+  for (const d of allDays) {
+    if (d.lv > 0) { run++; bestStreak = Math.max(bestStreak, run); }
+    else run = 0;
+  }
+  
+  // 3) 독서율 (읽은 날 / 전체 경과일)
+  const readCount = allDays.filter(d => d.lv > 0).length;
+  const rate = allDays.length > 0 ? Math.round(readCount / allDays.length * 100) : 0;
+  
+  // 메트릭 DOM 반영
+  const streakEl = document.getElementById('hmMetricStreak');
+  const bestEl = document.getElementById('hmMetricBest');
+  const rateEl = document.getElementById('hmMetricRate');
+  if (streakEl) streakEl.textContent = currentStreak > 0 ? `🔥 ${currentStreak}일` : '0일';
+  if (bestEl) bestEl.textContent = `${bestStreak}일`;
+  if (rateEl) rateEl.textContent = `${rate}%`;
 
   // 총 독서일 반영
   const totalEl = document.querySelector('.heatmap-total');
@@ -22334,21 +23224,79 @@ async function _searchNaver(q) {
  * 카카오/알라딘 결과가 ISBN 비어있어도 같은 책이면 후보 한 번만 표시.
  */
 function _dedupeByIsbn(arr) {
+  // v1.12.0 — 알라딘 결과의 categoryName을 ISBN/제목 키로 미리 추출
+  const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  
+  // v1.12.0 — 제목에서 시리즈 prefix 추출 (공백/숫자 직전까지)
+  // 예: "베르세르크 40" → "베르세르크", "용의자 X의 헌신" → "용의자"
+  // 2글자 미만이면 너무 짧아 우연 충돌 위험 → null 반환
+  const titlePrefix = (title) => {
+    if (!title) return null;
+    const t = String(title).trim();
+    // 첫 공백 또는 첫 숫자 직전까지 추출
+    const m = t.match(/^([^\s0-9]+)/);
+    const prefix = m ? m[1] : '';
+    if (prefix.length < 2) return null;  // "X", "1" 같은 한 글자 prefix는 제외
+    return norm(prefix);
+  };
+  
+  const aladinCategoryByKey = new Map();
+  for (const it of arr) {
+    if (it.source !== 'aladin' || !it.categoryName) continue;
+    const isbn = (it.isbn || '').replace(/[-\s]/g, '');
+    if (isbn) {
+      aladinCategoryByKey.set('i:' + isbn, it.categoryName);
+    }
+    // 제목+저자+출판사 키도 함께 박아두기 (ISBN 다른 케이스 대비)
+    aladinCategoryByKey.set(`t:${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`, it.categoryName);
+    // v1.12.0 — 시리즈 prefix + 저자 키 (시리즈 권수 다를 때 대비)
+    // 같은 시리즈는 작가도 같고 categoryName도 동일하다는 가정
+    const prefix = titlePrefix(it.title);
+    const author = norm(it.author);
+    if (prefix && author) {
+      aladinCategoryByKey.set(`s:${prefix}|${author}`, it.categoryName);
+    }
+  }
+  
   const seenIsbn = new Set();
   const seenTitleKey = new Set();
-  const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
   const out = [];
   for (const it of arr) {
     const isbn = (it.isbn || '').replace(/[-\s]/g, '');
     if (isbn) {
       if (seenIsbn.has(isbn)) continue;
       seenIsbn.add(isbn);
+      // v1.12.0 — 알라딘 categoryName 보강 (자신이 알라딘이 아니어도)
+      if (!it.categoryName) {
+        const fromIsbn = aladinCategoryByKey.get('i:' + isbn);
+        const fromTitle = aladinCategoryByKey.get(`t:${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`);
+        // v1.12.0 — 시리즈 prefix+저자 매칭 (베르세르크 40권 같은 경우, 같은 시리즈 다른 권의 알라딘 categoryName 사용)
+        let fromSeries = null;
+        const prefix = titlePrefix(it.title);
+        const author = norm(it.author);
+        if (prefix && author) {
+          fromSeries = aladinCategoryByKey.get(`s:${prefix}|${author}`);
+        }
+        if (fromIsbn || fromTitle || fromSeries) it.categoryName = fromIsbn || fromTitle || fromSeries;
+      }
       out.push(it);
     } else {
       // ISBN 없음 → 제목+저자+출판사 정규화로 dedupe (서로 다른 source에서 같은 책 들어왔을 때)
       const key = `${norm(it.title)}|${norm(it.author)}|${norm(it.publisher)}`;
       if (seenTitleKey.has(key)) continue;
       seenTitleKey.add(key);
+      // v1.12.0 — 알라딘 categoryName 보강
+      if (!it.categoryName) {
+        const fromTitle = aladinCategoryByKey.get(`t:${key}`);
+        // 시리즈 매칭도 시도
+        let fromSeries = null;
+        const prefix = titlePrefix(it.title);
+        const author = norm(it.author);
+        if (prefix && author) {
+          fromSeries = aladinCategoryByKey.get(`s:${prefix}|${author}`);
+        }
+        if (fromTitle || fromSeries) it.categoryName = fromTitle || fromSeries;
+      }
       out.push(it);
     }
   }
@@ -22442,12 +23390,18 @@ function _mergeByIsbn(arr) {
       if (sources.includes(src)) { primarySource = src; break; }
     }
 
+    // v1.12.0 — 알라딘 categoryName 끌어와 머지 결과에 보존 (자동 태그 부여용)
+    // primarySource가 카카오/네이버여도 알라딘 결과에 categoryName 있으면 가져옴
+    const aladinItem = group.find(g => g.source === 'aladin');
+    const categoryName = (aladinItem && hasStr(aladinItem.categoryName)) ? aladinItem.categoryName : '';
+
     merged.push({
       title, author, publisher, year, language, contents,
       priceSales, priceList, priceSource,
       cover, pages, isbn,
       source: primarySource,  // 정렬용 + 기존 코드 호환
       sources,                // 출처 set (UI 디버그·라벨용)
+      categoryName,           // v1.12.0 — 알라딘 카테고리 (자동 태그용)
     });
   }
 
@@ -22848,13 +23802,6 @@ async function quickAddToWish(idx, btnEl) {
   const autoTags = (typeof mapAladinCategoryToTags === 'function')
     ? mapAladinCategoryToTags(item.categoryName || '')
     : [];
-  // v1.12.0 디버그 — categoryName 흐름 검증 (확인 후 제거)
-  console.log('[autoTag debug]', {
-    title: item.title,
-    categoryName: item.categoryName,
-    source: item.source,
-    autoTags: autoTags,
-  });
   const newBook = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     title: item.title || '',
@@ -24551,6 +25498,7 @@ const ALADIN_CATEGORY_MAP = [
   { match: '추리/스릴러',     tags: ['추리', '스릴러'] },
   { match: '미스터리',        tags: ['미스터리', '추리'] },
   { match: '공포/호러',       tags: ['스릴러'] },
+  { match: '과학소설',        tags: ['SF'] },  // 알라딘 변형 표기 (예: '과학소설(SF)', '외국 과학소설')
   { match: 'SF',              tags: ['SF'] },
   { match: '판타지',          tags: ['판타지'] },
   { match: '로맨스',          tags: ['로맨스'] },
@@ -24661,6 +25609,58 @@ const ALADIN_CATEGORY_MAP = [
    - 매칭 없으면 빈 배열 반환 (자동 태그 안 부여)
    - 중복 태그는 제거
    - DEFAULT_TAGS에 실제 존재하는 태그만 반환 (안전망) */
+/* v1.12.0 — 알라딘 카테고리 segment에서 국가/언어 키워드 → keepbook 태그 매핑.
+   메인 매핑 후 별도로 모든 segment를 돌며 추가 부여.
+   
+   예: "장르소설>추리/스릴러>일본 추리/스릴러"
+   → 메인 [추리, 스릴러] + 국가 (일본) → [추리, 스릴러, 일본문학]
+   
+   주의:
+   - 단어 시작/끝 또는 구분자(/공백)로 둘러싸인 경우만 매칭 (예: '미국'이 '미국 추리'엔 잡히고, '주미국대사관'엔 안 잡힘 — 실제로 알라딘 카테고리엔 그런 경우 없지만 안전)
+   - 이미 메인에서 부여된 태그와 중복되면 자동 제거 (Set) */
+const ALADIN_NATION_MAP = [
+  // 일본 (segment에 "일본"이 있으면 → 일본문학)
+  { match: '일본',     tags: ['일본문학'] },
+  // 외국 (segment에 '외국'이 키워드로 나옴: '외국 과학소설', '외국 추리/스릴러' 등)
+  { match: '외국',     tags: ['외국소설'] },
+  // 영미권 (영미는 알라딘 표준 표기, 영국/미국은 변형)
+  { match: '영미',     tags: ['외국소설'] },
+  { match: '영국',     tags: ['외국소설'] },
+  { match: '미국',     tags: ['외국소설'] },
+  { match: '캐나다',   tags: ['외국소설'] },
+  { match: '호주',     tags: ['외국소설'] },
+  // 유럽
+  { match: '프랑스',   tags: ['외국소설'] },
+  { match: '독일',     tags: ['외국소설'] },
+  { match: '러시아',   tags: ['외국소설'] },
+  { match: '이탈리아', tags: ['외국소설'] },
+  { match: '스페인',   tags: ['외국소설'] },
+  { match: '북유럽',   tags: ['외국소설'] },
+  // 라틴아메리카 (별도 태그 — 메인 매핑에도 있지만 nation에서도 매칭하면 segment에 "라틴아메리카"만 있어도 잡힘)
+  { match: '라틴아메리카', tags: ['라틴아메리카'] },
+  // 중국/대만 (한국·일본 외 아시아)
+  { match: '중국',     tags: ['외국소설'] },
+  { match: '대만',     tags: ['외국소설'] },
+  { match: '홍콩',     tags: ['외국소설'] },
+];
+
+/* 알라딘 categoryName 문자열을 받아 매칭되는 keepbook 태그 배열 반환.
+   알라딘 카테고리는 "국내도서>대분야>중분야>소분야" 트리 구조.
+   
+   매칭 정책:
+   1. 가장 깊은 segment부터 메인 매핑 시도 (한 segment 내 가장 긴 매칭 1개)
+   2. 메인 매칭이 있으면 모든 segment에서 국가/언어 추가 매칭
+   
+   예시:
+   - "한국소설>한국고전" → 메인 '한국고전' → [국내고전]
+   - "장르소설>추리/스릴러>일본 추리/스릴러" → 메인 [추리, 스릴러] + 국가 [일본문학]
+   - "영미소설>현대영미소설" → 메인 [외국소설] + 국가 추가 매칭은 중복 (Set으로 자동 제거)
+   
+   안전 정책:
+   - 입력이 빈 값이면 빈 배열 반환
+   - 메인 매칭 없으면 빈 배열 반환 (국가만 부여 안 함 — 안전)
+   - 중복 태그는 제거
+   - DEFAULT_TAGS에 실제 존재하는 태그만 반환 (안전망) */
 function mapAladinCategoryToTags(categoryName) {
   if (!categoryName || typeof categoryName !== 'string') return [];
   
@@ -24680,19 +25680,39 @@ function mapAladinCategoryToTags(categoryName) {
     return bestRule;
   }
   
-  // 가장 깊은 segment부터 거꾸로 — 첫 매칭에서 멈춤 (구체 우선)
+  // 1단계: 가장 깊은 segment부터 메인 매핑 (구체 우선, 첫 매칭에서 멈춤)
+  const result = new Set();
+  let mainMatched = false;
   for (let i = segments.length - 1; i >= 0; i--) {
     const rule = findLongestMatchRule(segments[i]);
     if (rule) {
-      const result = new Set();
       for (const tag of rule.tags) {
         if (DEFAULT_TAGS[tag]) result.add(tag);
       }
-      return Array.from(result);
+      mainMatched = true;
+      break;
     }
   }
   
-  return [];
+  // 메인 매칭이 없으면 빈 배열 반환 (국가만 부여 안 함 — 안전 정책)
+  if (!mainMatched) return [];
+  
+  // 2단계: 문학 분야일 때만 국가/언어 추가 매칭
+  // 역사/사회/과학 등 논픽션 분야의 "일본사", "미국사"에 "일본문학" 같은 잘못된 태그 부여 방지
+  const isLiterature = categoryName.indexOf('소설/시/희곡') !== -1
+                    || categoryName.indexOf('장르소설') !== -1
+                    || categoryName.indexOf('로맨스소설') !== -1;
+  if (isLiterature) {
+    for (const rule of ALADIN_NATION_MAP) {
+      if (categoryName.indexOf(rule.match) !== -1) {
+        for (const tag of rule.tags) {
+          if (DEFAULT_TAGS[tag]) result.add(tag);
+        }
+      }
+    }
+  }
+  
+  return Array.from(result);
 }
 
 // v1.9.0 — 카테고리 라벨 매핑
@@ -25924,12 +26944,17 @@ function renderLibraryCards() {
   // NowHero + MonthStrip은 독서중 책이 있으면 항상 노출 (탭/편집모드와 무관)
   const heroHtml = reading.length ? renderNowHero(reading) : '';
   const monthStripHtml = renderMonthStrip();
+  // v1.x — 대여 반납 알림 바 (D-3 이내 책이 있을 때만 노출)
+  const returnAlertHtml = (typeof renderReturnAlertBar === 'function')
+    ? renderReturnAlertBar()
+    : '';
 
   // 편집 모드 하단 액션바 — body에 직접 마운트 (paneTrack의 transform 때문에 fixed가 깨지는 문제 회피)
   // 렌더 후 _libMountEditBar()로 body에 append
 
   container.innerHTML = `
     ${heroHtml}
+    ${returnAlertHtml}
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
@@ -25948,6 +26973,27 @@ function renderLibraryCards() {
 
   // 액션바를 body에 직접 마운트 (편집 모드일 때만)
   _libMountEditBar(activeCat);
+  
+  // v1.0.1 — 편집 모드라면 카드의 selected 클래스 복원
+  // (더보기/탭 전환 등으로 재렌더된 카드는 클래스가 새로 그려지므로 selected Set 기준으로 동기화)
+  if (_libEdit.active) {
+    document.querySelectorAll('.lib-cat-pane.active .book-card[data-book-id]').forEach(card => {
+      const grpId = card.dataset.groupId;
+      if (grpId) {
+        const books = (BOOKS || []).filter(b => b.groupId === grpId);
+        const isSel = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+        card.classList.toggle('lib-edit-selected', isSel);
+      } else {
+        const id = parseInt(card.dataset.bookId, 10);
+        card.classList.toggle('lib-edit-selected', _libEdit.selected.has(id));
+      }
+    });
+  }
+  
+  // v1.0.1 — 플로팅 편집 버튼 observer 재연결 (편집 버튼이 새 DOM으로 그려졌으므로)
+  if (typeof window._libEditFabRefresh === 'function') {
+    window._libEditFabRefresh();
+  }
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
@@ -26089,7 +27135,59 @@ const _libEdit = {
   selected: new Set(), // 선택된 book id Set
   pendingMove: null,   // 손실 안내 노출 중인 대상 status ('wish'|'reading'|'done'|'dropped'). null=일반 액션바
   pendingDelete: false, // 삭제 확인 안내 노출 중인지
+  lastClickedId: null,  // v1.0.1 — Shift 범위 선택 앵커 (마지막으로 단일 클릭한 book id)
 };
+
+/* v1.0.1 — DOM 순서대로 현재 활성 탭의 모든 카드 id 목록 반환 (그룹 카드 포함).
+   범위 선택 계산용. 카드 한 장당 하나의 id (그룹 카드는 대표 book id) */
+function _libGetVisibleCardIds() {
+  const pane = document.querySelector('.lib-cat-pane.active');
+  if (!pane) return [];
+  const cards = pane.querySelectorAll('.book-card[data-book-id]');
+  const ids = [];
+  cards.forEach(c => {
+    const grpId = c.dataset.groupId;
+    if (grpId) {
+      // 그룹 카드 — group id로 마킹
+      ids.push({ type: 'group', id: grpId });
+    } else {
+      const id = parseInt(c.dataset.bookId, 10);
+      if (id) ids.push({ type: 'book', id: id });
+    }
+  });
+  return ids;
+}
+
+/* v1.0.1 — anchor부터 target까지 범위 선택 (그 사이 모든 카드 추가) */
+function _libSelectRange(anchorId, targetId) {
+  const cards = _libGetVisibleCardIds();
+  if (!cards.length) return;
+  
+  // 카드 배열에서 anchorId와 targetId의 위치 찾기
+  const findIndex = (id) => cards.findIndex(c => c.id == id);  // == 의도 (book id는 숫자, group id는 문자열)
+  const a = findIndex(anchorId);
+  const b = findIndex(targetId);
+  
+  // 앵커가 없으면 (예: 첫 클릭 후 다른 탭으로 갔다 왔거나) → 그냥 target만 토글
+  if (a < 0 || b < 0) return;
+  
+  const start = Math.min(a, b);
+  const end = Math.max(a, b);
+  
+  // 범위 안의 모든 카드 선택
+  for (let i = start; i <= end; i++) {
+    const c = cards[i];
+    if (c.type === 'group') {
+      // 그룹 — 그룹 안 모든 책 추가
+      (BOOKS || []).filter(book => book.groupId === c.id).forEach(book => {
+        _libEdit.selected.add(book.id);
+      });
+    } else {
+      _libEdit.selected.add(c.id);
+    }
+  }
+  _libEditUpdateUI();
+}
 
 /* 선택된 책들을 newStatus로 옮길 때 사라지거나 변경되는 데이터 진단
    반환: { items: ['별점', '완독일', ...], affectedCount: N } — items가 비어있으면 안내 불필요 */
@@ -26134,6 +27232,7 @@ function _libEditCancel() {
   _libEdit.selected.clear();
   _libEdit.pendingMove = null;
   _libEdit.pendingDelete = false;
+  _libEdit.lastClickedId = null;
   renderLibraryCards();
 }
 /* 경고 카드에서 "취소" — 편집 모드는 유지하고 경고만 닫음 */
@@ -26695,15 +27794,27 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     }
     // ─── 편집 모드 — 책 카드 클릭 = 토글 (상세 모달 대신) ───
     if (_libEdit.active) {
+      // v1.0.1 — 드래그 직후의 click 이벤트는 무시 (중복 토글 방지)
+      if (_libEdit._suppressNextClick) {
+        _libEdit._suppressNextClick = false;
+        return;
+      }
       const card = e.target.closest('.book-card[data-book-id]');
       if (card) {
-        // v1.11.0 — 묶음 카드면 12권 일괄 토글
+        // v1.0.1 — Shift 클릭 = 앵커부터 이 카드까지 범위 선택
         const grpId = card.dataset.groupId;
-        if (grpId) {
-          _libEditToggleGroup(grpId);
+        const targetId = grpId || parseInt(card.dataset.bookId, 10);
+        if (e.shiftKey && _libEdit.lastClickedId != null) {
+          _libSelectRange(_libEdit.lastClickedId, targetId);
         } else {
-          const id = parseInt(card.dataset.bookId, 10);
-          if (id) _libEditToggle(id);
+          // 일반 클릭 — 토글 + 앵커 갱신
+          if (grpId) {
+            _libEditToggleGroup(grpId);
+          } else {
+            const id = parseInt(card.dataset.bookId, 10);
+            if (id) _libEditToggle(id);
+          }
+          _libEdit.lastClickedId = targetId;
         }
         return;  // 다른 동작(상세 모달 열기 등) 차단
       }
@@ -26786,6 +27897,332 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
     _swipeStartY = null;
     _swipeOnHero = false;
   });
+})();
+
+/* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일, 옵션 B)
+   동작:
+     1. 편집 모드 중 책 카드에서 touchstart
+     2. 시작 카드의 현재 선택 상태 기억 → 반대 상태가 드래그 모드 ('select' or 'deselect')
+     3. touchmove — 손가락 아래 카드 추적
+     4. 새 카드 만남 → dragMode 적용 + visitedSeq에 push
+     5. 이미 만난 카드 만남 (방향 바뀜) → 그 카드 이후 카드들 원복 + visitedSeq에서 제거
+     6. 수평 드래그 우세할 때만 활성화 (수직은 페이지 스크롤에 양보) */
+(function wireLibraryDragSelect() {
+  const container = document.getElementById('libCards');
+  if (!container) return;
+  
+  let dragging = false;
+  let dragMode = null;  // 'select' | 'deselect'
+  let startX = 0, startY = 0;
+  let moved = false;
+  let visitedSeq = [];        // 드래그 중 만난 카드 key 순서: ["book:1", "book:2", "group:gA", ...]
+  let originalState = new Map();  // key → bool (드래그 시작 전 selected 여부)
+  
+  // 카드 좌표에서 책/그룹 정보 추출
+  const cardInfoAtPoint = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const card = el.closest('.book-card[data-book-id]');
+    if (!card) return null;
+    const grpId = card.dataset.groupId;
+    if (grpId) return { type: 'group', id: grpId };
+    const id = parseInt(card.dataset.bookId, 10);
+    return id ? { type: 'book', id: id } : null;
+  };
+  
+  const infoKey = (info) => info.type + ':' + info.id;
+  
+  // 카드의 현재 선택 상태 (그룹이면 그룹 안 모든 책이 선택돼야 true)
+  const isInfoSelected = (info) => {
+    if (info.type === 'group') {
+      const books = (BOOKS || []).filter(b => b.groupId === info.id);
+      return books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+    }
+    return _libEdit.selected.has(info.id);
+  };
+  
+  // 카드에 동작 적용 — mode: 'select' | 'deselect' | 'restore'
+  // restore = originalState 값으로 되돌리기
+  const applyToCard = (info, mode) => {
+    if (!info) return;
+    const key = infoKey(info);
+    let target;
+    if (mode === 'restore') {
+      target = originalState.get(key);
+      if (target == null) target = false;
+    } else {
+      target = (mode === 'select');
+    }
+    if (info.type === 'group') {
+      const books = (BOOKS || []).filter(b => b.groupId === info.id);
+      books.forEach(b => {
+        if (target) _libEdit.selected.add(b.id);
+        else        _libEdit.selected.delete(b.id);
+      });
+    } else {
+      if (target) _libEdit.selected.add(info.id);
+      else        _libEdit.selected.delete(info.id);
+    }
+  };
+  
+  // 카드 시각 클래스만 즉시 토글 (액션바 재마운트는 디바운스로 분리)
+  const updateCardClass = (info) => {
+    if (!info) return;
+    const pane = document.querySelector('.lib-cat-pane.active');
+    if (!pane) return;
+    if (info.type === 'group') {
+      const repCard = pane.querySelector(`.book-card[data-group-id="${info.id}"]`);
+      if (repCard) {
+        const books = (BOOKS || []).filter(b => b.groupId === info.id);
+        const isSel = books.length > 0 && books.every(b => _libEdit.selected.has(b.id));
+        repCard.classList.toggle('lib-edit-selected', isSel);
+      }
+    } else {
+      const card = pane.querySelector(`.book-card[data-book-id="${info.id}"]:not([data-group-id])`);
+      if (card) {
+        card.classList.toggle('lib-edit-selected', _libEdit.selected.has(info.id));
+      }
+    }
+  };
+  
+  // 액션바는 무겁기 때문에 rAF로 묶기
+  let actionBarRafId = null;
+  const scheduleActionBarUpdate = () => {
+    if (actionBarRafId) return;
+    actionBarRafId = requestAnimationFrame(() => {
+      actionBarRafId = null;
+      if (_libEdit.active) {
+        _libMountEditBar(_libEdit.cat);
+      }
+    });
+  };
+  
+  // 드래그 상태 초기화
+  const resetDragState = () => {
+    dragging = false;
+    dragMode = null;
+    moved = false;
+    visitedSeq = [];
+    originalState = new Map();
+  };
+  
+  container.addEventListener('touchstart', (e) => {
+    if (!_libEdit.active) return;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const info = cardInfoAtPoint(t.clientX, t.clientY);
+    if (!info) return;
+    
+    const isSelected = isInfoSelected(info);
+    
+    startX = t.clientX;
+    startY = t.clientY;
+    moved = false;
+    dragging = false;
+    dragMode = isSelected ? 'deselect' : 'select';
+    visitedSeq = [];
+    originalState = new Map();
+  }, { passive: true });
+  
+  container.addEventListener('touchmove', (e) => {
+    if (!_libEdit.active || !dragMode) return;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    
+    // 수평 드래그만 활성화 (수직은 페이지 스크롤에 양보)
+    if (!dragging) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dx) <= Math.abs(dy) * 1.2) {
+        dragMode = null;
+        return;
+      }
+      // 수평 드래그 확정 — 시작 카드 적용
+      dragging = true;
+      moved = true;
+      const startInfo = cardInfoAtPoint(startX, startY);
+      if (startInfo) {
+        const k = infoKey(startInfo);
+        originalState.set(k, isInfoSelected(startInfo));
+        applyToCard(startInfo, dragMode);
+        updateCardClass(startInfo);
+        visitedSeq.push(k);
+      }
+      scheduleActionBarUpdate();
+      e.preventDefault();
+    }
+    
+    // 진행 중 — 현재 손가락 아래 카드 찾기
+    const info = cardInfoAtPoint(t.clientX, t.clientY);
+    if (!info) {
+      e.preventDefault();
+      return;
+    }
+    const key = infoKey(info);
+    const lastKey = visitedSeq[visitedSeq.length - 1];
+    if (key === lastKey) {
+      e.preventDefault();
+      return;
+    }
+    
+    // 이미 만난 카드인지 확인 — 방향 바뀜
+    const existingIdx = visitedSeq.indexOf(key);
+    if (existingIdx !== -1) {
+      // 방향 바뀜 — 그 이후 만났던 카드들 모두 원복
+      const toRestore = visitedSeq.slice(existingIdx + 1);
+      for (let i = toRestore.length - 1; i >= 0; i--) {
+        const rkey = toRestore[i];
+        // rkey 파싱: "type:id" 형태에서 type과 id 분리 (id에 ':' 들어갈 수 있으니 첫 ':'만)
+        const colonIdx = rkey.indexOf(':');
+        if (colonIdx < 0) continue;
+        const rtype = rkey.slice(0, colonIdx);
+        const rid = rtype === 'book' ? parseInt(rkey.slice(colonIdx + 1), 10) : rkey.slice(colonIdx + 1);
+        const rinfo = { type: rtype, id: rid };
+        applyToCard(rinfo, 'restore');
+        updateCardClass(rinfo);
+      }
+      // visitedSeq에서 제거 (그 카드까지만 남김)
+      visitedSeq = visitedSeq.slice(0, existingIdx + 1);
+    } else {
+      // v1.0.1 — 새 카드 + 직전 카드와 떨어져 있으면 사이의 카드들도 DOM 순서로 채우기
+      // (줄바꿈/빠른 손가락 점프 시 iOS 사진 앱처럼 사이 카드 자동 포함)
+      const cards = _libGetVisibleCardIds();
+      const newIdx = cards.findIndex(c => (c.type + ':' + c.id) === key);
+      const prevIdx = lastKey ? cards.findIndex(c => (c.type + ':' + c.id) === lastKey) : -1;
+      
+      if (newIdx >= 0 && prevIdx >= 0 && Math.abs(newIdx - prevIdx) > 1) {
+        // 사이 카드들 채우기 (작은 → 큰 방향으로 순회)
+        const dir = newIdx > prevIdx ? 1 : -1;
+        for (let i = prevIdx + dir; i !== newIdx + dir; i += dir) {
+          const c = cards[i];
+          const ckey = c.type + ':' + c.id;
+          if (visitedSeq.indexOf(ckey) !== -1) continue;  // 이미 만난 카드는 건너뛰기 (안전망)
+          const cinfo = { type: c.type, id: c.id };
+          originalState.set(ckey, isInfoSelected(cinfo));
+          applyToCard(cinfo, dragMode);
+          updateCardClass(cinfo);
+          visitedSeq.push(ckey);
+        }
+      } else {
+        // 인접 또는 첫 카드 — 그냥 추가
+        originalState.set(key, isInfoSelected(info));
+        applyToCard(info, dragMode);
+        updateCardClass(info);
+        visitedSeq.push(key);
+      }
+    }
+    
+    scheduleActionBarUpdate();
+    e.preventDefault();
+  }, { passive: false });
+  
+  container.addEventListener('touchend', () => {
+    if (dragging && moved) {
+      _libEdit._suppressNextClick = true;
+      setTimeout(() => { _libEdit._suppressNextClick = false; }, 300);
+      if (_libEdit.active) _libMountEditBar(_libEdit.cat);
+    }
+    resetDragState();
+  });
+  
+  container.addEventListener('touchcancel', () => {
+    resetDragState();
+  });
+})();
+
+/* v1.0.1 — 라이브러리 편집 플로팅 버튼 (편집 버튼이 viewport 밖이면 노출)
+   동작:
+     - IntersectionObserver로 편집 버튼이 viewport에 보이는지 감지
+     - 보이면 FAB 숨김, 안 보이면 FAB 노출 (페이드 인/아웃)
+     - 편집 모드 진입 시 편집 버튼 자체가 사라지므로 자동으로 FAB도 사라짐
+     - renderLibraryCards 후 DOM이 새로 생성되니 매 렌더 후 observer 재연결 */
+(function wireLibraryEditFab() {
+  const fab = document.getElementById('libEditFab');
+  if (!fab) return;
+  
+  // v1.0.1 — 플로팅 버튼 클릭 시 편집 모드 진입 (libCards 컨테이너 밖이라 별도 핸들러 필요)
+  fab.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const activeCat = (typeof _libGetActiveCat === 'function') ? _libGetActiveCat() : 'reading';
+    if (typeof _libEditStart === 'function') _libEditStart(activeCat);
+  });
+  
+  let observer = null;
+  let observedBtn = null;
+  
+  const showFab = () => {
+    fab.classList.add('visible');
+    fab.setAttribute('aria-hidden', 'false');
+    const wrap = document.getElementById('libEditFabWrap');
+    if (wrap) wrap.setAttribute('aria-hidden', 'false');
+  };
+  const hideFab = () => {
+    fab.classList.remove('visible');
+    fab.setAttribute('aria-hidden', 'true');
+    const wrap = document.getElementById('libEditFabWrap');
+    if (wrap) wrap.setAttribute('aria-hidden', 'true');
+  };
+  
+  // 편집 버튼 감시 시작/재시작 (renderLibraryCards 후마다 호출)
+  const attachObserver = () => {
+    // 이전 observer 정리
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+      observedBtn = null;
+    }
+    hideFab();  // 기본은 숨김 (편집 버튼 안 보이는 상태 등 모든 케이스 대응)
+    
+    // 라이브러리 탭 활성 상태가 아니면 FAB 절대 노출 X
+    // (다른 탭에선 편집 버튼이 paneTrack transform으로 viewport 밖이라 FAB가 잘못 노출될 위험)
+    if (typeof currentTabIdx !== 'undefined' && currentTabIdx !== 0) {
+      return;
+    }
+    
+    // v1.0.1 — 북카드 뷰일 때만 FAB 노출 (로그/명예의 전당 뷰에선 편집 버튼 자체가 안 보임)
+    //   libCards가 display:none이면 안의 편집 버튼도 안 보이는 상태 → FAB도 X
+    //   IntersectionObserver는 display:none 요소를 항상 isIntersecting:false로 보고하므로 사전 차단 필요
+    const libCards = document.getElementById('libCards');
+    if (!libCards || libCards.offsetParent === null) return;
+    
+    // 편집 모드 중엔 편집 버튼 자체가 없으므로 FAB도 X
+    if (typeof _libEdit !== 'undefined' && _libEdit.active) return;
+    
+    // 현재 활성 탭 안의 편집 버튼 찾기
+    const editBtn = document.querySelector('.lib-cat-edit-btn[data-action="lib-edit-start"]');
+    if (!editBtn) return;  // 책 1권 이상 조건 만족 안 함 (편집 버튼 자체 없음)
+    
+    observedBtn = editBtn;
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          hideFab();
+        } else {
+          // 편집 버튼이 보이지 않을 때만 FAB 노출
+          // 단, 시트/모달 같은 게 열려있으면 숨김 (사용자가 다른 작업 중)
+          const anySheetOpen = document.querySelector('.bd-sheet.open, .bas-sheet.open, .dd-sheet.open, .settings-sheet.open, .na-sheet.open, .tm-sheet.open');
+          if (anySheetOpen) {
+            hideFab();
+          } else {
+            showFab();
+          }
+        }
+      });
+    }, { threshold: 0 });
+    
+    observer.observe(editBtn);
+  };
+  
+  // 전역 노출 — renderLibraryCards 끝에서 호출
+  window._libEditFabRefresh = attachObserver;
+  
+  // 초기 시도 (페이지 로드 후 라이브러리 첫 렌더 후)
+  if (document.readyState === 'complete') {
+    setTimeout(attachObserver, 100);
+  } else {
+    window.addEventListener('load', () => setTimeout(attachObserver, 100));
+  }
 })();
 
 /* 로그 리스트 전체 렌더 (계절별 그룹) */
@@ -26881,6 +28318,8 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
     document.getElementById('libLog').style.display   = view === 'log'   ? 'block' : 'none';
     document.getElementById('libHall').style.display  = view === 'hall'  ? 'block' : 'none';
     if (view === 'hall') { try { renderHallOfFame(); } catch(e) { console.error('[hall]', e); } }
+    // v1.0.1 — 뷰 토글 시 플로팅 편집 버튼 갱신 (북카드 뷰일 때만 노출)
+    if (typeof window._libEditFabRefresh === 'function') window._libEditFabRefresh();
   });
 });
 
@@ -27952,14 +29391,21 @@ function openBookDetail(id) {
   BD.book = book;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
-
-  document.getElementById('bdBackdrop').classList.add('open');
+  
   const sheet = document.getElementById('bdSheet');
-  sheet.classList.add('open');
-  sheet.setAttribute('aria-hidden', 'false');
-  lockBodyScroll();
+  const backdrop = document.getElementById('bdBackdrop');
+  
+  // v1.0.1 — 렌더 먼저 → 한 프레임 양보 → 슬라이드 + 백드롭 (단순)
+  // lockBodyScroll이 이제 overflow만 막아서 페이지 깜박임 없음
   renderBookDetail();
   document.getElementById('bdBody').scrollTo({ top: 0 });
+  lockBodyScroll();
+  
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+  });
 
   // ModalStack 등록 — 시스템 뒤로가기로 닫을 수 있게
   ModalStack.open('bd', _closeBookDetailActual);
@@ -27971,24 +29417,27 @@ function _closeBookDetailActual() {
   const sheet = document.getElementById('bdSheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
-  // v1.0.0 — 시트 슬라이드 다운(0.32s)이 끝난 후 body fixed 해제 + scroll 복원.
-  // 트랜지션 시작과 동시에 unlock하면 iOS PWA에서 scroll 복원이 무시되는 케이스 있음.
-  // 350ms는 CSS transition .32s + 약간의 버퍼.
-  setTimeout(() => { unlockBodyScroll(); }, 350);
-  const ttlEl = document.getElementById('bdHeadTtl');
-  if (ttlEl) ttlEl.textContent = '책 상세';
-  // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
-  const body = document.getElementById('bdBody');
-  const notesBody = document.getElementById('bdNotesBody');
-  if (body) body.style.display = '';
-  if (notesBody) {
-    notesBody.style.display = 'none';
-    notesBody.innerHTML = '';
-  }
-  BD.book = null;
-  BD.showRereadForm = false;
-  BD.confirmDelete = false;
-  BD.tagEditMode = false;
+  // v1.0.1 — 닫기 후 페이지 스크롤 딜레이 픽스:
+  //   unlockBodyScroll 즉시 호출 (이전엔 350ms 후에 호출 — 사용자가 곧바로 스크롤 시작하면 딜레이 인지)
+  //   lockBodyScroll이 overflow:hidden만 쓰는 단순 버전이라 즉시 해제해도 안전 (페이지 점프 없음)
+  unlockBodyScroll();
+  // v1.0.1 — DOM 리셋은 transition 종료 후로 (슬라이드 다운 중 깜박임 방지)
+  setTimeout(() => { 
+    const ttlEl = document.getElementById('bdHeadTtl');
+    if (ttlEl) ttlEl.textContent = '책 상세';
+    // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
+    const body = document.getElementById('bdBody');
+    const notesBody = document.getElementById('bdNotesBody');
+    if (body) body.style.display = '';
+    if (notesBody) {
+      notesBody.style.display = 'none';
+      notesBody.innerHTML = '';
+    }
+    BD.book = null;
+    BD.showRereadForm = false;
+    BD.confirmDelete = false;
+    BD.tagEditMode = false;
+  }, 350);
 }
 
 // UI 이벤트 핸들러·코드 내부 auto-close가 호출하는 함수
@@ -28003,6 +29452,31 @@ function closeBookDetail() {
 }
 
 /* ─── 메인 렌더 ─── */
+/* v1.12.0 — 위시 상태 태그 칩 표시 전용 (편집 X, 보기만).
+   각 칩은 DEFAULT_TAGS의 emoji + 색을 활용. 매핑 없는 사용자 태그는 기본 톤. */
+function _renderWishTagChips(tags) {
+  if (!Array.isArray(tags) || tags.length === 0) {
+    return '<span class="bd-tag-readonly-empty">아직 태그가 없어요</span>';
+  }
+  // 숨김 태그 제외
+  const visibleTags = tags.filter(t => !HIDDEN_TAGS.has(t));
+  if (visibleTags.length === 0) {
+    return '<span class="bd-tag-readonly-empty">아직 태그가 없어요</span>';
+  }
+  return visibleTags.map(name => {
+    const meta = (typeof DEFAULT_TAGS !== 'undefined' && DEFAULT_TAGS[name])
+              || (typeof TAGS !== 'undefined' && TAGS[name])
+              || null;
+    const emoji = meta && meta.emoji ? meta.emoji : '';
+    const color = meta && meta.color ? meta.color : null;
+    // 칩 배경/테두리: 카테고리 색이 있으면 살짝 입힘
+    const styleAttr = color
+      ? ` style="border-color: ${color}33; color: ${color};"`
+      : '';
+    return `<span class="bd-tag-readonly-chip"${styleAttr}>${emoji ? esc(emoji) + ' ' : ''}${esc(name)}</span>`;
+  }).join('');
+}
+
 function renderBookDetail() {
   const b = BD.book;
   if (!b) return;
@@ -28022,7 +29496,7 @@ function renderBookDetail() {
   // v1.9.1 — 메타 정보를 컬러 dot 리스트로 분리 (가독성 + 정보 위계)
   const hasPrice = (typeof b.priceSales === 'number' && b.priceSales > 0);
   const isNonKo  = (b.language && b.language !== 'ko');
-  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo || (isWebnovel(b) && b.episodes));
+  const hasAnyMeta = !!(b.publisher || b.pages || hasPrice || isNonKo || (isWebnovel(b) && b.episodes) || b.acquisition);
 
   // 커버
   const cover = b.coverUrl
@@ -28097,6 +29571,7 @@ function renderBookDetail() {
                 ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">${getNovelUnitLabel(b)}</span><span class="bd-meta-val">${b.episodes}${getNovelUnitChar(b)}${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
                 : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
+              ${renderAcqMetaRow(b)}
               <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
             </div>` : ''}
           </div>
@@ -28307,6 +29782,13 @@ function renderBookDetail() {
       </div>
       <textarea class="bd-wish-note" id="bdWishNote" placeholder="예: 친구 추천 · 올해 안에 꼭 · EBS 다큐에서 보고 관심 생김" maxlength="500" rows="3">${esc(b.wishNote || '')}</textarea>
     </div>
+    <!-- v1.12.0 — 위시 상태 태그 표시 (편집은 독서중/완독에서) -->
+    <div class="bd-section">
+      <div class="bd-section-lbl">태그<span class="subct">독서중·완독에서 편집</span></div>
+      <div class="bd-tag-readonly-chips">
+        ${_renderWishTagChips(b.tags)}
+      </div>
+    </div>
     ` : ''}
 
     ${!wish ? `
@@ -28315,6 +29797,12 @@ function renderBookDetail() {
       <div class="tag-section-row">
         <div class="bd-section-lbl">태그<span class="subct">탭하여 토글</span></div>
         <button type="button" class="tag-edit-toggle" id="bdTagEditToggle">편집</button>
+      </div>
+      <!-- v1.12.0 — 이 책의 태그 요약 (항상 보임, 탭 안 눌러도 한눈에 파악) -->
+      <div class="bd-tag-summary">
+        <div class="bd-tag-readonly-chips">
+          ${_renderWishTagChips(b.tags)}
+        </div>
       </div>
       <!-- 카테고리 탭 -->
       <div class="tag-cat-tabs" id="bdTagCatTabs">
@@ -29434,9 +30922,15 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
           ? formatReadDateRange(b.dateStart, b.dateEnd)
           : '미독';
         const val = valFormatter ? valFormatter(b) : '';
+        // v1.0.1 — 실제 표지 있으면 img, 없으면 색상 + 첫 글자 fallback
+        // 이미지 로드 실패 시 onerror로 fallback 디자인 자동 적용 (네트워크 오류 등)
+        const fallbackBg = PALETTE_DARK[b.palette] || '#64748b';
+        const coverHtml = b.coverUrl
+          ? `<div class="dd-item-cover" style="background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;"></div>`
+          : `<div class="dd-item-cover palette-${pal}" style="background:${fallbackBg}">${esc(initial)}</div>`;
         return `
           <div class="dd-item" data-book-id="${b.id}">
-            <div class="dd-item-cover palette-${pal}" style="background:${PALETTE_DARK[b.palette] || '#64748b'}">${esc(initial)}</div>
+            ${coverHtml}
             <div class="dd-item-info">
               <div class="dd-item-title">${esc(b.title)}${b.isLifeBook ? ' <span class="lifebook-star">인생책</span>' : ''}</div>
               <div class="dd-item-meta">${esc(b.author)} · ${esc(dateStr)}</div>
@@ -29992,14 +31486,12 @@ function _renderMonthGrid(books) {
     const lifebook = b.isLifeBook
       ? `<div class="dd-grid-lifebook">LIFE</div>`
       : '';
-    // CORS-safe URL: 프록시 경유 + crossorigin anonymous
-    // 이미지가 "CORS-clean" 상태로 브라우저 캐시에 들어가서
-    // 저장 시점에 html2canvas가 fetch 없이 바로 읽을 수 있음
-    const proxyUrl = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL)
-      ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl || '')}`
-      : b.coverUrl;
+    // v1.0.1 — 표지 표시 픽스
+    //   이전: 프록시 URL + crossorigin="anonymous" → CORS 차단으로 표지가 안 뜨는 케이스 다수
+    //   변경: 원본 URL 직접 사용 (다른 곳과 동일 패턴) → 화면 표시 정상
+    //   캡처용 base64 교체는 _prewarmCoverCache가 백그라운드에서 처리하므로 저장 기능 영향 없음
     const coverHtml = hasCover
-      ? `<img src="${esc(proxyUrl)}" alt="${esc(b.title)}" loading="eager" crossorigin="anonymous"
+      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="eager" referrerpolicy="no-referrer"
              onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
       : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
 
@@ -30445,14 +31937,20 @@ function renderPaceCard() {
    ═══════════════════════════════════════════════════════════ */
 const GOALS_KEY = 'goals';
 const DEFAULT_GOAL_ANNUAL = 30;
+// v1.0.1 — 연속독서일 목표 (사용자 설정 + 자동 단계)
+const DEFAULT_GOAL_STREAK = 7;
+const STREAK_GOAL_STAGES = [7, 14, 30, 60, 100, 200, 365];
 
 function getGoals() {
   try {
     const raw = localStorage.getItem(GOALS_KEY);
     const parsed = raw ? JSON.parse(raw) : {};
-    return { annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL };
+    return {
+      annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL,
+      streak: Number(parsed.streak) || DEFAULT_GOAL_STREAK,
+    };
   } catch (e) {
-    return { annual: DEFAULT_GOAL_ANNUAL };
+    return { annual: DEFAULT_GOAL_ANNUAL, streak: DEFAULT_GOAL_STREAK };
   }
 }
 function saveGoals(partial) {
@@ -30461,6 +31959,434 @@ function saveGoals(partial) {
   localStorage.setItem(GOALS_KEY, JSON.stringify(merged));
   return merged;
 }
+
+// v1.0.1 — 연속 목표 다음 단계 (현재 단계보다 큰 첫 단계, 없으면 +100)
+function nextStreakGoal(current) {
+  const next = STREAK_GOAL_STAGES.find(s => s > current);
+  return next || (current + 100);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v1.x — 도서 구매/대여 기록 (acquisition)
+   책 객체 신규 필드:
+     acquisition: 'purchase' | 'rent' | 'own' | 'library' | null
+     acqDate: 'YYYY-MM-DD' (구매일 / 대여일)
+     acqPlace: '교보문고 광화문점' (구매처 / 대여처)
+     acqPrice: 18000 (구매가, 구매만)
+     acqReturnDate: 'YYYY-MM-DD' (반납예정일, 대여만)
+     acqMemo: '선물받음' (선택)
+   ═══════════════════════════════════════════════════════════ */
+const ACQ_TYPES = {
+  purchase: { label: '구매', icon: '🛒' },
+  rent:     { label: '대여', icon: '📚' },
+  own:      { label: '소장', icon: '📖' },
+  library:  { label: '도서관', icon: '🏛️' },
+};
+
+/* 오늘 날짜 YYYY-MM-DD */
+function _todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* 두 날짜 사이 일수 (target - today, 시간 무시) */
+function daysUntil(targetDateStr, todayStr) {
+  if (!targetDateStr) return null;
+  const today = todayStr || _todayStr();
+  const t = new Date(targetDateStr + 'T00:00:00');
+  const n = new Date(today + 'T00:00:00');
+  if (isNaN(t.getTime()) || isNaN(n.getTime())) return null;
+  const ms = t.getTime() - n.getTime();
+  return Math.round(ms / (24 * 60 * 60 * 1000));
+}
+
+/* D-N 상태: { days, label, severity }
+   severity: 'overdue' (연체) | 'urgent' (D-3 이내) | 'warning' (D-7 이내) | 'normal' */
+function ddayStatus(targetDateStr, todayStr) {
+  const days = daysUntil(targetDateStr, todayStr);
+  if (days === null) return null;
+  if (days < 0) return { days, label: `D+${-days}`, severity: 'overdue' };
+  if (days === 0) return { days, label: 'D-day', severity: 'urgent' };
+  if (days <= 3) return { days, label: `D-${days}`, severity: 'urgent' };
+  if (days <= 7) return { days, label: `D-${days}`, severity: 'warning' };
+  return { days, label: `D-${days}`, severity: 'normal' };
+}
+
+/* 대여 알림 바에 노출할 책들 (D-3 이내 + 연체) */
+function getReturnAlertBooks() {
+  if (!Array.isArray(BOOKS)) return [];
+  const today = _todayStr();
+  return BOOKS
+    .filter(b => b.acquisition === 'rent' && b.acqReturnDate && b.status !== 'done' && b.status !== 'dropped')
+    .map(b => ({ book: b, dday: ddayStatus(b.acqReturnDate, today) }))
+    .filter(x => x.dday && x.dday.days <= 3)
+    .sort((a, b) => a.dday.days - b.dday.days);
+}
+
+/* 대여 중인 모든 책 (통계 탭 카드용 — D-N 무관) */
+function getActiveRentBooks() {
+  if (!Array.isArray(BOOKS)) return [];
+  const today = _todayStr();
+  return BOOKS
+    .filter(b => b.acquisition === 'rent' && b.acqReturnDate && b.status !== 'done' && b.status !== 'dropped')
+    .map(b => ({ book: b, dday: ddayStatus(b.acqReturnDate, today) }))
+    .filter(x => x.dday)
+    .sort((a, b) => a.dday.days - b.dday.days);
+}
+
+/* v1.x — 서재 상단 대여 반납 알림 바 HTML
+   B 시안: "🔔 반납 임박 · 사피엔스 (D-2) · +N권"
+   클릭 시 통계 탭으로 이동 */
+function renderReturnAlertBar() {
+  const items = getReturnAlertBooks();
+  if (items.length === 0) return '';
+  const first = items[0];
+  const ddayLabel = first.dday.label;
+  const restCount = items.length - 1;
+  const restSuffix = restCount > 0 ? ` · +${restCount}권` : '';
+  return `
+    <div class="return-alert-bar" onclick="window._goToRentStatCard && window._goToRentStatCard()">
+      <span class="return-alert-bar-icon">🔔</span>
+      <span class="return-alert-bar-text">반납 임박 · <strong>${esc(first.book.title)} (${ddayLabel})</strong>${restSuffix}</span>
+      <span class="return-alert-bar-chevron">›</span>
+    </div>`;
+}
+
+/* 알림 바 클릭 → 통계 탭 이동 + 카드로 스크롤 */
+window._goToRentStatCard = function() {
+  try {
+    if (typeof switchTab === 'function') switchTab('stats');
+    setTimeout(() => {
+      const el = document.getElementById('rentStatCard');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+  } catch(e){}
+};
+
+/* v1.x — 책 상세 메타 row "소유" HTML
+   - acquisition 없으면 "기록하기" 버튼
+   - 있으면 요약 + D-N 표시 (대여만), 탭하면 편집 시트 */
+function renderAcqMetaRow(b) {
+  if (!b.acquisition) {
+    return `<div class="bd-meta-row bd-meta-acq-empty" onclick="openAcqSheet(${b.id})">
+      <span class="bd-meta-dot bd-meta-dot-acq"></span>
+      <span class="bd-meta-lbl">소유</span>
+      <span class="bd-meta-val bd-meta-val-acq" style="color:var(--c-label);">기록하기 ›</span>
+    </div>`;
+  }
+  
+  const type = ACQ_TYPES[b.acquisition];
+  if (!type) return '';
+  
+  let valHtml = `${type.icon} ${type.label}`;
+  let sevClass = '';
+  
+  if (b.acquisition === 'purchase') {
+    // 구매: 날짜 · 구매처 · 가격
+    const parts = [];
+    if (b.acqDate) parts.push(b.acqDate.replace(/-/g, '.'));
+    if (b.acqPlace) parts.push(esc(b.acqPlace));
+    if (b.acqPrice) parts.push(`${Number(b.acqPrice).toLocaleString('ko-KR')}원`);
+    if (parts.length > 0) valHtml += ` · ${parts.join(' · ')}`;
+  } else if (b.acquisition === 'rent') {
+    // 대여: 대여처 + D-N
+    if (b.acqPlace) valHtml += ` · ${esc(b.acqPlace)}`;
+    if (b.acqReturnDate) {
+      const dday = ddayStatus(b.acqReturnDate);
+      if (dday) {
+        sevClass = `sev-${dday.severity}`;
+        const ddayClass = `dday-${dday.severity}`;
+        const dateLabel = b.acqReturnDate.replace(/-/g, '.');
+        valHtml += ` · <strong class="${ddayClass}">${dday.label}</strong> (~${dateLabel.slice(5)})`;
+      }
+    }
+  } else {
+    // 소장 / 도서관: 단순 표시
+    const parts = [];
+    if (b.acqDate) parts.push(b.acqDate.replace(/-/g, '.'));
+    if (b.acqPlace) parts.push(esc(b.acqPlace));
+    if (parts.length > 0) valHtml += ` · ${parts.join(' · ')}`;
+  }
+  
+  return `<div class="bd-meta-row" onclick="openAcqSheet(${b.id})" style="cursor:pointer;">
+    <span class="bd-meta-dot bd-meta-dot-acq ${sevClass}"></span>
+    <span class="bd-meta-lbl">소유</span>
+    <span class="bd-meta-val bd-meta-val-acq">${valHtml}</span>
+  </div>`;
+}
+
+/* v1.x — 소유 편집 시트 열기 (구매/대여/소장/도서관 입력 폼) */
+function openAcqSheet(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  
+  // 시트가 이미 있으면 제거
+  const old = document.getElementById('acqSheet');
+  if (old) old.remove();
+  const oldBd = document.getElementById('acqSheetBackdrop');
+  if (oldBd) oldBd.remove();
+  
+  // 백드롭
+  const backdrop = document.createElement('div');
+  backdrop.id = 'acqSheetBackdrop';
+  backdrop.className = 'bd-backdrop acq-backdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;opacity:0;transition:opacity 0.25s ease;';
+  document.body.appendChild(backdrop);
+  
+  // 시트
+  const sheet = document.createElement('div');
+  sheet.id = 'acqSheet';
+  sheet.className = 'acq-sheet';
+  sheet.dataset.bookId = String(bookId);
+  sheet.innerHTML = _acqSheetHtml(b);
+  document.body.appendChild(sheet);
+  
+  // 애니메이션
+  void sheet.offsetHeight;
+  requestAnimationFrame(() => {
+    backdrop.style.opacity = '1';
+    sheet.classList.add('open');
+  });
+  
+  // body scroll lock
+  if (typeof lockBodyScroll === 'function') lockBodyScroll();
+  
+  // 이벤트
+  backdrop.onclick = closeAcqSheet;
+  
+  // 라디오 변경 시 폼 토글
+  sheet.querySelectorAll('input[name="acqType"]').forEach(r => {
+    r.addEventListener('change', () => _acqUpdateFormView(r.value));
+  });
+  
+  // v1.x — 초기 상태: 책에 기록 있으면 해당 폼, 없으면 '구매'로 기본 선택
+  const initType = b.acquisition || 'purchase';
+  const initRadio = sheet.querySelector(`input[name="acqType"][value="${initType}"]`);
+  if (initRadio) initRadio.checked = true;
+  _acqUpdateFormView(initType);
+  
+  // 대여일/반납일 변경 시 기간 자동 계산
+  const dateInp = sheet.querySelector('#acqDateInput');
+  const retInp = sheet.querySelector('#acqReturnDateInput');
+  const durEl = sheet.querySelector('#acqDurationLbl');
+  const updateDur = () => {
+    if (!durEl || !dateInp || !retInp) return;
+    if (dateInp.value && retInp.value) {
+      const d = daysUntil(retInp.value, dateInp.value);
+      if (d !== null && d >= 0) {
+        durEl.textContent = `대여 기간: ${d}일`;
+        durEl.style.display = '';
+        return;
+      }
+    }
+    durEl.style.display = 'none';
+  };
+  dateInp && dateInp.addEventListener('input', updateDur);
+  retInp && retInp.addEventListener('input', updateDur);
+  updateDur();
+  
+  // 쓸어내려 닫기
+  if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
+}
+
+function closeAcqSheet() {
+  const sheet = document.getElementById('acqSheet');
+  const bd = document.getElementById('acqSheetBackdrop');
+  if (!sheet) return;
+  sheet.classList.remove('open');
+  if (bd) bd.style.opacity = '0';
+  if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
+  setTimeout(() => {
+    if (sheet) sheet.remove();
+    if (bd) bd.remove();
+  }, 280);
+}
+
+function _acqSheetHtml(b) {
+  const acq = b.acquisition || '';
+  const escVal = (v) => v ? esc(String(v)) : '';
+  const today = _todayStr();
+  return `
+    <div class="acq-sheet-handle"></div>
+    <div class="acq-sheet-head">
+      <div class="acq-sheet-title">소유 기록</div>
+      <button class="acq-sheet-close" onclick="closeAcqSheet()" aria-label="닫기">✕</button>
+    </div>
+    <div class="acq-sheet-body">
+      <!-- 타입 라디오 -->
+      <div class="acq-type-grid">
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="purchase" ${acq==='purchase'?'checked':''}><span>🛒 구매</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="rent" ${acq==='rent'?'checked':''}><span>📚 대여</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="own" ${acq==='own'?'checked':''}><span>📖 소장</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="library" ${acq==='library'?'checked':''}><span>🏛️ 도서관</span></label>
+      </div>
+      
+      <!-- 구매 폼 -->
+      <div class="acq-form" id="acqForm-purchase" style="display:none;">
+        <label class="acq-field">
+          <span class="acq-field-lbl">구매일</span>
+          <input type="date" class="acq-input" id="acqDateInputP" value="${escVal(b.acqDate)}" max="${today}">
+        </label>
+        <label class="acq-field">
+          <span class="acq-field-lbl">구매처</span>
+          <input type="text" class="acq-input" id="acqPlaceInputP" value="${escVal(b.acqPlace)}" placeholder="예: 교보문고 광화문점" maxlength="40">
+        </label>
+        <label class="acq-field">
+          <span class="acq-field-lbl">가격 (원)</span>
+          <input type="number" class="acq-input" id="acqPriceInput" value="${b.acqPrice || ''}" placeholder="18000" min="0" max="9999999" inputmode="numeric">
+        </label>
+      </div>
+      
+      <!-- 대여 폼 -->
+      <div class="acq-form" id="acqForm-rent" style="display:none;">
+        <label class="acq-field">
+          <span class="acq-field-lbl">대여일</span>
+          <input type="date" class="acq-input" id="acqDateInput" value="${escVal(b.acqDate)}">
+        </label>
+        <label class="acq-field">
+          <span class="acq-field-lbl">반납 예정일</span>
+          <input type="date" class="acq-input" id="acqReturnDateInput" value="${escVal(b.acqReturnDate)}">
+        </label>
+        <div class="acq-duration-lbl" id="acqDurationLbl" style="display:none;"></div>
+        <label class="acq-field">
+          <span class="acq-field-lbl">대여처</span>
+          <input type="text" class="acq-input" id="acqPlaceInputR" value="${escVal(b.acqPlace)}" placeholder="예: 광화문 도서관" maxlength="40">
+        </label>
+      </div>
+      
+      <!-- 소장 폼 -->
+      <div class="acq-form" id="acqForm-own" style="display:none;">
+        <label class="acq-field">
+          <span class="acq-field-lbl">소장일 (선택)</span>
+          <input type="date" class="acq-input" id="acqDateInputO" value="${escVal(b.acqDate)}" max="${today}">
+        </label>
+        <label class="acq-field">
+          <span class="acq-field-lbl">출처 (선택)</span>
+          <input type="text" class="acq-input" id="acqPlaceInputO" value="${escVal(b.acqPlace)}" placeholder="예: 선물 받음" maxlength="40">
+        </label>
+      </div>
+      
+      <!-- 도서관 폼 -->
+      <div class="acq-form" id="acqForm-library" style="display:none;">
+        <label class="acq-field">
+          <span class="acq-field-lbl">도서관명</span>
+          <input type="text" class="acq-input" id="acqPlaceInputL" value="${escVal(b.acqPlace)}" placeholder="예: 광화문 도서관" maxlength="40">
+        </label>
+      </div>
+      
+      <!-- 메모 (공통) -->
+      <label class="acq-field acq-field-memo">
+        <span class="acq-field-lbl">메모 (선택)</span>
+        <textarea class="acq-input acq-textarea" id="acqMemoInput" rows="2" maxlength="120" placeholder="예: 선물 받음 · 사인본">${escVal(b.acqMemo)}</textarea>
+      </label>
+    </div>
+    
+    <div class="acq-sheet-footer">
+      ${acq ? `<button class="acq-btn acq-btn-clear" onclick="clearAcq(${b.id})">기록 삭제</button>` : '<div></div>'}
+      <button class="acq-btn acq-btn-save" onclick="saveAcq(${b.id})">저장</button>
+    </div>
+  `;
+}
+
+function _acqUpdateFormView(type) {
+  ['purchase','rent','own','library'].forEach(t => {
+    const f = document.getElementById('acqForm-' + t);
+    if (f) f.style.display = (t === type) ? '' : 'none';
+  });
+}
+
+function saveAcq(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  const sheet = document.getElementById('acqSheet');
+  if (!sheet) return;
+  
+  const typeRadio = sheet.querySelector('input[name="acqType"]:checked');
+  if (!typeRadio) {
+    try { showToast('소유 형태를 선택해주세요'); } catch(e){}
+    return;
+  }
+  const type = typeRadio.value;
+  
+  // 폼별 데이터 수집
+  let acqDate = '', acqPlace = '', acqPrice = null, acqReturnDate = '';
+  
+  if (type === 'purchase') {
+    acqDate = sheet.querySelector('#acqDateInputP')?.value || '';
+    acqPlace = (sheet.querySelector('#acqPlaceInputP')?.value || '').trim();
+    const p = parseInt(sheet.querySelector('#acqPriceInput')?.value || '', 10);
+    acqPrice = Number.isFinite(p) && p > 0 ? p : null;
+  } else if (type === 'rent') {
+    acqDate = sheet.querySelector('#acqDateInput')?.value || '';
+    acqReturnDate = sheet.querySelector('#acqReturnDateInput')?.value || '';
+    acqPlace = (sheet.querySelector('#acqPlaceInputR')?.value || '').trim();
+    // 반납일 < 대여일 검증
+    if (acqDate && acqReturnDate) {
+      const d = daysUntil(acqReturnDate, acqDate);
+      if (d !== null && d < 0) {
+        try { showToast('반납 예정일은 대여일 이후여야 합니다'); } catch(e){}
+        return;
+      }
+    }
+  } else if (type === 'own') {
+    acqDate = sheet.querySelector('#acqDateInputO')?.value || '';
+    acqPlace = (sheet.querySelector('#acqPlaceInputO')?.value || '').trim();
+  } else if (type === 'library') {
+    acqPlace = (sheet.querySelector('#acqPlaceInputL')?.value || '').trim();
+  }
+  
+  const acqMemo = (sheet.querySelector('#acqMemoInput')?.value || '').trim();
+  
+  // 책 업데이트 — updateBook 사용 (BD.book 참조 자동 갱신 + 모든 렌더 호출)
+  updateBook(bookId, {
+    acquisition: type,
+    acqDate: acqDate || null,
+    acqPlace: acqPlace || null,
+    acqPrice: acqPrice,
+    acqReturnDate: acqReturnDate || null,
+    acqMemo: acqMemo || null,
+  });
+  
+  // 책 상세 모달 갱신 (열려있으면)
+  try {
+    if (typeof renderBookDetail === 'function' && BD.book) {
+      renderBookDetail(BD.book);
+    }
+  } catch(e){}
+  
+  try { showToast('소유 기록이 저장되었어요'); } catch(e){}
+  closeAcqSheet();
+}
+
+function clearAcq(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  if (!confirm('소유 기록을 삭제할까요?')) return;
+  
+  // updateBook은 partial merge라 null로 덮어쓰면 키는 남음 — 직접 제거 + STORE 갱신
+  delete b.acquisition;
+  delete b.acqDate;
+  delete b.acqPlace;
+  delete b.acqPrice;
+  delete b.acqReturnDate;
+  delete b.acqMemo;
+  
+  try { STORE.set('books', BOOKS); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+  try { renderLibraryCards(); } catch(e){}
+  try {
+    if (typeof renderBookDetail === 'function' && BD.book) {
+      renderBookDetail(BD.book);
+    }
+  } catch(e){}
+  
+  try { showToast('기록이 삭제되었어요'); } catch(e){}
+  closeAcqSheet();
+}
+
 
 /* 올해/이번달 완독 수 계산 (renderAnnualLedger 패턴 재사용) */
 function countFinishedThisYear() {
@@ -31080,24 +33006,47 @@ function renderGoalsPane() {
   if (bestEl) bestEl.textContent = streak.best;
 
   const hero = pane.querySelector('.annual-hero');
-  const numEl = pane.querySelector('.annual-hero-num');
-  const subEl = pane.querySelector('.annual-hero-sub');
-  const fillEl = pane.querySelector('.annual-hero-fill');
+  // v1.0.1 — D 시안: row 안 num은 첫 번째(책), streak-num은 두 번째(연속)
+  const rows = pane.querySelectorAll('.annual-hero-row');
+  const bookNumEl = rows[0] ? rows[0].querySelector('.annual-hero-num') : null;
+  const streakNumEl = pane.querySelector('.annual-hero-streak-num');
+  const streakBestEl = pane.querySelector('.annual-hero-streak-best');
+  const streakTargetEl = pane.querySelector('.annual-hero-streak-target');
+  const targetEl = pane.querySelector('.annual-hero-target');
+  const remainEl = pane.querySelector('.annual-hero-remain');
+  const fills = pane.querySelectorAll('.annual-hero-fill');
+  const bookFillEl = fills[0] || null;
+  const streakFillEl = pane.querySelector('.annual-hero-streak-fill');
   const paceEl = pane.querySelector('.annual-hero-pace');
 
-  if (numEl) numEl.textContent = done;
-  if (fillEl) fillEl.style.width = `${pct}%`;
+  // ── 책 권수 row ──
+  if (bookNumEl) bookNumEl.textContent = done;
+  if (targetEl) targetEl.textContent = `${target}권`;
+  if (remainEl) remainEl.textContent = `${remaining}권`;
+  if (bookFillEl) bookFillEl.style.width = `${pct}%`;
 
   const achieved = done >= target && target > 0;
   if (hero) hero.classList.toggle('achieved', achieved);
 
-  if (subEl) {
-    if (achieved) {
-      subEl.innerHTML = `목표 <strong>${target}권</strong> 달성 완료`;
-    } else {
-      subEl.innerHTML = `목표 ${target}권 · 남은 <strong>${remaining}권</strong>`;
+  // ── 연속독서일 row ──
+  // v1.0.1 — 달성 자동 승급 + 토스트
+  let streakTarget = goals.streak || DEFAULT_GOAL_STREAK;
+  const streakAchieved = streak.current >= streakTarget && streakTarget > 0;
+  if (streakAchieved) {
+    // 다음 단계로 자동 승급
+    const nextTarget = nextStreakGoal(streakTarget);
+    saveGoals({ streak: nextTarget });
+    // 토스트 알림 (있으면)
+    if (typeof showToast === 'function') {
+      showToast(`🎉 ${streakTarget}일 연속 독서 달성! 다음 목표는 ${nextTarget}일이에요`);
     }
+    streakTarget = nextTarget;
   }
+  const streakPct = streakTarget > 0 ? Math.min(100, Math.round(streak.current / streakTarget * 100)) : 0;
+  if (streakNumEl) streakNumEl.textContent = streak.current;
+  if (streakBestEl) streakBestEl.textContent = streak.best;
+  if (streakTargetEl) streakTargetEl.textContent = `${streakTarget}일`;
+  if (streakFillEl) streakFillEl.style.width = `${streakPct}%`;
 
   if (paceEl) {
     if (achieved) {
@@ -31182,17 +33131,39 @@ function renderGoalSettingsRow() {
 /* 목표 편집 — 모바일에선 숫자 키패드가 자동으로 뜨는 prompt 사용 */
 function openGoalEditor() {
   const goals = getGoals();
-  const input = window.prompt('올해 목표 권수를 입력하세요 (1–999)', String(goals.annual));
-  if (input == null) return; // 취소
-  const n = parseInt(String(input).trim(), 10);
-  if (!Number.isFinite(n) || n < 1 || n > 999) {
-    try { showToast('1부터 999 사이의 숫자로 입력해주세요'); } catch(e){}
+  
+  // 1) 올해 책 목표
+  const annualInput = window.prompt('올해 목표 권수를 입력하세요 (1–999)', String(goals.annual));
+  if (annualInput == null) return; // 취소
+  const annualN = parseInt(String(annualInput).trim(), 10);
+  if (!Number.isFinite(annualN) || annualN < 1 || annualN > 999) {
+    try { showToast('권수는 1부터 999 사이로 입력해주세요'); } catch(e){}
     return;
   }
-  saveGoals({ annual: n });
+  
+  // 2) 연속독서일 목표 (v1.0.1)
+  const streakInput = window.prompt('연속독서일 목표를 입력하세요 (1–365일)', String(goals.streak));
+  if (streakInput == null) {
+    // 연속 목표는 취소해도 책 목표는 저장
+    saveGoals({ annual: annualN });
+    try { renderGoalsPane(); } catch(e){}
+    try { renderGoalSettingsRow(); } catch(e){}
+    try { showToast(`올해 목표 ${annualN}권으로 저장됨`); } catch(e){}
+    return;
+  }
+  const streakN = parseInt(String(streakInput).trim(), 10);
+  if (!Number.isFinite(streakN) || streakN < 1 || streakN > 365) {
+    try { showToast('연속일은 1부터 365 사이로 입력해주세요'); } catch(e){}
+    // 책 목표만이라도 저장
+    saveGoals({ annual: annualN });
+    try { renderGoalsPane(); } catch(e){}
+    return;
+  }
+  
+  saveGoals({ annual: annualN, streak: streakN });
   try { renderGoalsPane(); } catch(e){}
   try { renderGoalSettingsRow(); } catch(e){}
-  try { showToast(`올해 목표 ${n}권으로 저장됨`); } catch(e){}
+  try { showToast(`목표 저장: ${annualN}권 · 연속 ${streakN}일`); } catch(e){}
 }
 
 /* ─── ⑦ 이번달 캘린더 (V2) ─── */
@@ -31462,9 +33433,198 @@ function renderAllStats() {
   try { renderMonthCal();         } catch(e) { console.error('[monthcal]', e); }
   try { renderTasteInsight();     } catch(e) { console.error('[taste]', e); }
   try { renderDropStatCard();     } catch(e) { console.error('[drop-stat]', e); }
+  try { renderCategoryStats();    } catch(e) { console.error('[cat-stat]', e); }
+  try { renderRentStatCard();     } catch(e) { console.error('[rent-stat]', e); }
   // 목표 탭
   try { renderGoalsPane();        } catch(e) { console.error('[goals]', e); }
 }
+
+/* v1.x — 곧 반납할 책 카드 (통계 탭, B 시안)
+   - 대여 중인 책 1권 이상이면 노출, 0권이면 카드 자체 숨김
+   - severity 정렬: overdue → urgent → warning → normal */
+function renderRentStatCard() {
+  const card = document.getElementById('rentStatCard');
+  const list = document.getElementById('rentStatList');
+  const sub = document.getElementById('rentStatSub');
+  if (!card || !list) return;
+  
+  const items = getActiveRentBooks();
+  
+  if (items.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  
+  card.style.display = '';
+  if (sub) sub.textContent = `대여 중 ${items.length}권`;
+  
+  const PALETTE_DARK_LOCAL = (typeof PALETTE_DARK !== 'undefined') ? PALETTE_DARK : {};
+  
+  list.innerHTML = items.map(({ book: b, dday }) => {
+    const sev = dday.severity;
+    const palColor = PALETTE_DARK_LOCAL[b.palette] || '#64748b';
+    const coverStyle = b.coverUrl
+      ? `background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;`
+      : `background:${palColor};`;
+    const returnDateLabel = b.acqReturnDate
+      ? b.acqReturnDate.replace(/-/g, '.').slice(5) + '까지'
+      : '';
+    const placeLabel = b.acqPlace ? esc(b.acqPlace) : '대여';
+    const metaLine = b.acqReturnDate
+      ? `${placeLabel} · ${returnDateLabel}`
+      : placeLabel;
+    return `
+      <div class="rent-stat-item sev-${sev}" data-book-id="${b.id}" onclick="openBookDetail(${b.id})">
+        <div class="rent-stat-cover" style="${coverStyle}"></div>
+        <div class="rent-stat-info">
+          <div class="rent-stat-book-title">${esc(b.title)}</div>
+          <div class="rent-stat-book-meta">${metaLine}</div>
+        </div>
+        <div class="rent-stat-dday sev-${sev}">${dday.label}</div>
+      </div>`;
+  }).join('');
+}
+
+/* v1.0.1 — 분류별 정리 (장르 + 논픽션 권수 랭킹, 상위 5 + 더보기) */
+const CAT_STAT_INITIAL_LIMIT = 5;
+let _catStatExpanded = false;
+
+function renderCategoryStats() {
+  const container = document.getElementById('catStatList');
+  if (!container) return;
+  
+  // 1) 카운트: 장르 + 논픽션 카테고리 태그만 대상, 전체 책(모든 상태) 포함
+  //    한 책이 여러 태그를 가질 수 있으므로 태그마다 ++
+  const counts = {};      // tagName → 권수
+  const repBooks = {};    // tagName → 대표 책 후보 배열
+  
+  if (typeof DEFAULT_TAGS === 'undefined' || !Array.isArray(BOOKS)) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  // 대상 태그 목록 (genre + nonfiction 카테고리만, HIDDEN_TAGS 제외)
+  const targetTags = new Set();
+  Object.entries(DEFAULT_TAGS).forEach(([name, info]) => {
+    if (info.category !== 'genre' && info.category !== 'nonfiction') return;
+    if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(name)) return;
+    targetTags.add(name);
+  });
+  
+  // 카운트
+  BOOKS.forEach(book => {
+    const tags = Array.isArray(book.tags) ? book.tags : [];
+    tags.forEach(t => {
+      if (!targetTags.has(t)) return;
+      counts[t] = (counts[t] || 0) + 1;
+      if (!repBooks[t]) repBooks[t] = [];
+      repBooks[t].push(book);
+    });
+  });
+  
+  // 2) 정렬: 권수 많은 순. 0인 분류는 자동 제외 (counts에 없으니까)
+  const sorted = Object.keys(counts)
+    .map(name => ({ name, count: counts[name], books: repBooks[name] }))
+    .sort((a, b) => b.count - a.count);
+  
+  if (!sorted.length) {
+    container.innerHTML = '<div class="cat-stat-empty">분류 태그가 부여된 책이 아직 없어요</div>';
+    return;
+  }
+  
+  // 3) 대표 책 선정: 인생책(isLifeBook) → 최근(updatedAt or addedAt or dateEnd) → 별점 우선
+  const pickRepBook = (books) => {
+    if (!books || !books.length) return null;
+    // 인생책 먼저
+    const lifeBook = books.find(b => b.isLifeBook);
+    if (lifeBook) return lifeBook;
+    // 최근 → 별점 순 정렬
+    const sortedBooks = [...books].sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+      const aRating = a.rating || 0;
+      const bRating = b.rating || 0;
+      return bRating - aRating;
+    });
+    return sortedBooks[0];
+  };
+  
+  // 4) 상위 5 + 더보기 처리
+  const total = sorted.length;
+  const visible = _catStatExpanded ? sorted : sorted.slice(0, CAT_STAT_INITIAL_LIMIT);
+  const hiddenCount = Math.max(0, total - visible.length);
+  
+  // 5) 렌더
+  const tagInfo = DEFAULT_TAGS;
+  const rowsHtml = visible.map((entry, idx) => {
+    const rank = idx + 1;
+    const rep = pickRepBook(entry.books);
+    const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
+    const info = tagInfo[entry.name] || {};
+    const emoji = info.emoji || '📚';
+    const coverStyle = cover ? `style="background-image:url('${esc(cover)}');"` : '';
+    const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
+    return `
+      <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
+        <span class="cat-stat-rank">#${rank}</span>
+        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}" ${coverStyle}>${fallback}</span>
+        <span class="cat-stat-name">${esc(entry.name)}</span>
+        <span class="cat-stat-cnt">${entry.count}</span>
+        <span class="cat-stat-arrow">›</span>
+      </button>`;
+  }).join('');
+  
+  let moreHtml = '';
+  if (hiddenCount > 0) {
+    moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-more">+ 더보기 ${hiddenCount}개</button>`;
+  } else if (_catStatExpanded && total > CAT_STAT_INITIAL_LIMIT) {
+    moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-collapse">접기</button>`;
+  }
+  
+  container.innerHTML = rowsHtml + moreHtml;
+}
+
+/* v1.0.1 — 분류 행 클릭 → drilldown 시트 + 더보기/접기 토글 */
+(function wireCategoryStatsClick() {
+  const container = document.getElementById('catStatList');
+  if (!container) return;
+  container.addEventListener('click', (e) => {
+    // 더보기 / 접기
+    const moreBtn = e.target.closest('[data-action="cat-stat-more"]');
+    if (moreBtn) {
+      _catStatExpanded = true;
+      renderCategoryStats();
+      return;
+    }
+    const collapseBtn = e.target.closest('[data-action="cat-stat-collapse"]');
+    if (collapseBtn) {
+      _catStatExpanded = false;
+      renderCategoryStats();
+      return;
+    }
+    // 분류 행 클릭 → drilldown
+    const btn = e.target.closest('[data-action="cat-stat-open"]');
+    if (!btn) return;
+    const tagName = btn.dataset.tag;
+    if (!tagName) return;
+    // 해당 태그가 부여된 모든 책 추출 (전체 상태)
+    const books = (BOOKS || []).filter(b => Array.isArray(b.tags) && b.tags.includes(tagName));
+    if (!books.length) return;
+    // 정렬: 최근 → 별점 우선 (드릴다운 안에서 일관성)
+    const sorted = books.sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+    const info = (typeof DEFAULT_TAGS !== 'undefined' ? DEFAULT_TAGS[tagName] : null) || {};
+    const emoji = info.emoji || '🏷';
+    if (typeof openDrillDown === 'function') {
+      openDrillDown(`${emoji} ${tagName}`, `총 ${sorted.length}권`, sorted);
+    }
+  });
+})();
 
 /* ─── 통계 연도 선택 상태 ─── */
 const STATS_YEAR = {
@@ -33500,42 +35660,20 @@ renderNotesTab();
    ⬇️ 스와이프 다운으로 시트 닫기 + 바디 스크롤 완전 잠금
    ═══════════════════════════════════════════════════════════ */
 
-/* 바디 스크롤 락 — 모바일 Safari에서도 확실히 */
+/* 바디 스크롤 락 — 단순화 (v1.0.1)
+   이전: position:fixed + top:-scrollY → body 자식들이 fixed 컨테이너 안에서 재배치 → 헤더/로고 깜박임
+   변경: overflow:hidden만 → 페이지는 그대로, 스크롤만 막힘 → 깜박임 없음, 스크롤 위치 자동 보존 */
 function lockBodyScroll() {
-  if (document.body.dataset.lockY != null) return; // 중첩 방지
-  const y = window.scrollY || 0;
-  document.body.dataset.lockY = String(y);
-  document.body.style.position = 'fixed';
-  document.body.style.top = `-${y}px`;
-  document.body.style.width = '100%';
+  if (document.body.dataset.locked === '1') return; // 중첩 방지
+  document.body.dataset.locked = '1';
   document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
 }
 function unlockBodyScroll() {
-  if (document.body.dataset.lockY == null) return;
-  const y = parseInt(document.body.dataset.lockY, 10) || 0;
-  delete document.body.dataset.lockY;
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
+  if (document.body.dataset.locked !== '1') return;
+  delete document.body.dataset.locked;
   document.body.style.overflow = '';
-  // v1.9.1 — iOS Safari/PWA에서 position:fixed 해제 직후 scrollTo가 무시되는 경우 대비.
-  // v1.0.0 — RAF 1번으로 부족한 경우 발견 → 다중 RAF + setTimeout 백업으로 보강.
-  const restore = () => {
-    window.scrollTo(0, y);
-    if (document.documentElement) document.documentElement.scrollTop = y;
-    if (document.body) document.body.scrollTop = y;
-  };
-  restore();
-  requestAnimationFrame(() => {
-    restore();
-    requestAnimationFrame(() => {
-      if (Math.abs((window.scrollY || 0) - y) > 2) restore();
-    });
-  });
-  // 최종 백업: 100ms 후에도 위치 안 맞으면 한 번 더 (iOS PWA reflow 지연 대응)
-  setTimeout(() => {
-    if (Math.abs((window.scrollY || 0) - y) > 2) restore();
-  }, 100);
+  document.documentElement.style.overflow = '';
 }
 // 전역 노출 (closeXxx 내부에서 호출)
 window.lockBodyScroll = lockBodyScroll;
@@ -33558,6 +35696,7 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
+  let touchMoveCount = 0;  // v1.0.1 — iOS Safari 첫 touchmove jump 회피용
 
   const finish = () => {
     if (!isDragging) return;
@@ -33565,12 +35704,33 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
 
     if (currentY > threshold) {
       // 닫기: 현재 위치에서 아래로 이어서 슬라이드
+      // v1.0.1 — 배경 깜박임 픽스
+      //   1. 시트 슬라이드 다운 시작과 동시에 백드롭도 페이드 아웃
+      //   2. 슬라이드 끝나면 closeFn() 호출 (.open 제거 — 시각 변화 거의 없음)
+      //   3. 다음 프레임에 inline style 정리
+      // v1.0.1 — 닫기 후 페이지 스크롤 딜레이 픽스 (옵션 B):
+      //   슬라이드 시작 시점에 unlockBodyScroll 즉시 호출 → 시트 사라지는 동안 페이지 스크롤 가능
+      //   시트는 position:fixed라 페이지 스크롤과 무관 → 부작용 없음
       sheet.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
       sheet.style.transform = 'translate(-50%, 100vh)';
+      // 백드롭도 같이 페이드 (자연스러운 동시 닫힘)
+      const backdrop = sheet.previousElementSibling;  // 시트 바로 위 형제 = 백드롭 (페어 패턴)
+      if (backdrop && /backdrop/i.test(backdrop.className)) {
+        backdrop.style.transition = 'opacity .22s ease';
+        backdrop.style.opacity = '0';
+      }
+      // 사용자 손가락 뗀 직후 페이지 반응 즉시 가능하게
+      if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
       setTimeout(() => {
-        sheet.style.transition = '';
-        sheet.style.transform = '';
-        closeFn();
+        closeFn();  // .open 클래스 제거 (시트/백드롭 둘 다 이미 시각적으로 사라진 상태)
+        requestAnimationFrame(() => {
+          sheet.style.transition = '';
+          sheet.style.transform = '';
+          if (backdrop) {
+            backdrop.style.transition = '';
+            backdrop.style.opacity = '';
+          }
+        });
       }, 260);
     } else {
       // 원상복귀
@@ -33592,11 +35752,26 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
       startY = e.touches[0].clientY;
       currentY = 0;
       isDragging = true;
+      touchMoveCount = 0;  // v1.0.1 — iOS Safari 첫 touchmove jump 회피용 카운터 리셋
       sheet.style.transition = 'none';
+      // v1.0.1 — 강제 reflow로 transition:none 즉시 적용 (드래그 첫 프레임 버벅임 픽스)
+      // 이게 없으면 다음 paint cycle까지 0.32s transition이 살아있어 손가락 따라가지 못함
+      void sheet.offsetHeight;
     }, { passive: true });
 
     zone.addEventListener('touchmove', (e) => {
       if (!isDragging) return;
+      touchMoveCount++;
+      
+      // v1.0.1 — iOS Safari 첫 touchmove jump 회피
+      //   WebKit은 첫 touchmove에 불규칙한 큰 점프(수 ~ 수십 px)가 자주 발생 (Apple Developer Forum 확인)
+      //   → 첫 프레임은 startY만 그 시점으로 재보정하고 transform은 건드리지 않음
+      //   → 둘째 프레임부터 startY 기준 정상 추적
+      if (touchMoveCount === 1) {
+        startY = e.touches[0].clientY;
+        return;
+      }
+      
       const delta = e.touches[0].clientY - startY;
       if (delta < 0) {
         // 위로 드래그 → 본문 영역이면 드래그 취소 (내부 스크롤로 넘김)
@@ -33756,6 +35931,11 @@ scheduleNextNotif();
 
 /* ═══════════ 앱 정보 모달 ═══════════ */
 function openAboutModal() {
+  // v1.0.1 — APP_VERSION 동적 주입 (하드코딩으로 인한 버전 미갱신 방지)
+  const verEl = document.getElementById('abVer');
+  if (verEl && typeof APP_VERSION !== 'undefined') {
+    verEl.textContent = `version ${APP_VERSION}`;
+  }
   document.getElementById('abBackdrop').classList.add('open');
   document.getElementById('abModal').classList.add('open');
   document.getElementById('abModal').setAttribute('aria-hidden', 'false');
@@ -38041,8 +40221,9 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.0.0';
-const APP_VERSION_NICKNAME = 'keepbook 1.0'; // 버전 코드네임 — 설정 페이지 표시용. 버전 올릴 때 같이 갱신
+const APP_VERSION = '1.0.1';
+// v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
+const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
 
 /* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨) */
@@ -38141,12 +40322,8 @@ function _versionLower(a, b) {
 
 /* 자동 열기: 온보딩 완료된 기존 유저 중, 이번 버전 처음 보는 사람만 */
 (function autoOpenWhatsNew() {
-  // v1.0.0 — keepbook 정식 출시, 조용히 배포 (업데이트 모달 자동 노출 X)
-  if (APP_VERSION === '1.0.0') {
-    try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
-    return;
-  }
-  // v1.10.0 — 책 이사 업데이트 모달 활성화
+  // v1.0.1 — 새 업데이트 모달 (자동 태그 + 다중 선택 + 동기화 안내) 자동 노출
+  // v1.10.0 — 책 이사 업데이트 모달 활성화 흐름 그대로 사용
   try {
     const onboarded = localStorage.getItem(ONBOARDING_KEY);
     // 신규 유저(온보딩 미완료)는 패스 — 온보딩이 먼저
