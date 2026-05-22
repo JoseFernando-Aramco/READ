@@ -2470,10 +2470,14 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .annual-hero-pace {
   position: relative;
-  font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,0.95);
+  font-size: 12px; font-weight: 600;
+  color: #FFB87A;  /* v1.0.1 — 오렌지 (연속독서일 fill과 같은 톤) */
   letter-spacing: -0.01em;
   line-height: 1.45;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.1);  /* v1.0.1 — 구분선 */
 }
 
 /* v1.0.1 — D 시안 (책 + 연속 동등 컴팩트) */
@@ -17906,6 +17910,9 @@ body.cn-locked {
         <div class="annual-hero-fill" style="width:20%"></div>
       </div>
       
+      <!-- v1.0.1 — pace 안내 (책 진행률 바 아래 + 구분선으로 분리) -->
+      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
+      
       <!-- 연속독서일 (한 줄 컴팩트) -->
       <div class="annual-hero-row annual-hero-row-streak">
         <span class="annual-hero-row-icon">🔥</span>
@@ -17916,8 +17923,6 @@ body.cn-locked {
       <div class="annual-hero-track">
         <div class="annual-hero-fill annual-hero-streak-fill" style="width:0%"></div>
       </div>
-      
-      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
     </div>
 
     <!-- 이번달 strip (v1.0.1 — 연속·최고는 위 히어로로 이동, 이번달만 남김) -->
