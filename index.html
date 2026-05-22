@@ -33433,7 +33433,7 @@ function renderAchievements() {
       ],
     },
     {
-      icon: '🔥', name: '연속',
+      icon: '🔥', name: '연속 · 최고',
       groups: [{
         steps: extendStreakStages(a.bestStreak),
         current: a.bestStreak,
@@ -33530,7 +33530,7 @@ function renderAchievements() {
     <div class="nd-dashboard">
       ${_statCellHtml('📚', '권수',   a.bookCount,  _bookNext)}
       ${_statCellHtml('📄', '페이지', a.pageTotal,  _pageNext, _fmtCompact)}
-      ${_statCellHtml('🔥', '연속',   a.bestStreak, _streakNext)}
+      ${_statCellHtml('🔥', '최고 연속', a.bestStreak, _streakNext)}
       ${_statCellHtml('💭', '메모',   a.memoCount,  _memoNext)}
       ${_statCellHtml('★',  '인생책', a.lifeCount,  _lifeNext)}
     </div>`;
