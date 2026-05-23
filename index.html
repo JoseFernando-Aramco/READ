@@ -19554,8 +19554,8 @@ body.cn-locked {
         <!-- 일반 책 페이지 + 연도 — 기본 hidden, paper/ebook/audio 매체 선택 시에만 표시 -->
         <div class="form-field-row" id="manualPagesYearRow" hidden>
           <div class="form-field">
-            <label class="form-label">페이지 수 <span class="req">*</span></label>
-            <input class="form-input" type="number" name="pages" required min="1" max="9999" placeholder="248">
+            <label class="form-label">페이지 수 <span class="optional" style="color:var(--c-muted);font-weight:500;font-size:11px;">(선택)</span></label>
+            <input class="form-input" type="number" name="pages" min="0" max="9999" placeholder="248">
           </div>
           <div class="form-field">
             <label class="form-label">출판연도</label>
@@ -19723,11 +19723,11 @@ body.cn-locked {
         <div class="enrich-progress-text" id="enrichProgressText">조회 중…</div>
       </div>
 
-      <!-- 페이지 수 (API 부정확 시 수정 가능) -->
+      <!-- 페이지 수 (API 부정확 시 수정 가능, v1.3.0부터 선택 항목) -->
       <div class="confirm-section">
-        <div class="confirm-section-lbl">페이지 수</div>
+        <div class="confirm-section-lbl">페이지 수 <span style="color:var(--c-muted);font-weight:500;font-size:11px;">(선택)</span></div>
         <div class="pages-field">
-          <input type="number" id="confirmPages" class="pages-input" min="1" max="99999" inputmode="numeric">
+          <input type="number" id="confirmPages" class="pages-input" min="0" max="99999" inputmode="numeric" placeholder="모르면 비워두세요">
           <span class="pages-unit">p</span>
         </div>
         <div class="pages-hint" id="pagesHint"></div>
@@ -25207,16 +25207,13 @@ function submitManual() {
       showToast(`웹소설은 ${unitWord}를 입력해주세요`);
       return;
     }
-  } else {
-    if (!pages || pages < 1) {
-      showToast('페이지 수를 입력해주세요');
-      return;
-    }
   }
+  // v1.3.0 — 페이지 수 선택 항목으로. 빈 값이면 0으로 저장 (페이지 없이도 등록 가능)
+  // 웹소설은 이미 위에서 별도 처리됨
 
   BA.selected = {
     title, author,
-    pages: isWebnovelFmt ? 0 : pages,
+    pages: isWebnovelFmt ? 0 : (Number.isFinite(pages) && pages > 0 ? pages : 0),
     year: String(fd.get('year') || '').trim(),
     publisher: String(fd.get('publisher') || '').trim(),
     cover: BA.manualCover || '',
@@ -26110,18 +26107,24 @@ function confirmAddBook() {
   if (isWebnov) {
     inputPages = 0;
   } else {
-    // 페이지 수 최종 검증 (사용자가 input에서 수정 가능)
+    // v1.3.0 — 페이지 수 선택 항목. 빈 값/0이면 0으로 저장 허용. 너무 큰 값만 차단
     const pagesInputEl = document.getElementById('confirmPages');
-    inputPages = pagesInputEl ? parseInt(pagesInputEl.value, 10) : NaN;
-    if (isNaN(inputPages) || inputPages < 1) {
-      showToast('페이지 수를 올바르게 입력해주세요');
-      pagesInputEl?.focus();
-      return;
-    }
-    if (inputPages > 20000) {
-      showToast('페이지 수가 너무 커요. 다시 확인해주세요');
-      pagesInputEl?.focus();
-      return;
+    const raw = pagesInputEl ? pagesInputEl.value.trim() : '';
+    if (raw === '') {
+      inputPages = 0;  // 빈 입력 = 페이지 모름
+    } else {
+      const parsed = parseInt(raw, 10);
+      if (isNaN(parsed) || parsed < 0) {
+        showToast('페이지 수가 올바르지 않아요 (비워두면 페이지 없이 등록됩니다)');
+        pagesInputEl?.focus();
+        return;
+      }
+      if (parsed > 20000) {
+        showToast('페이지 수가 너무 커요. 다시 확인해주세요');
+        pagesInputEl?.focus();
+        return;
+      }
+      inputPages = parsed;
     }
   }
 
