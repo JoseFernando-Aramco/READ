@@ -1604,6 +1604,8 @@ body:has(.lib-edit-bar) .library-cards {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  /* v1.3.0 — 안드로이드 Chrome long-press 이미지 메뉴 차단 (manipulation = 더블탭 줌 + long-press 메뉴 제거, 스크롤은 유지) */
+  touch-action: manipulation;
 }
 /* 표지 안의 img/svg도 명시적으로 (inherit 안 됨) */
 .book-card-cover img,
@@ -7813,8 +7815,20 @@ body:has(.lib-edit-bar) .library-cards {
   background: var(--brand-primary);
   position: relative;
   isolation: isolate;
+  /* v1.3.0 — long-press 이미지 컨텍스트 메뉴 차단 (iOS + 안드로이드) */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
-.bd-hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bd-hero-cover img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
 /* 표지 변경 버튼 (책 상세) */
 .bd-hero-cover-btn {
   cursor: pointer;
@@ -22680,7 +22694,7 @@ function renderLibSearchResults(query) {
   const items = results.map(r => {
     const b = r.book;
     const cover = b.coverUrl
-      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<span style=&quot;font-size:20px&quot;>📖</span>'">`
+      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<span style=&quot;font-size:20px&quot;>📖</span>'">`
       : `<span style="font-size:20px">📖</span>`;
     const tagsStr = Array.isArray(b.tags) && b.tags.length
       ? ' · ' + b.tags.slice(0, 3).map(t => '#' + t).join(' ')
@@ -27591,7 +27605,7 @@ function renderLogEntry(b, isFirst, isLast) {
 
   // 미니 표지: 이미지 있으면 img, 없으면 제목 줄임 fallback
   const coverInner = b.coverUrl
-    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-fallback" style="display:none">${esc(b.title)}</div>`
+    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-fallback" style="display:none">${esc(b.title)}</div>`
     : `<div class="cover-fallback">${esc(b.title)}</div>`;
 
   // 우측 사이드: 진행중 % vs 별점, 그리고 일수
@@ -27657,7 +27671,7 @@ function renderBookCoverInner(b, number) {
   if (b.coverUrl) {
     return `
       <img class="bc-img" src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
-           referrerpolicy="no-referrer"
+           referrerpolicy="no-referrer" draggable="false"
            onerror="this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
   }
   // 표지 없으면 기존 팔레트 에디토리얼 디자인
@@ -27806,7 +27820,7 @@ function renderNowHero(arr) {
     : '';
   // 배경 표지 효과는 책 수 무관하게 항상 노출 (표지 있을 때만)
   const bgCover = b.coverUrl
-    ? `<div class="now-slim-bg"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'"></div>`
+    ? `<div class="now-slim-bg"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.parentNode.style.display='none'"></div>`
     : '';
   // 진행률 바는 항상 같은 형태(좌우 화살표 포함). 1권이면 화살표만 hidden 처리.
   const progressBlock = `<div class="now-slim-progress-row">
@@ -29230,7 +29244,7 @@ function openQuickNote(bookId) {
     cover.innerHTML = '';
     if (b.coverUrl) {
       cover.classList.add('has-img');
-      cover.innerHTML = `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
+      cover.innerHTML = `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`;
     }
   }
 
@@ -29377,6 +29391,21 @@ function _qnAutoResize() {
     const coverEl = e.target.closest('.book-card-cover');
     if (coverEl) e.preventDefault();
   });
+
+  // v1.3.0 — 안드로이드 Chrome long-press 메뉴 차단 강화
+  //   ─ document 전역 capture phase로 책 상세 모달 표지(.bd-hero-cover) 포함 모든 표지에 적용
+  //   ─ 노트 카드 미니 표지(.note-meta-cover 등)도 같이 차단
+  document.addEventListener('contextmenu', (e) => {
+    const coverEl = e.target.closest(
+      '.book-card-cover, .bd-hero-cover, .note-meta-cover, .note-group-head-book-cover, ' +
+      '.note-book-tile-cover, .note-book-sheet-row-cover, .qn-mini-cover, ' +
+      '.rent-stat-cover, .dd-item-cover, .cat-stat-cover'
+    );
+    if (coverEl) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
 })();
 
 /* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일, 옵션 B)
@@ -30766,7 +30795,7 @@ function openQuickReadConfirm(targetBook) {
   const coverEl = document.getElementById('qrConfirmCover');
   if (coverEl) {
     if (currentBook.coverUrl) {
-      coverEl.innerHTML = `<img src="${esc(currentBook.coverUrl)}" alt="" referrerpolicy="no-referrer">`;
+      coverEl.innerHTML = `<img src="${esc(currentBook.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false">`;
     } else {
       coverEl.textContent = '📖';
     }
@@ -30980,7 +31009,7 @@ function renderBookDetail() {
 
   // 커버
   const cover = b.coverUrl
-    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
+    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)\\'>📖</div>'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--c-muted);background:var(--c-border-2)">📖</div>`;
 
   document.getElementById('bdBody').innerHTML = `
@@ -32406,7 +32435,7 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
         // 이미지 로드 실패 시 onerror로 fallback 디자인 자동 적용 (네트워크 오류 등)
         const fallbackBg = PALETTE_DARK[b.palette] || '#64748b';
         const coverHtml = b.coverUrl
-          ? `<div class="dd-item-cover"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'"></div>`
+          ? `<div class="dd-item-cover"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'"></div>`
           : `<div class="dd-item-cover palette-${pal}" style="background:${fallbackBg}">${esc(initial)}</div>`;
         return `
           <div class="dd-item" data-book-id="${b.id}">
@@ -32971,7 +33000,7 @@ function _renderMonthGrid(books) {
     //   변경: 원본 URL 직접 사용 (다른 곳과 동일 패턴) → 화면 표시 정상
     //   캡처용 base64 교체는 _prewarmCoverCache가 백그라운드에서 처리하므로 저장 기능 영향 없음
     const coverHtml = hasCover
-      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="eager" referrerpolicy="no-referrer"
+      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="eager" referrerpolicy="no-referrer" draggable="false"
              onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
       : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
 
@@ -35209,7 +35238,7 @@ function renderMonthCal() {
       const fbTitle = esc(coverBook.title || '');
       inner =
         `<div class="mc-cv">` +
-          `<img src="${cvUrl}" alt="" referrerpolicy="no-referrer" loading="lazy" ` +
+          `<img src="${cvUrl}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" ` +
             `onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` +
           `<div class="mc-cv-fb" style="display:none">${fbTitle}</div>` +
         `</div>`;
@@ -35351,7 +35380,7 @@ function renderRentStatCard() {
     const palColor = PALETTE_DARK_LOCAL[b.palette] || '#64748b';
     const coverBg = b.coverUrl ? '' : `background:${palColor};`;
     const coverImg = b.coverUrl
-      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`
       : '';
     const returnDateLabel = b.acqReturnDate
       ? b.acqReturnDate.replace(/-/g, '.').slice(5) + '까지'
@@ -35451,7 +35480,7 @@ function renderCategoryStats() {
     const info = tagInfo[entry.name] || {};
     const emoji = info.emoji || '📚';
     const coverImg = cover
-      ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+      ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`
       : '';
     const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
     return `
@@ -35911,7 +35940,7 @@ function renderTasteInsight() {
     recommended.forEach((b, i) => {
       const featured = i === 0;
       const cover = b.coverUrl
-        ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='📖'">`
+        ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='📖'">`
         : '📖';
       const reasonText = (b._recReasons && b._recReasons.length) ? b._recReasons[0] : `매칭 ${b._recScore}점`;
       html += `
@@ -36227,7 +36256,7 @@ function _noteCoverHasImg(b) {
 }
 function _noteCoverImgHtml(b) {
   if (!b || !b.coverUrl) return '';
-  return `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
+  return `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`;
 }
 
 /* ─── 필터 + 정렬 적용된 노트 반환 ─── */
@@ -37171,7 +37200,7 @@ const BOOK_PICKER_RECENT_DONE = 5;  // 검색어 없을 때 최근 완독 노출
 function _bpItemHtml(b) {
   const isSel = String(NA.bookId) === String(b.id);
   const cover = b.coverUrl
-    ? `<img class="bp-cover-img" src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\'bp-cover-fallback\'>'+(${JSON.stringify(esc((b.title || '?').slice(0, 4)))})+'</div>'">`
+    ? `<img class="bp-cover-img" src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<div class=\'bp-cover-fallback\'>'+(${JSON.stringify(esc((b.title || '?').slice(0, 4)))})+'</div>'">`
     : `<div class="bp-cover-fallback">${esc((b.title || '?').slice(0, 4))}</div>`;
 
   let meta = b.author ? esc(b.author) : '';
@@ -40627,7 +40656,7 @@ function _imRenderReviewCard(item, displayNum) {
     if (c.pages) line2Parts.push(`${c.pages}p`);
     const titleClean = esc((c.title || book.title).slice(0, 8));
     const coverHtml = c.cover
-      ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML='${titleClean}'">`
+      ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.parentNode.innerHTML='${titleClean}'">`
       : titleClean;
     return `
       <div class="im-rev-cand${sel ? ' selected' : ''}" data-book-idx="${idx}" data-cand-idx="${ci}">
@@ -41373,7 +41402,7 @@ function _bdeRenderResults(book, searchInfo) {
       ? c.sources.map(s => SOURCE_ABBR[s] || '?').join('+')
       : (SOURCE_ABBR[c.source] || 'G');
     const cover = hasCover
-      ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+      ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.style.display='none'">`
       : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:var(--c-label);">📖</div>';
     const metaLine = [
       esc(c.author || ''),
@@ -42607,7 +42636,7 @@ function closeDropSheet() {
 
 function _renderDropSheet(book) {
   const coverHtml = book.coverUrl
-    ? `<img src="${esc(book.coverUrl)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px\\'>📖</div>'">`
+    ? `<img src="${esc(book.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px\\'>📖</div>'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">📖</div>`;
   const previewEl = document.getElementById('dropSheetPreview');
   if (previewEl) {
