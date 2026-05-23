@@ -27784,16 +27784,23 @@ function renderStackBookCard(coverBook, group, allBooks, idx) {
   const count = allBooks.length;
   const author = coverBook.author || (allBooks[0] && allBooks[0].author) || '';
   const grpName = group.name || coverBook.title || '묶음';
+  // v1.3.0 — 묶음 카드가 어느 카테고리(위시/독서중/완독/하차) 컨텍스트에서 렌더된 건지 보존
+  //   → 시트 펼칠 때 해당 status 책만 표시하기 위함
+  const grpCategory = coverBook._grpCategory || '';
+  // 묶음 카드는 해당 카테고리의 책 수만 표시 (전체 그룹 권수가 아니라)
+  const visibleCount = grpCategory
+    ? allBooks.filter(x => x.status === grpCategory).length
+    : count;
   return `
-    <div class="book-card book-card-stack" data-group-id="${esc(group.id)}" data-book-id="${coverBook.id}">
+    <div class="book-card book-card-stack" data-group-id="${esc(group.id)}" data-book-id="${coverBook.id}" data-grp-category="${esc(grpCategory)}">
       <div class="book-card-stack-back-2"></div>
       <div class="book-card-stack-back-1"></div>
       <div class="book-card-cover palette-${esc(coverBook.palette || 'demian')}">
         ${renderBookCoverInner(coverBook, (idx||0) + 1)}
       </div>
-      <div class="book-card-stack-badge">${count}권</div>
+      <div class="book-card-stack-badge">${visibleCount}권</div>
       <div class="book-card-title">${esc(grpName)}</div>
-      <div class="book-card-meta">${esc(author)} · 묶음 ${count}권</div>
+      <div class="book-card-meta">${esc(author)} · 묶음 ${visibleCount}권</div>
     </div>`;
 }
 
@@ -28456,7 +28463,7 @@ function _libWrapByGroups(booksInCategory, category) {
       handledGroups.add(b.groupId);
       const coverId = _grpCoverBookId(b.groupId);
       const coverBook = BOOKS.find(x => x.id === coverId) || allBooks[allBooks.length - 1];
-      out.push({ ...coverBook, _grp: grp, _grpBooks: allBooks, _isGroupCover: true });
+      out.push({ ...coverBook, _grp: grp, _grpBooks: allBooks, _isGroupCover: true, _grpCategory: category });
     } else {
       out.push(b);
     }
@@ -28948,11 +28955,16 @@ function _libEditToggleGroup(groupId) {
   _libEditUpdateUI();
 }
 
-/* v1.11.0 — 묶음 펼침 시트 (일반 모드에서 묶음 카드 탭 시 노출) */
-function _grpExpandSheet(groupId) {
+/* v1.11.0 — 묶음 펼침 시트 (일반 모드에서 묶음 카드 탭 시 노출)
+   v1.3.0 — categoryFilter 추가. 위시 탭에서 묶음 펼치면 위시 책만, 독서중 탭이면 독서중 책만 표시 */
+function _grpExpandSheet(groupId, categoryFilter) {
   const grp = _grpFindById(groupId);
   if (!grp) return;
-  const books = _grpBooksOf(groupId);
+  let books = _grpBooksOf(groupId);
+  // v1.3.0 — 카테고리 컨텍스트가 있으면 그 status 책만
+  if (categoryFilter) {
+    books = books.filter(b => b.status === categoryFilter);
+  }
   if (!books.length) return;
 
   // 기존 시트 제거 (방어)
@@ -28964,6 +28976,8 @@ function _grpExpandSheet(groupId) {
   const sheet = document.createElement('div');
   sheet.className = 'grp-sheet';
   sheet.dataset.groupId = groupId;
+  // v1.3.0 — 시트가 어느 status 컨텍스트로 열렸는지 보존 (리렌더 시 활용)
+  if (categoryFilter) sheet.dataset.grpCategory = categoryFilter;
   sheet.innerHTML = `
     <div class="grp-sheet-head">
       <div>
@@ -29217,7 +29231,9 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
       // v1.11.0 — 일반 모드 묶음 카드 클릭 = 펼침 시트
       const grpId = card.dataset.groupId;
       if (grpId) {
-        _grpExpandSheet(grpId);
+        // v1.3.0 — 묶음이 어느 status 컨텍스트에서 클릭됐는지 (위시/독서중/완독/하차)
+        const grpCategory = card.dataset.grpCategory || '';
+        _grpExpandSheet(grpId, grpCategory);
         return;
       }
       const id = parseInt(card.dataset.bookId, 10);
@@ -31062,7 +31078,7 @@ function _closeBookDetailActual() {
 
 /* v1.3.0 — 묶음 시트가 열려있으면 그리드 다시 그리기
    시나리오: 위시 묶음 시트 열림 → 한 권 탭 → 책 상세 → 독서중으로 변경
-            → 시트 그리드에서 그 권의 상태/뱃지가 갱신되어야 함 (위치는 그대로) */
+            → 그 권은 위시가 아니게 됨 → 시트 그리드에서 빠짐 + 카운트도 줄어듦 */
 function _grpRefreshOpenSheetIfAny() {
   const sheet = document.querySelector('.grp-sheet.open');
   if (!sheet) return;
@@ -31074,13 +31090,18 @@ function _grpRefreshOpenSheetIfAny() {
     _grpCloseSheet();
     return;
   }
-  // 그룹 전체 책을 다시 가져옴 (시트는 status 무관하게 시리즈 전체 표시)
-  const booksInGrp = (typeof _grpBooksOf === 'function') ? _grpBooksOf(groupId) : [];
+  // 그룹 전체 책 → 시트 컨텍스트(위시/독서중/완독/하차) status로 필터링
+  const grpCategory = sheet.dataset.grpCategory || '';
+  let booksInGrp = (typeof _grpBooksOf === 'function') ? _grpBooksOf(groupId) : [];
+  if (grpCategory) {
+    booksInGrp = booksInGrp.filter(b => b.status === grpCategory);
+  }
+  // 필터링 후 책 없으면 시트 닫기 (예: 위시 묶음의 마지막 1권을 독서중으로 옮긴 경우)
   if (booksInGrp.length === 0) {
     _grpCloseSheet();
     return;
   }
-  // 그리드 + 카운트 갱신 (각 카드는 자신의 status에 맞는 배지/스타일로 다시 그려짐)
+  // 그리드 + 카운트 갱신
   const grid = sheet.querySelector('.grp-sheet-grid');
   const subEl = sheet.querySelector('.grp-sheet-sub');
   if (grid) grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
