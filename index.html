@@ -8198,6 +8198,203 @@ body:has(.lib-edit-bar) .library-cards {
 .ebook-pct-unit.compact { font-size: 16px; }
 .ebook-pct-unit.audio { color: #0F766E; }
 
+
+/* ═══════════════════════════════════════════════════════════
+   💬 v1.0.4 — 한줄평 빠른 입력 (완독 책 표지 long-press)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Long-press 진행 표시 — 책 카드 표지 영역 */
+.book-card-cover.is-quick-press {
+  transition: transform 0.12s ease;
+  transform: scale(0.96);
+}
+.book-card-cover.is-quick-press::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  animation: qnPressRing 0.5s ease-out;
+}
+@keyframes qnPressRing {
+  0%   { box-shadow: inset 0 0 0 0 rgba(95,107,95,0.0), 0 0 0 0 rgba(95,107,95,0.4); }
+  100% { box-shadow: inset 0 0 0 2px rgba(95,107,95,0.5), 0 0 0 6px rgba(95,107,95,0); }
+}
+
+/* 한줄평 시트 (화면 하단 슬라이드 업) */
+.qn-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(21,17,13,0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1090;
+}
+.qn-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.qn-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: 480px;
+  transform: translateX(-50%) translateY(110%);
+  background: var(--c-surface);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -2px 12px rgba(21,17,13,0.10), 0 -8px 32px rgba(21,17,13,0.08);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1091;
+  padding: 8px 18px 18px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.qn-sheet.is-open {
+  transform: translateX(-50%) translateY(0);
+}
+.qn-grip {
+  width: 36px;
+  height: 4px;
+  background: var(--c-border-2);
+  border-radius: 999px;
+  margin: 0 auto 12px;
+}
+.qn-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 12px;
+}
+.qn-mini-cover {
+  width: 36px;
+  height: 50px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--c-sage-500, #5F6B5F), var(--c-sage-700, #455045));
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+.qn-mini-cover::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0,0,0,0.18);
+}
+.qn-mini-cover.has-img::before { display: none; }
+.qn-head-info { flex: 1; min-width: 0; }
+.qn-head-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qn-head-sub {
+  font-size: 11.5px;
+  color: var(--c-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qn-head-meta {
+  font-size: 10.5px;
+  color: var(--c-sage-700, #455045);
+  margin-top: 3px;
+  font-weight: 600;
+}
+.qn-textarea-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.qn-textarea {
+  width: 100%;
+  min-height: 110px;
+  max-height: 200px;
+  padding: 12px 14px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  font-size: 14.5px;
+  color: var(--c-text);
+  font-family: inherit;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  overflow-y: auto;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+.qn-textarea:focus {
+  border-color: var(--c-sage-500, #5F6B5F);
+  background: var(--c-surface);
+}
+.qn-textarea::placeholder {
+  color: var(--c-muted);
+}
+.qn-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 10.5px;
+  color: var(--c-muted);
+  font-weight: 600;
+  pointer-events: none;
+  background: rgba(252,252,250,0.85);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.qn-counter.is-warn { color: #B8956A; }
+.qn-counter.is-over { color: #C2625A; }
+.qn-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.qn-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 9px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.qn-btn:active { transform: scale(0.97); }
+.qn-btn.secondary {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  flex: 0 0 80px;
+}
+.qn-btn.primary {
+  background: var(--c-sage-500, #5F6B5F);
+  color: white;
+}
+.qn-btn.danger {
+  background: transparent;
+  color: #C2625A;
+  flex: 0 0 60px;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+/* 노트 카드 review 타입 라벨 색상 (인용/생각 옆에 자연 합류) */
+.note-type-pill.review {
+  background: var(--c-sage-100, #D5DBD3);
+  color: var(--c-sage-700, #455045);
+}
 .ebook-pct-converted {
   margin-left: auto;
   text-align: right;
@@ -20038,7 +20235,28 @@ body.cn-locked {
       </div>
     </div>
 
-    <!-- 2. 도서 구매/대여 기록 (모카) -->
+    <!-- 2. 한줄평 빠른 입력 (NEW · sage) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.12),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.42);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#5F6B5F;color:#fff;">
+        <span style="font-size:11px;">💬</span>
+        NEW · 한줄평
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">완독 책 표지 꾹 누르면 한 줄 남기기</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">읽고 난 직후, 사라지기 전에 한 줄. 책 상세 안 들어가도 표지에서 바로.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(95,107,95,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">📱 완독 책 카드 <b style="font-weight:700;">표지를 0.5초 이상 꾹 누름</b> → 시트 슬라이드 업</div>
+          <div style="margin-bottom:5px;">✍️ <b style="font-weight:700;">글자 제한 없이</b> 마음껏 · 책당 1개 · 언제든 다시 눌러 수정/삭제</div>
+          <div>📚 표시 위치 <b style="font-weight:700;">2곳</b> — 책 상세 노트 · <b style="font-weight:700;">노트 탭</b></div>
+        </div>
+      </div>
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 한줄평은 노트 탭에서 인용구·내 생각과 함께 모입니다 (필터 "한줄평 N")
+      </div>
+    </div>
+
+    <!-- 3. 도서 구매/대여 기록 (모카) -->
     <div class="wn-hero" style="background:linear-gradient(135deg,rgba(184,149,106,0.12),rgba(184,149,106,0.04));border:1px solid rgba(184,149,106,0.40);margin-top:14px;">
       <div class="wn-hero-tag" style="background:#B8956A;color:#fff;">
         <span style="font-size:11px;">🛒</span>
@@ -20116,6 +20334,29 @@ body.cn-locked {
     </div>
   </div>
 </div>
+
+<!-- ═══════════ v1.0.4 — 한줄평 빠른 입력 시트 (완독 책 표지 long-press) ═══════════ -->
+<div class="qn-backdrop" id="qnBackdrop"></div>
+<aside class="qn-sheet" id="qnSheet" aria-hidden="true">
+  <div class="qn-grip"></div>
+  <div class="qn-head">
+    <div class="qn-mini-cover" id="qnMiniCover"></div>
+    <div class="qn-head-info">
+      <div class="qn-head-ttl" id="qnHeadTtl">제목</div>
+      <div class="qn-head-sub" id="qnHeadSub">저자</div>
+      <div class="qn-head-meta" id="qnHeadMeta">💬 한줄평 남기기</div>
+    </div>
+  </div>
+  <div class="qn-textarea-wrap">
+    <textarea class="qn-textarea" id="qnTextarea"
+              placeholder="이 책에 대한 생각을 자유롭게 남겨보세요..."></textarea>
+  </div>
+  <div class="qn-actions">
+    <button class="qn-btn secondary" id="qnCancel">취소</button>
+    <button class="qn-btn danger" id="qnDelete" hidden>삭제</button>
+    <button class="qn-btn primary" id="qnSave">남기기</button>
+  </div>
+</aside>
 
 <!-- ═══════════ 앱 정보 모달 ═══════════ -->
 <div class="ab-backdrop" id="abBackdrop"></div>
@@ -28771,6 +29012,230 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
   });
 })();
 
+/* ═══════════════════════════════════════════════════════════
+   💬 v1.0.4 — 한줄평 빠른 입력 (완독 책 표지 long-press)
+   ─ 트리거: 완독 책 카드 표지를 500ms 이상 꾹 누르면 시트 슬라이드 업
+   ─ 데이터: NOTES 배열에 type:'review'로 저장 (책당 최대 1개, 덮어쓰기)
+   ─ 표시: 노트 탭 + 책 상세 노트 리스트 + 책 카드 표지 하단 미리보기
+   ═══════════════════════════════════════════════════════════ */
+
+/* 책 ID로 한줄평 노트 찾기 (없으면 null) */
+function findReviewNote(bookId) {
+  if (typeof NOTES === 'undefined' || !Array.isArray(NOTES)) return null;
+  return NOTES.find(n => n.bookId === bookId && n.type === 'review') || null;
+}
+
+/* 한줄평 저장/덮어쓰기 (text가 빈 문자열이면 삭제) */
+function saveQuickNote(bookId, text) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  const trimmed = (text || '').trim();
+  const existing = findReviewNote(bookId);
+  if (trimmed) {
+    if (existing) {
+      existing.body = trimmed;
+      // createdAt은 유지 (최초 작성 시점 보존). 수정 표시는 별도 필드 안 둠 — 간단함 우선
+    } else {
+      const newId = NOTES.length ? Math.max(...NOTES.map(n => n.id)) + 1 : 1;
+      NOTES.push({
+        id: newId,
+        bookId: bookId,
+        type: 'review',
+        page: null,
+        body: trimmed,
+        favorite: false,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    try { STORE.set('notes', NOTES); } catch(e){}
+    showToast('💬 한줄평 저장');
+  } else if (existing) {
+    // 빈 입력 = 삭제
+    const idx = NOTES.findIndex(n => n.id === existing.id);
+    if (idx >= 0) NOTES.splice(idx, 1);
+    try { STORE.set('notes', NOTES); } catch(e){}
+    showToast('한줄평 삭제');
+  }
+  // 리렌더 (책 카드 미리보기 + 노트 탭 + 책 상세 노트 뷰)
+  try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+  try { renderNotesTab && renderNotesTab(); } catch(e){}
+  try { _refreshBdNotesViewIfOpen && _refreshBdNotesViewIfOpen(); } catch(e){}
+}
+
+/* 한줄평 시트 — 열기 */
+function openQuickNote(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  const sheet = document.getElementById('qnSheet');
+  const backdrop = document.getElementById('qnBackdrop');
+  const ttl = document.getElementById('qnHeadTtl');
+  const sub = document.getElementById('qnHeadSub');
+  const meta = document.getElementById('qnHeadMeta');
+  const cover = document.getElementById('qnMiniCover');
+  const ta = document.getElementById('qnTextarea');
+  const del = document.getElementById('qnDelete');
+  if (!sheet || !backdrop || !ta) return;
+
+  const review = findReviewNote(bookId);
+  if (ttl) ttl.textContent = b.title || '';
+  if (sub) sub.textContent = b.author || '';
+  if (meta) meta.textContent = review ? '✏️ 한줄평 수정' : '💬 한줄평 남기기';
+
+  // 미니 표지 — 책 cover URL 있으면 사용, 없으면 팔레트 그라데이션
+  if (cover) {
+    cover.className = 'qn-mini-cover';
+    cover.style.cssText = '';
+    if (b.coverUrl) {
+      cover.style.backgroundImage = `url("${b.coverUrl.replace(/"/g, '%22')}")`;
+      cover.classList.add('has-img');
+    }
+  }
+
+  ta.value = review && review.body ? review.body : '';
+  ta.dataset.bookId = String(bookId);
+  if (del) del.hidden = !review;
+
+  backdrop.classList.add('is-open');
+  sheet.classList.add('is-open');
+  sheet.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+  // textarea autofocus + auto-resize (시트 슬라이드 끝난 후)
+  setTimeout(() => {
+    try { ta.focus(); } catch(e){}
+    _qnAutoResize();
+  }, 340);
+}
+
+function closeQuickNote() {
+  const sheet = document.getElementById('qnSheet');
+  const backdrop = document.getElementById('qnBackdrop');
+  if (!sheet || !backdrop) return;
+  sheet.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+  sheet.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+
+/* v1.0.4 — 한줄평 textarea 자동 높이 조절 (글자 제한 없이 마음껏 쓰게)
+   ─ 입력 길이에 따라 textarea 높이 자동 확장 (최대 200px까지)
+   ─ 그 이상은 textarea 내부 스크롤 */
+function _qnAutoResize() {
+  const ta = document.getElementById('qnTextarea');
+  if (!ta) return;
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+}
+
+/* 한줄평 시트 wire — 버튼 + 백드롭 + 단축키 */
+(function wireQuickNoteSheet() {
+  const ta = document.getElementById('qnTextarea');
+  const save = document.getElementById('qnSave');
+  const cancel = document.getElementById('qnCancel');
+  const del = document.getElementById('qnDelete');
+  const backdrop = document.getElementById('qnBackdrop');
+
+  if (ta) ta.addEventListener('input', _qnAutoResize);
+  if (save) save.addEventListener('click', () => {
+    const ta = document.getElementById('qnTextarea');
+    if (!ta) return;
+    const bookId = parseInt(ta.dataset.bookId, 10);
+    if (!bookId) return;
+    saveQuickNote(bookId, ta.value);
+    closeQuickNote();
+  });
+  if (cancel) cancel.addEventListener('click', closeQuickNote);
+  if (backdrop) backdrop.addEventListener('click', closeQuickNote);
+  if (del) del.addEventListener('click', () => {
+    const ta = document.getElementById('qnTextarea');
+    if (!ta) return;
+    const bookId = parseInt(ta.dataset.bookId, 10);
+    if (!bookId) return;
+    saveQuickNote(bookId, '');  // 빈 값 = 삭제
+    closeQuickNote();
+  });
+
+  // ESC로 닫기 / Cmd-Ctrl+Enter로 저장
+  document.addEventListener('keydown', (e) => {
+    const sheet = document.getElementById('qnSheet');
+    if (!sheet || !sheet.classList.contains('is-open')) return;
+    if (e.key === 'Escape') { closeQuickNote(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { save && save.click(); }
+  });
+})();
+
+/* 라이브러리 책 카드 표지 long-press → 한줄평 시트
+   - 완독(`done`) 책 카드만 발동
+   - 편집 모드 중에는 비활성 (드래그 선택과 충돌 회피) */
+(function wireLibraryQuickNoteLongPress() {
+  const container = document.getElementById('libCards');
+  if (!container) return;
+  const LONG_PRESS_MS = 500;
+  let timer = null;
+  let pressedEl = null;
+  let pressedBookId = null;
+  let fired = false;
+
+  function start(e) {
+    // 편집 모드 중엔 비활성
+    if (typeof _libEdit !== 'undefined' && _libEdit && _libEdit.active) return;
+    const card = e.target.closest('.book-card[data-book-id]');
+    if (!card) return;
+    const bookId = parseInt(card.dataset.bookId, 10);
+    if (!bookId) return;
+    const b = BOOKS.find(x => x.id === bookId);
+    if (!b || b.status !== 'done') return;  // 완독 책만
+    const coverEl = card.querySelector('.book-card-cover');
+    if (!coverEl) return;
+    // 표지 영역 안의 터치인지 확인
+    if (e.target !== coverEl && !coverEl.contains(e.target)) return;
+
+    pressedEl = coverEl;
+    pressedBookId = bookId;
+    fired = false;
+    coverEl.classList.add('is-quick-press');
+    timer = setTimeout(() => {
+      fired = true;
+      if (pressedEl) pressedEl.classList.remove('is-quick-press');
+      if (navigator.vibrate) { try { navigator.vibrate(20); } catch(e){} }
+      openQuickNote(pressedBookId);
+      pressedEl = null;
+      pressedBookId = null;
+    }, LONG_PRESS_MS);
+  }
+  function cancel() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (pressedEl) {
+      pressedEl.classList.remove('is-quick-press');
+      pressedEl = null;
+    }
+    pressedBookId = null;
+  }
+
+  container.addEventListener('touchstart', start, { passive: true });
+  container.addEventListener('touchend', cancel);
+  container.addEventListener('touchcancel', cancel);
+  container.addEventListener('touchmove', cancel);
+  container.addEventListener('mousedown', start);
+  container.addEventListener('mouseup', cancel);
+  container.addEventListener('mouseleave', cancel);
+  container.addEventListener('scroll', cancel, true);
+
+  // long-press 발동 시 다음 click 차단 (책 상세 모달 안 열리게 — capture phase)
+  container.addEventListener('click', (e) => {
+    if (fired) {
+      e.stopPropagation();
+      e.preventDefault();
+      fired = false;
+    }
+  }, true);
+
+  // 표지 영역 컨텍스트 메뉴 차단 (iOS Safari long-press 시 이미지 미리보기 방지)
+  container.addEventListener('contextmenu', (e) => {
+    const coverEl = e.target.closest('.book-card-cover');
+    if (coverEl) e.preventDefault();
+  });
+})();
+
 /* v1.0.1 — 편집 모드 모바일 드래그 선택 (iOS 사진 앱 스타일, 옵션 B)
    동작:
      1. 편집 모드 중 책 카드에서 touchstart
@@ -35659,6 +36124,7 @@ function renderNoteCard(n) {
   if (!book) return '';
   const palette = esc(book.palette || 'demian');
   const isQuote = n.type === 'quote';
+  const isReview = n.type === 'review';   // v1.0.4 — 한줄평
   // 인용구 본문에 따옴표가 이미 있으면 제거 (저장된 데이터 + 자동 따옴표 중복 방지)
   let bodyText = String(n.body || '');
   if (isQuote) {
@@ -35674,13 +36140,18 @@ function renderNoteCard(n) {
   const pageStr = n.page ? ' · p.' + n.page : '';
   const authorStr = book.author ? esc(book.author) + ' · ' : '';
 
-  const labelHtml = isQuote
-    ? `<span class="note-type-pill quote">인용구</span>`
-    : `<span class="note-type-pill thought">내 생각</span>`;
+  // v1.0.4 — review(한줄평)은 sage 색 pill + 💬 머리
+  const labelHtml = isReview
+    ? `<span class="note-type-pill review">한줄평</span>`
+    : (isQuote
+        ? `<span class="note-type-pill quote">인용구</span>`
+        : `<span class="note-type-pill thought">내 생각</span>`);
 
-  const headHtml = isQuote
-    ? `<div class="note-quote-mark">"</div>`
-    : `<div class="note-thought-tag"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-pen"/></svg><span>내 메모</span></div>`;
+  const headHtml = isReview
+    ? `<div class="note-thought-tag" style="color:var(--c-sage-700,#455045);background:var(--c-sage-50,#E8ECE6);"><span style="font-size:11px;">💬</span><span>한줄평</span></div>`
+    : (isQuote
+        ? `<div class="note-quote-mark">"</div>`
+        : `<div class="note-thought-tag"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-pen"/></svg><span>내 메모</span></div>`);
 
   const favBtnClass = n.favorite ? 'note-meta-btn fav-on' : 'note-meta-btn';
   const favIcon = n.favorite
@@ -35769,6 +36240,7 @@ function renderNoteFilterRow() {
   row.style.display = '';
   const quoteCnt = NOTES.filter(n => n.type === 'quote').length;
   const thoughtCnt = NOTES.filter(n => n.type === 'thought').length;
+  const reviewCnt = NOTES.filter(n => n.type === 'review').length;  // v1.0.4 — 한줄평
   const favCnt = NOTES.filter(n => n.favorite).length;
   const sortLabels = {
     recent: '최신순', oldest: '오래된순', page: '페이지순', byBook: '책별 묶기'
@@ -35785,6 +36257,7 @@ function renderNoteFilterRow() {
   row.innerHTML = `
     <div class="note-type-seg" id="noteTypeSeg">
       <button class="note-type-seg-btn ${!NOTE_FILTER.type ? 'active' : ''}" data-type="" type="button">전체 ${total}</button>
+      ${reviewCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'review' ? 'active' : ''}" data-type="review" type="button">한줄평 ${reviewCnt}</button>` : ''}
       ${thoughtCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-type="thought" type="button">내 생각 ${thoughtCnt}</button>` : ''}
       ${quoteCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-type="quote" type="button">인용구 ${quoteCnt}</button>` : ''}
     </div>
@@ -41515,7 +41988,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.3.0';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v9_1';
