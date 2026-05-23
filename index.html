@@ -31061,33 +31061,26 @@ function _closeBookDetailActual() {
 }
 
 /* v1.3.0 — 묶음 시트가 열려있으면 그리드 다시 그리기
-   시나리오: 위시 묶음 시트 열림 → 한 권 탭 → 책 상세 → 독서중으로 변경 → 닫기
-            → 그 권이 위시에서 빠졌으니 시트 그리드도 갱신되어야 함 */
+   시나리오: 위시 묶음 시트 열림 → 한 권 탭 → 책 상세 → 독서중으로 변경
+            → 시트 그리드에서 그 권의 상태/뱃지가 갱신되어야 함 (위치는 그대로) */
 function _grpRefreshOpenSheetIfAny() {
   const sheet = document.querySelector('.grp-sheet.open');
   if (!sheet) return;
   const groupId = sheet.dataset.groupId;
   if (!groupId) return;
-  const grp = (typeof GROUPS !== 'undefined') ? GROUPS.find(g => g.id === groupId) : null;
+  const grp = (typeof _grpFindById === 'function') ? _grpFindById(groupId) : null;
   if (!grp) {
     // 그룹 자체가 해제된 경우 시트 닫기
     _grpCloseSheet();
     return;
   }
-  // 현재 활성 탭 상태(서재 탭이 위시/독서중/완독 등)의 책만 시트에 표시
-  const tabPane = document.querySelector('.lib-pane.active') || document.querySelector('#libCards');
-  const tabStatus = tabPane ? tabPane.dataset.status : null;
-  // tabStatus가 있으면 그 상태 책만, 없으면 전체 시리즈 책
-  let booksInGrp = (typeof _grpBooksOf === 'function') ? _grpBooksOf(groupId) : [];
-  if (tabStatus) {
-    booksInGrp = booksInGrp.filter(b => b.status === tabStatus);
-  }
-  // 시트에 더 이상 책 없으면 시트 닫기
+  // 그룹 전체 책을 다시 가져옴 (시트는 status 무관하게 시리즈 전체 표시)
+  const booksInGrp = (typeof _grpBooksOf === 'function') ? _grpBooksOf(groupId) : [];
   if (booksInGrp.length === 0) {
     _grpCloseSheet();
     return;
   }
-  // 그리드 + 카운트 갱신
+  // 그리드 + 카운트 갱신 (각 카드는 자신의 status에 맞는 배지/스타일로 다시 그려짐)
   const grid = sheet.querySelector('.grp-sheet-grid');
   const subEl = sheet.querySelector('.grp-sheet-sub');
   if (grid) grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
@@ -31713,6 +31706,14 @@ function _applyStatusChange(b, newStatus) {
 
   updateBook(b.id, update);
   renderBookDetail();
+  // v1.3.0 — 상태 변경 후 라이브러리/묶음 시트/통계 등 외부 뷰도 모두 갱신
+  //   ─ 이전: renderBookDetail()만 호출 → 라이브러리 카드 + 묶음 시트가 옛 데이터로 남음
+  //   ─ 신규: 라이브러리 / 로그 / 통계 / 명예의 전당 + 묶음 시트까지 일괄 리렌더
+  try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+  try { renderLogList && renderLogList(); } catch(e){}
+  try { renderAllStats && renderAllStats(); } catch(e){}
+  try { renderHallOfFame && renderHallOfFame(); } catch(e){}
+  try { _grpRefreshOpenSheetIfAny && _grpRefreshOpenSheetIfAny(); } catch(e){}
   const statusLabel = { wish: '위시', reading: '독서중', done: '완독' }[newStatus];
   showToast(`${statusLabel}(으)로 변경됐어요`);
 }
