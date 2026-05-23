@@ -28237,9 +28237,42 @@ function _grpSet(groups) { STORE.set('groups.v1', groups); }
 function _grpFindById(id) { return _grpGet().find(g => g.id === id) || null; }
 function _grpGenId() { return 'grp_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
+/* v1.3.0 — 책 제목 끝에서 권 번호 자동 추출
+   ─ "베르세르크 12" → 12 / "이 나라를 없앨 예정인데요. 13" → 13
+   ─ "원피스 100화" / "삼국지 (5)" / "체인소 맨 11편" / "베르세르크 1권" 등 지원
+   ─ 시리즈 아닌 책 ("스즈메의 문단속") → null */
+function _extractVolumeNumber(title) {
+  if (!title) return null;
+  // 제목 끝의 숫자 (선택적으로 권/화/편/부 또는 닫는 괄호 또는 끝 공백)
+  const m = String(title).match(/(\d+)\s*(?:권|화|편|부|\))?\s*$/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/* v1.3.0 — 그룹 책 정렬 개선 (자연수 1, 2, ..., N권 순)
+   ─ 1차: groupOrder가 서로 다른 값 (v1.0.4 권 묶음 등록한 신규 묶음) → 그대로 사용
+   ─ 2차: groupOrder 모두 0/동일이고 제목 끝에 권 번호 있으면 → 권 번호로 정렬
+   ─ 3차: 책 ID 순 (마지막 fallback) */
 function _grpBooksOf(groupId) {
-  return BOOKS.filter(b => b.groupId === groupId)
-              .sort((a,b) => (a.groupOrder||0) - (b.groupOrder||0));
+  const books = BOOKS.filter(b => b.groupId === groupId);
+  if (books.length <= 1) return books;
+
+  // 1차: groupOrder가 유효하게 서로 다른 값으로 부여되었는지 체크
+  const orders = books.map(b => b.groupOrder);
+  const firstOrder = orders[0];
+  const groupOrderUseful = orders.some(o => o != null && o !== firstOrder);
+  if (groupOrderUseful) {
+    return books.slice().sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+  }
+
+  // 2차: 모든 책 제목 끝에서 권 번호 추출 가능하면 → 자연수 정렬
+  const withVol = books.map(b => ({ book: b, vol: _extractVolumeNumber(b.title) }));
+  const allHaveVol = withVol.every(x => x.vol != null);
+  if (allHaveVol) {
+    return withVol.sort((a, b) => a.vol - b.vol).map(x => x.book);
+  }
+
+  // 3차: 책 ID 순 (등록 순) — 마지막 fallback
+  return books.slice().sort((a, b) => (a.id || 0) - (b.id || 0));
 }
 
 function _grpDominantCategory(groupId) {
@@ -37560,8 +37593,9 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
   if (!sheet) return;
   const threshold = options.threshold || 120; // px
   // v1.x — acq-sheet 추가 (소유 기록 시트)
-  const grip = sheet.querySelector('.bas-grip, .settings-grip, .acq-sheet-handle');
-  const head = sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head, .na-head, .acq-sheet-head');
+  // v1.3.0 — qn-sheet 추가 (한줄평 시트). body는 textarea라 swipe 영역 제외 (입력 방해 회피)
+  const grip = sheet.querySelector('.bas-grip, .settings-grip, .acq-sheet-handle, .qn-grip');
+  const head = sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head, .na-head, .acq-sheet-head, .qn-head');
   const body = sheet.querySelector('.bas-body, .bd-body, .dd-body, .tm-body, .na-body, .settings-body, .acq-sheet-body');
 
   let startY = 0;
@@ -37675,6 +37709,8 @@ attachSwipeDown(document.getElementById('ddSheet'),       closeDrillDown);
 attachSwipeDown(document.getElementById('tmSheet'),       closeTimerStop);
 attachSwipeDown(document.getElementById('settingsSheet'), closeSettings);
 attachSwipeDown(document.getElementById('naSheet'),       closeNoteSheet);
+// v1.3.0 — 한줄평 시트 swipe-down 닫기
+attachSwipeDown(document.getElementById('qnSheet'),       closeQuickNote);
 
 /* ═══════════════════════════════════════════════════════════
    독서 알림 — 매일 저녁 9시
