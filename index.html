@@ -3498,6 +3498,19 @@ body:has(.lib-edit-bar) .library-cards {
   background-size: cover; background-position: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.note-group-head-book-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .note-group-head-book-title {
   font-size: 12px; font-weight: 700;
@@ -3641,6 +3654,18 @@ body:has(.lib-edit-bar) .library-cards {
   background-size: cover; background-position: center;
   overflow: hidden;
   display: flex; flex-direction: column;
+  position: relative;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer'로 외부 표지 로드 보장) */
+.note-meta-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .note-meta-cover::before {
   content: ''; flex: 0 0 68%;
@@ -8290,8 +8315,18 @@ body:has(.lib-edit-bar) .library-cards {
   background: linear-gradient(135deg, var(--c-sage-500, #5F6B5F), var(--c-sage-700, #455045));
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   position: relative;
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.qn-mini-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .qn-mini-cover::before {
   content: '';
@@ -29094,13 +29129,14 @@ function openQuickNote(bookId) {
   if (sub) sub.textContent = b.author || '';
   if (meta) meta.textContent = review ? '✏️ 한줄평 수정' : '💬 한줄평 남기기';
 
-  // 미니 표지 — 책 cover URL 있으면 사용, 없으면 팔레트 그라데이션
+  // 미니 표지 — 책 cover URL 있으면 img 태그로 삽입 (background-image는 referrer 거부 이슈 회피)
   if (cover) {
     cover.className = 'qn-mini-cover';
     cover.style.cssText = '';
+    cover.innerHTML = '';
     if (b.coverUrl) {
-      cover.style.backgroundImage = `url("${b.coverUrl.replace(/"/g, '%22')}")`;
       cover.classList.add('has-img');
+      cover.innerHTML = `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
     }
   }
 
@@ -36082,13 +36118,19 @@ function timeAgo(d) {
 }
 
 /* ─── 책 → 표지 background-image style 문자열 (없으면 빈 문자열) ─── */
+/* v1.3.0 — 노트 표지를 background-image 대신 img 태그로 (referrerpolicy='no-referrer'로 외부 표지 로드 보장)
+   _noteCoverStyle은 빈 문자열 반환 (background-image 이중 처리 방지)
+   _noteCoverImgHtml(b) → div 내부에 삽입할 img 태그 HTML */
 function _noteCoverStyle(b) {
-  if (!b || !b.coverUrl) return '';
-  const safe = String(b.coverUrl).replace(/"/g, '%22');
-  return `background-image:url("${safe}")`;
+  // background-image 방식 폐기 (외부 referrer 차단으로 깨짐). img 태그(_noteCoverImgHtml) 사용.
+  return '';
 }
 function _noteCoverHasImg(b) {
   return !!(b && b.coverUrl);
+}
+function _noteCoverImgHtml(b) {
+  if (!b || !b.coverUrl) return '';
+  return `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
 }
 
 /* ─── 필터 + 정렬 적용된 노트 반환 ─── */
@@ -36179,7 +36221,7 @@ function renderNoteCard(n) {
       ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
       <div class="note-card-divider"></div>
       <div class="note-meta">
-        <div class="note-meta-cover palette-${palette}${coverHasImg ? ' has-img' : ''}" style="${coverStyle}"></div>
+        <div class="note-meta-cover palette-${palette}${coverHasImg ? ' has-img' : ''}">${_noteCoverImgHtml(book)}</div>
         <div class="note-meta-info">
           <div class="note-meta-title">${esc(book.title)}${pageStr}</div>
           <div class="note-meta-sub">${authorStr}${timeAgo(n.createdAt)}</div>
@@ -36392,7 +36434,7 @@ function renderNotesTab() {
           const style = _noteCoverStyle(book);
           html += `
             <div class="note-group-head note-group-head-book">
-              <div class="note-group-head-book-cover palette-${esc(book.palette || 'demian')}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+              <div class="note-group-head-book-cover palette-${esc(book.palette || 'demian')}${hasImg ? ' has-img' : ''}">${_noteCoverImgHtml(book)}</div>
               <span class="note-group-head-book-title">${esc(book.title)}</span>
               <span class="note-group-head-book-cnt">${cnt}개</span>
             </div>`;
