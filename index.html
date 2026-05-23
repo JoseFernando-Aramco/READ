@@ -611,6 +611,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   gap: 22px;
   margin: 0;
   border-bottom: 1px solid var(--c-border);
+  /* v1.3.0 — 모바일 탭 영역 위아래 드래그 → 텍스트 선택/탭 따라오기 차단 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 .tab-bar::after { display: none; }
 .tab-btn {
@@ -624,6 +629,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex; flex-direction: row; align-items: center; gap: 4px;
   transition: color .15s;
   position: relative;
+  /* v1.3.0 — 텍스트 선택 차단 + 탭 핸들링 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .tab-btn .tab-icon { display: none; }
 .tab-btn.active {
@@ -1166,6 +1177,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  /* v1.3.0 — 모바일에서 탭 영역 위아래 드래그 시 탭이 따라 움직이는 문제 차단
+     ─ touch-action: pan-x — 좌우 스크롤만 허용, 위아래 제스처는 페이지로 전달
+     ─ user-select: none — 텍스트 선택 핸들 등장 차단
+     ─ -webkit-touch-callout: none — iOS long-press 컨텍스트 메뉴 차단 */
+  touch-action: pan-x;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .lib-cat-tabs::-webkit-scrollbar { display: none; }
 .lib-cat-tab {
@@ -1181,6 +1200,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-family: inherit;
   white-space: nowrap;
   flex-shrink: 0;
+  /* v1.3.0 — 개별 탭에도 사용자 선택 차단 + 탭 영역 좌우 스와이프만 허용 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .lib-cat-tab.active {
   color: var(--c-text);
