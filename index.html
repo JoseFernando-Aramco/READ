@@ -1600,6 +1600,19 @@ body:has(.lib-edit-bar) .library-cards {
   overflow: hidden;
   position: relative;
   background: var(--brand-primary);
+  /* v1.3.0 — iOS Safari long-press 이미지 컨텍스트 메뉴 차단 (한줄평 long-press 충돌 방지) */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* 표지 안의 img/svg도 명시적으로 (inherit 안 됨) */
+.book-card-cover img,
+.book-card-cover svg {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;  /* img 직접 터치 대신 부모 .book-card-cover에서만 받게 */
 }
 .book-card-cover::after {
   content: ''; position: absolute; inset: 0;
