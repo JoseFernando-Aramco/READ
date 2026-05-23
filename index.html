@@ -7641,7 +7641,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(25, 31, 40, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 105;
+  z-index: 210;  /* v1.3.0 — 묶음 시트(200) 위에 떠야 함 */
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -7655,7 +7655,7 @@ body:has(.lib-edit-bar) .library-cards {
   height: 92vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 110;
+  z-index: 211;  /* v1.3.0 — 묶음 시트(201) 위에 떠야 함 (위시 묶음 → 한 권 상태 변경 흐름 지원) */
   overflow: hidden;
   overflow-x: hidden; /* v1.10.1 — 모바일 좌우 스크롤 차단 */
   display: flex; flex-direction: column;
@@ -29008,7 +29008,17 @@ function _grpExpandSheet(groupId) {
       try { renderNotesTab && renderNotesTab(); } catch(e){}
       return;
     }
-    // 시트 안 책 카드 클릭 — 일단 무반응 (다음 라운드에서 책 상세 또는 빼내기 옵션)
+    // v1.3.0 — 시트 안 책 카드 클릭 → 책 상세 모달 열기
+    //   ─ 시리즈 안 개별 권의 상태/별점/메모 등 변경 가능 (위시 묶음에서 한 권만 독서중으로 등)
+    //   ─ 그룹 카드(.book-card-stack)는 무시 (시트 안에는 단권만 있지만 방어적으로)
+    const bookCard = e.target.closest('.book-card[data-book-id]:not(.book-card-stack)');
+    if (bookCard) {
+      const bookId = parseInt(bookCard.dataset.bookId, 10);
+      if (bookId && typeof openBookDetail === 'function') {
+        openBookDetail(bookId);
+      }
+      return;
+    }
   });
 
   // 애니메이션 트리거
@@ -31029,6 +31039,8 @@ function _closeBookDetailActual() {
   //   unlockBodyScroll 즉시 호출 (이전엔 350ms 후에 호출 — 사용자가 곧바로 스크롤 시작하면 딜레이 인지)
   //   lockBodyScroll이 overflow:hidden만 쓰는 단순 버전이라 즉시 해제해도 안전 (페이지 점프 없음)
   unlockBodyScroll();
+  // v1.3.0 — 묶음 시트가 열려있으면 그 그리드도 다시 그림 (책 상세에서 상태 변경 시 시트의 책 목록/카드 갱신)
+  try { _grpRefreshOpenSheetIfAny(); } catch(e){}
   // v1.0.1 — DOM 리셋은 transition 종료 후로 (슬라이드 다운 중 깜박임 방지)
   setTimeout(() => { 
     const ttlEl = document.getElementById('bdHeadTtl');
@@ -31046,6 +31058,40 @@ function _closeBookDetailActual() {
     BD.confirmDelete = false;
     BD.tagEditMode = false;
   }, 350);
+}
+
+/* v1.3.0 — 묶음 시트가 열려있으면 그리드 다시 그리기
+   시나리오: 위시 묶음 시트 열림 → 한 권 탭 → 책 상세 → 독서중으로 변경 → 닫기
+            → 그 권이 위시에서 빠졌으니 시트 그리드도 갱신되어야 함 */
+function _grpRefreshOpenSheetIfAny() {
+  const sheet = document.querySelector('.grp-sheet.open');
+  if (!sheet) return;
+  const groupId = sheet.dataset.groupId;
+  if (!groupId) return;
+  const grp = (typeof GROUPS !== 'undefined') ? GROUPS.find(g => g.id === groupId) : null;
+  if (!grp) {
+    // 그룹 자체가 해제된 경우 시트 닫기
+    _grpCloseSheet();
+    return;
+  }
+  // 현재 활성 탭 상태(서재 탭이 위시/독서중/완독 등)의 책만 시트에 표시
+  const tabPane = document.querySelector('.lib-pane.active') || document.querySelector('#libCards');
+  const tabStatus = tabPane ? tabPane.dataset.status : null;
+  // tabStatus가 있으면 그 상태 책만, 없으면 전체 시리즈 책
+  let booksInGrp = (typeof _grpBooksOf === 'function') ? _grpBooksOf(groupId) : [];
+  if (tabStatus) {
+    booksInGrp = booksInGrp.filter(b => b.status === tabStatus);
+  }
+  // 시트에 더 이상 책 없으면 시트 닫기
+  if (booksInGrp.length === 0) {
+    _grpCloseSheet();
+    return;
+  }
+  // 그리드 + 카운트 갱신
+  const grid = sheet.querySelector('.grp-sheet-grid');
+  const subEl = sheet.querySelector('.grp-sheet-sub');
+  if (grid) grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
+  if (subEl) subEl.textContent = `묶음 ${booksInGrp.length}권`;
 }
 
 // UI 이벤트 핸들러·코드 내부 auto-close가 호출하는 함수
