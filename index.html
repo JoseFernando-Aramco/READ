@@ -9905,6 +9905,75 @@ body:has(.lib-edit-bar) .library-cards {
   opacity: 0.6;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   💬 v1.3.0 — 한줄평 강조 카드 (별점 아래, 완독 책 상세 모달)
+   ─ OPTION 02 — 별점의 짝꿍으로 자연스럽게 배치
+   ─ sage 그라데이션 + 인용부호 머리 + ✏️ 수정 버튼
+   ═══════════════════════════════════════════════════════════ */
+.bd-review-card {
+  margin-top: 0;
+  padding: 11px 13px;
+  background: linear-gradient(135deg, rgba(95,107,95,0.10), rgba(95,107,95,0.04));
+  border: 1px solid rgba(95,107,95,0.30);
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, transform 0.08s;
+}
+.bd-review-card:active {
+  transform: scale(0.99);
+}
+.bd-review-card.empty {
+  background: var(--c-surface-2);
+  border: 1px dashed var(--c-border-2);
+}
+.bd-review-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--c-sage-700, #455045);
+  letter-spacing: 0.4px;
+}
+.bd-review-card.empty .bd-review-card-head {
+  color: var(--c-muted);
+}
+.bd-review-card-head .ic {
+  font-size: 11px;
+}
+.bd-review-card-body {
+  font-size: 13px;
+  color: var(--c-text);
+  line-height: 1.55;
+  font-style: italic;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.bd-review-card.empty .bd-review-card-body {
+  color: var(--c-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+.bd-review-card-edit {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  font-size: 11px;
+  color: var(--c-sage-500, #5F6B5F);
+  font-weight: 600;
+  background: rgba(252,252,250,0.7);
+  border-radius: 12px;
+  padding: 2px 8px;
+  pointer-events: none;  /* 부모 카드 전체가 클릭 영역 */
+}
+.bd-review-card.empty .bd-review-card-edit {
+  color: var(--c-muted);
+}
+
 /* 삭제 구역 */
 /* 위시 메모 / 독서 메모 */
 .bd-wish-note,
@@ -29215,10 +29284,28 @@ function saveQuickNote(bookId, text) {
     try { STORE.set('notes', NOTES); } catch(e){}
     showToast('한줄평 삭제');
   }
-  // 리렌더 (책 카드 미리보기 + 노트 탭 + 책 상세 노트 뷰)
+  // 리렌더 (책 카드 미리보기 + 노트 탭 + 책 상세 노트 뷰 + 책 상세 한줄평 카드)
   try { renderLibraryCards && renderLibraryCards(); } catch(e){}
   try { renderNotesTab && renderNotesTab(); } catch(e){}
   try { _refreshBdNotesViewIfOpen && _refreshBdNotesViewIfOpen(); } catch(e){}
+  try { _refreshBdReviewCardIfOpen && _refreshBdReviewCardIfOpen(bookId); } catch(e){}
+}
+
+/* v1.3.0 — 책 상세 모달의 한줄평 카드만 갱신 (별점 섹션의 OPTION 02 카드) */
+function _refreshBdReviewCardIfOpen(bookId) {
+  const card = document.getElementById('bdReviewCard');
+  if (!card) return;
+  const cardBookId = parseInt(card.dataset.bookId, 10);
+  if (cardBookId !== bookId) return;  // 다른 책 모달이면 무시
+  const review = findReviewNote(bookId);
+  const hasReview = !!(review && review.body);
+  card.className = `bd-review-card ${hasReview ? '' : 'empty'}`;
+  const head = card.querySelector('.bd-review-card-head span:last-child');
+  const body = card.querySelector('.bd-review-card-body');
+  const edit = card.querySelector('.bd-review-card-edit');
+  if (head) head.textContent = hasReview ? '한줄평' : '아직 한줄평이 없어요';
+  if (body) body.textContent = hasReview ? review.body : '탭하면 이 책에 대한 한 줄을 남길 수 있어요';
+  if (edit) edit.textContent = hasReview ? '✏️ 수정' : '+ 남기기';
 }
 
 /* 한줄평 시트 — 열기 */
@@ -29320,6 +29407,15 @@ function _qnAutoResize() {
     if (!sheet || !sheet.classList.contains('is-open')) return;
     if (e.key === 'Escape') { closeQuickNote(); }
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { save && save.click(); }
+  });
+
+  // v1.3.0 — 책 상세 모달의 한줄평 카드(OPTION 02) 클릭 → 한줄평 시트 열기
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('#bdReviewCard');
+    if (!card) return;
+    const bookId = parseInt(card.dataset.bookId, 10);
+    if (!bookId) return;
+    openQuickNote(bookId);
   });
 })();
 
@@ -31164,6 +31260,25 @@ function renderBookDetail() {
       </div>
       ` : '')}
     </div>
+
+    ${!wish && done ? (() => {
+      // v1.3.0 — 한줄평 강조 카드 (OPTION 02 + 위치 이동: 상태 탭 직후, 메모 영역 위)
+      // 완독 책에만 표시. 독서 메모 위에 자연스럽게 첫 답변 위치.
+      const review = (typeof findReviewNote === 'function') ? findReviewNote(b.id) : null;
+      const hasReview = !!(review && review.body);
+      return `
+      <div class="bd-section">
+        <div class="bd-review-card ${hasReview ? '' : 'empty'}" id="bdReviewCard" data-book-id="${b.id}">
+          <div class="bd-review-card-head">
+            <span class="ic">💬</span>
+            <span>${hasReview ? '한줄평' : '아직 한줄평이 없어요'}</span>
+          </div>
+          <div class="bd-review-card-body">${hasReview ? esc(review.body) : '탭하면 이 책에 대한 한 줄을 남길 수 있어요'}</div>
+          <span class="bd-review-card-edit">${hasReview ? '✏️ 수정' : '+ 남기기'}</span>
+        </div>
+      </div>
+      `;
+    })() : ''}
 
     ${!wish ? `
     <!-- 독서 메모 (인물·용어 기록) -->
