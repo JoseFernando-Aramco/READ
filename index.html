@@ -28753,12 +28753,24 @@ function _libMountEditBar(activeCat) {
     </button>`);
   }
 
-  // v1.11.0 — 묶기 버튼 (selected ≥ 2 + 모두 단일 책일 때만 활성)
+  // v1.11.0 / v1.3.0 — 묶기 버튼 활성 조건 (4케이스 분기)
+  //   Case 01: 묶음 0개 + 단일 ≥2권    → "📦 묶기" 활성 (새 묶음)
+  //   Case 02: 묶음 1개 + 단일 ≥1권    → "➕ 묶음에 추가" 활성 (기존 묶음에 합치기)
+  //   Case 03: 묶음 1개만 (단일 0권)  → 비활성 (혼자 묶을 게 없음)
+  //   Case 04: 묶음 ≥2개              → 비활성 (의도치 않은 거대 묶음 방지)
   const selectedBooks = [...BOOKS].filter(b => _libEdit.selected.has(b.id));
-  const canGroup = selectedBooks.length >= 2 && selectedBooks.every(b => !b.groupId);
+  const grpsInSel = [...new Set(selectedBooks.map(b => b.groupId).filter(Boolean))];
+  const singlesInSel = selectedBooks.filter(b => !b.groupId);
+  const canGroupNew = grpsInSel.length === 0 && singlesInSel.length >= 2;
+  const canAddToGroup = grpsInSel.length === 1 && singlesInSel.length >= 1;
+  const canGroup = canGroupNew || canAddToGroup;
+  // 라벨: 묶음에 추가일 때는 추가 권수(+N) 표시
+  const groupBtnLabel = canAddToGroup
+    ? (singlesInSel.length >= 2 ? `➕ 묶음에 추가 (+${singlesInSel.length}권)` : '➕ 묶음에 추가')
+    : '묶기';
   const groupBtn = `<button class="lib-edit-bar-action lib-action-group" data-action="lib-group"${canGroup ? '' : ' disabled'}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l3-3h12l3 3"/><path d="M3 7v13h18V7"/><path d="M8 11h8"/></svg>
-    묶기
+    ${groupBtnLabel}
   </button>`;
 
   // 삭제 버튼 (빨간 강조)
@@ -28915,19 +28927,48 @@ function _libEditApplyDelete() {
   try { renderNotesTab && renderNotesTab(); } catch(e){}
 }
 
-/* v1.11.0 — 선택된 책들을 새 묶음으로 묶기 */
+/* v1.11.0 / v1.3.0 — 선택된 책들을 묶음으로 묶기
+   Case 01: 묶음 0개 + 단일 ≥2권 → 새 묶음 생성 (_grpCreate)
+   Case 02: 묶음 1개 + 단일 ≥1권 → 기존 묶음에 단일 책 합치기 (_grpAddBooks) */
 function _libEditApplyGroup() {
   if (_libEdit.selected.size < 2) return;
-  // 묶음 카드 자체가 selected에 있을 수도 있지만, 묶기 활성 조건상 모두 단일 책. 안전망으로 한번 더 검증.
-  const bookIds = [...BOOKS]
-    .filter(b => _libEdit.selected.has(b.id) && !b.groupId)
-    .map(b => b.id);
-  if (bookIds.length < 2) {
-    if (typeof showToast === 'function') showToast('이미 묶인 책이 섞여있어요');
-    return;
+  const selectedBooks = [...BOOKS].filter(b => _libEdit.selected.has(b.id));
+  const grpsInSel = [...new Set(selectedBooks.map(b => b.groupId).filter(Boolean))];
+  const singlesInSel = selectedBooks.filter(b => !b.groupId);
+
+  // Case 02: 묶음 1개 + 단일 ≥1권 → 기존 묶음에 합치기
+  if (grpsInSel.length === 1 && singlesInSel.length >= 1) {
+    const targetGroupId = grpsInSel[0];
+    const targetGroup = _grpFindById(targetGroupId);
+    if (!targetGroup) {
+      if (typeof showToast === 'function') showToast('묶음을 찾지 못했어요');
+      return;
+    }
+    // 기존 묶음의 마지막 groupOrder 다음부터 자연수 이어붙임
+    const existingMaxOrder = Math.max(
+      0,
+      ...BOOKS.filter(x => x.groupId === targetGroupId).map(x => x.groupOrder || 0)
+    );
+    const addBookIds = singlesInSel.map(b => b.id);
+    addBookIds.forEach((bid, idx) => {
+      const b = BOOKS.find(x => x.id === bid);
+      if (b) { b.groupId = targetGroupId; b.groupOrder = existingMaxOrder + idx + 1; }
+    });
+    try { STORE.set('books', BOOKS); } catch(e){}
+    if (typeof showToast === 'function') {
+      const grpName = targetGroup.name || '묶음';
+      showToast(`📚 "${grpName}" 묶음에 ${addBookIds.length}권 추가했어요`);
+    }
+  } else {
+    // Case 01: 새 묶음 생성 — 단일 책들만 묶음 (기존 그룹 책 섞여있으면 안전망 제외)
+    const bookIds = singlesInSel.map(b => b.id);
+    if (bookIds.length < 2) {
+      if (typeof showToast === 'function') showToast('묶을 책이 부족해요');
+      return;
+    }
+    _grpCreate(bookIds);
+    if (typeof showToast === 'function') showToast(`📚 ${bookIds.length}권 묶었어요`);
   }
-  _grpCreate(bookIds);
-  if (typeof showToast === 'function') showToast(`${bookIds.length}권 묶었어요`);
   // 편집 모드 종료 + 리렌더
   _libEdit.active = false;
   _libEdit.cat = null;
