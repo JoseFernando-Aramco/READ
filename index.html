@@ -2758,6 +2758,19 @@ body:has(.lib-edit-bar) .library-cards {
   flex-shrink: 0;
   background-size: cover;
   background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.rent-stat-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .rent-stat-info { flex: 1; min-width: 0; }
 .rent-stat-book-title {
@@ -3429,6 +3442,17 @@ body:has(.lib-edit-bar) .library-cards {
   overflow: hidden;
   display: flex; flex-direction: column;
 }
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.note-book-tile-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
 .note-book-tile-cover::before {
   content: ''; flex: 0 0 68%;
   background: var(--dark, rgba(0,0,0,0.2));
@@ -3876,6 +3900,18 @@ body:has(.lib-edit-bar) .library-cards {
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   overflow: hidden;
   display: flex; flex-direction: column;
+  position: relative;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.note-book-sheet-row-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .note-book-sheet-row-cover::before {
   content: ''; flex: 0 0 68%;
@@ -14614,6 +14650,18 @@ body.cn-locked {
   text-align: center;
   line-height: 1;
   overflow: hidden;
+  position: relative;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.dd-item-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .dd-item-info { min-width: 0; }
 .dd-item-title {
@@ -16293,6 +16341,19 @@ body.cn-locked {
   background-size: cover;
   background-position: center;
   border: 0.5px solid var(--c-border);
+  position: relative;
+  overflow: hidden;
+}
+/* v1.3.0 — 표지 img 자식 (referrerpolicy='no-referrer') */
+.cat-stat-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 .cat-stat-cover-fallback {
   display: flex;
@@ -32312,7 +32373,7 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
         // 이미지 로드 실패 시 onerror로 fallback 디자인 자동 적용 (네트워크 오류 등)
         const fallbackBg = PALETTE_DARK[b.palette] || '#64748b';
         const coverHtml = b.coverUrl
-          ? `<div class="dd-item-cover" style="background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;"></div>`
+          ? `<div class="dd-item-cover"><img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'"></div>`
           : `<div class="dd-item-cover palette-${pal}" style="background:${fallbackBg}">${esc(initial)}</div>`;
         return `
           <div class="dd-item" data-book-id="${b.id}">
@@ -35255,9 +35316,10 @@ function renderRentStatCard() {
   list.innerHTML = items.map(({ book: b, dday }) => {
     const sev = dday.severity;
     const palColor = PALETTE_DARK_LOCAL[b.palette] || '#64748b';
-    const coverStyle = b.coverUrl
-      ? `background-image:url('${esc(b.coverUrl)}');background-size:cover;background-position:center;`
-      : `background:${palColor};`;
+    const coverBg = b.coverUrl ? '' : `background:${palColor};`;
+    const coverImg = b.coverUrl
+      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+      : '';
     const returnDateLabel = b.acqReturnDate
       ? b.acqReturnDate.replace(/-/g, '.').slice(5) + '까지'
       : '';
@@ -35267,7 +35329,7 @@ function renderRentStatCard() {
       : placeLabel;
     return `
       <div class="rent-stat-item sev-${sev}" data-book-id="${b.id}" onclick="openBookDetail(${b.id})">
-        <div class="rent-stat-cover" style="${coverStyle}"></div>
+        <div class="rent-stat-cover" style="${coverBg}">${coverImg}</div>
         <div class="rent-stat-info">
           <div class="rent-stat-book-title">${esc(b.title)}</div>
           <div class="rent-stat-book-meta">${metaLine}</div>
@@ -35355,12 +35417,14 @@ function renderCategoryStats() {
     const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
     const info = tagInfo[entry.name] || {};
     const emoji = info.emoji || '📚';
-    const coverStyle = cover ? `style="background-image:url('${esc(cover)}');"` : '';
+    const coverImg = cover
+      ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+      : '';
     const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
     return `
       <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
         <span class="cat-stat-rank">#${rank}</span>
-        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}" ${coverStyle}>${fallback}</span>
+        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}">${coverImg}${fallback}</span>
         <span class="cat-stat-name">${esc(entry.name)}</span>
         <span class="cat-stat-cnt">${entry.count}</span>
         <span class="cat-stat-arrow">›</span>
@@ -36368,7 +36432,7 @@ function renderNoteCarousel() {
     const style = _noteCoverStyle(book);
     return `
       <button class="note-book-tile ${active ? 'active' : ''}" data-tile-book="${book.id}" type="button">
-        <div class="note-book-tile-cover palette-${palette}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+        <div class="note-book-tile-cover palette-${palette}${hasImg ? ' has-img' : ''}">${_noteCoverImgHtml(book)}</div>
         <div class="note-book-tile-title">${esc(book.title)}</div>
         <div class="note-book-tile-cnt">${cnt}</div>
       </button>`;
@@ -37017,7 +37081,7 @@ function renderNoteBookSheetList() {
     const active = NOTE_FILTER.bookId === id;
     return `
       <button class="note-book-sheet-row ${active ? 'active' : ''}" data-bsheet-book="${id}" type="button">
-        <div class="note-book-sheet-row-cover palette-${palette}${hasImg ? ' has-img' : ''}" style="${style}"></div>
+        <div class="note-book-sheet-row-cover palette-${palette}${hasImg ? ' has-img' : ''}">${_noteCoverImgHtml(book)}</div>
         <div class="note-book-sheet-row-info">
           <div class="note-book-sheet-row-title">${esc(book.title)}</div>
           <div class="note-book-sheet-row-author">${esc(book.author || '')}</div>
