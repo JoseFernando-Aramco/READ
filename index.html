@@ -22634,6 +22634,7 @@ const BA = {
   manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio' | 'webnovel')
   manualNovelStatus: 'serial', // v1.11.0 — 웹소설 연재 상태 ('serial' | 'completed')
   manualNovelUnit: 'episode',  // v1.11.x — 웹소설 진행 단위 ('episode' | 'volume')
+  _submitting: false,          // v1.0.2 — 책 추가 중복 등록 방지 가드 (더블 탭 race)
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -22856,6 +22857,7 @@ function closeBookAdd() {
   }
   if (typeof _applyNovelUnit === 'function') _applyNovelUnit('episode');
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
+  BA._submitting = false;  // v1.0.2 — 중복 등록 가드 해제
 }
 function goToStage(stage) {
   BA.stage = stage;
@@ -23164,12 +23166,13 @@ async function _onBarcodeDetected(isbn) {
       return;
     }
 
-    // 현재 서재에 이미 있는지 확인
-    const exists = Array.isArray(BOOKS) && BOOKS.some(b =>
-      b.isbn && b.isbn.replace(/[-\s]/g, '') === isbn);
-    if (exists) {
+    // 현재 서재에 이미 있는지 확인 — v1.0.2: title+author fallback 포함 (수동 입력 책도 잡음)
+    const existing = (typeof _findExistingBookFromSearch === 'function')
+      ? _findExistingBookFromSearch(book)
+      : (Array.isArray(BOOKS) ? BOOKS.find(b => b.isbn && b.isbn.replace(/[-\s]/g, '') === isbn) : null);
+    if (existing) {
       _setScanLoading(false);
-      _setScanStatus('이미 서재에 있는 책이에요', 'warn');
+      _setScanStatus(`이미 서재에 있어요 · ${existing.title}`, 'warn');
       setTimeout(() => {
         SCAN.lastIsbn = null;
         SCAN.processing = false;
@@ -23270,6 +23273,12 @@ async function _fetchBookByIsbnForScan(isbn) {
 
 /* 스캔으로 찾은 책을 위시 상태로 서재에 자동 등록 */
 async function _autoAddBookFromScan(normalizedBook) {
+  // v1.0.2 — 안전 가드: 호출자(_onBarcodeDetected)가 이미 체크하지만 한 번 더 방어
+  if (typeof _findExistingBookFromSearch === 'function') {
+    const _existing = _findExistingBookFromSearch(normalizedBook);
+    if (_existing) return;
+  }
+
   const palette = (typeof pickPalette === 'function')
     ? pickPalette(normalizedBook.title + normalizedBook.author)
     : 'ink';
@@ -24227,13 +24236,18 @@ async function quickAddToWish(idx, btnEl) {
   const item = _lastSearchItems && _lastSearchItems[idx];
   if (!item) return;
 
+  // v1.0.2 — 더블 탭 race 방어
+  if (quickAddToWish._busy) return;
+
   // 중복 체크 (UI 라벨로는 막혀있지만 한 번 더)
   const existing = _findExistingBookFromSearch(item);
   if (existing) {
     const lbl = { wish:'위시리스트', reading:'독서중', done:'완독', dropped:'하차' }[existing.status] || '서재';
-    showToast(`이미 ${lbl}에 있어요`);
+    showToast(`이미 ${lbl}에 있어요 · "${existing.title}"`);
     return;
   }
+  quickAddToWish._busy = true;
+  setTimeout(() => { quickAddToWish._busy = false; }, 500);
 
   // BOOKS에 위시로 추가
   const palette = pickPalette((item.title || '') + (item.author || ''));
@@ -25402,6 +25416,17 @@ function createNewTag() {
 function confirmAddBook() {
   const b = BA.selected;
   if (!b) return;
+
+  // v1.0.2 — 중복 등록 방지 (더블 탭 + 이미 서재에 있는 책 재추가 차단)
+  if (BA._submitting) return;
+  const _existing = (typeof _findExistingBookFromSearch === 'function') ? _findExistingBookFromSearch(b) : null;
+  if (_existing) {
+    const _lbl = { wish:'위시리스트', reading:'독서중', done:'완독', dropped:'하차' }[_existing.status] || '서재';
+    showToast(`이미 ${_lbl}에 있어요 · "${_existing.title}"`);
+    return;
+  }
+  BA._submitting = true;
+
   const status = document.querySelector('#statusSeg .status-seg-btn.active')?.dataset.status || 'wish';
   const today = new Date().toISOString().slice(0, 10);
   const palette = pickPalette(b.title + b.author);
