@@ -8007,6 +8007,146 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.4;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   📚 v1.0.2 — 권 묶음 등록 토글 (수동 입력 시 시리즈 일괄 등록)
+   ═══════════════════════════════════════════════════════════ */
+.bundle-toggle-card {
+  background: linear-gradient(180deg, var(--c-plum-50) 0%, var(--c-surface) 100%);
+  border: 1px solid var(--c-plum-100);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.bundle-toggle-card.is-on {
+  background: linear-gradient(180deg, var(--c-plum-100) 0%, var(--c-plum-50) 100%);
+  border-color: var(--c-plum-500);
+}
+.bundle-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  margin: 0;
+}
+.bundle-label-wrap { flex: 1; min-width: 0; }
+.bundle-label-main {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.3;
+}
+.bundle-label-sub {
+  font-size: 11px;
+  color: var(--c-text-2);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* iOS-style switch */
+.bundle-switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.bundle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.bundle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--c-border-2);
+  border-radius: 999px;
+  transition: background 0.25s;
+  cursor: pointer;
+}
+.bundle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.25s;
+}
+.bundle-switch input:checked + .bundle-slider {
+  background: var(--c-plum-500);
+}
+.bundle-switch input:checked + .bundle-slider::before {
+  transform: translateX(18px);
+}
+
+/* 권수 입력 영역 (토글 ON 시 펼침) */
+.bundle-count-row {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease, padding-top 0.3s ease, margin-top 0.3s ease;
+  padding: 0;
+  margin: 0;
+}
+.bundle-count-row.is-show {
+  max-height: 220px;
+  opacity: 1;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px dashed var(--c-plum-500);
+}
+.bundle-count-row .form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-bottom: 6px;
+  letter-spacing: 0.2px;
+}
+.bundle-count-row .form-label .req { color: var(--c-plum-700); }
+.bundle-count-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--c-text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.bundle-count-input:focus {
+  border-color: var(--c-plum-500);
+}
+.bundle-preview {
+  margin-top: 8px;
+  padding: 9px 11px;
+  background: var(--c-surface);
+  border: 1px dashed var(--c-plum-500);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+}
+.bundle-preview b { color: var(--c-text); font-weight: 700; }
+.bundle-preview .bundle-preview-meta {
+  color: var(--c-muted);
+  display: block;
+  margin-top: 2px;
+}
+
 /* 전자책 % 입력 */
 .ebook-pct-row {
   display: flex;
@@ -19042,6 +19182,24 @@ body.cn-locked {
     </div>
     <div class="bas-body">
       <form class="manual-form" id="manualForm" onsubmit="return false;">
+        <!-- v1.0.2 — 권 묶음 등록 토글 (시리즈 일괄 등록) -->
+        <div class="bundle-toggle-card" id="bundleToggleCard">
+          <label class="bundle-toggle-row" for="bundleToggleInput">
+            <div class="bundle-label-wrap">
+              <div class="bundle-label-main">📚 권 묶음 등록</div>
+              <div class="bundle-label-sub" id="bundleSubLabel">시리즈를 1~N권으로 한 번에</div>
+            </div>
+            <div class="bundle-switch">
+              <input type="checkbox" id="bundleToggleInput">
+              <span class="bundle-slider"></span>
+            </div>
+          </label>
+          <div class="bundle-count-row" id="bundleCountRow">
+            <label class="form-label" for="bundleCountInput">총 권수 <span class="req">*</span></label>
+            <input class="bundle-count-input" type="number" id="bundleCountInput" min="2" max="200" placeholder="예: 10" inputmode="numeric">
+            <div class="bundle-preview" id="bundlePreview" hidden></div>
+          </div>
+        </div>
         <div class="form-field">
           <label class="form-label">제목 <span class="req">*</span></label>
           <input class="form-input" type="text" name="title" required maxlength="120" placeholder="예: 데미안">
@@ -19855,70 +20013,101 @@ body.cn-locked {
   <div class="wn-card">
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
-    <div class="wn-badge">v1.0.1 · 업데이트 소식</div>
-    <div class="wn-ttl">자동 태그 + 다중 선택</div>
-    <div class="wn-sub">책 정리가 좀 더 편해졌습니다.</div>
+    <div class="wn-badge" id="wnBadge">업데이트 소식</div>
+    <div class="wn-ttl">묶음으로 한 번에, 기록은 더 꼼꼼하게</div>
+    <div class="wn-sub">시리즈 등록부터 도서 소유 기록까지 — 여러 기능이 한꺼번에 들어왔어요.</div>
 
-    <!-- 1. 자동 태그 -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(212,165,116,0.10),rgba(212,165,116,0.04));border:1px solid rgba(212,165,116,0.35);">
-      <div class="wn-hero-tag" style="background:#D4A574;color:#fff;">
-        <span style="font-size:11px;">🏷</span>
-        NEW · 자동 태그
+    <!-- 1. 권 묶음 등록 (메인 HERO — plum) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(123,112,128,0.12),rgba(123,112,128,0.04));border:1px solid rgba(123,112,128,0.40);">
+      <div class="wn-hero-tag" style="background:#7B7080;color:#fff;">
+        <span style="font-size:11px;">📚</span>
+        NEW · 권 묶음 등록
       </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">책 추가하면 태그 자동 부여</div>
-      <div class="wn-hero-sub" style="margin-bottom:14px;">책의 분야와 장르에 맞는 태그가 자동으로 붙습니다. 신규 태그 4종(추리·종교·외국어학습·수험서)도 함께 추가됐어요.</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">시리즈를 1~N권으로 한 번에</div>
+      <div class="wn-hero-sub" style="margin-bottom:14px;">검색에 없는 만화·웹소설·장편 시리즈, 한 권씩 등록하느라 손이 아프셨죠. 이제 시리즈명과 총 권수만 넣으면 끝.</div>
 
-      <!-- 예시 박스 -->
-      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:10px 12px;border:1px solid rgba(212,165,116,0.25);">
-        <div style="font-size:11px;color:var(--c-text);line-height:1.8;">
-          <div><b style="font-weight:700;">용의자 X의 헌신</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">추리·스릴러·일본문학</span></div>
-          <div><b style="font-weight:700;">베르세르크</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">그래픽노블</span></div>
-          <div><b style="font-weight:700;">채식주의자</b> <span style="color:#888;">→</span> <span style="color:#9a3412;font-weight:600;">한국소설</span></div>
-        </div>
-      </div>
-      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 한국 일반소설은 장르 정보가 누락될 수 있어요 — 직접 추가하시면 됩니다
-      </div>
-    </div>
-
-    <!-- 2. 다중 선택 -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(90,122,60,0.10),rgba(90,122,60,0.04));border:1px solid rgba(90,122,60,0.42);margin-top:14px;">
-      <div class="wn-hero-tag" style="background:#5a7a3c;color:#fff;">
-        <span style="font-size:11px;">👆</span>
-        NEW · 다중 선택
-      </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">한 번에 여러 권 선택</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">편집 모드에서 책을 한 권씩 누르지 않아도 돼요.</div>
-
-      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(90,122,60,0.22);">
-        <div style="font-size:11.5px;color:var(--c-text);line-height:1.7;">
-          <div style="margin-bottom:6px;"><b style="font-weight:700;color:#5a7a3c;">PC</b> · 첫 책 클릭 후 <b style="font-weight:700;">Shift + 다른 책</b> 클릭 → 사이 전부 선택</div>
-          <div><b style="font-weight:700;color:#5a7a3c;">모바일</b> · 손가락으로 <b style="font-weight:700;">쭉 드래그</b> → 경로 위 책 모두 선택</div>
-        </div>
-      </div>
-      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 모바일은 iOS 사진 앱 방식 그대로
-      </div>
-    </div>
-
-    <!-- 3. 동기화 버튼 안내 -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,109,167,0.10),rgba(74,109,167,0.04));border:1px solid rgba(74,109,167,0.38);margin-top:14px;">
-      <div class="wn-hero-tag" style="background:#4a6da7;color:#fff;">
-        <span style="font-size:11px;">☁️</span>
-        다시 안내 · 동기화
-      </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">우측 상단 동기화 버튼</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">버튼 하나로 백업·복원 모두 처리됩니다. 카카오 로그인 후 사용해주세요.</div>
-
-      <div style="background:rgba(255,255,255,0.75);border-radius:6px;padding:12px;border:1px solid rgba(74,109,167,0.22);">
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(123,112,128,0.25);">
         <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:4px;">📤 변경 있으면 자동 업로드</div>
-          <div style="margin-bottom:4px;">📥 클라우드가 더 새거면 자동으로 받아옴</div>
-          <div>⚠️ 양쪽 다 변경됐을 땐 안내 화면에서 선택</div>
+          <div style="margin-bottom:5px;">📝 책 추가 → <b style="font-weight:700;">직접 입력</b> → 폼 최상단 <b style="font-weight:700;">"📚 권 묶음 등록"</b> 토글 ON</div>
+          <div style="margin-bottom:5px;"><b style="font-weight:700;">시리즈명 "베르세르크"</b> + <b style="font-weight:700;">총 권수 12</b></div>
+          <div><span style="color:#5C5260;font-weight:600;">→ 베르세르크 1, 2, …, 12 자동 생성 + 묶음 자동 그룹화</span></div>
         </div>
       </div>
       <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 자동이 아닙니다 — 동기화 버튼을 직접 눌러주셔야 작동해요
+        <span class="dot"></span> 권별 페이지/회차는 등록 후 개별 수정하실 수 있어요
+      </div>
+    </div>
+
+    <!-- 2. 도서 구매/대여 기록 (모카) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(184,149,106,0.12),rgba(184,149,106,0.04));border:1px solid rgba(184,149,106,0.40);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#B8956A;color:#fff;">
+        <span style="font-size:11px;">🛒</span>
+        NEW · 소유 기록
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">구매 · 대여 · 소장 기록</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">책 한 권마다 어떻게 가졌는지 남길 수 있어요. 대여 책은 반납일까지 함께 챙겨드립니다.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(184,149,106,0.25);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">🛒 <b style="font-weight:700;">구매</b> — 구입처 · 실지출 가격 · 메모</div>
+          <div style="margin-bottom:5px;">📚 <b style="font-weight:700;">대여</b> — 대여처 · 대여일 · 반납일 · D-N 알림</div>
+          <div>📖 <b style="font-weight:700;">소장</b> — 출처 · 메모 (선물·물려받음 등)</div>
+        </div>
+      </div>
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 반납 임박 책은 서재 알림 바와 통계 탭에서 한눈에 확인
+      </div>
+    </div>
+
+    <!-- 3. Bookflex 실지출 + 캘린더 DatePicker (sage — 묶어서 한 카드) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.12),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.42);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#5F6B5F;color:#fff;">
+        <span style="font-size:11px;">💰</span>
+        개선 · 책장 가치 + 날짜
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">실지출 우선 + 캘린더 날짜 선택</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">책장 가치 계산이 좀 더 현실적으로 바뀌었고, 날짜 입력도 깔끔해졌어요.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(95,107,95,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">💰 <b style="font-weight:700;">Bookflex</b> — 실제 결제한 금액(<b>실지출</b>) 우선 집계. 미입력 시 정가 fallback</div>
+          <div>📅 <b style="font-weight:700;">DatePicker</b> — iOS 캘린더 스타일 인라인 그리드 (한국어 요일 · 빨강 일요일)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 목표 탭 마일스톤 재설계 (gold/ink) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,74,69,0.12),rgba(74,74,69,0.04));border:1px solid rgba(74,74,69,0.42);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#4A4A45;color:#fff;">
+        <span style="font-size:11px;">🎯</span>
+        개선 · 목표 탭
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">마일스톤 전면 재설계</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">"도전과제" 영역을 통째로 갈아엎었어요. 다음 단계가 더 또렷하게 보입니다.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(74,74,69,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">📊 <b style="font-weight:700;">숫자 대시보드</b> — 권수 · 페이지 · 최고 연속 · 메모 · 인생책 (다음 목표 +N)</div>
+          <div style="margin-bottom:5px;">🔁 <b style="font-weight:700;">단계 자동 확장</b> — 100권 넘어도 +50권씩 끝없이 이어집니다</div>
+          <div style="margin-bottom:5px;">✨ <b style="font-weight:700;">다음 단계 펄스</b> — 빨갛게 깜빡이는 칸이 당신의 다음 목표</div>
+          <div>🏆 <b style="font-weight:700;">새 칭호</b> — "취미가 된 독서", "백권 클럽", "인생의 등대지기" 등 위트 한 큰 술 추가</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 작은 변화들 (회색 카드, 콤팩트) -->
+    <div class="wn-hero" style="background:rgba(220,220,216,0.30);border:1px solid rgba(122,122,117,0.30);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#7A7A75;color:#fff;">
+        <span style="font-size:11px;">✨</span>
+        작은 변화들
+      </div>
+      <div class="wn-hero-ttl" style="font-size:16px;color:var(--c-text);font-weight:700;margin-bottom:8px;">소소하지만 편한 것들</div>
+
+      <div style="font-size:11.5px;color:var(--c-text-2);line-height:1.75;">
+        <div style="margin-bottom:4px;">🏠 <b style="font-weight:700;color:var(--c-text);">로고 클릭</b> → 메인 화면으로 빠르게 복귀</div>
+        <div style="margin-bottom:4px;">👇 <b style="font-weight:700;color:var(--c-text);">소유 시트</b> 위에서 아래로 쓸어내려 닫기</div>
+        <div style="margin-bottom:4px;">📐 <b style="font-weight:700;color:var(--c-text);">CSS 정렬 정밀화</b> — 마일스톤 노드/라인 정렬 어긋남 해결</div>
+        <div>🔔 <b style="font-weight:700;color:var(--c-text);">반납 알림 통합</b> — 서재 알림 바 + 통계 탭 카드 + 책 상세 + 책 카드 D-N 배지</div>
       </div>
     </div>
 
@@ -19936,7 +20125,7 @@ body.cn-locked {
 
     <div class="ab-head">
       <div class="ab-name keepbook-logo">keepbook</div>
-      <div class="ab-ver" id="abVer">version 1.0.1</div>
+      <div class="ab-ver" id="abVer">version</div>
       <div class="ab-tagline">개인 독서 기록장 · 소소하게 쌓아보세요</div>
     </div>
 
@@ -22006,6 +22195,8 @@ const settingsOpenBtn  = document.querySelector('.header-btn[aria-label="설정"
 const settingsCloseBtn = document.getElementById('settingsClose');
 
 function openSettings() {
+  // v1.0.4 — 설정 시트 열기 직전 버전 UI 일괄 갱신 (단일 진입점)
+  if (typeof applyAppVersionToAllUI === 'function') applyAppVersionToAllUI();
   settingsBackdrop.classList.add('open');
   settingsSheet.classList.add('open');
   settingsSheet.setAttribute('aria-hidden', 'false');
@@ -22635,6 +22826,9 @@ const BA = {
   manualNovelStatus: 'serial', // v1.11.0 — 웹소설 연재 상태 ('serial' | 'completed')
   manualNovelUnit: 'episode',  // v1.11.x — 웹소설 진행 단위 ('episode' | 'volume')
   _submitting: false,          // v1.0.2 — 책 추가 중복 등록 방지 가드 (더블 탭 race)
+  // v1.0.2 — 권 묶음 등록 (수동 입력 시 시리즈 일괄 등록)
+  bundleEnabled: false,        // 묶음 토글 ON/OFF
+  bundleCount: 0,              // 총 권수 (2 이상)
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
 
@@ -22858,6 +23052,26 @@ function closeBookAdd() {
   if (typeof _applyNovelUnit === 'function') _applyNovelUnit('episode');
   if (BA.abortCtrl) { BA.abortCtrl.abort(); BA.abortCtrl = null; }
   BA._submitting = false;  // v1.0.2 — 중복 등록 가드 해제
+  // v1.0.2 — 권 묶음 토글 리셋
+  BA.bundleEnabled = false;
+  BA.bundleCount = 0;
+  const bundleToggleInput = document.getElementById('bundleToggleInput');
+  const bundleToggleCard = document.getElementById('bundleToggleCard');
+  const bundleCountRow = document.getElementById('bundleCountRow');
+  const bundleCountInput = document.getElementById('bundleCountInput');
+  const bundleSubLabel = document.getElementById('bundleSubLabel');
+  const bundlePreview = document.getElementById('bundlePreview');
+  if (bundleToggleInput) bundleToggleInput.checked = false;
+  if (bundleToggleCard) bundleToggleCard.classList.remove('is-on');
+  if (bundleCountRow) bundleCountRow.classList.remove('is-show');
+  if (bundleCountInput) bundleCountInput.value = '';
+  if (bundleSubLabel) bundleSubLabel.textContent = '시리즈를 1~N권으로 한 번에';
+  if (bundlePreview) { bundlePreview.hidden = true; bundlePreview.innerHTML = ''; }
+  // 제목 라벨 + 등록 버튼 텍스트 복원
+  const titleLblEl = document.querySelector('#manualForm .form-field:first-of-type .form-label');
+  if (titleLblEl) titleLblEl.innerHTML = '제목 <span class="req">*</span>';
+  const btnSubmitEl = document.getElementById('btnManualSubmit');
+  if (btnSubmitEl) btnSubmitEl.textContent = '다음 ›';
 }
 function goToStage(stage) {
   BA.stage = stage;
@@ -24656,8 +24870,103 @@ function submitManual() {
   }
   BA.pagesFromApi = true;  // 사용자가 직접 입력했으므로 신뢰
   BA.tagsSelected = [];
+
+  // ─── v1.0.2 — 권 묶음 등록 분기 (confirm 건너뛰고 N권 일괄 등록) ───
+  if (BA.bundleEnabled && BA.bundleCount >= 2) {
+    submitManualBundle();
+    return;
+  }
+
   goToStage('confirm');
   renderConfirm();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v1.0.2 — 권 묶음 일괄 등록
+   - submitManual 검증 통과 후 호출됨 (BA.selected에 단권 베이스 메타 채워진 상태)
+   - title은 시리즈명. 권 N개는 `시리즈명 1` ~ `시리즈명 N`으로 생성
+   - 공통 메타 (저자, 매체, 페이지/회차, 출판사, 표지, 연도) 동일 적용
+   - 일괄 상태 'wish' default
+   - _grpCreate로 그룹 자동 생성 (groupId/groupOrder 자동 부여)
+   - confirm 단계 건너뛰고 즉시 BOOKS에 추가 후 시트 닫고 토스트
+   ═══════════════════════════════════════════════════════════ */
+function submitManualBundle() {
+  // 중복 등록 가드
+  if (BA._submitting) return;
+  BA._submitting = true;
+  try {
+    const b = BA.selected;
+    if (!b) { BA._submitting = false; return; }
+
+    const baseTitle = b.title;
+    const n = BA.bundleCount;
+    const today = new Date().toISOString().slice(0, 10);  // (현재 미사용 — wish 상태이므로 dateStart 없음)
+    const isWebnov = b.format === 'webnovel';
+    const baseTimestamp = Date.now();
+
+    // N권 책 객체 생성
+    const newBooks = [];
+    for (let i = 1; i <= n; i++) {
+      const volTitle = baseTitle + ' ' + i;
+      const palette = pickPalette(volTitle + (b.author || ''));
+      const newBook = {
+        id: baseTimestamp + i + Math.floor(Math.random() * 1000),
+        title: volTitle,
+        author: b.author || '',
+        pages: isWebnov ? 0 : (b.pages || 0),
+        palette,
+        status: 'wish',  // 일괄 wish default
+        tags: [],
+        isbn: '',
+        language: b.language || 'ko',
+        coverUrl: b.cover || '',
+        publisher: b.publisher || '',
+        isLifeBook: false,
+        rereads: [],
+        format: b.format,
+        source: 'manual',
+        // 웹소설 전용 필드 (공통 적용 — 권별로 다르면 등록 후 개별 수정)
+        novelStatus: isWebnov ? (b.novelStatus || 'serial') : undefined,
+        episodeUnit: isWebnov ? (b.episodeUnit || 'episode') : undefined,
+        episodes: isWebnov ? (b.episodes || 0) : undefined,
+        currentEpisode: isWebnov ? 0 : undefined,  // 묶음 등록 시 진행도는 항상 0 (시작 전)
+        priceList: null,
+        priceSales: null,
+        priceSource: null,
+      };
+      newBooks.push(newBook);
+    }
+
+    // BOOKS에 한 번에 추가 (최신이 위로 오도록 역순으로 unshift)
+    //   사용자가 1권부터 보고 싶을 가능성을 고려해 1권이 위에 오도록 역순으로 unshift
+    for (let i = newBooks.length - 1; i >= 0; i--) {
+      BOOKS.unshift(newBooks[i]);
+    }
+
+    // 그룹 생성 (groupId/groupOrder 자동 부여)
+    const ids = newBooks.map(x => x.id);
+    let grp = null;
+    try {
+      grp = _grpCreate(ids, baseTitle);
+    } catch (e) {
+      console.warn('[bundle] _grpCreate failed', e);
+    }
+
+    // 저장 (그룹 미생성 케이스 대비 안전 저장)
+    try { STORE.set('books', BOOKS); } catch(e){}
+
+    // UI 리렌더
+    try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+    try { renderLogList && renderLogList(); } catch(e){}
+    try { renderAllStats && renderAllStats(); } catch(e){}
+    try { renderTagRadar && renderTagRadar(); } catch(e){}
+
+    // 시트 닫기 + 토스트
+    closeBookAdd();
+    showToast('📚 ' + baseTitle + ' 시리즈 ' + n + '권 등록 완료');
+  } finally {
+    BA._submitting = false;
+  }
 }
 
 /* ─── Stage 2: 확인 시트 렌더 ─── */
@@ -25620,6 +25929,91 @@ document.getElementById('webnovelQuickBtn')?.addEventListener('click', () => {
   if (authorReq) authorReq.style.display = 'none';
 });
 document.getElementById('btnManualSubmit').addEventListener('click', submitManual);
+
+/* ═══════════════════════════════════════════════════════════
+   v1.0.2 — 권 묶음 등록 토글 wire
+   - 토글 ON/OFF: 카드 색상 + 권수 입력 행 펼침
+   - 권수 변경 + 시리즈명 변경: 미리보기 라이브 갱신
+   - 라벨 "제목 → 시리즈명" / 등록 버튼 "N권 한번에 등록" 동적 변경
+   ═══════════════════════════════════════════════════════════ */
+(function wireBundleToggle() {
+  const toggleInput = document.getElementById('bundleToggleInput');
+  const toggleCard = document.getElementById('bundleToggleCard');
+  const countRow = document.getElementById('bundleCountRow');
+  const countInput = document.getElementById('bundleCountInput');
+  const subLabel = document.getElementById('bundleSubLabel');
+  const previewEl = document.getElementById('bundlePreview');
+  const titleInput = document.querySelector('#manualForm input[name="title"]');
+  const titleLbl = document.querySelector('#manualForm .form-field:first-of-type .form-label');
+  const submitBtn = document.getElementById('btnManualSubmit');
+
+  if (!toggleInput || !toggleCard || !countRow || !countInput) return;
+
+  function updatePreview() {
+    const base = (titleInput && titleInput.value || '').trim() || '시리즈명';
+    const n = BA.bundleCount;
+    if (!BA.bundleEnabled || n < 2) {
+      previewEl.hidden = true;
+      previewEl.innerHTML = '';
+      return;
+    }
+    previewEl.hidden = false;
+    const safeBase = esc(base);
+    let listHtml;
+    if (n <= 3) {
+      const items = [];
+      for (let i = 1; i <= n; i++) items.push('<b>' + safeBase + ' ' + i + '</b>');
+      listHtml = items.join(', ');
+    } else {
+      listHtml = '<b>' + safeBase + ' 1</b>, <b>' + safeBase + ' 2</b>, ..., <b>' + safeBase + ' ' + n + '</b>';
+    }
+    previewEl.innerHTML = listHtml +
+      '<span class="bundle-preview-meta">총 ' + n + '권 · 자동 그룹화</span>';
+  }
+
+  function applyToggleState() {
+    BA.bundleEnabled = !!toggleInput.checked;
+    toggleCard.classList.toggle('is-on', BA.bundleEnabled);
+    countRow.classList.toggle('is-show', BA.bundleEnabled);
+
+    if (BA.bundleEnabled) {
+      if (titleLbl) titleLbl.innerHTML = '시리즈명 <span class="req">*</span>';
+      if (subLabel) {
+        subLabel.textContent = BA.bundleCount >= 2
+          ? ('시리즈를 1~' + BA.bundleCount + '권으로 한 번에')
+          : '시리즈를 1~N권으로 한 번에';
+      }
+      if (submitBtn) {
+        submitBtn.textContent = BA.bundleCount >= 2
+          ? (BA.bundleCount + '권 한번에 등록 ›')
+          : '다음 ›';
+      }
+    } else {
+      if (titleLbl) titleLbl.innerHTML = '제목 <span class="req">*</span>';
+      if (subLabel) subLabel.textContent = '시리즈를 1~N권으로 한 번에';
+      if (submitBtn) submitBtn.textContent = '다음 ›';
+    }
+    updatePreview();
+  }
+
+  toggleInput.addEventListener('change', applyToggleState);
+
+  countInput.addEventListener('input', () => {
+    const raw = parseInt(countInput.value, 10);
+    if (isNaN(raw) || raw < 2) {
+      BA.bundleCount = 0;
+    } else {
+      BA.bundleCount = Math.min(200, raw);
+    }
+    applyToggleState();
+  });
+
+  if (titleInput) {
+    titleInput.addEventListener('input', () => {
+      if (BA.bundleEnabled) updatePreview();
+    });
+  }
+})();
 
 // 표지 직접 첨부 (직접 입력 폼)
 document.getElementById('coverPickBtn').addEventListener('click', () => {
@@ -36816,11 +37210,8 @@ scheduleNextNotif();
 
 /* ═══════════ 앱 정보 모달 ═══════════ */
 function openAboutModal() {
-  // v1.0.1 — APP_VERSION 동적 주입 (하드코딩으로 인한 버전 미갱신 방지)
-  const verEl = document.getElementById('abVer');
-  if (verEl && typeof APP_VERSION !== 'undefined') {
-    verEl.textContent = `version ${APP_VERSION}`;
-  }
+  // v1.0.4 — 단일 진입점 (applyAppVersionToAllUI)에서 모든 버전 UI 갱신
+  if (typeof applyAppVersionToAllUI === 'function') applyAppVersionToAllUI();
   document.getElementById('abBackdrop').classList.add('open');
   document.getElementById('abModal').classList.add('open');
   document.getElementById('abModal').setAttribute('aria-hidden', 'false');
@@ -41124,19 +41515,38 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.4';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
-const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
+const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v9_1';
 
-/* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨) */
+/* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨)
+   v1.0.4 — applyAppVersionToAllUI 단일 진입점으로 통합. 모든 가시 버전 텍스트
+            (wnBadge / abVer / whatsNewRowSub / aboutRowSub)를 한 함수에서 일괄 갱신.
+            APP_VERSION 한 곳만 바꾸면 자동으로 따라옴.
+*/
+function applyAppVersionToAllUI() {
+  if (typeof APP_VERSION === 'undefined') return;
+
+  // 1) 업데이트 모달 배지 (예: "v1.0.4 · 업데이트 소식")
+  const wnBadge = document.getElementById('wnBadge');
+  if (wnBadge) wnBadge.textContent = `v${APP_VERSION} · 업데이트 소식`;
+
+  // 2) 앱 정보 모달 — version 표시 (예: "version 1.0.4")
+  const verEl = document.getElementById('abVer');
+  if (verEl) verEl.textContent = `version ${APP_VERSION}`;
+
+  // 3) 설정 페이지 — 최신 업데이트 row 부제 (예: "v1.0.4 · keepbook 1.0.4")
+  const wnSub = document.getElementById('whatsNewRowSub');
+  if (wnSub) wnSub.textContent = `v${APP_VERSION} · ${APP_VERSION_NICKNAME}`;
+
+  // 4) 설정 페이지 — 앱 정보 row 부제 (예: "1.0.4 · Made by Locadomingo")
+  const abSub = document.getElementById('aboutRowSub');
+  if (abSub) abSub.textContent = `${APP_VERSION} · Made by Locadomingo`;
+}
+
 (function updateSettingsVersionSubs() {
-  const apply = () => {
-    const wnSub = document.getElementById('whatsNewRowSub');
-    if (wnSub) wnSub.textContent = `v${APP_VERSION} · ${APP_VERSION_NICKNAME}`;
-    const abSub = document.getElementById('aboutRowSub');
-    if (abSub) abSub.textContent = `${APP_VERSION} · Made by Locadomingo`;
-  };
+  const apply = () => applyAppVersionToAllUI();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', apply);
   } else {
@@ -41145,6 +41555,8 @@ const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v8_1';
 })();
 
 function openWhatsNew() {
+  // v1.0.4 — 모달 열기 직전 버전 UI 일괄 갱신 (배지가 옛 버전 보이는 문제 안전망)
+  if (typeof applyAppVersionToAllUI === 'function') applyAppVersionToAllUI();
   const modal = document.getElementById('wnModal');
   const backdrop = document.getElementById('wnBackdrop');
   if (!modal || !backdrop) return;
@@ -41426,15 +41838,9 @@ window.kbmOpenMigration = kbmOpenMigration;
 })();
 
 (function syncSettingsVersionLabels() {
+  // v1.0.4 — applyAppVersionToAllUI 단일 진입점 호출 (중복 코드 제거)
   function update() {
-    const whatsNewSub = document.getElementById('whatsNewRowSub');
-    if (whatsNewSub) {
-      whatsNewSub.textContent = `v${APP_VERSION} · ${APP_VERSION_NICKNAME}`;
-    }
-    const aboutSub = document.getElementById('aboutRowSub');
-    if (aboutSub) {
-      aboutSub.textContent = `${APP_VERSION} · Made by Locadomingo`;
-    }
+    if (typeof applyAppVersionToAllUI === 'function') applyAppVersionToAllUI();
   }
   // DOM 이미 준비된 경우 즉시 / 아니면 DOMContentLoaded 대기
   if (document.readyState === 'loading') {
