@@ -23469,9 +23469,10 @@ function renderHeatmap() {
   const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
 
   const markRange = (startStr, endStr) => {
-    if (!startStr) return;
+    // v1.10.4 — dateEnd 없는 진행 중 책은 자동 카운트 안 함 (readingSessions만 반영)
+    if (!startStr || !endStr) return;
     const s = new Date(startStr);
-    const e = endStr ? new Date(endStr) : today;
+    const e = new Date(endStr);
     if (isNaN(s) || isNaN(e)) return;
     // 양 끝 포함. 날짜만 비교하도록 normalize.
     s.setHours(0, 0, 0, 0);
@@ -34967,9 +34968,10 @@ function _achvComputeReadDays() {
   const set = new Set();
   const keyOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const markRange = (s, e) => {
-    if (!s) return;
+    // v1.10.4 — dateEnd 없는 진행 중 책은 자동 카운트 안 함 (readingSessions만 반영)
+    if (!s || !e) return;
     const a = new Date(s);
-    const b = e ? new Date(e) : new Date();
+    const b = new Date(e);
     if (isNaN(a) || isNaN(b)) return;
     a.setHours(0,0,0,0); b.setHours(0,0,0,0);
     for (let d = new Date(a); d <= b; d.setDate(d.getDate()+1)) set.add(keyOf(d));
@@ -35494,9 +35496,10 @@ function renderGoalsPane() {
 
     const readDays = new Set();
     const markRange = (startStr, endStr) => {
-      if (!startStr) return;
+      // v1.10.4 — dateEnd 없는 진행 중 책은 자동 카운트 안 함 (readingSessions만 반영)
+      if (!startStr || !endStr) return;
       const s = new Date(startStr);
-      const e = endStr ? new Date(endStr) : new Date();
+      const e = new Date(endStr);
       if (isNaN(s) || isNaN(e)) return;
       s.setHours(0, 0, 0, 0);
       e.setHours(0, 0, 0, 0);
