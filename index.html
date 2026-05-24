@@ -1141,6 +1141,153 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label); margin-left: 2px;
 }
 
+/* v1.10.3 — 이번 달 요약 (i) 버튼 + 바텀시트 ═══════════════════════ */
+.strip-cell { position: relative; }  /* (i) 절대 위치 기준점 */
+.strip-cell.has-info .strip-k { padding-right: 22px; }
+.strip-info {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-label);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.strip-info:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  border-color: var(--c-text-2);
+}
+.strip-info.active {
+  background: var(--c-text);
+  color: #fff;
+  border-color: var(--c-text);
+}
+
+.ms-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  z-index: 100;
+}
+.ms-sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ms-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 456px;
+  background: var(--c-surface);
+  border-radius: 16px 16px 0 0;
+  padding: 18px 22px 28px;
+  z-index: 101;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.12);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.ms-sheet.open {
+  transform: translateX(-50%) translateY(0);
+}
+.ms-sheet-grip {
+  width: 38px;
+  height: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.ms-sheet-head {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.ms-sheet-sub {
+  font-size: 12px;
+  color: var(--c-label);
+  margin-bottom: 18px;
+}
+.ms-sheet-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--c-border-2);
+}
+.ms-sheet-section:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+.ms-sheet-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ms-sheet-section-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--c-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.ms-sheet-section-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.ms-sheet-section-body {
+  font-size: 13px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+  padding-left: 36px;
+}
+.ms-sheet-section-body strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
+.ms-sheet-section-body .ms-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--c-label);
+}
+.ms-sheet-close {
+  margin-top: 18px;
+  width: 100%;
+  padding: 13px;
+  background: var(--c-text);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 /* 책 그리드 (4열) */
 .book-row {
   display: grid;
@@ -21652,6 +21799,50 @@ body.cn-locked {
 </div>
 
 
+<!-- ═══════════ 이번 달 요약 (i) 바텀시트 (v1.10.3) ═══════════ -->
+<div class="ms-sheet-backdrop" id="msSheetBackdrop"></div>
+<div class="ms-sheet" id="msSheet" aria-hidden="true" role="dialog">
+  <div class="ms-sheet-grip"></div>
+  <div class="ms-sheet-head">이번 달 요약 — 자세히</div>
+  <div class="ms-sheet-sub">각 숫자가 어떻게 계산되는지 알려드릴게요.</div>
+
+  <div class="ms-sheet-section">
+    <div class="ms-sheet-section-head">
+      <div class="ms-sheet-section-icon">📖</div>
+      <div class="ms-sheet-section-ttl">완독</div>
+    </div>
+    <div class="ms-sheet-section-body">
+      이번 달에 <strong>끝까지 다 읽은 책</strong>의 권수예요.
+      <span class="ms-note">책 상세에서 완독 처리한 날짜가 이번 달이면 카운트돼요.</span>
+    </div>
+  </div>
+
+  <div class="ms-sheet-section">
+    <div class="ms-sheet-section-head">
+      <div class="ms-sheet-section-icon">📄</div>
+      <div class="ms-sheet-section-ttl">페이지</div>
+    </div>
+    <div class="ms-sheet-section-body">
+      이번 달에 <strong>타이머로 기록된 페이지</strong>를 모두 더한 값이에요.
+      <span class="ms-note">타이머를 멈출 때 입력한 페이지를 기준으로 진행 페이지가 계산돼요. 타이머를 안 돌렸다면 포함되지 않아요.</span>
+    </div>
+  </div>
+
+  <div class="ms-sheet-section">
+    <div class="ms-sheet-section-head">
+      <div class="ms-sheet-section-icon">📅</div>
+      <div class="ms-sheet-section-ttl">독서일</div>
+    </div>
+    <div class="ms-sheet-section-body">
+      이번 달에 <strong>타이머를 한 번이라도 돌린 날</strong>의 수예요.
+      <span class="ms-note">하루에 여러 권을 읽었어도 1일로 셉니다.</span>
+    </div>
+  </div>
+
+  <button class="ms-sheet-close" id="msSheetClose" type="button">확인</button>
+</div>
+
+
 <script>
 /* ═══════════════════════════════════════════════════════════
    공용 · localStorage 헬퍼 (스크립트 최상단에 선언 — 모든 IIFE에서 접근 가능)
@@ -28135,46 +28326,82 @@ function nowHeroGo(delta) {
   setTimeout(() => newHero.classList.remove('swap-from-' + direction), 320);
 }
 
-/* 이번 달 요약 스트립 */
+/* 이번 달 요약 스트립 (v1.10.3 — 타이머 세션 기반으로 페이지/독서일 변경) */
 function renderMonthStrip() {
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth();
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const lastDay = new Date(y, m + 1, 0).getDate();
+  const startISO = `${y}-${pad2(m + 1)}-01`;
+  const endISO   = `${y}-${pad2(m + 1)}-${pad2(lastDay)}`;
+
   const inThisMonth = d => {
     const x = new Date(d);
     return x.getFullYear() === y && x.getMonth() === m;
   };
+
+  // 완독 — 이번 달에 완독된 책 (기존 로직 유지)
   const doneThisMonth = BOOKS.filter(b => b.status === 'done' && b.dateEnd && inThisMonth(b.dateEnd));
-  const pages = doneThisMonth.reduce((s, b) => s + (b.pages || 0), 0);
-  // 독서일 — 독서중 + 완독이 이번 달에 걸친 날들의 유니크 합
-  const days = new Set();
-  BOOKS.forEach(b => {
-    if (!b.dateStart) return;
-    const start = new Date(b.dateStart);
-    const end = b.dateEnd ? new Date(b.dateEnd) : new Date();
-    const cur = new Date(start);
-    while (cur <= end) {
-      if (cur.getFullYear() === y && cur.getMonth() === m) {
-        days.add(cur.toISOString().slice(0,10));
-      }
-      cur.setDate(cur.getDate() + 1);
-    }
-  });
+
+  // 페이지/독서일 — 타이머 세션 기반 (_getSessionsInRange 재사용)
+  const sessions = _getSessionsInRange(startISO, endISO);
+  const pages = sessions.reduce((s, x) => s + (Number(x.pages) || 0), 0);
+  const readDays = new Set(sessions.map(x => x.date)).size;
+
   return `
     <div class="month-strip">
       <div class="strip-cell">
-        <div class="strip-k">권수</div>
+        <div class="strip-k">완독</div>
         <div class="strip-v">${doneThisMonth.length}<span class="strip-u">권</span></div>
       </div>
       <div class="strip-cell">
         <div class="strip-k">페이지</div>
         <div class="strip-v">${pages.toLocaleString()}<span class="strip-u">p</span></div>
       </div>
-      <div class="strip-cell">
+      <div class="strip-cell has-info">
+        <button class="strip-info" id="msInfoBtn" type="button" aria-label="이번 달 요약 설명 보기">i</button>
         <div class="strip-k">독서일</div>
-        <div class="strip-v">${days.size}<span class="strip-u">일</span></div>
+        <div class="strip-v">${readDays}<span class="strip-u">일</span></div>
       </div>
     </div>`;
 }
+
+/* 이번 달 요약 (i) 시트 — 이벤트 위임 (renderMonthStrip이 매번 다시 그리므로) */
+(function wireMonthSummarySheet() {
+  const openSheet = () => {
+    const sheet = document.getElementById('msSheet');
+    const backdrop = document.getElementById('msSheetBackdrop');
+    if (!sheet || !backdrop) return;
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('open');
+  };
+  const closeSheet = () => {
+    const sheet = document.getElementById('msSheet');
+    const backdrop = document.getElementById('msSheetBackdrop');
+    if (!sheet || !backdrop) return;
+    sheet.classList.remove('open');
+    sheet.setAttribute('aria-hidden', 'true');
+    backdrop.classList.remove('open');
+    const btn = document.getElementById('msInfoBtn');
+    if (btn) btn.classList.remove('active');
+  };
+
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!t) return;
+    if (t.id === 'msInfoBtn' || (t.closest && t.closest('#msInfoBtn'))) {
+      e.stopPropagation();
+      const btn = document.getElementById('msInfoBtn');
+      if (btn) btn.classList.add('active');
+      openSheet();
+      return;
+    }
+    if (t.id === 'msSheetBackdrop' || t.id === 'msSheetClose') {
+      closeSheet();
+    }
+  });
+})();
 
 /* 섹션 하나 (제목 + 책 카드들) */
 function renderBookSection(title, subLabel, books, trailing = '') {
