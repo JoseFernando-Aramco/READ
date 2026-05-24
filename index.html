@@ -71,6 +71,30 @@
    디자인 톤: Toss Blue (산뜻한 fintech-clean)
    ══════════════════════════════════════════════════════════ */
 :root {
+  /* ─── z-index 레이어 (v1.10.4 — 단일 진실 원천) ───
+     문법 — backdrop = layer값, content = layer값 + 1
+     원칙 — 책상세 위에 띄우는 시트/모달은 항상 더 높은 레이어 */
+  --z-header:        50;
+  --z-pop:          100;  /* settings, lib-search, note-book, kbm, spend, bas */
+  --z-pop-fg:       101;
+  --z-sheet:        200;  /* 책상세 bd, 이번 달 요약 ms */
+  --z-sheet-fg:     201;
+  --z-sub-sheet:    300;  /* tm 타이머정지, na 노트, dd 드롭다운, ig, grp */
+  --z-sub-sheet-fg: 301;
+  --z-modal:        400;  /* ab, bf, ct, ex, im, ob, wn, bde */
+  --z-modal-fg:     401;
+  --z-overlay:      500;  /* rs 리셋, sc 스캐너 */
+  --z-overlay-fg:   501;
+  --z-confirm:      600;  /* cd 확인, qr-confirm */
+  --z-confirm-fg:   601;
+  --z-special:      700;  /* drop 하차, retry, qn 퀵노트, av 아바타, lt */
+  --z-special-fg:   701;
+  --z-mig:          800;  /* mig 마이그 모달 */
+  --z-mig-fg:       801;
+  --z-toast:        900;  /* toast, share-choice, acq, im-progress */
+  --z-cinema:      1000;  /* cinema 시네마 (최상위) */
+  --z-splash:      1100;  /* kb-splash 스플래시 (앱 진입 직후) */
+
   /* ─── keepbook 딥잉크 + 그레이 톤 (기본 = 서재의 밤) ─── */
   --c-canvas:    #F3F3F0;
   --c-surface:   #FCFCFA;
@@ -363,7 +387,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--z-header);
   background: var(--c-canvas);
   /* iOS PWA 노치/Dynamic Island 영역 회피 */
   padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
@@ -1183,7 +1207,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s;
-  z-index: 100;
+  z-index: var(--z-sheet);
 }
 .ms-sheet-backdrop.open {
   opacity: 1;
@@ -1199,7 +1223,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-surface);
   border-radius: 16px 16px 0 0;
   padding: 18px 22px 28px;
-  z-index: 101;
+  z-index: var(--z-sheet-fg);
   transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
   box-shadow: 0 -6px 24px rgba(0,0,0,0.12);
   max-height: 80vh;
@@ -2991,7 +3015,7 @@ body:has(.lib-edit-bar) .library-cards {
   max-width: 480px;
   background: var(--c-surface);
   border-radius: 18px 18px 0 0;
-  z-index: 9999;
+  z-index: var(--z-toast);
   transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
   max-height: 88vh;
   display: flex;
@@ -3936,7 +3960,7 @@ body:has(.lib-edit-bar) .library-cards {
 .note-book-sheet-backdrop {
   position: fixed; inset: 0;
   background: rgba(25,31,40,0.45);
-  z-index: 80;
+  z-index: var(--z-pop);
   opacity: 0; pointer-events: none;
   transition: opacity .25s ease;
 }
@@ -3951,7 +3975,7 @@ body:has(.lib-edit-bar) .library-cards {
   max-height: 84vh;
   background: var(--c-surface);
   border-radius: 10px 10px 0 0;
-  z-index: 81;
+  z-index: var(--z-pop-fg);
   box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
   display: flex; flex-direction: column;
   transition: transform .28s ease;
@@ -6186,7 +6210,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(20, 16, 12, 0.5);
   backdrop-filter: blur(3px);
-  z-index: 200;
+  z-index: var(--z-confirm);
   opacity: 0; pointer-events: none;
   transition: opacity .18s ease;
 }
@@ -6200,7 +6224,7 @@ body:has(.lib-edit-bar) .library-cards {
   transform: translate(-50%, -48%) scale(0.94);
   width: calc(100% - 40px);
   max-width: 360px;
-  z-index: 201;
+  z-index: var(--z-confirm-fg);
   opacity: 0;
   pointer-events: none;
   transition: opacity .2s ease, transform .22s cubic-bezier(.2, 0, 0, 1);
@@ -6276,7 +6300,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 95;
+  z-index: var(--z-pop);
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -6290,7 +6314,7 @@ body:has(.lib-edit-bar) .library-cards {
   height: 90vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 100;
+  z-index: var(--z-pop-fg);
   overflow: hidden;
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
@@ -7700,7 +7724,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed;
   left: 50%; bottom: 28px;
   transform: translate(-50%, 40px);
-  z-index: 200;
+  z-index: var(--z-toast);
   padding: 14px 22px;
   background: var(--c-text);
   color: #fff;
@@ -7729,7 +7753,7 @@ body:has(.lib-edit-bar) .library-cards {
   left: 50%;
   bottom: 90px;                /* 하단 탭바 위쪽 */
   transform: translate(-50%, 20px);
-  z-index: 199;
+  z-index: calc(var(--z-toast) - 1);
   width: min(360px, calc(100vw - 32px));
   padding: 14px 18px;
   background: var(--c-text);
@@ -7813,7 +7837,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(25, 31, 40, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 210;  /* v1.3.0 — 묶음 시트(200) 위에 떠야 함 */
+  z-index: var(--z-sheet);  /* v1.3.0 — 묶음 시트(200) 위에 떠야 함 */
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -7827,7 +7851,7 @@ body:has(.lib-edit-bar) .library-cards {
   height: 92vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 211;  /* v1.3.0 — 묶음 시트(201) 위에 떠야 함 (위시 묶음 → 한 권 상태 변경 흐름 지원) */
+  z-index: var(--z-sheet-fg);  /* v1.3.0 — 묶음 시트(201) 위에 떠야 함 (위시 묶음 → 한 권 상태 변경 흐름 지원) */
   overflow: hidden;
   overflow-x: hidden; /* v1.10.1 — 모바일 좌우 스크롤 차단 */
   display: flex; flex-direction: column;
@@ -8117,7 +8141,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 200;
+  z-index: var(--z-sub-sheet);
   opacity: 0;
   pointer-events: none;
   transition: opacity .25s;
@@ -8135,7 +8159,7 @@ body:has(.lib-edit-bar) .library-cards {
   max-width: 480px;
   background: var(--c-surface);
   border-radius: 20px 20px 0 0;
-  z-index: 201;
+  z-index: var(--z-sub-sheet-fg);
   transition: transform .28s cubic-bezier(.2,.7,.2,1);
   padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
   max-height: 85vh;
@@ -8490,7 +8514,7 @@ body:has(.lib-edit-bar) .library-cards {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
-  z-index: 1090;
+  z-index: var(--z-special);
 }
 .qn-backdrop.is-open {
   opacity: 1;
@@ -8507,7 +8531,7 @@ body:has(.lib-edit-bar) .library-cards {
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -2px 12px rgba(21,17,13,0.10), 0 -8px 32px rgba(21,17,13,0.08);
   transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 1091;
+  z-index: var(--z-special-fg);
   padding: 8px 18px 18px;
   padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
 }
@@ -9132,7 +9156,7 @@ body:has(.lib-edit-bar) .library-cards {
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 1100;
+  z-index: var(--z-confirm);
   display: none;
   align-items: center;
   justify-content: center;
@@ -10247,7 +10271,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -10258,14 +10282,14 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .ct-backdrop.open { opacity: 1; pointer-events: auto; }
 .ct-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -10449,14 +10473,14 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .im-backdrop.open { opacity: 1; pointer-events: auto; }
 .im-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -10742,14 +10766,14 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .bf-backdrop.open { opacity: 1; pointer-events: auto; }
 .bf-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -10893,14 +10917,14 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 220;
+  z-index: var(--z-overlay);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .sc-backdrop.open { opacity: 1; pointer-events: auto; }
 .sc-modal {
   position: fixed; inset: 0;
-  z-index: 230;
+  z-index: var(--z-overlay-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -11056,7 +11080,7 @@ body:has(.lib-edit-bar) .library-cards {
 /* 책별 enrich 모달 — bf 모달 디자인 재사용 + 추가 */
 .bde-backdrop, .bde-modal {
   position: fixed; inset: 0;
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -11065,7 +11089,7 @@ body:has(.lib-edit-bar) .library-cards {
   backdrop-filter: blur(8px);
 }
 .bde-modal {
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
 }
@@ -11522,14 +11546,14 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.75);
   backdrop-filter: blur(8px);
-  z-index: 220;
+  z-index: var(--z-overlay);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .rs-backdrop.open { opacity: 1; pointer-events: auto; }
 .rs-modal {
   position: fixed; inset: 0;
-  z-index: 230;
+  z-index: var(--z-overlay-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -11750,7 +11774,7 @@ body:has(.lib-edit-bar) .library-cards {
 
 .ab-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -11853,7 +11877,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -11861,7 +11885,7 @@ body:has(.lib-edit-bar) .library-cards {
 
 .ex-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -12087,7 +12111,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -12095,7 +12119,7 @@ body:has(.lib-edit-bar) .library-cards {
 
 .ob-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0; pointer-events: none;
@@ -12373,7 +12397,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(15, 17, 23, 0.65);
   backdrop-filter: blur(8px);
-  z-index: 200;
+  z-index: var(--z-modal);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
@@ -12381,7 +12405,7 @@ body:has(.lib-edit-bar) .library-cards {
 
 .wn-modal {
   position: fixed; inset: 0;
-  z-index: 210;
+  z-index: var(--z-modal-fg);
   display: flex; align-items: center; justify-content: center;
   /* v1.10.1 — iOS PWA에서 노치+홈 인디케이터 영역 침범 방지 */
   padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
@@ -12412,7 +12436,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: 110;
+  z-index: var(--z-sub-sheet-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13385,7 +13409,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(21, 17, 13, 0.55);
   backdrop-filter: blur(4px);
-  z-index: 998;
+  z-index: var(--z-mig);
   opacity: 0;
   pointer-events: none;
   transition: opacity 220ms ease;
@@ -13394,7 +13418,7 @@ body:has(.lib-edit-bar) .library-cards {
 
 .mig-modal {
   position: fixed; inset: 0;
-  z-index: 999;
+  z-index: var(--z-mig-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13936,7 +13960,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 106;
+  z-index: var(--z-sub-sheet);
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -13950,7 +13974,7 @@ body:has(.lib-edit-bar) .library-cards {
   height: 88vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 111;
+  z-index: var(--z-sub-sheet-fg);
   overflow: hidden;
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
@@ -14170,7 +14194,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed; inset: 0;
   background: rgba(25, 31, 40, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 115;
+  z-index: var(--z-sub-sheet);
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -14182,7 +14206,7 @@ body:has(.lib-edit-bar) .library-cards {
   width: 100%; max-width: 480px;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 120;
+  z-index: var(--z-sub-sheet-fg);
   overflow: hidden;
   display: flex; flex-direction: column;
   transition: transform .3s cubic-bezier(.2,.8,.2,1);
@@ -14521,7 +14545,7 @@ body:has(.lib-edit-bar) .library-cards {
   position: fixed;
   inset: 0;
   background: #000;
-  z-index: 9999; /* 모든 모달 위 */
+  z-index: var(--z-cinema); /* 모든 모달 위 */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -14859,7 +14883,7 @@ body.cn-locked {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 108;
+  z-index: var(--z-sub-sheet);
   opacity: 0; pointer-events: none;
   transition: opacity .22s ease;
 }
@@ -14873,7 +14897,7 @@ body.cn-locked {
   height: 75vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 112;
+  z-index: var(--z-sub-sheet-fg);
   overflow: hidden;
   display: flex; flex-direction: column;
   transition: transform .32s cubic-bezier(.2,.8,.2,1);
@@ -15503,7 +15527,7 @@ body.cn-locked {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.45);
   backdrop-filter: blur(3px);
-  z-index: 90;
+  z-index: var(--z-pop);
   opacity: 0; pointer-events: none;
   transition: opacity .2s ease;
 }
@@ -15516,7 +15540,7 @@ body.cn-locked {
   width: 100%; max-width: 480px;
   height: 90vh;
   background: var(--c-surface);
-  z-index: 91;
+  z-index: var(--z-pop-fg);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
@@ -15722,7 +15746,7 @@ body.cn-locked {
   position: fixed; inset: 0;
   background: rgba(28, 25, 23, 0.45);
   backdrop-filter: blur(3px);
-  z-index: 90;
+  z-index: var(--z-pop);
   opacity: 0; pointer-events: none;
   transition: opacity .2s ease;
 }
@@ -15736,7 +15760,7 @@ body.cn-locked {
   max-height: 85vh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
-  z-index: 100;
+  z-index: var(--z-pop-fg);
   overflow: hidden;
   display: flex; flex-direction: column;
   transition: transform .3s cubic-bezier(.2,.8,.2,1);
@@ -15950,7 +15974,7 @@ body.cn-locked {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 950;
+  z-index: var(--z-special);
   opacity: 0;
   pointer-events: none;
   transition: opacity .28s ease;
@@ -16414,7 +16438,7 @@ body.cn-locked {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 960;
+  z-index: var(--z-special);
   opacity: 0;
   pointer-events: none;
   transition: opacity .25s ease;
@@ -16811,7 +16835,7 @@ body.cn-locked {
   background: rgba(20, 14, 10, 0.42);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 88;
+  z-index: var(--z-pop);
   display: none;
   align-items: flex-end;
   justify-content: center;
@@ -18118,7 +18142,7 @@ body.cn-locked {
   background: rgba(20, 14, 10, 0.5);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  z-index: 9000;
+  z-index: var(--z-toast);
   display: none;
   align-items: flex-end;
   justify-content: center;
@@ -18211,7 +18235,7 @@ body.cn-locked {
   background: rgba(20, 17, 13, 0.42);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  z-index: 88;
+  z-index: var(--z-pop);
   opacity: 0; pointer-events: none;
   transition: opacity .25s;
 }
@@ -18222,7 +18246,7 @@ body.cn-locked {
   top: 0; left: 0; bottom: 0;
   width: 86%; max-width: 320px;
   background: var(--c-canvas);
-  z-index: 89;
+  z-index: var(--z-pop-fg);
   transform: translateX(-100%);
   transition: transform .28s cubic-bezier(.2, .8, .2, 1);
   display: flex; flex-direction: column;
@@ -18531,7 +18555,7 @@ body.cn-locked {
   inset: 0;
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(4px);
-  z-index: 1200;
+  z-index: var(--z-special-fg);
   display: none;
   align-items: flex-end;
   justify-content: center;
@@ -18709,7 +18733,7 @@ body.cn-locked {
   position: fixed;
   inset: 0;
   background: #000;
-  z-index: 1300;
+  z-index: var(--z-special-fg);
   display: none;
   flex-direction: column;
 }
@@ -18933,7 +18957,7 @@ body.cn-locked {
 .kb-splash {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: var(--z-splash);
   background: var(--c-canvas);
   display: flex;
   flex-direction: column;
@@ -33541,7 +33565,7 @@ function _showIOSSavePreview(canvas) {
   overlay.style.cssText = `
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.92);
-    z-index: 9999;
+    z-index: var(--z-toast);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 20px; gap: 16px;
     animation: fadeIn 0.2s ease-out;
@@ -34297,7 +34321,7 @@ function openAcqSheet(bookId) {
   const backdrop = document.createElement('div');
   backdrop.id = 'acqSheetBackdrop';
   backdrop.className = 'bd-backdrop acq-backdrop';
-  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;opacity:0;transition:opacity 0.25s ease;';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-toast) - 1);opacity:0;transition:opacity 0.25s ease;';
   document.body.appendChild(backdrop);
   
   // 시트
@@ -34855,7 +34879,7 @@ function celebrateGoal() {
 
   const canvas = document.createElement('canvas');
   canvas.className = 'celebrate-canvas';
-  canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;';
+  canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:var(--z-toast);';
   document.body.appendChild(canvas);
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
