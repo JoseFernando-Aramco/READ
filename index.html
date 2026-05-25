@@ -9991,7 +9991,6 @@ body:has(.lib-edit-bar) .library-cards {
    타이머 세션 상세 (v1.10.4) — 책상세 안 펼침 + 편집/삭제
    ═══════════════════════════════════════════════════════════ */
 .tm-sess-toggle {
-  margin-top: 12px;
   padding: 10px 12px;
   background: var(--c-surface-2);
   border: 1px solid var(--c-border-2);
@@ -32303,6 +32302,57 @@ function renderBookDetail() {
       `;
     })() : ''}
 
+    ${(() => {
+      // v1.10.4 — 타이머 세션 섹션 (진행률 바 아래, 독서 메모 위)
+      if (wish) return ''; // 위시는 세션 없음
+      const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+      if (sess.length === 0) return '';
+      const totalMins = sess.reduce((s, x) => s + (x.minutes || 0), 0);
+      const totalPages = sess.reduce((s, x) => s + (x.pages || 0), 0);
+      const isOpen = !!BD.tmSessOpen;
+      return `
+      <div class="bd-section">
+        <button class="tm-sess-toggle ${isOpen ? 'open' : ''}" id="bdTmSessToggle" type="button">
+          <div class="tm-sess-toggle-left">
+            <div class="tm-sess-toggle-count">
+              <span>⏱</span>
+              <span>타이머 세션 ${sess.length}회</span>
+            </div>
+            <div class="tm-sess-toggle-meta">${formatTimerToggleMeta(totalMins, totalPages, b)}</div>
+          </div>
+          <span class="tm-sess-toggle-arrow">▾</span>
+        </button>
+        <div class="tm-sess-list-wrap ${isOpen ? 'open' : ''}" id="bdTmSessWrap">
+          <div class="tm-sess-stats">
+            <div class="tm-sess-stat-cell">
+              <div class="tm-sess-stat-k">총 시간</div>
+              <div class="tm-sess-stat-v">${formatHM(totalMins)}</div>
+            </div>
+            ${formatTimerStatTotalCell(totalPages, b)}
+            <div class="tm-sess-stat-cell">
+              <div class="tm-sess-stat-k">평균/세션</div>
+              <div class="tm-sess-stat-v">${Math.round(totalMins / sess.length)}<span class="unit">m</span></div>
+            </div>
+          </div>
+          <div class="tm-sess-list" id="bdTmSessList">
+            ${[...sess].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).map((s, i, arr) => {
+              const todayCls = (s.date === todayStr()) ? 'today' : '';
+              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${arr.length - 1 - i}`;
+              return `
+                <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
+                  <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
+                  <div class="tm-sess-inc ${(s.pages || 0) === 0 ? 'empty' : ''}">${formatTimerSessInc(s, b)}</div>
+                  <div class="tm-sess-mins">${s.minutes || 0}분</div>
+                  <div class="tm-sess-edit-icn">›</div>
+                </div>`;
+            }).join('')}
+          </div>
+          <div class="tm-sess-list-fade"></div>
+        </div>
+      </div>
+      `;
+    })()}
+
     ${!wish ? `
     <!-- 독서 메모 (인물·용어 기록) -->
     <div class="bd-section">
@@ -32380,53 +32430,6 @@ function renderBookDetail() {
             </div>`;
         }).join('')}
       </div>
-      ${(() => {
-        // v1.10.4 — 타이머 세션 펼침 (책상세 안)
-        const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
-        if (sess.length === 0) return '';
-        const totalMins = sess.reduce((s, x) => s + (x.minutes || 0), 0);
-        const totalPages = sess.reduce((s, x) => s + (x.pages || 0), 0);
-        const isOpen = !!BD.tmSessOpen;
-        return `
-        <button class="tm-sess-toggle ${isOpen ? 'open' : ''}" id="bdTmSessToggle" type="button">
-          <div class="tm-sess-toggle-left">
-            <div class="tm-sess-toggle-count">
-              <span>⏱</span>
-              <span>타이머 세션 ${sess.length}회</span>
-            </div>
-            <div class="tm-sess-toggle-meta">${formatTimerToggleMeta(totalMins, totalPages, b)}</div>
-          </div>
-          <span class="tm-sess-toggle-arrow">▾</span>
-        </button>
-        <div class="tm-sess-list-wrap ${isOpen ? 'open' : ''}" id="bdTmSessWrap">
-          <div class="tm-sess-stats">
-            <div class="tm-sess-stat-cell">
-              <div class="tm-sess-stat-k">총 시간</div>
-              <div class="tm-sess-stat-v">${formatHM(totalMins)}</div>
-            </div>
-            ${formatTimerStatTotalCell(totalPages, b)}
-            <div class="tm-sess-stat-cell">
-              <div class="tm-sess-stat-k">평균/세션</div>
-              <div class="tm-sess-stat-v">${Math.round(totalMins / sess.length)}<span class="unit">m</span></div>
-            </div>
-          </div>
-          <div class="tm-sess-list" id="bdTmSessList">
-            ${[...sess].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).map((s, i, arr) => {
-              const todayCls = (s.date === todayStr()) ? 'today' : '';
-              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${arr.length - 1 - i}`;
-              return `
-                <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
-                  <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
-                  <div class="tm-sess-inc ${(s.pages || 0) === 0 ? 'empty' : ''}">${formatTimerSessInc(s, b)}</div>
-                  <div class="tm-sess-mins">${s.minutes || 0}분</div>
-                  <div class="tm-sess-edit-icn">›</div>
-                </div>`;
-            }).join('')}
-          </div>
-          <div class="tm-sess-list-fade"></div>
-        </div>
-        `;
-      })()}
       ${BD.showRereadForm ? `
         <div class="bd-read-form">
           <div class="bd-read-form-row">
