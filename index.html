@@ -9987,6 +9987,346 @@ body:has(.lib-edit-bar) .library-cards {
   transform: scale(.98);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   타이머 세션 상세 (v1.10.4) — 책상세 안 펼침 + 편집/삭제
+   ═══════════════════════════════════════════════════════════ */
+.tm-sess-toggle {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--c-text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 600;
+  transition: background .15s, border-color .15s;
+  font-family: inherit;
+}
+.tm-sess-toggle:hover {
+  background: color-mix(in srgb, var(--c-border) 30%, var(--c-surface-2));
+  border-color: var(--c-border);
+}
+.tm-sess-toggle:active { transform: scale(.998); }
+.tm-sess-toggle-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+.tm-sess-toggle-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tm-sess-toggle-meta {
+  font-size: 10.5px;
+  color: var(--c-label);
+  font-weight: 500;
+}
+.tm-sess-toggle-arrow {
+  transition: transform .3s ease;
+  color: var(--c-label);
+  font-size: 12px;
+}
+.tm-sess-toggle.open .tm-sess-toggle-arrow { transform: rotate(180deg); }
+
+.tm-sess-list-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s ease, margin-top .35s ease;
+  margin-top: 0;
+}
+.tm-sess-list-wrap.open {
+  max-height: 280px;
+  margin-top: 8px;
+}
+
+.tm-sess-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-2);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.tm-sess-stat-cell { text-align: center; padding: 2px 0; }
+.tm-sess-stat-cell + .tm-sess-stat-cell { border-left: 1px solid var(--c-border-2); }
+.tm-sess-stat-k {
+  font-size: 9px;
+  color: var(--c-label);
+  margin-bottom: 2px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.tm-sess-stat-v {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -.02em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.tm-sess-stat-v .unit {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-left: 1px;
+}
+.tm-sess-stat-sub {
+  font-size: 9px;
+  color: var(--c-label);
+  margin-top: 1px;
+}
+
+.tm-sess-list {
+  position: relative;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--c-border-2);
+  border-radius: 6px;
+  background: var(--c-surface);
+  -webkit-overflow-scrolling: touch;
+}
+.tm-sess-list::-webkit-scrollbar { width: 4px; }
+.tm-sess-list::-webkit-scrollbar-track { background: transparent; }
+.tm-sess-list::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
+
+.tm-sess-list-wrap {
+  position: relative;
+}
+.tm-sess-list-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent 0%, var(--c-surface) 100%);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .2s;
+}
+.tm-sess-list-wrap.scrolled-end .tm-sess-list-fade,
+.tm-sess-list-wrap.no-overflow .tm-sess-list-fade { opacity: 0; }
+
+.tm-sess-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 60px 22px;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 10px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--c-border-2);
+  cursor: pointer;
+  transition: background .12s;
+  user-select: none;
+}
+.tm-sess-row:last-child { border-bottom: none; }
+.tm-sess-row:hover { background: var(--c-surface-2); }
+.tm-sess-row:active { background: var(--c-border-2); }
+.tm-sess-row.today { background: color-mix(in srgb, var(--primary) 5%, var(--c-surface)); }
+.tm-sess-row.today:hover { background: color-mix(in srgb, var(--primary) 8%, var(--c-surface)); }
+
+.tm-sess-date {
+  font-size: 11px;
+  color: var(--c-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tm-sess-date .wd {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--c-label);
+  margin-left: 3px;
+}
+.tm-sess-inc {
+  font-size: 10.5px;
+  color: var(--c-label);
+  font-variant-numeric: tabular-nums;
+}
+.tm-sess-inc .conv {
+  color: var(--c-muted);
+  margin-left: 3px;
+}
+.tm-sess-inc.empty {
+  font-style: italic;
+  color: var(--c-muted);
+}
+.tm-sess-mins {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.tm-sess-edit-icn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-muted);
+  font-size: 12px;
+}
+
+.tm-sess-empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--c-label);
+  background: var(--c-surface);
+  border: 1px dashed var(--c-border-2);
+  border-radius: 6px;
+  line-height: 1.55;
+}
+
+/* ─── 세션 편집 시트 (sub-sheet — bd-sheet 위) ─── */
+.ts-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+  z-index: var(--z-sub-sheet);
+}
+.ts-backdrop.open { opacity: 1; pointer-events: auto; }
+.ts-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 456px;
+  background: var(--c-surface);
+  border-radius: 16px 16px 0 0;
+  padding: 14px 20px 22px;
+  z-index: var(--z-sub-sheet-fg);
+  transition: transform .32s cubic-bezier(.32,.72,0,1);
+  box-shadow: 0 -10px 40px rgba(25,31,40,.18);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.ts-sheet.open { transform: translateX(-50%) translateY(0); }
+.ts-grip {
+  width: 36px;
+  height: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
+  margin: 0 auto 12px;
+}
+.ts-title {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: var(--c-text);
+  letter-spacing: -.01em;
+}
+.ts-sub {
+  font-size: 11px;
+  color: var(--c-label);
+  margin-bottom: 14px;
+}
+.ts-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ts-field { flex: 1; }
+.ts-field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-bottom: 4px;
+  letter-spacing: .02em;
+}
+.ts-input-wrap { position: relative; }
+.ts-input {
+  width: 100%;
+  padding: 10px 11px;
+  padding-right: 30px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+.ts-input:focus { outline: none; border-color: var(--c-text); }
+.ts-input-unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--c-label);
+  pointer-events: none;
+}
+.ts-input-converted {
+  font-size: 10px;
+  color: var(--c-label);
+  margin-top: 4px;
+  text-align: right;
+}
+.ts-info {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--c-surface-2);
+  border-radius: 5px;
+  font-size: 11px;
+  color: var(--c-text-2);
+  line-height: 1.5;
+}
+.ts-info strong { color: var(--c-text); font-weight: 700; }
+.ts-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+.ts-btn {
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -.01em;
+}
+.ts-btn-cancel {
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  flex: 1;
+}
+.ts-btn-save {
+  background: var(--c-text);
+  color: var(--c-surface);
+  flex: 1.4;
+}
+.ts-btn-delete {
+  background: color-mix(in srgb, var(--c-terra-500) 12%, transparent);
+  color: var(--c-terra-700);
+  flex: 0 0 44px;
+  padding: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
 /* 재독 추가 인라인 폼 */
 .bd-read-form {
   padding: 14px;
@@ -20491,6 +20831,47 @@ body.cn-locked {
   </div>
 </aside>
 
+<!-- ═══════════ 타이머 세션 편집 시트 (v1.10.4) ═══════════ -->
+<div class="ts-backdrop" id="tsBackdrop" aria-hidden="true"></div>
+<aside class="ts-sheet" id="tsSheet" aria-hidden="true" aria-labelledby="tsTitle">
+  <div class="ts-grip"></div>
+  <div class="ts-title" id="tsTitle">기록 수정</div>
+  <div class="ts-sub" id="tsSub"></div>
+
+  <div class="ts-row">
+    <div class="ts-field">
+      <label>시간</label>
+      <div class="ts-input-wrap">
+        <input type="number" class="ts-input" id="tsMins" min="0" max="600" inputmode="numeric">
+        <span class="ts-input-unit">분</span>
+      </div>
+    </div>
+    <div class="ts-field">
+      <label id="tsPagesLabel">페이지 진행</label>
+      <div class="ts-input-wrap">
+        <input type="number" class="ts-input" id="tsPages" min="0" max="9999" inputmode="numeric">
+        <span class="ts-input-unit" id="tsPagesUnit">p</span>
+      </div>
+      <div class="ts-input-converted" id="tsPagesConv"></div>
+    </div>
+  </div>
+
+  <div class="ts-field">
+    <label>날짜</label>
+    <input type="date" class="ts-input" id="tsDate">
+  </div>
+
+  <div class="ts-info">
+    📌 책의 <strong id="tsCurInfo">현재 진행</strong>은 그대로 두고, 이 기록의 시간·진행량만 바꿔요.
+  </div>
+
+  <div class="ts-actions">
+    <button class="ts-btn ts-btn-delete" id="tsDeleteBtn" type="button" aria-label="삭제">🗑</button>
+    <button class="ts-btn ts-btn-cancel" id="tsCancelBtn" type="button">취소</button>
+    <button class="ts-btn ts-btn-save" id="tsSaveBtn" type="button">저장</button>
+  </div>
+</aside>
+
 <!-- ═══════════ 시네마 모드 (가로/세로 풀스크린 타이머) ═══════════ -->
 <div class="cn-overlay" id="cnOverlay" data-cn-mode="portrait" aria-hidden="true">
   <!-- 시네마 무대 (가로·세로 양쪽 지원) -->
@@ -23764,6 +24145,92 @@ function pagesToPct(currentPage, totalPages) {
   if (!totalPages || totalPages <= 0) return 0;
   const p = Math.max(0, Math.min(totalPages, Number(currentPage) || 0));
   return Math.round(p / totalPages * 100);
+}
+
+/* ─── 타이머 세션 표시 헬퍼 (v1.10.4) ─── */
+/* 분 → "6시간 38분" / "30분" / "1시간" */
+function formatHM(mins) {
+  const m = Math.max(0, parseInt(mins, 10) || 0);
+  if (m < 60) return `${m}<span class="unit">m</span>`;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return mm === 0
+    ? `${h}<span class="unit">h</span>`
+    : `${h}<span class="unit">h</span> ${mm}<span class="unit">m</span>`;
+}
+
+/* 세션 날짜 → "5/24 토" (요일 자동 계산) */
+function formatTimerSessDate(iso) {
+  if (!iso) return '—';
+  const parts = String(iso).split('-');
+  if (parts.length < 3) return esc(iso);
+  const [y, m, d] = parts.map(x => parseInt(x, 10));
+  if (!y || !m || !d) return esc(iso);
+  const wdNames = ['일','월','화','수','목','금','토'];
+  const wd = wdNames[new Date(y, m-1, d).getDay()];
+  return `${m}/${d}<span class="wd">${wd}</span>`;
+}
+
+/* 세션 증분 표시 — 매체별
+   종이책: "+25p"
+   전자/오디오: "+8% (≈ 25p)"
+   페이지 0: "시간만"
+   웹소설: "시간만" (회차 입력 미구현) */
+function formatTimerSessInc(sess, book) {
+  const pages = Math.max(0, parseInt(sess && sess.pages, 10) || 0);
+  if (pages === 0) return '시간만';
+  if (isWebnovel(book)) return '시간만'; // 웹소설은 페이지 의미 없음
+  if (isDigital(book)) {
+    const total = book && book.pages;
+    if (total && total > 0) {
+      const pct = pagesToPct(pages, total);
+      return `+${pct}%<span class="conv">(≈ ${pages}p)</span>`;
+    }
+    return `+${pages}p`; // total 없으면 페이지로 폴백
+  }
+  return `+${pages}p`;
+}
+
+/* 토글 메타 — 총 합계 한 줄
+   종이책: "총 6시간 38분 · 195p"
+   전자/오디오: "총 6시간 38분 · 58%" */
+function formatTimerToggleMeta(totalMins, totalPages, book) {
+  const h = Math.floor(totalMins / 60);
+  const mm = totalMins % 60;
+  const timeStr = totalMins < 60
+    ? `${totalMins}분`
+    : (mm === 0 ? `${h}시간` : `${h}시간 ${mm}분`);
+  if (totalPages === 0) return `총 ${timeStr}`;
+  if (isWebnovel(book)) return `총 ${timeStr}`;
+  if (isDigital(book) && book.pages && book.pages > 0) {
+    const pct = pagesToPct(totalPages, book.pages);
+    return `총 ${timeStr} · ${pct}%`;
+  }
+  return `총 ${timeStr} · ${totalPages}p`;
+}
+
+/* 통계 셀 — 가운데 칸 (매체별)
+   종이책: "총 페이지 195p"
+   전자/오디오: "총 진행 58% (≈ 195p)" */
+function formatTimerStatTotalCell(totalPages, book) {
+  if (isWebnovel(book) || !book.pages || book.pages <= 0) {
+    return `<div class="tm-sess-stat-cell">
+      <div class="tm-sess-stat-k">총 페이지</div>
+      <div class="tm-sess-stat-v">${totalPages}<span class="unit">p</span></div>
+    </div>`;
+  }
+  if (isDigital(book)) {
+    const pct = pagesToPct(totalPages, book.pages);
+    return `<div class="tm-sess-stat-cell">
+      <div class="tm-sess-stat-k">총 진행</div>
+      <div class="tm-sess-stat-v">${pct}<span class="unit">%</span></div>
+      <div class="tm-sess-stat-sub">≈ ${totalPages}p</div>
+    </div>`;
+  }
+  return `<div class="tm-sess-stat-cell">
+    <div class="tm-sess-stat-k">총 페이지</div>
+    <div class="tm-sess-stat-v">${totalPages}<span class="unit">p</span></div>
+  </div>`;
 }
 
 /* 책의 현재 진행률 (%) — 매체 무관 */
@@ -30446,6 +30913,8 @@ const BD = {
   tagEditMode: false,    // 태그 편집(삭제) 모드
   tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭
   newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 카테고리
+  tmSessOpen: false,     // v1.10.4 — 타이머 세션 펼침 상태 (책상세 안)
+  tmSessEditKey: null,   // v1.10.4 — 편집 중인 세션 키
 };
 
 /* ─── 독서 세션 모음 (본 독서 + 재독 정렬) ─── */
@@ -30913,6 +31382,25 @@ function saveTimerSession() {
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
 document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+
+/* 타이머 세션 편집 시트 이벤트 바인딩 (v1.10.4) */
+document.getElementById('tsBackdrop').addEventListener('click', closeTimerSessionEdit);
+document.getElementById('tsCancelBtn').addEventListener('click', closeTimerSessionEdit);
+document.getElementById('tsSaveBtn').addEventListener('click', saveTimerSessionEdit);
+document.getElementById('tsDeleteBtn').addEventListener('click', deleteTimerSession);
+// 전자/오디오 % 입력 시 환산 페이지 실시간 갱신
+(function wireTsPctConversion() {
+  const pctInput = document.getElementById('tsPages');
+  if (!pctInput) return;
+  pctInput.addEventListener('input', () => {
+    const b = BD.book;
+    if (!b) return;
+    if (!isDigital(b) || !b.pages || b.pages <= 0) return;
+    const pct = Math.max(0, Math.min(100, parseInt(pctInput.value, 10) || 0));
+    const conv = document.getElementById('tsPagesConv');
+    if (conv) conv.textContent = `≈ ${pctToPages(pct, b.pages)}p`;
+  });
+})();
 
 // 정지 시트 — 전자책 % 입력 실시간 환산 + 프리셋
 (function wireTimerEbookInputs() {
@@ -31892,6 +32380,53 @@ function renderBookDetail() {
             </div>`;
         }).join('')}
       </div>
+      ${(() => {
+        // v1.10.4 — 타이머 세션 펼침 (책상세 안)
+        const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+        if (sess.length === 0) return '';
+        const totalMins = sess.reduce((s, x) => s + (x.minutes || 0), 0);
+        const totalPages = sess.reduce((s, x) => s + (x.pages || 0), 0);
+        const isOpen = !!BD.tmSessOpen;
+        return `
+        <button class="tm-sess-toggle ${isOpen ? 'open' : ''}" id="bdTmSessToggle" type="button">
+          <div class="tm-sess-toggle-left">
+            <div class="tm-sess-toggle-count">
+              <span>⏱</span>
+              <span>타이머 세션 ${sess.length}회</span>
+            </div>
+            <div class="tm-sess-toggle-meta">${formatTimerToggleMeta(totalMins, totalPages, b)}</div>
+          </div>
+          <span class="tm-sess-toggle-arrow">▾</span>
+        </button>
+        <div class="tm-sess-list-wrap ${isOpen ? 'open' : ''}" id="bdTmSessWrap">
+          <div class="tm-sess-stats">
+            <div class="tm-sess-stat-cell">
+              <div class="tm-sess-stat-k">총 시간</div>
+              <div class="tm-sess-stat-v">${formatHM(totalMins)}</div>
+            </div>
+            ${formatTimerStatTotalCell(totalPages, b)}
+            <div class="tm-sess-stat-cell">
+              <div class="tm-sess-stat-k">평균/세션</div>
+              <div class="tm-sess-stat-v">${Math.round(totalMins / sess.length)}<span class="unit">m</span></div>
+            </div>
+          </div>
+          <div class="tm-sess-list" id="bdTmSessList">
+            ${[...sess].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).map((s, i, arr) => {
+              const todayCls = (s.date === todayStr()) ? 'today' : '';
+              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${arr.length - 1 - i}`;
+              return `
+                <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
+                  <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
+                  <div class="tm-sess-inc ${(s.pages || 0) === 0 ? 'empty' : ''}">${formatTimerSessInc(s, b)}</div>
+                  <div class="tm-sess-mins">${s.minutes || 0}분</div>
+                  <div class="tm-sess-edit-icn">›</div>
+                </div>`;
+            }).join('')}
+          </div>
+          <div class="tm-sess-list-fade"></div>
+        </div>
+        `;
+      })()}
       ${BD.showRereadForm ? `
         <div class="bd-read-form">
           <div class="bd-read-form-row">
@@ -32942,6 +33477,200 @@ function wireBookDetailEvents() {
       showToast(`"${title}" 삭제됨`);
     });
   }
+
+  // ─── 타이머 세션 토글 (v1.10.4) ───
+  const tmSessToggle = document.getElementById('bdTmSessToggle');
+  const tmSessWrap = document.getElementById('bdTmSessWrap');
+  const tmSessList = document.getElementById('bdTmSessList');
+  if (tmSessToggle && tmSessWrap && tmSessList) {
+    tmSessToggle.addEventListener('click', () => {
+      const isOpen = tmSessToggle.classList.toggle('open');
+      tmSessWrap.classList.toggle('open', isOpen);
+      BD.tmSessOpen = isOpen;
+      if (isOpen) {
+        // 펼침 직후 fade 위치 갱신
+        setTimeout(() => {
+          const overflow = tmSessList.scrollHeight > tmSessList.clientHeight + 2;
+          tmSessWrap.classList.toggle('no-overflow', !overflow);
+        }, 100);
+      }
+    });
+
+    // 스크롤 끝 도달 시 fade 숨김
+    tmSessList.addEventListener('scroll', () => {
+      const atEnd = tmSessList.scrollTop + tmSessList.clientHeight >= tmSessList.scrollHeight - 4;
+      tmSessWrap.classList.toggle('scrolled-end', atEnd);
+    });
+
+    // 행 클릭 → 편집 시트
+    tmSessList.querySelectorAll('.tm-sess-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const key = row.getAttribute('data-tm-sess-key');
+        if (key) openTimerSessionEdit(key);
+      });
+    });
+
+    // 처음 펼침 상태였다면 fade 즉시 갱신
+    if (BD.tmSessOpen) {
+      setTimeout(() => {
+        const overflow = tmSessList.scrollHeight > tmSessList.clientHeight + 2;
+        tmSessWrap.classList.toggle('no-overflow', !overflow);
+      }, 100);
+    }
+  }
+}
+
+/* ─── 타이머 세션 편집 시트 (v1.10.4) ─── */
+function openTimerSessionEdit(sessKey) {
+  const b = BD.book;
+  if (!b || !sessKey) return;
+  const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+  // 키 포맷: "YYYY-MM-DD|minutes|pages|origIdx"
+  const parts = sessKey.split('|');
+  if (parts.length < 4) return;
+  const origIdx = parseInt(parts[3], 10);
+  if (!Number.isFinite(origIdx) || origIdx < 0 || origIdx >= sess.length) return;
+  const s = sess[origIdx];
+  if (!s) return;
+
+  BD.tmSessEditKey = sessKey;
+
+  // 매체별 입력 단위
+  const isDig = isDigital(b);
+  const total = b.pages || 0;
+  const pageInput = document.getElementById('tsPages');
+  const pageLabel = document.getElementById('tsPagesLabel');
+  const pageUnit = document.getElementById('tsPagesUnit');
+  const pageConv = document.getElementById('tsPagesConv');
+  const curInfo = document.getElementById('tsCurInfo');
+
+  document.getElementById('tsMins').value = s.minutes || 0;
+  document.getElementById('tsDate').value = s.date || todayStr();
+
+  // 부제 — "2026년 5월 25일 월요일"
+  const sub = document.getElementById('tsSub');
+  if (s.date) {
+    const [y, mo, d] = s.date.split('-').map(x => parseInt(x, 10));
+    if (y && mo && d) {
+      const wdNames = ['일','월','화','수','목','금','토'];
+      const wd = wdNames[new Date(y, mo-1, d).getDay()];
+      sub.textContent = `${y}년 ${mo}월 ${d}일 ${wd}요일`;
+    } else {
+      sub.textContent = s.date;
+    }
+  } else {
+    sub.textContent = '';
+  }
+
+  // 현재 진행 안내
+  if (isDig && total > 0) {
+    curInfo.innerHTML = `현재 진행(<strong>${pagesToPct(b.currentPage || 0, total)}%</strong>)`;
+  } else if (total > 0) {
+    curInfo.innerHTML = `현재 페이지(<strong>${b.currentPage || 0}p</strong>)`;
+  } else {
+    curInfo.textContent = '현재 진행';
+  }
+
+  // 입력 단위 — 매체별 (페이지/% 자동 전환)
+  if (isDig && total > 0) {
+    const pct = pagesToPct(s.pages || 0, total);
+    pageInput.value = pct;
+    pageInput.max = 100;
+    pageLabel.textContent = isWebnovel(b) ? '시간만 (페이지 미지원)' : '진행 (%p)';
+    pageUnit.textContent = '%';
+    pageConv.textContent = `≈ ${s.pages || 0}p`;
+  } else {
+    pageInput.value = s.pages || 0;
+    pageInput.max = total > 0 ? total : 9999;
+    pageLabel.textContent = '페이지 진행';
+    pageUnit.textContent = 'p';
+    pageConv.textContent = '';
+  }
+
+  // 시트 열기 (sub-sheet — bd-sheet 위에 뜸)
+  document.getElementById('tsSheet').classList.add('open');
+  document.getElementById('tsBackdrop').classList.add('open');
+  document.getElementById('tsSheet').setAttribute('aria-hidden', 'false');
+  document.getElementById('tsBackdrop').setAttribute('aria-hidden', 'false');
+}
+
+function closeTimerSessionEdit() {
+  document.getElementById('tsSheet').classList.remove('open');
+  document.getElementById('tsBackdrop').classList.remove('open');
+  document.getElementById('tsSheet').setAttribute('aria-hidden', 'true');
+  document.getElementById('tsBackdrop').setAttribute('aria-hidden', 'true');
+  BD.tmSessEditKey = null;
+}
+
+function saveTimerSessionEdit() {
+  const b = BD.book;
+  const key = BD.tmSessEditKey;
+  if (!b || !key) return closeTimerSessionEdit();
+  const sess = Array.isArray(b.readingSessions) ? [...b.readingSessions] : [];
+  const parts = key.split('|');
+  const origIdx = parseInt(parts[3], 10);
+  if (!Number.isFinite(origIdx) || origIdx < 0 || origIdx >= sess.length) return closeTimerSessionEdit();
+
+  const newMins = Math.max(0, Math.min(600, parseInt(document.getElementById('tsMins').value, 10) || 0));
+  const newDate = document.getElementById('tsDate').value || sess[origIdx].date;
+  const rawPages = parseInt(document.getElementById('tsPages').value, 10) || 0;
+
+  // 입력 단위 → 페이지로 환산
+  const isDig = isDigital(b);
+  const total = b.pages || 0;
+  let newPages;
+  if (isDig && total > 0) {
+    // % 입력 → 페이지로 환산
+    const pct = Math.max(0, Math.min(100, rawPages));
+    newPages = pctToPages(pct, total);
+  } else {
+    newPages = Math.max(0, total > 0 ? Math.min(total, rawPages) : rawPages);
+  }
+
+  sess[origIdx] = {
+    ...sess[origIdx],
+    date: newDate,
+    minutes: newMins,
+    pages: newPages,
+  };
+
+  updateBook(b.id, { readingSessions: sess });
+  // BD.book 참조 갱신
+  BD.book = BOOKS.find(x => x.id === b.id) || BD.book;
+
+  closeTimerSessionEdit();
+  renderBookDetail(); // 책 상세 재렌더
+  try { renderLogList && renderLogList(); } catch(e) {}
+  showToast('기록을 저장했어요');
+}
+
+function deleteTimerSession() {
+  const b = BD.book;
+  const key = BD.tmSessEditKey;
+  if (!b || !key) return;
+  const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+  const parts = key.split('|');
+  const origIdx = parseInt(parts[3], 10);
+  if (!Number.isFinite(origIdx) || origIdx < 0 || origIdx >= sess.length) return;
+  const s = sess[origIdx];
+
+  const dateLabel = s.date ? formatTimerSessDate(s.date).replace(/<[^>]+>/g, ' ').trim() : '';
+  showConfirm({
+    title: '기록 삭제',
+    message: `${dateLabel} · ${s.minutes || 0}분 기록을 삭제할까요?\n삭제하면 통계에서도 빠지고 되돌릴 수 없어요.`,
+    confirmLabel: '삭제',
+    cancelLabel: '취소',
+    destructive: true,
+    onConfirm: () => {
+      const newSess = (BD.book.readingSessions || []).filter((_, i) => i !== origIdx);
+      updateBook(b.id, { readingSessions: newSess });
+      BD.book = BOOKS.find(x => x.id === b.id) || BD.book;
+      closeTimerSessionEdit();
+      renderBookDetail();
+      try { renderLogList && renderLogList(); } catch(e) {}
+      showToast('기록을 삭제했어요');
+    },
+  });
 }
 
 /* ─── 모달 자체 핸들러 ─── */
@@ -38403,6 +39132,8 @@ attachSwipeDown(document.getElementById('settingsSheet'), closeSettings);
 attachSwipeDown(document.getElementById('naSheet'),       closeNoteSheet);
 // v1.3.0 — 한줄평 시트 swipe-down 닫기
 attachSwipeDown(document.getElementById('qnSheet'),       closeQuickNote);
+// v1.10.4 — 타이머 세션 편집 시트
+attachSwipeDown(document.getElementById('tsSheet'),       closeTimerSessionEdit);
 
 /* ═══════════════════════════════════════════════════════════
    독서 알림 — 매일 저녁 9시
