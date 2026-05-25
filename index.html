@@ -26957,6 +26957,7 @@ function renderBookDetailTags() {
             BD.tagEditMode = false;
           }
           renderBookDetailTags();
+          refreshTagSummary(); // v1.10.4 — 위 요약도 즉시 갱신 (복구된 태그가 책에 있으면 다시 노출)
           showToast(`"${name}" 복구됨`);
         } else if (action === 'delete') {
           tryDeleteTag(name, () => renderBookDetail());
@@ -26973,6 +26974,7 @@ function renderBookDetailTags() {
       const newTags = tags.includes(name) ? tags.filter(t => t !== name) : [...tags, name];
       updateBook(b.id, { tags: newTags });
       renderBookDetailTags();
+      refreshTagSummary(); // v1.10.4 — 위 요약도 즉시 갱신
     });
   });
 }
@@ -32107,6 +32109,15 @@ function _renderWishTagChips(tags) {
   }).join('');
 }
 
+/* v1.10.4 — 책상세 위쪽 태그 요약(bd-tag-summary)만 가볍게 갱신
+   칩 토글/숨기기/복구/새 태그 추가 시 전체 재렌더 없이 실시간 반영 */
+function refreshTagSummary() {
+  const b = BD.book;
+  if (!b) return;
+  const chipsEl = document.querySelector('.bd-tag-summary .bd-tag-readonly-chips');
+  if (chipsEl) chipsEl.innerHTML = _renderWishTagChips(b.tags || []);
+}
+
 function renderBookDetail() {
   const b = BD.book;
   if (!b) return;
@@ -33371,7 +33382,9 @@ function wireBookDetailEvents() {
       showToast(`"${name}" 추가됨 · [${TAG_CATEGORIES[targetCat]}]에 저장`);
     }
     bdNewInput.value = '';
-    renderBookDetail();
+    // v1.10.4 — 전체 재렌더 대신 태그 영역만 가볍게 갱신 (스크롤·포커스 보존)
+    renderBookDetailTags();
+    refreshTagSummary();
   }
   if (bdNewBtn) bdNewBtn.addEventListener('click', _bdCreateNewTag);
   if (bdNewInput) bdNewInput.addEventListener('keydown', (e) => {
