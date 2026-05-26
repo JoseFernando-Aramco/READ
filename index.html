@@ -21106,121 +21106,87 @@ body.cn-locked {
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
     <div class="wn-badge" id="wnBadge">업데이트 소식</div>
-    <div class="wn-ttl">묶음으로 한 번에, 기록은 더 꼼꼼하게</div>
-    <div class="wn-sub">시리즈 등록부터 도서 소유 기록까지 — 여러 기능이 한꺼번에 들어왔어요.</div>
+    <div class="wn-ttl">내 독서 기록을 더 자세히, 더 정확하게</div>
+    <div class="wn-sub">타이머 세션을 자세히 보고 고칠 수 있게 됐어요. 그동안 답답했던 부분들을 한꺼번에 정리했습니다.</div>
 
-    <!-- 1. 권 묶음 등록 (메인 HERO — plum) -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(123,112,128,0.12),rgba(123,112,128,0.04));border:1px solid rgba(123,112,128,0.40);">
-      <div class="wn-hero-tag" style="background:#7B7080;color:#fff;">
-        <span style="font-size:11px;">📚</span>
-        NEW · 권 묶음 등록
-      </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">시리즈를 1~N권으로 한 번에</div>
-      <div class="wn-hero-sub" style="margin-bottom:14px;">검색에 없는 만화·웹소설·장편 시리즈, 한 권씩 등록하느라 손이 아프셨죠. 이제 시리즈명과 총 권수만 넣으면 끝.</div>
-
-      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(123,112,128,0.25);">
-        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:5px;">📝 책 추가 → <b style="font-weight:700;">직접 입력</b> → 폼 최상단 <b style="font-weight:700;">"📚 권 묶음 등록"</b> 토글 ON</div>
-          <div style="margin-bottom:5px;"><b style="font-weight:700;">시리즈명 "베르세르크"</b> + <b style="font-weight:700;">총 권수 12</b></div>
-          <div><span style="color:#5C5260;font-weight:600;">→ 베르세르크 1, 2, …, 12 자동 생성 + 묶음 자동 그룹화</span></div>
-        </div>
-      </div>
-      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 권별 페이지/회차는 등록 후 개별 수정하실 수 있어요
-      </div>
-    </div>
-
-    <!-- 2. 한줄평 빠른 입력 (NEW · sage) -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.12),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.42);margin-top:14px;">
+    <!-- 1. 타이머 세션 상세보기 (메인 HERO — sage 진중) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.14),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.45);">
       <div class="wn-hero-tag" style="background:#5F6B5F;color:#fff;">
-        <span style="font-size:11px;">💬</span>
-        NEW · 한줄평
+        <span style="font-size:11px;">⏱</span>
+        NEW · 타이머 세션 상세
       </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">완독 책 표지 꾹 누르면 한 줄 남기기</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">읽고 난 직후, 사라지기 전에 한 줄. 책 상세 안 들어가도 표지에서 바로.</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">기록한 세션을 보고, 고치고, 지울 수 있어요</div>
+      <div class="wn-hero-sub" style="margin-bottom:14px;">"기록 저장" 누르면 어딘가에 쌓이긴 하는데 다시 볼 방법이 없었거든요. 잘못 입력한 30분 60페이지를 못 고쳐서 답답하셨던 분들 — 이제 됩니다.</div>
 
       <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(95,107,95,0.22);">
         <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:5px;">📱 완독 책 카드 <b style="font-weight:700;">표지를 0.5초 이상 꾹 누름</b> → 시트 슬라이드 업</div>
-          <div style="margin-bottom:5px;">✍️ <b style="font-weight:700;">글자 제한 없이</b> 마음껏 · 책당 1개 · 언제든 다시 눌러 수정/삭제</div>
-          <div>📚 표시 위치 <b style="font-weight:700;">2곳</b> — 책 상세 노트 · <b style="font-weight:700;">노트 탭</b></div>
+          <div style="margin-bottom:5px;">📂 책상세 → 진행률 바 아래 <b style="font-weight:700;">⏱ 타이머 세션 N회</b> 알약</div>
+          <div style="margin-bottom:5px;">📊 <b style="font-weight:700;">통계 한 줄</b> — 총 시간 · 총 페이지(또는 %) · 평균/세션</div>
+          <div style="margin-bottom:5px;">📱 <b style="font-weight:700;">매체별 표시</b> — 종이는 <code>170→195p</code>, 전자/오디오는 <code>+8% (≈ 25p)</code></div>
+          <div>✏️ 세션 행 탭 → <b style="font-weight:700;">분 · 페이지(%) · 날짜</b> 수정, 휴지통으로 삭제</div>
         </div>
       </div>
       <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 한줄평은 노트 탭에서 인용구·내 생각과 함께 모입니다 (필터 "한줄평 N")
+        <span class="dot"></span> 세션을 고치거나 지워도 책의 <b>현재 페이지는 그대로</b> 유지 (안전)
       </div>
     </div>
 
-    <!-- 3. 도서 구매/대여 기록 (모카) -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(184,149,106,0.12),rgba(184,149,106,0.04));border:1px solid rgba(184,149,106,0.40);margin-top:14px;">
-      <div class="wn-hero-tag" style="background:#B8956A;color:#fff;">
-        <span style="font-size:11px;">🛒</span>
-        NEW · 소유 기록
-      </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">구매 · 대여 · 소장 기록</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">책 한 권마다 어떻게 가졌는지 남길 수 있어요. 대여 책은 반납일까지 함께 챙겨드립니다.</div>
-
-      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(184,149,106,0.25);">
-        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:5px;">🛒 <b style="font-weight:700;">구매</b> — 구입처 · 실지출 가격 · 메모</div>
-          <div style="margin-bottom:5px;">📚 <b style="font-weight:700;">대여</b> — 대여처 · 대여일 · 반납일 · D-N 알림</div>
-          <div>📖 <b style="font-weight:700;">소장</b> — 출처 · 메모 (선물·물려받음 등)</div>
-        </div>
-      </div>
-      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
-        <span class="dot"></span> 반납 임박 책은 서재 알림 바와 통계 탭에서 한눈에 확인
-      </div>
-    </div>
-
-    <!-- 3. Bookflex 실지출 + 캘린더 DatePicker (sage — 묶어서 한 카드) -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.12),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.42);margin-top:14px;">
-      <div class="wn-hero-tag" style="background:#5F6B5F;color:#fff;">
-        <span style="font-size:11px;">💰</span>
-        개선 · 책장 가치 + 날짜
-      </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">실지출 우선 + 캘린더 날짜 선택</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">책장 가치 계산이 좀 더 현실적으로 바뀌었고, 날짜 입력도 깔끔해졌어요.</div>
-
-      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(95,107,95,0.22);">
-        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:5px;">💰 <b style="font-weight:700;">Bookflex</b> — 실제 결제한 금액(<b>실지출</b>) 우선 집계. 미입력 시 정가 fallback</div>
-          <div>📅 <b style="font-weight:700;">DatePicker</b> — iOS 캘린더 스타일 인라인 그리드 (한국어 요일 · 빨강 일요일)</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. 목표 탭 마일스톤 재설계 (gold/ink) -->
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,74,69,0.12),rgba(74,74,69,0.04));border:1px solid rgba(74,74,69,0.42);margin-top:14px;">
+    <!-- 2. 모달 순서 정리 (인프라 — 짙은 잉크) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,74,69,0.10),rgba(74,74,69,0.03));border:1px solid rgba(74,74,69,0.40);margin-top:14px;">
       <div class="wn-hero-tag" style="background:#4A4A45;color:#fff;">
-        <span style="font-size:11px;">🎯</span>
-        개선 · 목표 탭
+        <span style="font-size:11px;">🪟</span>
+        FIX · 모달 순서
       </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">마일스톤 전면 재설계</div>
-      <div class="wn-hero-sub" style="margin-bottom:12px;">"도전과제" 영역을 통째로 갈아엎었어요. 다음 단계가 더 또렷하게 보입니다.</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">책상세 뒤로 숨던 창들이 제대로 떠요</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">사용자분이 직접 신고해주신 케이스 두 건을 포함해, 모달 우선순위 체계를 처음부터 다시 짰습니다.</div>
 
       <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(74,74,69,0.22);">
         <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
-          <div style="margin-bottom:5px;">📊 <b style="font-weight:700;">숫자 대시보드</b> — 권수 · 페이지 · 최고 연속 · 메모 · 인생책 (다음 목표 +N)</div>
-          <div style="margin-bottom:5px;">🔁 <b style="font-weight:700;">단계 자동 확장</b> — 100권 넘어도 +50권씩 끝없이 이어집니다</div>
-          <div style="margin-bottom:5px;">✨ <b style="font-weight:700;">다음 단계 펄스</b> — 빨갛게 깜빡이는 칸이 당신의 다음 목표</div>
-          <div>🏆 <b style="font-weight:700;">새 칭호</b> — "취미가 된 독서", "백권 클럽", "인생의 등대지기" 등 위트 한 큰 술 추가</div>
+          <div style="margin-bottom:5px;">✅ <b style="font-weight:700;">완독 → 독서중 전환</b> 시 확인창이 책상세 위에 제대로</div>
+          <div style="margin-bottom:5px;">✅ 시네마 → <b style="font-weight:700;">기록 저장</b> 누르면 페이지 입력 시트가 책상세 위로</div>
+          <div>🔧 70개 정도 되는 모달을 새 우선순위 체계(시트→모달→확인→시네마)로 일괄 정리</div>
         </div>
       </div>
     </div>
 
-    <!-- 5. 작은 변화들 (회색 카드, 콤팩트) -->
+    <!-- 3. 이번 달 요약 (개선 — 모카) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(184,149,106,0.12),rgba(184,149,106,0.04));border:1px solid rgba(184,149,106,0.40);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#B8956A;color:#fff;">
+        <span style="font-size:11px;">📊</span>
+        개선 · 이번 달 요약
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">진짜 내가 읽은 만큼만</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">600쪽 책을 한 달 내내 읽다 다음 달 1일에 완독하면 — 이번 달 페이지가 0으로 잡혔어요. 그게 좀 이상하잖아요.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(184,149,106,0.25);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">📖 <b style="font-weight:700;">페이지</b> = 이번 달 <b>타이머 세션의 페이지 합</b> (실제로 읽은 분량)</div>
+          <div style="margin-bottom:5px;">📅 <b style="font-weight:700;">독서일</b> = 이번 달 <b>세션이 있었던 날의 수</b> (실제로 책 펼친 날)</div>
+          <div>ℹ️ 독서일 옆 <b style="font-weight:700;">(i) 버튼</b> — 세 숫자가 각각 뭘 의미하는지 시트로 안내</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 태그 실시간 반영 (FIX — plum) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(123,112,128,0.10),rgba(123,112,128,0.03));margin-top:14px;border:1px solid rgba(123,112,128,0.40);">
+      <div class="wn-hero-tag" style="background:#7B7080;color:#fff;">
+        <span style="font-size:11px;">🏷</span>
+        FIX · 태그 실시간 반영
+      </div>
+      <div class="wn-hero-ttl" style="font-size:18px;color:var(--c-text);font-weight:800;">태그 추가하면 즉시 위에 반영돼요</div>
+      <div class="wn-hero-sub" style="margin-bottom:10px;">"디스토피아" 같은 태그를 추가했는데 위쪽 요약은 안 바뀌어서 모달 닫았다 다시 열어야 보였던 거 — 이제 추가/삭제/숨김 복구 모두 즉시 반영됩니다.</div>
+    </div>
+
+    <!-- 5. 작은 변화들 (회색 콤팩트) -->
     <div class="wn-hero" style="background:rgba(220,220,216,0.30);border:1px solid rgba(122,122,117,0.30);margin-top:14px;">
       <div class="wn-hero-tag" style="background:#7A7A75;color:#fff;">
-        <span style="font-size:11px;">✨</span>
-        작은 변화들
+        <span style="font-size:11px;">🐛</span>
+        버그 수정
       </div>
-      <div class="wn-hero-ttl" style="font-size:16px;color:var(--c-text);font-weight:700;margin-bottom:8px;">소소하지만 편한 것들</div>
+      <div class="wn-hero-ttl" style="font-size:16px;color:var(--c-text);font-weight:700;margin-bottom:8px;">자잘하지만 답답했던 것들</div>
 
       <div style="font-size:11.5px;color:var(--c-text-2);line-height:1.75;">
-        <div style="margin-bottom:4px;">🏠 <b style="font-weight:700;color:var(--c-text);">로고 클릭</b> → 메인 화면으로 빠르게 복귀</div>
-        <div style="margin-bottom:4px;">👇 <b style="font-weight:700;color:var(--c-text);">소유 시트</b> 위에서 아래로 쓸어내려 닫기</div>
-        <div style="margin-bottom:4px;">📐 <b style="font-weight:700;color:var(--c-text);">CSS 정렬 정밀화</b> — 마일스톤 노드/라인 정렬 어긋남 해결</div>
-        <div>🔔 <b style="font-weight:700;color:var(--c-text);">반납 알림 통합</b> — 서재 알림 바 + 통계 탭 카드 + 책 상세 + 책 카드 D-N 배지</div>
+        <div style="margin-bottom:4px;">🔥 <b style="font-weight:700;color:var(--c-text);">연속 독서 기록(streak)</b> — 책만 추가했는데 "연속 최고 기록 진행 중"으로 뜨던 거 수정. 실제 타이머 세션이 있는 날만 카운트</div>
       </div>
     </div>
 
@@ -43582,7 +43548,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.4.0';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v9_1';
