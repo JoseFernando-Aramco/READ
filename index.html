@@ -30020,6 +30020,28 @@ function renderMonthStrip() {
     backdrop.classList.add('open');
     if (typeof lockBodyScroll === 'function') lockBodyScroll();
     modal.scrollTop = 0;
+
+    // v1.5.x — 표지 이미지를 dataURL로 미리 변환 (일별 다이얼리와 동일 패턴)
+    // 모달 표시 후 백그라운드에서 진행 → 캡처 시 CORS 문제 없이 즉시 그림
+    _preInlineMonthReportCovers();
+  }
+
+  // v1.5.x — 모달 내 모든 mr-cover img를 dataURL로 미리 인라이닝
+  async function _preInlineMonthReportCovers() {
+    if (typeof _imageToDataUrl !== 'function') return;
+    // DOM 확정 대기
+    await new Promise(r => setTimeout(r, 50));
+    const body = document.getElementById('mrBody');
+    if (!body) return;
+    const imgs = body.querySelectorAll('.mr-cover img');
+    await Promise.all(Array.from(imgs).map(async (img) => {
+      try {
+        const src = img.src;
+        if (!src || src.startsWith('data:')) return;
+        const dataUrl = await _imageToDataUrl(src);
+        if (dataUrl && img.isConnected) img.src = dataUrl;
+      } catch (_) { /* noop */ }
+    }));
   }
   window.openMonthReport = openMonthReport;
 
@@ -30059,27 +30081,28 @@ function renderMonthStrip() {
     const ticketEl = document.getElementById('mrTicket');
     if (!ticketEl) throw new Error('리포트 요소를 찾을 수 없습니다');
 
-    // 현재 모달의 테마 색을 실제 계산값으로 추출 (clone이 mr-modal 스코프 밖으로 가면 CSS var 못 찾음)
-    const modalEl = document.getElementById('mrModal');
-    const computed = modalEl ? getComputedStyle(modalEl) : null;
-    const primary = computed?.getPropertyValue('--mr-primary')?.trim() || '#6D4C41';
-    const primaryDark = computed?.getPropertyValue('--mr-primary-dark')?.trim() || '#4A3328';
-    const primary50 = computed?.getPropertyValue('--mr-primary-50')?.trim() || 'rgba(109,76,65,.5)';
-    const primary30 = computed?.getPropertyValue('--mr-primary-30')?.trim() || 'rgba(109,76,65,.3)';
-    const primary15 = computed?.getPropertyValue('--mr-primary-15')?.trim() || 'rgba(109,76,65,.15)';
+    // CSS 변수 추출 — clone이 mr-modal 스코프 밖으로 가도 색 유지하게 wrapper에 인라인
+    let varCss = '';
+    try {
+      const modalEl = document.getElementById('mrModal');
+      if (modalEl) {
+        const cs = getComputedStyle(modalEl);
+        const vars = ['--mr-primary', '--mr-primary-dark', '--mr-primary-50', '--mr-primary-30', '--mr-primary-15'];
+        varCss = vars.map(v => {
+          const val = cs.getPropertyValue(v).trim();
+          return val ? `${v}: ${val};` : '';
+        }).filter(Boolean).join(' ');
+      }
+    } catch (e) { /* 변수 추출 실패해도 진행 */ }
 
-    // 캡처용 임시 wrapper — CSS 변수를 인라인으로 박아 clone이 색 잃지 않게
+    // 캡처용 임시 wrapper
     const wrapper = document.createElement('div');
     wrapper.style.cssText = `
       position: fixed; left: -9999px; top: 0;
       background: #F5F5F0;
       padding: 20px 14px 24px;
       width: ${ticketEl.offsetWidth + 28}px;
-      --mr-primary: ${primary};
-      --mr-primary-dark: ${primaryDark};
-      --mr-primary-50: ${primary50};
-      --mr-primary-30: ${primary30};
-      --mr-primary-15: ${primary15};
+      ${varCss}
     `;
     const clone = ticketEl.cloneNode(true);
     clone.style.margin = '0';
@@ -30088,24 +30111,10 @@ function renderMonthStrip() {
     document.body.appendChild(wrapper);
 
     try {
-      // 표지 이미지 base64 인라이닝 (CORS 우회)
+      // 표지 인라이닝 (모달 열 때 이미 했지만 안전망)
       if (typeof _inlineCoverImages === 'function') {
-        await _inlineCoverImages(clone);
+        try { await _inlineCoverImages(clone); } catch (e) { /* 실패해도 진행 */ }
       }
-
-      // 인라이닝 후 모든 img 로드 완료 대기 (html2canvas가 빈 이미지 캡처 방지)
-      const imgs = clone.querySelectorAll('img');
-      await Promise.all(Array.from(imgs).map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;  // 실패해도 진행
-          setTimeout(resolve, 3000);  // 안전망: 3초 후 강제 진행
-        });
-      }));
-
-      // 한 프레임 대기 — 레이아웃 + 폰트 안정화
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
       const canvas = await html2canvas(wrapper, {
         backgroundColor: '#F5F5F0',
@@ -30114,7 +30123,6 @@ function renderMonthStrip() {
         allowTaint: false,
         logging: false,
         imageTimeout: 10000,
-        // mr-stub의 ::before/::after (점선 펀치 구멍) 외에는 모두 그리기
       });
       return canvas;
     } finally {
