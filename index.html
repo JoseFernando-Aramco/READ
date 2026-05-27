@@ -20257,7 +20257,7 @@ body.cn-locked {
         </div>
         <div class="form-field" id="manualAuthorField">
           <label class="form-label">저자 <span class="req" id="manualAuthorReq">*</span></label>
-          <input class="form-input" type="text" name="author" id="manualAuthorInput" required maxlength="80" placeholder="예: 헤르만 헤세">
+          <input class="form-input" type="text" name="author" id="manualAuthorInput" required maxlength="80" placeholder="예: 헤르만 헤세" autocomplete="off">
         </div>
         <!-- 매체 (종이/전자/오디오/웹소설) — 기본 hidden, 직접입력 fallback 진입 시에만 표시 -->
         <div class="form-field" id="manualFormatRow" hidden>
@@ -20282,16 +20282,10 @@ body.cn-locked {
           </div>
         </div>
 
-        <!-- 일반 책 페이지 + 연도 — 기본 hidden, paper/ebook/audio 매체 선택 시에만 표시 -->
-        <div class="form-field-row" id="manualPagesYearRow" hidden>
-          <div class="form-field">
-            <label class="form-label">페이지 수 <span class="optional" style="color:var(--c-muted);font-weight:500;font-size:11px;">(선택)</span></label>
-            <input class="form-input" type="number" name="pages" min="0" max="9999" placeholder="248">
-          </div>
-          <div class="form-field">
-            <label class="form-label">출판연도</label>
-            <input class="form-input" type="number" name="year" min="1500" max="2099" placeholder="1919">
-          </div>
+        <!-- v1.4.x — 일반 책 페이지 수 (출판연도 제거됨, 페이지 수만 단독 칸) -->
+        <div class="form-field" id="manualPagesYearRow" hidden>
+          <label class="form-label">페이지 수 <span class="optional" style="color:var(--c-muted);font-weight:500;font-size:11px;">(선택)</span></label>
+          <input class="form-input" type="number" name="pages" min="0" max="9999" placeholder="248">
         </div>
 
         <!-- 웹소설 전용: 연재 상태 + 진행 단위 + 회차/권 (webnovel 선택 시만 표시) -->
