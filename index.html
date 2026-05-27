@@ -1137,6 +1137,25 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 16px;
+  /* v1.5.0 — 월간 리포트 진입 (전체 strip 클릭) */
+  cursor: pointer;
+  transition: transform .12s, box-shadow .15s;
+  position: relative;
+}
+.month-strip:hover { transform: translateY(-1px); }
+.month-strip:active { transform: translateY(0); }
+.month-strip::after {
+  /* v1.5.0 — 리포트 진입 힌트 */
+  content: '리포트 →';
+  position: absolute;
+  bottom: -16px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-label);
+  letter-spacing: .04em;
+  opacity: .7;
+  pointer-events: none;
 }
 .strip-cell {
   background: var(--c-surface);
@@ -1163,6 +1182,637 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-style: normal;
   font-size: 14px; font-weight: 600;
   color: var(--c-label); margin-left: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v1.5.0 — 월간 독서 리포트 모달 (mr-*)
+   ═══════════════════════════════════════════════════════════ */
+.mr-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+  z-index: var(--z-modal);
+}
+.mr-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.mr-modal {
+  position: fixed; inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 12px 24px;
+  overflow-y: auto;
+  z-index: var(--z-modal-fg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+  -webkit-overflow-scrolling: touch;
+}
+.mr-modal.open { opacity: 1; pointer-events: auto; }
+
+.mr-frame {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+/* 툴바 (월 드롭다운 + 닫기) */
+.mr-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+.mr-month-dd {
+  position: relative;
+}
+.mr-month-dd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.mr-month-dd-btn .arrow {
+  font-size: 10px;
+  color: var(--c-muted);
+  transition: transform .2s;
+}
+.mr-month-dd-btn.open .arrow { transform: rotate(180deg); }
+.mr-month-dd-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity .18s, transform .18s;
+}
+.mr-month-dd-list.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.mr-month-dd-item {
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--c-text-2);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.mr-month-dd-item:hover { background: var(--c-surface-2); }
+.mr-month-dd-item + .mr-month-dd-item { border-top: 1px solid var(--c-border-2); }
+.mr-month-dd-item.is-active {
+  background: var(--c-accent);
+  color: #fff;
+}
+.mr-month-dd-item .count {
+  font-size: 10.5px;
+  opacity: .75;
+}
+.mr-month-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  font-family: inherit;
+}
+
+/* ─── 티켓 외형 ─── */
+.mr-ticket {
+  background: var(--c-surface);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(25,31,40,.12);
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+.mr-stub {
+  background: linear-gradient(180deg, var(--c-sage, #5F6B5F), #4A5547);
+  color: #fff;
+  padding: 18px 8px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  position: relative;
+}
+.mr-stub::before,
+.mr-stub::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-bg);
+}
+.mr-stub::before { top: -5px; }
+.mr-stub::after { bottom: -5px; }
+.mr-stub-brand {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .3em;
+  opacity: .85;
+}
+.mr-stub-month {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  line-height: 1;
+}
+.mr-stub-year {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: .9;
+  letter-spacing: .16em;
+}
+
+.mr-body {
+  flex: 1;
+  padding: 18px 20px;
+  min-width: 0;
+}
+
+.mr-brand-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c-muted);
+  letter-spacing: .18em;
+  margin-bottom: 4px;
+}
+.mr-headline {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--c-text);
+  letter-spacing: -.02em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mr-tagline {
+  font-size: 11px;
+  color: var(--c-label);
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.mr-sect-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--c-muted);
+  letter-spacing: .14em;
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mr-sect-lbl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--c-border-2);
+}
+
+/* 메트릭 6칸 그리드 */
+.mr-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--c-border-2);
+  border: 1px solid var(--c-border-2);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.mr-metric {
+  background: var(--c-surface);
+  padding: 11px 6px;
+  text-align: center;
+}
+.mr-metric-v {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.mr-metric-v .unit {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--c-label);
+  margin-left: 1px;
+}
+.mr-metric-k {
+  font-size: 9px;
+  color: var(--c-label);
+  margin-top: 2px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.mr-metric-sub {
+  font-size: 8.5px;
+  color: var(--c-muted);
+  margin-top: 1px;
+}
+
+/* 책 그리드 — 가변 모드 */
+.mr-shelf {
+  display: grid;
+  gap: 5px;
+}
+.mr-shelf.mode-large { grid-template-columns: repeat(5, 1fr); }
+.mr-shelf.mode-compact {
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.mr-shelf.mode-scroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+.mr-shelf.mode-scroll::-webkit-scrollbar { height: 5px; }
+.mr-shelf.mode-scroll::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
+.mr-shelf.mode-scroll .mr-cover {
+  flex: 0 0 50px;
+  min-width: 50px;
+}
+
+.mr-cover {
+  aspect-ratio: 2/3;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--c-sage, #5F6B5F), #4A5547);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.92);
+  font-weight: 700;
+  text-align: center;
+  padding: 4px;
+  line-height: 1.15;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  font-size: 8.5px;
+  overflow: hidden;
+}
+.mr-shelf.mode-compact .mr-cover { font-size: 7.5px; padding: 3px; }
+.mr-shelf.mode-scroll .mr-cover { font-size: 7px; padding: 2px; border-radius: 2px; }
+
+.mr-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mr-cover .cover-title {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+.mr-cover .star {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  color: #FFD700;
+  z-index: 2;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+
+/* 매체 도넛 */
+.mr-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+  padding: 12px;
+}
+.mr-donut {
+  width: 84px;
+  height: 84px;
+  position: relative;
+  flex-shrink: 0;
+}
+.mr-donut svg { transform: rotate(-90deg); }
+.mr-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.mr-donut-center .total {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--c-text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.mr-donut-center .lbl {
+  font-size: 8px;
+  color: var(--c-label);
+  font-weight: 700;
+  margin-top: 1px;
+  letter-spacing: .04em;
+}
+.mr-donut-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.mr-donut-leg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  gap: 6px;
+}
+.mr-donut-leg-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mr-donut-leg-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.mr-donut-leg-name {
+  font-weight: 600;
+  color: var(--c-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mr-donut-leg-val {
+  font-weight: 700;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+
+/* 장르 막대 */
+.mr-bar-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+.mr-bar-lbl {
+  color: var(--c-text-2);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mr-bar-track {
+  height: 7px;
+  background: var(--c-surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mr-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+.mr-bar-val {
+  text-align: right;
+  font-weight: 700;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 요일 히트맵 */
+.mr-heatmap {
+  background: var(--c-surface-2);
+  border-radius: 7px;
+  padding: 10px;
+}
+.mr-heat-headers,
+.mr-heat-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.mr-heat-headers { margin-bottom: 4px; }
+.mr-heat-head {
+  text-align: center;
+  font-size: 9px;
+  color: var(--c-label);
+  font-weight: 700;
+}
+.mr-heat-head.weekend { color: var(--c-terra-700, #A04848); }
+.mr-heat-cell {
+  aspect-ratio: 1.5;
+  border-radius: 3px;
+  background: var(--c-surface);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--c-border-2);
+}
+.mr-heat-cell.lv1 { background: rgba(109,76,65,.18); border-color: transparent; color: var(--c-accent); }
+.mr-heat-cell.lv2 { background: rgba(109,76,65,.42); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv3 { background: rgba(109,76,65,.68); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv4 { background: var(--c-accent); border-color: transparent; color: #fff; }
+.mr-heat-summary {
+  font-size: 10px;
+  color: var(--c-muted);
+  text-align: center;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* 하이라이트 카드 */
+.mr-highlight {
+  background: linear-gradient(135deg, rgba(95,107,95,.10), rgba(95,107,95,.04));
+  border: 1px solid rgba(95,107,95,.35);
+  border-radius: 8px;
+  padding: 10px 13px;
+}
+.mr-highlight-k {
+  font-size: 9px;
+  color: var(--c-sage, #5F6B5F);
+  font-weight: 800;
+  letter-spacing: .1em;
+  margin-bottom: 3px;
+}
+.mr-highlight-v {
+  font-size: 13px;
+  color: var(--c-text);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.mr-highlight-v .big {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--c-sage, #5F6B5F);
+  margin: 0 3px;
+}
+.mr-highlight-sub {
+  font-size: 10.5px;
+  color: var(--c-label);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* 인용구 */
+.mr-quote {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-2);
+  border-left: 3px solid var(--c-accent);
+  border-radius: 0 7px 7px 0;
+  padding: 11px 14px;
+}
+.mr-quote-k {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--c-accent);
+  letter-spacing: .1em;
+  margin-bottom: 4px;
+}
+.mr-quote-v {
+  font-size: 12.5px;
+  color: var(--c-text);
+  font-style: italic;
+  line-height: 1.55;
+  font-weight: 500;
+}
+.mr-quote-from {
+  font-size: 10px;
+  color: var(--c-label);
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+/* 푸터 */
+.mr-foot {
+  border-top: 1px dashed var(--c-border);
+  padding-top: 12px;
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 9px;
+  color: var(--c-muted);
+  letter-spacing: .06em;
+}
+.mr-barcode {
+  height: 22px;
+  background: repeating-linear-gradient(90deg, var(--c-text) 0 2px, transparent 2px 3px, var(--c-text) 3px 4px, transparent 4px 6px);
+  width: 88px;
+  opacity: .7;
+}
+
+/* 빈 상태 */
+.mr-empty {
+  text-align: center;
+  padding: 18px 12px;
+  font-size: 11px;
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  border-radius: 7px;
+  border: 1px dashed var(--c-border);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+/* 공유 액션 */
+.mr-share-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px;
+  background: var(--c-surface);
+  border-radius: 10px;
+  border: 1px solid var(--c-border-2);
+}
+.mr-share-btn {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.mr-share-btn.primary { background: var(--c-text); color: var(--c-surface); }
+.mr-share-btn.secondary { background: var(--c-surface-2); color: var(--c-text-2); }
+.mr-share-btn:active { transform: scale(.98); }
+.mr-share-btn.loading {
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* 캡처 모드 — html2canvas로 찍을 때 스크롤 컨테이너를 펼쳐서 캡처 */
+.mr-ticket.capturing .mr-shelf.mode-scroll {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  overflow: visible;
+}
+.mr-ticket.capturing .mr-shelf.mode-scroll .mr-cover {
+  flex: none;
+  min-width: 0;
+  font-size: 7px;
 }
 
 /* v1.10.3 — 이번 달 요약 (i) 버튼 + 바텀시트 ═══════════════════════ */
@@ -11042,6 +11692,59 @@ body:has(.lib-edit-bar) .library-cards {
   cursor: pointer;
 }
 .im-opt input { width: 16px; height: 16px; accent-color: var(--primary); }
+
+/* v1.4.x — 임포트 기본 상태 토글 (status 컬럼 비었을 때 적용될 값) */
+.im-opt-status {
+  padding-top: 10px;
+  border-top: 1px solid var(--c-border-2);
+}
+.im-opt-status-lbl {
+  font-size: 12px;
+  color: var(--c-text-2);
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.im-opt-status-hint {
+  font-size: 10.5px;
+  color: var(--c-muted);
+  font-weight: 400;
+}
+.im-status-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 3px;
+  background: var(--c-surface-2);
+  border-radius: 8px;
+}
+.im-status-toggle button {
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-label);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: background .15s, color .15s;
+}
+.im-status-toggle button.active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.im-status-toggle .im-status-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
 .im-warn {
   margin-top: 10px;
   padding: 10px 12px;
@@ -21506,6 +22209,27 @@ body.cn-locked {
           <input type="checkbox" id="imOptAutoPages" checked>
           <span>메타데이터 자동 찾기 <span id="imAutoPagesHint" style="color:var(--c-muted); font-weight:400;">(표지·페이지수·ISBN 등)</span></span>
         </label>
+        <!-- v1.4.x — 기본 상태 (status 컬럼이 비었거나 인식 불가일 때만 적용) -->
+        <div class="im-opt-status" style="margin-top:12px;">
+          <div class="im-opt-status-lbl">
+            기본 상태
+            <span class="im-opt-status-hint">파일에 상태가 없는 책에 적용돼요</span>
+          </div>
+          <div class="im-status-toggle" id="imStatusToggle" role="group" aria-label="기본 상태 선택">
+            <button type="button" data-status="done" class="active">
+              <span class="im-status-emoji">✓</span>
+              <span>완독</span>
+            </button>
+            <button type="button" data-status="reading">
+              <span class="im-status-emoji">📖</span>
+              <span>독서중</span>
+            </button>
+            <button type="button" data-status="wish">
+              <span class="im-status-emoji">⭐</span>
+              <span>위시</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="im-warn" id="imWarnList" style="display:none;"></div>
     </div>
@@ -21572,6 +22296,43 @@ body.cn-locked {
     <div class="im-footer">
       <button type="button" class="im-btn-ghost" id="imBtnBack" style="display:none;">이전</button>
       <button type="button" class="im-btn-primary" id="imBtnNext" disabled>다음</button>
+    </div>
+  </div>
+</div>
+
+<!-- v1.5.0 — 월간 독서 리포트 모달 -->
+<div class="mr-backdrop" id="mrBackdrop"></div>
+<div class="mr-modal" id="mrModal" aria-hidden="true" role="dialog" aria-labelledby="mrHeadline">
+  <div class="mr-frame">
+    <!-- 툴바: 월 드롭다운 + 닫기 -->
+    <div class="mr-toolbar">
+      <div class="mr-month-dd">
+        <button class="mr-month-dd-btn" id="mrMonthDdBtn" type="button" aria-haspopup="true" aria-expanded="false">
+          <span id="mrMonthLabel">2026년 5월</span>
+          <span class="arrow">▾</span>
+        </button>
+        <div class="mr-month-dd-list" id="mrMonthDdList" role="menu"></div>
+      </div>
+      <button class="mr-month-close" id="mrCloseBtn" type="button" aria-label="닫기">×</button>
+    </div>
+
+    <!-- 메인 티켓 -->
+    <div class="mr-ticket" id="mrTicket">
+      <div class="mr-stub">
+        <div class="mr-stub-brand">KEEPBOOK</div>
+        <div class="mr-stub-month" id="mrStubMonth">MAY</div>
+        <div class="mr-stub-year" id="mrStubYear">2026</div>
+      </div>
+      <div class="mr-body" id="mrBody">
+        <!-- renderMonthReport()가 채움 -->
+      </div>
+    </div>
+
+    <!-- 공유 액션 -->
+    <div class="mr-share-actions">
+      <button class="mr-share-btn secondary" id="mrCopyBtn" type="button">📋 이미지 복사</button>
+      <button class="mr-share-btn secondary" id="mrSaveBtn" type="button">💾 저장</button>
+      <button class="mr-share-btn primary" id="mrShareBtn" type="button">📤 공유</button>
     </div>
   </div>
 </div>
@@ -28852,6 +29613,638 @@ function renderMonthStrip() {
     }
     if (t.id === 'msSheetBackdrop' || t.id === 'msSheetClose') {
       closeSheet();
+    }
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   v1.5.0 — 월간 독서 리포트 (렌더 + 인터랙션)
+   ═══════════════════════════════════════════════════════════ */
+(function wireMonthReport() {
+
+  const MONTH_NAMES_EN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const DOW_LABELS = ['일','월','화','수','목','금','토'];
+  const FORMAT_META = {
+    paper:    { lbl: '📕 종이책',  color: 'var(--c-accent)' },
+    ebook:    { lbl: '📱 전자책',  color: 'var(--c-sage, #5F6B5F)' },
+    audio:    { lbl: '🎧 오디오',  color: 'var(--c-mocha, #B8956A)' },
+    webnovel: { lbl: '🌐 웹소설',  color: 'var(--c-plum, #7B7080)' },
+  };
+
+  // 현재 보고 있는 월
+  let curYear = null, curMonth = null;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  function fmtTime(min) {
+    if (!min || min <= 0) return '0<span class="unit">m</span>';
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    if (h === 0) return m + '<span class="unit">m</span>';
+    if (m === 0) return h + '<span class="unit">h</span>';
+    return h + '<span class="unit">h</span> ' + m + '<span class="unit">m</span>';
+  }
+
+  function donutSVG(formatPages) {
+    const total = Object.values(formatPages).reduce((a, b) => a + b, 0);
+    if (total <= 0) return '';
+    const C = 2 * Math.PI * 14;  // circumference ≈ 87.96
+    let offset = 0;
+    const order = ['paper', 'ebook', 'audio', 'webnovel'];
+    const segments = order
+      .filter(k => formatPages[k] > 0)
+      .map(k => {
+        const pct = formatPages[k] / total;
+        const len = (C * pct).toFixed(2);
+        const seg = `<circle cx="18" cy="18" r="14" fill="none" stroke="${FORMAT_META[k].color}" stroke-width="6" stroke-dasharray="${len} ${C.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
+        offset += C * pct;
+        return seg;
+      })
+      .join('');
+    return `<svg width="84" height="84" viewBox="0 0 36 36">${segments}</svg>`;
+  }
+
+  function renderDonutLegend(formatPages) {
+    const total = Object.values(formatPages).reduce((a, b) => a + b, 0);
+    if (total <= 0) return '';
+    const order = ['paper', 'ebook', 'audio', 'webnovel'];
+    return order
+      .filter(k => formatPages[k] > 0)
+      .map(k => {
+        const v = formatPages[k];
+        const pct = Math.round((v / total) * 100);
+        return `<div class="mr-donut-leg-row">
+          <div class="mr-donut-leg-left">
+            <div class="mr-donut-leg-dot" style="background:${FORMAT_META[k].color}"></div>
+            <div class="mr-donut-leg-name">${FORMAT_META[k].lbl}</div>
+          </div>
+          <div class="mr-donut-leg-val">${pct}% · ${v}p</div>
+        </div>`;
+      })
+      .join('');
+  }
+
+  function renderShelf(books) {
+    const n = books.length;
+    if (n === 0) {
+      return `<div class="mr-empty">이번 달 완독한 책이 없어요</div>`;
+    }
+    // 모드 결정
+    let mode = 'mode-large';
+    if (n >= 22) mode = 'mode-scroll';
+    else if (n >= 11) mode = 'mode-compact';
+
+    const covers = books.map(b => {
+      const t = esc(b.title || '');
+      const short = t.length > 6 ? t.slice(0, 6) : t;
+      const isDone = b.status === 'done';
+      const img = b.coverUrl
+        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy"/>`
+        : '';
+      return `<div class="mr-cover" title="${t}">
+        ${img}
+        <span class="cover-title">${esc(short)}</span>
+        ${isDone ? '<span class="star">★</span>' : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="mr-shelf ${mode}">${covers}</div>`;
+  }
+
+  function renderGenreBars(topGenres) {
+    if (!topGenres.length) return '';
+    const max = topGenres[0].count || 1;
+    const colors = ['var(--c-accent)', 'var(--c-sage, #5F6B5F)', 'var(--c-mocha, #B8956A)', 'var(--c-plum, #7B7080)', 'var(--c-ink, #4A4A45)'];
+    return topGenres.map((g, i) => {
+      const pct = (g.count / max) * 100;
+      const lbl = (g.emoji ? g.emoji + ' ' : '') + esc(g.name);
+      return `<div class="mr-bar-row">
+        <div class="mr-bar-lbl">${lbl}</div>
+        <div class="mr-bar-track"><div class="mr-bar-fill" style="width:${pct.toFixed(1)}%; background:${colors[i] || colors[0]}"></div></div>
+        <div class="mr-bar-val">${g.count}권</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderHeatmap(dayOfWeekPages) {
+    const max = Math.max(...dayOfWeekPages, 1);
+    let peakDow = 0;
+    dayOfWeekPages.forEach((v, i) => { if (v > dayOfWeekPages[peakDow]) peakDow = i; });
+
+    // 주말/평일 평균
+    let wkdaySum = 0, wkdayCount = 0, wkndSum = 0, wkndCount = 0;
+    dayOfWeekPages.forEach((v, i) => {
+      if (i === 0 || i === 6) { wkndSum += v; wkndCount++; }
+      else { wkdaySum += v; wkdayCount++; }
+    });
+    const wkdayAvg = wkdayCount ? Math.round(wkdaySum / wkdayCount) : 0;
+    const wkndAvg = wkndCount ? Math.round(wkndSum / wkndCount) : 0;
+
+    const lv = (v) => {
+      if (v === 0) return 0;
+      const r = v / max;
+      if (r < 0.25) return 1;
+      if (r < 0.5)  return 2;
+      if (r < 0.75) return 3;
+      return 4;
+    };
+    const headers = DOW_LABELS.map((d, i) => {
+      const cls = (i === 0 || i === 6) ? ' weekend' : '';
+      return `<div class="mr-heat-head${cls}">${d}</div>`;
+    }).join('');
+    const cells = dayOfWeekPages.map(v => {
+      const level = lv(v);
+      const cls = level > 0 ? `lv${level}` : '';
+      return `<div class="mr-heat-cell ${cls}">${v}</div>`;
+    }).join('');
+
+    const peakLabel = DOW_LABELS[peakDow];
+    const totalActive = dayOfWeekPages.reduce((a, b) => a + b, 0);
+    const summary = totalActive > 0
+      ? `☆ ${peakLabel}요일 가장 활발 · 평일 평균 ${wkdayAvg}p · 주말 평균 ${wkndAvg}p`
+      : '';
+
+    return `<div class="mr-heatmap">
+      <div class="mr-heat-headers">${headers}</div>
+      <div class="mr-heat-cells">${cells}</div>
+      ${summary ? `<div class="mr-heat-summary">${summary}</div>` : ''}
+    </div>`;
+  }
+
+  function renderHighlight(topSession) {
+    if (!topSession) return '';
+    const d = new Date(topSession.date);
+    if (isNaN(d)) return '';
+    const md = `${d.getMonth() + 1}/${d.getDate()}`;
+    const dow = DOW_LABELS[d.getDay()];
+    const time = fmtTime(topSession.minutes);
+    const bookTitle = (topSession.book && topSession.book.title) || '';
+    return `<div class="mr-highlight">
+      <div class="mr-highlight-k">최고 기록</div>
+      <div class="mr-highlight-v">
+        <span class="big">${md}</span> ${dow}요일,
+        <span class="big">${time}</span> 동안
+        <span class="big">${topSession.pages}p</span>
+      </div>
+      ${bookTitle ? `<div class="mr-highlight-sub">${esc(bookTitle)} — 이 달 한 세션 최장 기록</div>` : ''}
+    </div>`;
+  }
+
+  function renderQuote(quote) {
+    if (!quote) return '';
+    const stars = '★'.repeat(Math.round(quote.rating)) + '☆'.repeat(5 - Math.round(quote.rating));
+    const bookTitle = (quote.book && quote.book.title) || '';
+    return `<div class="mr-quote">
+      <div class="mr-quote-k">REVIEW</div>
+      <div class="mr-quote-v">"${esc(quote.text)}"</div>
+      <div class="mr-quote-from">— ${esc(bookTitle)} · ${stars}</div>
+    </div>`;
+  }
+
+  function renderMonthReport(year, month) {
+    const data = _calcMonthReport(year, month);
+    const m = data.metrics;
+
+    // 헤드라인 + 태그라인
+    const tagParts = [];
+    if (m.doneCount > 0) tagParts.push(`${m.doneCount}권 완독`);
+    if (m.readDays > 0) tagParts.push(`${m.readDays}일 동안`);
+    if (m.totalMinutes > 0) tagParts.push(_fmtSessionTime(m.totalMinutes));
+    const tagline = tagParts.length ? tagParts.join(' · ') : '이번 달 독서 기록이 아직 없어요';
+
+    // 메트릭 6칸
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const readDaysPct = lastDay > 0 ? Math.round((m.readDays / lastDay) * 100) : 0;
+    const dailyAvg = m.readDays > 0 ? Math.round(m.totalPages / m.readDays) : 0;
+
+    const metrics = `<div class="mr-metrics">
+      <div class="mr-metric">
+        <div class="mr-metric-v">${m.doneCount}<span class="unit">권</span></div>
+        <div class="mr-metric-k">완독</div>
+        ${m.inProgressCount > 0 ? `<div class="mr-metric-sub">+${m.inProgressCount} 진행</div>` : ''}
+      </div>
+      <div class="mr-metric">
+        <div class="mr-metric-v">${m.totalPages.toLocaleString()}<span class="unit">p</span></div>
+        <div class="mr-metric-k">페이지</div>
+        ${dailyAvg > 0 ? `<div class="mr-metric-sub">일평균 ${dailyAvg}p</div>` : ''}
+      </div>
+      <div class="mr-metric">
+        <div class="mr-metric-v">${m.readDays}<span class="unit">일</span></div>
+        <div class="mr-metric-k">독서일</div>
+        ${m.readDays > 0 ? `<div class="mr-metric-sub">${lastDay}일 중 ${readDaysPct}%</div>` : ''}
+      </div>
+      <div class="mr-metric">
+        <div class="mr-metric-v">${fmtTime(m.totalMinutes)}</div>
+        <div class="mr-metric-k">총 시간</div>
+      </div>
+      <div class="mr-metric">
+        <div class="mr-metric-v">${m.avgPerSession}<span class="unit">m</span></div>
+        <div class="mr-metric-k">평균/세션</div>
+        ${m.totalSessionCount > 0 ? `<div class="mr-metric-sub">총 ${m.totalSessionCount} 세션</div>` : ''}
+      </div>
+      <div class="mr-metric">
+        <div class="mr-metric-v">${m.maxStreak}<span class="unit">일</span></div>
+        <div class="mr-metric-k">최고 연속</div>
+      </div>
+    </div>`;
+
+    // 이 달의 책 (완독 + 진행중)
+    const allBooks = [...data.doneBooks, ...data.inProgressBooks];
+    const shelf = renderShelf(allBooks);
+
+    // 매체 도넛 — 2매체 이상일 때만 표시
+    const formatKeys = Object.keys(data.formatPages).filter(k => data.formatPages[k] > 0);
+    let formatSection = '';
+    if (formatKeys.length >= 2) {
+      const totalP = Object.values(data.formatPages).reduce((a, b) => a + b, 0);
+      formatSection = `
+        <div class="mr-sect-lbl">🎯 매체별 비중</div>
+        <div class="mr-donut-row">
+          <div class="mr-donut">
+            ${donutSVG(data.formatPages)}
+            <div class="mr-donut-center">
+              <div class="total">${totalP.toLocaleString()}p</div>
+              <div class="lbl">TOTAL</div>
+            </div>
+          </div>
+          <div class="mr-donut-legend">${renderDonutLegend(data.formatPages)}</div>
+        </div>`;
+    } else if (formatKeys.length === 1 && m.totalPages > 0) {
+      const k = formatKeys[0];
+      const meta = FORMAT_META[k];
+      formatSection = `
+        <div class="mr-sect-lbl">🎯 매체</div>
+        <div class="mr-empty">
+          ${meta.lbl} ${m.totalPages}p<br>
+          <span style="color:var(--c-muted); font-size:10px;">2종 이상 읽으면 비중이 표시돼요</span>
+        </div>`;
+    }
+
+    // 장르 — 2개 이상일 때만
+    let genreSection = '';
+    if (data.topGenres.length >= 2) {
+      genreSection = `
+        <div class="mr-sect-lbl">🏷 장르 분포</div>
+        ${renderGenreBars(data.topGenres)}`;
+    }
+
+    // 요일 패턴 — 세션 있을 때만
+    let heatSection = '';
+    if (m.totalSessionCount > 0) {
+      heatSection = `
+        <div class="mr-sect-lbl">📅 요일별 패턴</div>
+        ${renderHeatmap(data.dayOfWeekPages)}`;
+    }
+
+    // 하이라이트
+    let highlightSection = '';
+    if (data.topSession) {
+      highlightSection = `
+        <div class="mr-sect-lbl">★ 하이라이트</div>
+        ${renderHighlight(data.topSession)}`;
+    }
+
+    // 인용구
+    let quoteSection = '';
+    if (data.quote) {
+      quoteSection = `
+        <div class="mr-sect-lbl">💬 이 달의 한 줄</div>
+        ${renderQuote(data.quote)}`;
+    }
+
+    // 푸터 (서명 — 권수+페이지 기반 시리얼)
+    const seatStr = data.doneBooks.length > 0
+      ? data.doneBooks.slice(0, 3).map((_, i) => `A${i+1}`).join('·') || 'A1'
+      : 'A0';
+    const serial = `JC${String(month + 1).padStart(2,'0')}${String(year).slice(-2)}`;
+    const footer = `<div class="mr-foot">
+      <span>SEAT: ${seatStr}</span>
+      <div class="mr-barcode"></div>
+      <span>${serial}</span>
+    </div>`;
+
+    return `
+      <div class="mr-brand-lbl">MONTHLY READING REPORT</div>
+      <div class="mr-headline" id="mrHeadline">${month + 1}월의 독서</div>
+      <div class="mr-tagline">${tagline}</div>
+      ${metrics}
+      <div class="mr-sect-lbl">📚 이 달의 책</div>
+      ${shelf}
+      ${formatSection}
+      ${genreSection}
+      ${heatSection}
+      ${highlightSection}
+      ${quoteSection}
+      ${footer}
+    `;
+  }
+
+  function setStub(year, month) {
+    const sm = document.getElementById('mrStubMonth');
+    const sy = document.getElementById('mrStubYear');
+    if (sm) sm.textContent = MONTH_NAMES_EN[month];
+    if (sy) sy.textContent = String(year);
+  }
+
+  function setMonthLabel(year, month) {
+    const lbl = document.getElementById('mrMonthLabel');
+    if (lbl) lbl.textContent = `${year}년 ${month + 1}월`;
+  }
+
+  function rebuildMonthDropdown() {
+    const list = document.getElementById('mrMonthDdList');
+    if (!list) return;
+    const months = _getMonthsWithData();
+    // 현재 월이 데이터 목록에 없어도 항상 맨 위에 추가
+    const now = new Date();
+    const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const hasCurrent = months.some(m => `${m.year}-${String(m.month + 1).padStart(2, '0')}` === currentKey);
+    const allMonths = hasCurrent ? months : [
+      { year: now.getFullYear(), month: now.getMonth(), doneCount: 0, totalPages: 0 },
+      ...months
+    ];
+    list.innerHTML = allMonths.map(m => {
+      const isActive = (m.year === curYear && m.month === curMonth);
+      const countText = m.doneCount > 0 || m.totalPages > 0
+        ? `${m.doneCount}권 · ${m.totalPages.toLocaleString()}p`
+        : '데이터 없음';
+      return `<div class="mr-month-dd-item${isActive ? ' is-active' : ''}" data-year="${m.year}" data-month="${m.month}" role="menuitem">
+        <span>${m.year}년 ${m.month + 1}월</span>
+        <span class="count">${countText}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function openMonthReport(year, month) {
+    const modal = document.getElementById('mrModal');
+    const backdrop = document.getElementById('mrBackdrop');
+    const body = document.getElementById('mrBody');
+    if (!modal || !backdrop || !body) return;
+
+    curYear = year;
+    curMonth = month;
+
+    setStub(year, month);
+    setMonthLabel(year, month);
+    body.innerHTML = renderMonthReport(year, month);
+    rebuildMonthDropdown();
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('open');
+    if (typeof lockBodyScroll === 'function') lockBodyScroll();
+    modal.scrollTop = 0;
+  }
+  window.openMonthReport = openMonthReport;
+
+  function closeMonthReport() {
+    const modal = document.getElementById('mrModal');
+    const backdrop = document.getElementById('mrBackdrop');
+    if (!modal || !backdrop) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    backdrop.classList.remove('open');
+    closeDropdown();
+    if (typeof unlockBodyScroll === 'function') unlockBodyScroll();
+  }
+
+  function openDropdown() {
+    const btn = document.getElementById('mrMonthDdBtn');
+    const list = document.getElementById('mrMonthDdList');
+    if (!btn || !list) return;
+    list.classList.add('open');
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function closeDropdown() {
+    const btn = document.getElementById('mrMonthDdBtn');
+    const list = document.getElementById('mrMonthDdList');
+    if (!btn || !list) return;
+    list.classList.remove('open');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  /* ─── 캡처 (html2canvas) ─── */
+  async function _captureMonthReportImage() {
+    if (typeof html2canvas === 'undefined') {
+      throw new Error('LIB_NOT_LOADED');
+    }
+    const ticketEl = document.getElementById('mrTicket');
+    if (!ticketEl) throw new Error('리포트 요소를 찾을 수 없습니다');
+
+    // 캡처용 임시 wrapper (오프스크린)
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      position: fixed; left: -9999px; top: 0;
+      background: #F5F5F0;
+      padding: 20px 14px 24px;
+      width: ${ticketEl.offsetWidth + 28}px;
+    `;
+    const clone = ticketEl.cloneNode(true);
+    clone.style.margin = '0';
+    clone.classList.add('capturing');
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    try {
+      const canvas = await html2canvas(wrapper, {
+        backgroundColor: '#F5F5F0',
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 10000,
+      });
+      return canvas;
+    } finally {
+      document.body.removeChild(wrapper);
+    }
+  }
+
+  function _genFilename() {
+    const m = String(curMonth + 1).padStart(2, '0');
+    return `keepbook-${curYear}-${m}-report.png`;
+  }
+
+  async function shareMonthReport() {
+    const btn = document.getElementById('mrShareBtn');
+    if (!btn || btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    if (typeof showToast === 'function') showToast('이미지 생성 중...');
+    try {
+      const canvas = await Promise.race([
+        _captureMonthReportImage(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE_TIMEOUT')), 30000))
+      ]);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
+      if (!blob) {
+        if (typeof showToast === 'function') showToast('이미지 생성에 실패했어요');
+        return;
+      }
+      const file = new File([blob], _genFilename(), { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: '월간 독서 리포트', text: 'keepbook 월간 리포트' });
+        } catch (e) {
+          if (e.name === 'AbortError') return;
+          // 공유 실패 → 다운로드 fallback
+          _triggerDownload(blob, _genFilename());
+          if (typeof showToast === 'function') showToast('이미지를 다운로드했어요');
+        }
+      } else {
+        _triggerDownload(blob, _genFilename());
+        if (typeof showToast === 'function') showToast('이미지를 다운로드했어요');
+      }
+    } catch (e) {
+      console.error('[shareMonthReport]', e);
+      if (typeof showToast === 'function') showToast('공유에 실패했어요');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  }
+
+  async function saveMonthReport() {
+    const btn = document.getElementById('mrSaveBtn');
+    if (!btn || btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    if (typeof showToast === 'function') showToast('이미지 저장 중...');
+    try {
+      const canvas = await _captureMonthReportImage();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
+      if (!blob) {
+        if (typeof showToast === 'function') showToast('저장에 실패했어요');
+        return;
+      }
+      _triggerDownload(blob, _genFilename());
+      if (typeof showToast === 'function') showToast('저장 완료');
+    } catch (e) {
+      console.error('[saveMonthReport]', e);
+      if (typeof showToast === 'function') showToast('저장에 실패했어요');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  }
+
+  async function copyMonthReport() {
+    const btn = document.getElementById('mrCopyBtn');
+    if (!btn || btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    if (typeof showToast === 'function') showToast('이미지 복사 중...');
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        if (typeof showToast === 'function') showToast('이 브라우저는 이미지 복사를 지원하지 않아요');
+        return;
+      }
+      const canvas = await _captureMonthReportImage();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
+      if (!blob) {
+        if (typeof showToast === 'function') showToast('이미지 생성에 실패했어요');
+        return;
+      }
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      if (typeof showToast === 'function') showToast('클립보드에 복사됐어요');
+    } catch (e) {
+      console.error('[copyMonthReport]', e);
+      if (typeof showToast === 'function') showToast('복사에 실패했어요');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  }
+
+  function _triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ─── 이벤트 위임 ─── */
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!t) return;
+
+    // month-strip 클릭 (단, (i) 버튼은 별도 핸들러로 처리되므로 제외)
+    const stripEl = t.closest && t.closest('.month-strip');
+    if (stripEl && !t.closest('#msInfoBtn')) {
+      const now = new Date();
+      openMonthReport(now.getFullYear(), now.getMonth());
+      return;
+    }
+
+    // 닫기 버튼
+    if (t.id === 'mrCloseBtn' || (t.closest && t.closest('#mrCloseBtn'))) {
+      closeMonthReport();
+      return;
+    }
+
+    // 백드롭 클릭
+    if (t.id === 'mrBackdrop') {
+      closeMonthReport();
+      return;
+    }
+
+    // 월 드롭다운 버튼
+    if (t.id === 'mrMonthDdBtn' || (t.closest && t.closest('#mrMonthDdBtn'))) {
+      e.stopPropagation();
+      const list = document.getElementById('mrMonthDdList');
+      if (list && list.classList.contains('open')) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+      return;
+    }
+
+    // 월 아이템 선택
+    const item = t.closest && t.closest('.mr-month-dd-item');
+    if (item) {
+      const y = parseInt(item.getAttribute('data-year'), 10);
+      const m = parseInt(item.getAttribute('data-month'), 10);
+      if (!isNaN(y) && !isNaN(m)) {
+        const body = document.getElementById('mrBody');
+        if (body) {
+          curYear = y;
+          curMonth = m;
+          setStub(y, m);
+          setMonthLabel(y, m);
+          body.innerHTML = renderMonthReport(y, m);
+          rebuildMonthDropdown();
+        }
+      }
+      closeDropdown();
+      return;
+    }
+
+    // 드롭다운 외부 클릭 → 닫기
+    if (!t.closest('.mr-month-dd')) {
+      closeDropdown();
+    }
+
+    // 공유/저장/복사 버튼
+    if (t.id === 'mrShareBtn' || (t.closest && t.closest('#mrShareBtn'))) {
+      shareMonthReport();
+    } else if (t.id === 'mrSaveBtn' || (t.closest && t.closest('#mrSaveBtn'))) {
+      saveMonthReport();
+    } else if (t.id === 'mrCopyBtn' || (t.closest && t.closest('#mrCopyBtn'))) {
+      copyMonthReport();
+    }
+  });
+
+  // ESC로 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('mrModal');
+      if (modal && modal.classList.contains('open')) {
+        closeMonthReport();
+      }
     }
   });
 })();
@@ -36648,6 +38041,173 @@ function _sumSessionStats(sessions) {
   }, { minutes: 0, pages: 0 });
 }
 
+/* v1.5.0 — 월간 독서 리포트 집계
+   year, month(0-indexed) → 리포트 데이터 객체 반환 */
+function _calcMonthReport(year, month) {
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const startISO = `${year}-${pad2(month + 1)}-01`;
+  const endISO = `${year}-${pad2(month + 1)}-${pad2(lastDay)}`;
+
+  const inMonth = (d) => {
+    if (!d) return false;
+    const x = new Date(d);
+    return x.getFullYear() === year && x.getMonth() === month;
+  };
+
+  // 1. 책 목록
+  const doneBooks = BOOKS.filter(b => b.status === 'done' && b.dateEnd && inMonth(b.dateEnd));
+  // 진행 중 — 이번 달에 시작했거나 이번 달에 세션이 있는 책
+  const sessions = _getSessionsInRange(startISO, endISO);
+  const sessionBookIds = new Set(sessions.map(s => s.book.id));
+  const inProgressBooks = BOOKS.filter(b =>
+    b.status === 'reading' && (
+      (b.dateStart && inMonth(b.dateStart)) || sessionBookIds.has(b.id)
+    )
+  );
+
+  // 2. 메트릭
+  const sum = _sumSessionStats(sessions);
+  const readDaySet = new Set(sessions.map(s => s.date));
+  const totalSessionCount = sessions.length;
+  const avgPerSession = totalSessionCount > 0
+    ? Math.round(sum.minutes / totalSessionCount)
+    : 0;
+
+  // 이번 달 최고 연속 (이번 달 안의 streak)
+  let maxStreak = 0;
+  if (readDaySet.size > 0) {
+    const sortedDays = Array.from(readDaySet).sort();
+    let cur = 1;
+    maxStreak = 1;
+    for (let i = 1; i < sortedDays.length; i++) {
+      const prev = new Date(sortedDays[i - 1]);
+      const curr = new Date(sortedDays[i]);
+      const diff = Math.round((curr - prev) / (24 * 60 * 60 * 1000));
+      if (diff === 1) {
+        cur++;
+        if (cur > maxStreak) maxStreak = cur;
+      } else {
+        cur = 1;
+      }
+    }
+  }
+
+  // 3. 매체별 (페이지 기준) — 세션의 책 format으로 집계
+  const formatPages = { paper: 0, ebook: 0, audio: 0, webnovel: 0 };
+  sessions.forEach(s => {
+    const fmt = (s.book && s.book.format) || 'paper';
+    if (formatPages.hasOwnProperty(fmt)) {
+      formatPages[fmt] += s.pages;
+    } else {
+      formatPages.paper += s.pages;
+    }
+  });
+
+  // 4. 장르 분포 — 완독 + 진행중 책 기준, DEFAULT_TAGS의 'genre' 카테고리만
+  const genreCounts = {};
+  const involvedBooks = [...doneBooks, ...inProgressBooks];
+  involvedBooks.forEach(b => {
+    const tags = Array.isArray(b.tags) ? b.tags : [];
+    tags.forEach(tag => {
+      const meta = (typeof DEFAULT_TAGS !== 'undefined' && DEFAULT_TAGS[tag])
+                || (typeof TAGS !== 'undefined' && TAGS[tag])
+                || null;
+      if (meta && meta.category === 'genre') {
+        genreCounts[tag] = (genreCounts[tag] || 0) + 1;
+      }
+    });
+  });
+  const topGenres = Object.entries(genreCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, count]) => ({
+      name,
+      count,
+      emoji: (DEFAULT_TAGS[name] && DEFAULT_TAGS[name].emoji) || (TAGS[name] && TAGS[name].emoji) || '',
+    }));
+
+  // 5. 요일별 패턴 (페이지 합) — 일=0 ~ 토=6
+  const dayOfWeekPages = [0, 0, 0, 0, 0, 0, 0];
+  sessions.forEach(s => {
+    const d = new Date(s.date);
+    if (!isNaN(d)) dayOfWeekPages[d.getDay()] += s.pages;
+  });
+
+  // 6. 하이라이트 — 가장 많이 읽은 단일 세션
+  let topSession = null;
+  sessions.forEach(s => {
+    if (!topSession || s.pages > topSession.pages) topSession = s;
+  });
+
+  // 7. 이 달의 한 줄 — 최고 별점 완독 책 중 quickReview 있는 것
+  let quoteCandidate = null;
+  doneBooks.forEach(b => {
+    const r = Number(b.rating) || 0;
+    const q = (b.quickReview || '').trim();
+    if (q && (!quoteCandidate || r > quoteCandidate.rating)) {
+      quoteCandidate = { rating: r, text: q, book: b };
+    }
+  });
+
+  return {
+    year, month,
+    startISO, endISO,
+    doneBooks,
+    inProgressBooks,
+    sessions,
+    metrics: {
+      doneCount: doneBooks.length,
+      inProgressCount: inProgressBooks.length,
+      totalPages: sum.pages,
+      readDays: readDaySet.size,
+      totalMinutes: sum.minutes,
+      avgPerSession,
+      maxStreak,
+      totalSessionCount,
+    },
+    formatPages,
+    topGenres,
+    dayOfWeekPages,
+    topSession,
+    quote: quoteCandidate,
+  };
+}
+
+/* v1.5.0 — 데이터 있는 월 목록 (월 드롭다운용) */
+function _getMonthsWithData() {
+  const months = new Map(); // 'YYYY-MM' → { year, month, doneCount, totalPages }
+  BOOKS.forEach(b => {
+    // 완독 책 — dateEnd 월
+    if (b.status === 'done' && b.dateEnd) {
+      const d = new Date(b.dateEnd);
+      if (!isNaN(d)) {
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const m = months.get(key) || { year: d.getFullYear(), month: d.getMonth(), doneCount: 0, totalPages: 0 };
+        m.doneCount++;
+        months.set(key, m);
+      }
+    }
+    // 세션 — 각 세션의 월
+    (b.readingSessions || []).forEach(s => {
+      if (s && s.date) {
+        const d = new Date(s.date);
+        if (!isNaN(d)) {
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const m = months.get(key) || { year: d.getFullYear(), month: d.getMonth(), doneCount: 0, totalPages: 0 };
+          m.totalPages += Number(s.pages) || 0;
+          months.set(key, m);
+        }
+      }
+    });
+  });
+  // 최근 월부터 정렬
+  return Array.from(months.values()).sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.month - a.month;
+  });
+}
+
 function _fmtSessionTime(min) {
   if (!min || min <= 0) return '—';
   const h = Math.floor(min / 60);
@@ -40945,13 +42505,18 @@ function _imParseRating(v) {
   return Math.max(0, Math.min(5, Math.round(n * 10) / 10));
 }
 
-function _imParseStatus(v) {
-  if (!v) return 'done';  // 기본값: 완독
+function _imParseStatus(v, defaultStatus = 'done') {
+  if (!v) return defaultStatus;
   const s = String(v).trim().toLowerCase();
-  for (const [key, keywords] of Object.entries(IM_STATUS_MAP)) {
+  // 순서 중요: wish > reading > done 검사 (substring 충돌 방지)
+  // 예: 'to-read'에 'read'가 포함돼서 done으로 잘못 매칭되는 문제 회피
+  // 'currently-reading'도 'read' 때문에 done으로 새던 버그 동일하게 해결
+  const ORDER = ['wish', 'reading', 'done'];
+  for (const key of ORDER) {
+    const keywords = IM_STATUS_MAP[key] || [];
     if (keywords.some(k => s.includes(k.toLowerCase()))) return key;
   }
-  return 'done';
+  return defaultStatus;
 }
 
 function _imParsePages(v) {
@@ -41018,6 +42583,10 @@ function _imBuildPreview() {
     return;
   }
 
+  // v1.4.x — 사용자가 선택한 기본 상태 (status 컬럼 비었거나 인식 불가일 때 적용)
+  const defaultStatusBtn = document.querySelector('#imStatusToggle button.active');
+  const defaultStatus = defaultStatusBtn?.dataset.status || 'done';
+
   IM_STATE.rawRows.forEach((row, idx) => {
     const get = (k) => (map[k] !== undefined) ? row[map[k]] : '';
     const title = String(get('title') || '').trim();
@@ -41027,7 +42596,7 @@ function _imBuildPreview() {
     }
     const author = String(get('author') || '').trim();
     const pages = _imParsePages(get('pages'));
-    const status = _imParseStatus(get('status'));
+    const status = _imParseStatus(get('status'), defaultStatus);
     // 날짜 파싱 — 시작일/완독일 서로 연도 힌트 주고받기 (월만 적힌 경우 대비)
     const rawStart = get('dateStart');
     const rawEnd = get('dateEnd');
@@ -42200,11 +43769,11 @@ function _imDownloadTemplate() {
       '출판사\n(없으면 패스)',
       '출판연도\n(ex: 2020)',
       '페이지\n(모르면 패스)',
-      '상태',
+      '상태\n(완독 / 독서중 / 위시)',
       '시작일\n(ex: 2025.01.15)',
       '완독일\n(ex: 2025.01.15)',
       '별점\n(0.5 단위, 1~5)',
-      '태그 \n(ex: SF, 로멘스, 스릴러, 에세이 등)',
+      '태그 \n(ex: SF, 로맨스, 스릴러, 에세이 등)',
       '메모'
     ],
   ];
@@ -42927,6 +44496,22 @@ document.addEventListener('keydown', (e) => {
     closeSettings();
     setTimeout(_imOpen, 280);
   });
+
+  // v1.4.x — 기본 상태 토글 wiring (status 컬럼 비었거나 인식 불가일 때 적용)
+  const toggle = document.getElementById('imStatusToggle');
+  if (toggle && !toggle.dataset.wired) {
+    toggle.dataset.wired = '1';
+    toggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-status]');
+      if (!btn) return;
+      toggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 미리보기 다시 그리기 (status 다시 계산)
+      if (IM_STATE && IM_STATE.step === 'preview' && IM_STATE.rawRows.length) {
+        _imBuildPreview();
+      }
+    });
+  }
 })();
 
 /* ═══════════════════════════════════════════════════════════
