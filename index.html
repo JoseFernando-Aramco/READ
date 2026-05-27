@@ -30076,53 +30076,27 @@ function renderMonthStrip() {
   /* ─── 캡처 (html2canvas) ─── */
   async function _captureMonthReportImage() {
     if (typeof html2canvas === 'undefined') {
-      throw new Error('LIB_NOT_LOADED');
+      throw new Error('html2canvas 라이브러리가 로드 안 됨');
     }
     const ticketEl = document.getElementById('mrTicket');
-    if (!ticketEl) throw new Error('리포트 요소를 찾을 수 없습니다');
+    if (!ticketEl) throw new Error('mrTicket 요소 없음');
 
-    // CSS 변수 추출 — clone이 mr-modal 스코프 밖으로 가도 색 유지하게 wrapper에 인라인
-    let varCss = '';
-    try {
-      const modalEl = document.getElementById('mrModal');
-      if (modalEl) {
-        const cs = getComputedStyle(modalEl);
-        const vars = ['--mr-primary', '--mr-primary-dark', '--mr-primary-50', '--mr-primary-30', '--mr-primary-15'];
-        varCss = vars.map(v => {
-          const val = cs.getPropertyValue(v).trim();
-          return val ? `${v}: ${val};` : '';
-        }).filter(Boolean).join(' ');
-      }
-    } catch (e) { /* 변수 추출 실패해도 진행 */ }
-
-    // 캡처용 임시 wrapper
+    // 캡처용 임시 wrapper — 최소 옵션만
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = `
-      position: fixed; left: -9999px; top: 0;
-      background: #F5F5F0;
-      padding: 20px 14px 24px;
-      width: ${ticketEl.offsetWidth + 28}px;
-      ${varCss}
-    `;
+    wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; background:#F5F5F0; padding:20px 14px 24px; width:' + (ticketEl.offsetWidth + 28) + 'px;';
     const clone = ticketEl.cloneNode(true);
     clone.style.margin = '0';
-    clone.classList.add('capturing');
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
     try {
-      // 표지 인라이닝 (모달 열 때 이미 했지만 안전망)
-      if (typeof _inlineCoverImages === 'function') {
-        try { await _inlineCoverImages(clone); } catch (e) { /* 실패해도 진행 */ }
-      }
-
       const canvas = await html2canvas(wrapper, {
         backgroundColor: '#F5F5F0',
         scale: 2,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,  // CORS 실패해도 일단 그려라 (taint 허용)
         logging: false,
-        imageTimeout: 10000,
+        imageTimeout: 8000,
       });
       return canvas;
     } finally {
@@ -30181,14 +30155,16 @@ function renderMonthStrip() {
       const canvas = await _captureMonthReportImage();
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
       if (!blob) {
-        if (typeof showToast === 'function') showToast('저장에 실패했어요');
+        if (typeof showToast === 'function') showToast('저장에 실패했어요 (blob 생성 실패)');
         return;
       }
       _triggerDownload(blob, _genFilename());
       if (typeof showToast === 'function') showToast('저장 완료');
     } catch (e) {
       console.error('[saveMonthReport]', e);
-      if (typeof showToast === 'function') showToast('저장에 실패했어요');
+      // 디버깅: 실제 에러 메시지를 토스트에 노출 (Jason이 console 못 보는 환경)
+      const msg = (e && e.message) ? e.message.slice(0, 60) : 'unknown';
+      if (typeof showToast === 'function') showToast('저장 실패: ' + msg);
     } finally {
       btn.classList.remove('loading');
     }
