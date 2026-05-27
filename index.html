@@ -29746,9 +29746,14 @@ function renderMonthStrip() {
       const t = esc(b.title || '');
       const short = t.length > 6 ? t.slice(0, 6) : t;
       const isDone = b.status === 'done';
-      const img = b.coverUrl
-        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy"/>`
-        : '';
+      // 일별 다이얼리와 동일: 프록시 URL + crossorigin anonymous로 처음부터 CORS-clean
+      let img = '';
+      if (b.coverUrl) {
+        const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
+          ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
+          : b.coverUrl;
+        img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
+      }
       return `<div class="mr-cover" title="${t}">
         ${img}
         <span class="cover-title">${esc(short)}</span>
@@ -30084,10 +30089,6 @@ function renderMonthStrip() {
     backdrop.classList.add('open');
     if (typeof lockBodyScroll === 'function') lockBodyScroll();
     modal.scrollTop = 0;
-
-    // v1.5.x — 표지 이미지를 dataURL로 미리 변환 (일별 다이얼리와 동일 패턴)
-    // 모달 표시 후 백그라운드에서 진행 → 캡처 시 CORS 문제 없이 즉시 그림
-    _preInlineMonthReportCovers();
   }
 
   // v1.5.x — 모달 내 모든 mr-cover img를 dataURL로 미리 인라이닝
@@ -30145,20 +30146,6 @@ function renderMonthStrip() {
     const ticketEl = document.getElementById('mrTicket');
     if (!ticketEl) throw new Error('mrTicket 요소 없음');
 
-    // 캡처 직전 — 아직 인라이닝 안 끝난 표지 강제 변환 (모달 열고 바로 저장 누르는 케이스)
-    if (typeof _imageToDataUrl === 'function') {
-      const origImgs = ticketEl.querySelectorAll('.mr-cover img');
-      await Promise.all(Array.from(origImgs).map(async (img) => {
-        try {
-          const src = img.src;
-          if (!src || src.startsWith('data:')) return;
-          const dataUrl = await _imageToDataUrl(src);
-          if (dataUrl && img.isConnected) img.src = dataUrl;
-        } catch (_) { /* noop */ }
-      }));
-    }
-
-    // 캡처용 임시 wrapper — 최소 옵션만
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; background:#F5F5F0; padding:20px 14px 24px; width:' + (ticketEl.offsetWidth + 28) + 'px;';
     const clone = ticketEl.cloneNode(true);
@@ -30167,13 +30154,15 @@ function renderMonthStrip() {
     document.body.appendChild(wrapper);
 
     try {
+      // 이미지는 렌더 시점에 crossorigin="anonymous" + 프록시 URL로 이미 CORS-clean 상태
+      // (일별 다이얼리 _captureTicketImage와 동일 패턴)
       const canvas = await html2canvas(wrapper, {
         backgroundColor: '#F5F5F0',
         scale: 2,
         useCORS: true,
-        allowTaint: true,  // CORS 실패해도 일단 그려라
+        allowTaint: false,
         logging: false,
-        imageTimeout: 8000,
+        imageTimeout: 10000,
       });
       return canvas;
     } finally {
