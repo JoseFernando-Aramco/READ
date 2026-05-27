@@ -1137,25 +1137,6 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 16px;
-  /* v1.5.0 — 월간 리포트 진입 (전체 strip 클릭) */
-  cursor: pointer;
-  transition: transform .12s, box-shadow .15s;
-  position: relative;
-}
-.month-strip:hover { transform: translateY(-1px); }
-.month-strip:active { transform: translateY(0); }
-.month-strip::after {
-  /* v1.5.0 — 리포트 진입 힌트 */
-  content: '리포트 →';
-  position: absolute;
-  bottom: -16px;
-  right: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--c-label);
-  letter-spacing: .04em;
-  opacity: .7;
-  pointer-events: none;
 }
 .strip-cell {
   background: var(--c-surface);
@@ -1209,6 +1190,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   pointer-events: none;
   transition: opacity .22s;
   -webkit-overflow-scrolling: touch;
+  /* v1.5.0 — 테마 파생 변수: --primary를 기반으로 리포트 내부 모든 색 자동 추종 */
+  --mr-primary: var(--primary, #6D4C41);
+  --mr-primary-dark: color-mix(in srgb, var(--mr-primary) 70%, #000);
+  --mr-primary-50: color-mix(in srgb, var(--mr-primary) 50%, transparent);
+  --mr-primary-30: color-mix(in srgb, var(--mr-primary) 30%, transparent);
+  --mr-primary-15: color-mix(in srgb, var(--mr-primary) 15%, transparent);
 }
 .mr-modal.open { opacity: 1; pointer-events: auto; }
 
@@ -1285,7 +1272,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-month-dd-item:hover { background: var(--c-surface-2); }
 .mr-month-dd-item + .mr-month-dd-item { border-top: 1px solid var(--c-border-2); }
 .mr-month-dd-item.is-active {
-  background: var(--c-accent);
+  background: var(--mr-primary);
   color: #fff;
 }
 .mr-month-dd-item .count {
@@ -1318,7 +1305,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: relative;
 }
 .mr-stub {
-  background: linear-gradient(180deg, var(--c-sage, #5F6B5F), #4A5547);
+  background: linear-gradient(180deg, var(--mr-primary), var(--mr-primary-dark));
   color: #fff;
   padding: 18px 8px;
   writing-mode: vertical-rl;
@@ -1478,7 +1465,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-cover {
   aspect-ratio: 2/3;
   border-radius: 3px;
-  background: linear-gradient(135deg, var(--c-sage, #5F6B5F), #4A5547);
+  background: linear-gradient(135deg, var(--mr-primary), var(--mr-primary-dark));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1663,10 +1650,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-variant-numeric: tabular-nums;
   border: 1px solid var(--c-border-2);
 }
-.mr-heat-cell.lv1 { background: rgba(109,76,65,.18); border-color: transparent; color: var(--c-accent); }
-.mr-heat-cell.lv2 { background: rgba(109,76,65,.42); border-color: transparent; color: #fff; }
-.mr-heat-cell.lv3 { background: rgba(109,76,65,.68); border-color: transparent; color: #fff; }
-.mr-heat-cell.lv4 { background: var(--c-accent); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv1 { background: var(--mr-primary-15); border-color: transparent; color: var(--mr-primary); }
+.mr-heat-cell.lv2 { background: var(--mr-primary-30); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv3 { background: var(--mr-primary-50); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv4 { background: var(--mr-primary); border-color: transparent; color: #fff; }
 .mr-heat-summary {
   font-size: 10px;
   color: var(--c-muted);
@@ -1677,14 +1664,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 하이라이트 카드 */
 .mr-highlight {
-  background: linear-gradient(135deg, rgba(95,107,95,.10), rgba(95,107,95,.04));
-  border: 1px solid rgba(95,107,95,.35);
+  background: linear-gradient(135deg, var(--mr-primary-15), color-mix(in srgb, var(--mr-primary) 4%, transparent));
+  border: 1px solid var(--mr-primary-30);
   border-radius: 8px;
   padding: 10px 13px;
 }
 .mr-highlight-k {
   font-size: 9px;
-  color: var(--c-sage, #5F6B5F);
+  color: var(--mr-primary);
   font-weight: 800;
   letter-spacing: .1em;
   margin-bottom: 3px;
@@ -1698,7 +1685,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-highlight-v .big {
   font-size: 17px;
   font-weight: 900;
-  color: var(--c-sage, #5F6B5F);
+  color: var(--mr-primary);
   margin: 0 3px;
 }
 .mr-highlight-sub {
@@ -1712,14 +1699,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-quote {
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-left: 3px solid var(--c-accent);
+  border-left: 3px solid var(--mr-primary);
   border-radius: 0 7px 7px 0;
   padding: 11px 14px;
 }
 .mr-quote-k {
   font-size: 9px;
   font-weight: 800;
-  color: var(--c-accent);
+  color: var(--mr-primary);
   letter-spacing: .1em;
   margin-bottom: 4px;
 }
@@ -2755,11 +2742,15 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .annual-hero-mini {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   position: relative;
+  align-items: stretch;
 }
-.ah-m { text-align: left; }
+.ah-m {
+  text-align: left;
+  min-width: 0;
+}
 .ah-m-v {
   font-size: 18px; font-weight: 800;
   letter-spacing: -0.02em;
@@ -2778,6 +2769,25 @@ body:has(.lib-edit-bar) .library-cards {
   opacity: 0.78;
   margin-top: 4px;
   text-transform: uppercase;
+}
+/* v1.5.0 — 4번째 칸 CTA (월간 독서 리포트) */
+.ah-m-cta {
+  cursor: pointer;
+  transition: opacity .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ah-m-cta:hover { opacity: .75; }
+.ah-m-cta:active { opacity: .55; }
+.ah-m-cta:focus-visible {
+  outline: 2px solid rgba(255,255,255,.5);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.ah-m-cta-text {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -.01em;
 }
 
 /* ═══════════ 접히는 패널 (stats-fold) ═══════════ */
@@ -5797,6 +5807,7 @@ body:has(.lib-edit-bar) .library-cards {
   align-items: center;
   gap: 8px;
 }
+
 .stat-card-v2-bar {
   width: 3px;
   height: 14px;
@@ -20299,6 +20310,11 @@ body.cn-locked {
           <div class="ah-m-v"><span id="annualReadDays">—</span><span class="unit">일</span></div>
           <div class="ah-m-l">독서일</div>
         </div>
+        <!-- v1.5.0 — 월간 독서 리포트 진입 (4번째 칸, 다른 메트릭과 폼 통일) -->
+        <div class="ah-m ah-m-cta" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">
+          <div class="ah-m-v ah-m-cta-text">월간<br/>독서 리포트</div>
+          <div class="ah-m-l">보기 →</div>
+        </div>
       </div>
     </div>
 
@@ -29624,11 +29640,12 @@ function renderMonthStrip() {
 
   const MONTH_NAMES_EN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const DOW_LABELS = ['일','월','화','수','목','금','토'];
+  // v1.5.0 — 테마 추종: primary의 농도/명도 변형으로 4가지 매체 구분
   const FORMAT_META = {
-    paper:    { lbl: '📕 종이책',  color: 'var(--c-accent)' },
-    ebook:    { lbl: '📱 전자책',  color: 'var(--c-sage, #5F6B5F)' },
-    audio:    { lbl: '🎧 오디오',  color: 'var(--c-mocha, #B8956A)' },
-    webnovel: { lbl: '🌐 웹소설',  color: 'var(--c-plum, #7B7080)' },
+    paper:    { lbl: '📕 종이책',  color: 'var(--mr-primary)' },
+    ebook:    { lbl: '📱 전자책',  color: 'color-mix(in srgb, var(--mr-primary) 65%, #888)' },
+    audio:    { lbl: '🎧 오디오',  color: 'color-mix(in srgb, var(--mr-primary) 40%, #CCC)' },
+    webnovel: { lbl: '🌐 웹소설',  color: 'color-mix(in srgb, var(--mr-primary) 80%, #000)' },
   };
 
   // 현재 보고 있는 월
@@ -29717,7 +29734,13 @@ function renderMonthStrip() {
   function renderGenreBars(topGenres) {
     if (!topGenres.length) return '';
     const max = topGenres[0].count || 1;
-    const colors = ['var(--c-accent)', 'var(--c-sage, #5F6B5F)', 'var(--c-mocha, #B8956A)', 'var(--c-plum, #7B7080)', 'var(--c-ink, #4A4A45)'];
+    const colors = [
+      'var(--mr-primary)',
+      'color-mix(in srgb, var(--mr-primary) 75%, #888)',
+      'color-mix(in srgb, var(--mr-primary) 55%, #BBB)',
+      'color-mix(in srgb, var(--mr-primary) 85%, #000)',
+      'color-mix(in srgb, var(--mr-primary) 40%, #DDD)',
+    ];
     return topGenres.map((g, i) => {
       const pct = (g.count / max) * 100;
       const lbl = (g.emoji ? g.emoji + ' ' : '') + esc(g.name);
@@ -29927,7 +29950,7 @@ function renderMonthStrip() {
     </div>`;
 
     return `
-      <div class="mr-brand-lbl">MONTHLY READING REPORT</div>
+      <div class="mr-brand-lbl">월간 독서 리포트 · ${year}.${String(month + 1).padStart(2, '0')}</div>
       <div class="mr-headline" id="mrHeadline">${month + 1}월의 독서</div>
       <div class="mr-tagline">${tagline}</div>
       ${metrics}
@@ -30171,9 +30194,8 @@ function renderMonthStrip() {
     const t = e.target;
     if (!t) return;
 
-    // month-strip 클릭 (단, (i) 버튼은 별도 핸들러로 처리되므로 제외)
-    const stripEl = t.closest && t.closest('.month-strip');
-    if (stripEl && !t.closest('#msInfoBtn')) {
+    // v1.5.0 — 통계 탭 ANNUAL HERO 4번째 칸 "월간 독서 리포트" 진입
+    if (t.id === 'mrEnterBtn' || (t.closest && t.closest('#mrEnterBtn'))) {
       const now = new Date();
       openMonthReport(now.getFullYear(), now.getMonth());
       return;
