@@ -1494,6 +1494,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: relative;
   z-index: 1;
   text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  line-height: 1.25;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  padding: 0 2px;
 }
 .mr-cover .star {
   position: absolute;
@@ -29744,7 +29749,6 @@ function renderMonthStrip() {
 
     const covers = books.map(b => {
       const t = esc(b.title || '');
-      const short = t.length > 6 ? t.slice(0, 6) : t;
       const isDone = b.status === 'done';
       // Worker 프록시 경유 — Kakao CDN + 알라딘 + Google 모두 화이트리스트
       // crossorigin="anonymous"로 html2canvas가 캡처 가능
@@ -29755,9 +29759,10 @@ function renderMonthStrip() {
           : b.coverUrl;
         img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
       }
+      // 표지 이미지 로드 실패 시 책 제목이 보이도록 — 글자수 제한 없이 풀로 표시
       return `<div class="mr-cover" title="${t}">
         ${img}
-        <span class="cover-title">${esc(short)}</span>
+        <span class="cover-title">${t}</span>
         ${isDone ? '<span class="star">★</span>' : ''}
       </div>`;
     }).join('');
@@ -35871,14 +35876,19 @@ function _renderMonthGrid(books) {
     const lifebook = b.isLifeBook
       ? `<div class="dd-grid-lifebook">LIFE</div>`
       : '';
-    // v1.0.1 — 표지 표시 픽스
-    //   이전: 프록시 URL + crossorigin="anonymous" → CORS 차단으로 표지가 안 뜨는 케이스 다수
-    //   변경: 원본 URL 직접 사용 (다른 곳과 동일 패턴) → 화면 표시 정상
-    //   캡처용 base64 교체는 _prewarmCoverCache가 백그라운드에서 처리하므로 저장 기능 영향 없음
-    const coverHtml = hasCover
-      ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="eager" referrerpolicy="no-referrer" draggable="false"
-             onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`
-      : `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
+    // v1.5.x — Worker 프록시 + crossorigin anonymous로 처음부터 CORS-clean
+    //   Worker에 Kakao search CDN 화이트리스트 추가됨 (v2026.05.27 배포)
+    //   캡처 시 html2canvas가 바로 캔버스에 그릴 수 있음
+    let coverHtml;
+    if (hasCover) {
+      const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
+        ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
+        : b.coverUrl;
+      coverHtml = `<img src="${esc(proxied)}" alt="${esc(b.title)}" loading="eager" crossorigin="anonymous" referrerpolicy="no-referrer" draggable="false"
+             onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`;
+    } else {
+      coverHtml = `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
+    }
 
     return `
       <div class="dd-grid-item" data-book-id="${b.id}">
