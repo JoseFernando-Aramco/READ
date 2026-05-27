@@ -30200,21 +30200,76 @@ function renderMonthStrip() {
     const btn = document.getElementById('mrSaveBtn');
     if (!btn || btn.classList.contains('loading')) return;
     btn.classList.add('loading');
-    if (typeof showToast === 'function') showToast('이미지 저장 중...');
+
+    // 디버그용 시각 토스트 (alert로 — 토스트는 자동 사라지니까)
+    const dbg = (msg) => {
+      console.log('[DBG]', msg);
+      alert(msg);
+    };
+
     try {
-      const canvas = await _captureMonthReportImage();
+      // 1. 모달 안 표지 img 상태 점검
+      const ticketEl = document.getElementById('mrTicket');
+      if (!ticketEl) { dbg('1. mrTicket 없음 — 모달 안 열림?'); return; }
+
+      const imgs = ticketEl.querySelectorAll('.mr-cover img');
+      let imgInfo = `[1] 모달 표지 ${imgs.length}개\n`;
+      imgs.forEach((img, i) => {
+        const src = img.src || '(빈 src)';
+        const srcShort = src.length > 60 ? src.slice(0, 60) + '...' : src;
+        const loaded = img.complete && img.naturalWidth > 0;
+        imgInfo += `  #${i+1}: ${loaded ? '✓ 로드됨' : '✗ 안됨'} (w=${img.naturalWidth})\n     src: ${srcShort}\n`;
+      });
+      dbg(imgInfo);
+
+      // 2. Worker 프록시 호출 테스트 (첫 번째 표지로)
+      if (imgs.length > 0 && typeof ALADIN_PROXY_URL !== 'undefined') {
+        const firstSrc = imgs[0].src;
+        const proxyUrl = `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(firstSrc)}`;
+        dbg(`[2] Worker 호출 시도\n${proxyUrl.slice(0, 100)}...`);
+
+        try {
+          const t0 = performance.now();
+          const res = await fetch(proxyUrl, { mode: 'cors' });
+          const elapsed = Math.round(performance.now() - t0);
+          dbg(`[2-결과] Worker 응답\nstatus: ${res.status}\nok: ${res.ok}\nelapsed: ${elapsed}ms\ncontent-type: ${res.headers.get('content-type') || '(없음)'}`);
+
+          if (res.ok) {
+            const blob = await res.blob();
+            dbg(`[2-blob] Worker 응답 OK\nblob size: ${blob.size}바이트\ntype: ${blob.type}`);
+          }
+        } catch (fetchErr) {
+          dbg(`[2-실패] Worker fetch 에러\n${fetchErr.name}: ${fetchErr.message}`);
+        }
+      }
+
+      // 3. html2canvas 직접 캡처 (현재 코드)
+      dbg(`[3] html2canvas 캡처 시작...`);
+      const canvas = await html2canvas(ticketEl, {
+        backgroundColor: '#F5F5F0',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        imageTimeout: 10000,
+      });
+      dbg(`[3-결과] 캡처 완료\ncanvas: ${canvas.width} × ${canvas.height}`);
+
+      // 4. blob 변환
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
       if (!blob) {
-        if (typeof showToast === 'function') showToast('저장에 실패했어요 (blob 생성 실패)');
+        dbg('[4] toBlob → null (canvas tainted로 추정)');
         return;
       }
+      dbg(`[4] blob 생성 OK\n크기: ${(blob.size / 1024).toFixed(1)}KB`);
+
+      // 5. 다운로드
       _triggerDownload(blob, _genFilename());
-      if (typeof showToast === 'function') showToast('저장 완료');
+      dbg('[5] 다운로드 트리거 완료 — 이미지 확인해주세요');
+
     } catch (e) {
       console.error('[saveMonthReport]', e);
-      // 디버깅: 실제 에러 메시지를 토스트에 노출 (Jason이 console 못 보는 환경)
-      const msg = (e && e.message) ? e.message.slice(0, 60) : 'unknown';
-      if (typeof showToast === 'function') showToast('저장 실패: ' + msg);
+      dbg(`예외 발생:\n${e.name || 'Error'}: ${e.message || '(메시지 없음)'}\n${(e.stack || '').slice(0, 200)}`);
     } finally {
       btn.classList.remove('loading');
     }
