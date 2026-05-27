@@ -29746,8 +29746,10 @@ function renderMonthStrip() {
       const t = esc(b.title || '');
       const short = t.length > 6 ? t.slice(0, 6) : t;
       const isDone = b.status === 'done';
+      // crossorigin="anonymous" — CDN이 CORS 헤더 주면 html2canvas가 그릴 수 있음
+      // 없으면 img 로드 자체 실패, 부모 그라데이션 + 제목으로 fallback
       const img = b.coverUrl
-        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy"/>`
+        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'"/>`
         : '';
       return `<div class="mr-cover" title="${t}">
         ${img}
@@ -30134,24 +30136,38 @@ function renderMonthStrip() {
   }
 
   /* ─── 캡처 (html2canvas) — 모달에 보이는 그대로 캡처 ─── */
-  async function _captureMonthReportImage() {
+  async function _captureMonthReportImage(opts) {
+    opts = opts || {};
     if (typeof html2canvas === 'undefined') {
       throw new Error('html2canvas 라이브러리가 로드 안 됨');
     }
     const ticketEl = document.getElementById('mrTicket');
     if (!ticketEl) throw new Error('mrTicket 요소 없음');
 
-    // 모달에 보이는 ticketEl 자체를 캡처 (clone X, 별도 wrapper X)
-    // 이미 모달에서 정상 렌더되고 있는 상태 그대로 저장됨
-    const canvas = await html2canvas(ticketEl, {
-      backgroundColor: '#F5F5F0',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,  // CORS 이미지도 일단 그리기 시도
-      logging: false,
-      imageTimeout: 10000,
-    });
-    return canvas;
+    // skipCovers — tainted 재시도 시 표지 img 모두 숨김 (부모 그라데이션만 보임)
+    let hidden = [];
+    if (opts.skipCovers) {
+      const imgs = ticketEl.querySelectorAll('.mr-cover img');
+      imgs.forEach(img => {
+        hidden.push([img, img.style.display]);
+        img.style.display = 'none';
+      });
+    }
+
+    try {
+      const canvas = await html2canvas(ticketEl, {
+        backgroundColor: '#F5F5F0',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        imageTimeout: 10000,
+      });
+      return canvas;
+    } finally {
+      // 표지 다시 보이게 복원
+      hidden.forEach(([img, display]) => { img.style.display = display; });
+    }
   }
 
   function _genFilename() {
@@ -30200,76 +30216,31 @@ function renderMonthStrip() {
     const btn = document.getElementById('mrSaveBtn');
     if (!btn || btn.classList.contains('loading')) return;
     btn.classList.add('loading');
-
-    // 디버그용 시각 토스트 (alert로 — 토스트는 자동 사라지니까)
-    const dbg = (msg) => {
-      console.log('[DBG]', msg);
-      alert(msg);
-    };
-
+    if (typeof showToast === 'function') showToast('이미지 저장 중...');
     try {
-      // 1. 모달 안 표지 img 상태 점검
-      const ticketEl = document.getElementById('mrTicket');
-      if (!ticketEl) { dbg('1. mrTicket 없음 — 모달 안 열림?'); return; }
-
-      const imgs = ticketEl.querySelectorAll('.mr-cover img');
-      let imgInfo = `[1] 모달 표지 ${imgs.length}개\n`;
-      imgs.forEach((img, i) => {
-        const src = img.src || '(빈 src)';
-        const srcShort = src.length > 60 ? src.slice(0, 60) + '...' : src;
-        const loaded = img.complete && img.naturalWidth > 0;
-        imgInfo += `  #${i+1}: ${loaded ? '✓ 로드됨' : '✗ 안됨'} (w=${img.naturalWidth})\n     src: ${srcShort}\n`;
-      });
-      dbg(imgInfo);
-
-      // 2. Worker 프록시 호출 테스트 (첫 번째 표지로)
-      if (imgs.length > 0 && typeof ALADIN_PROXY_URL !== 'undefined') {
-        const firstSrc = imgs[0].src;
-        const proxyUrl = `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(firstSrc)}`;
-        dbg(`[2] Worker 호출 시도\n${proxyUrl.slice(0, 100)}...`);
-
-        try {
-          const t0 = performance.now();
-          const res = await fetch(proxyUrl, { mode: 'cors' });
-          const elapsed = Math.round(performance.now() - t0);
-          dbg(`[2-결과] Worker 응답\nstatus: ${res.status}\nok: ${res.ok}\nelapsed: ${elapsed}ms\ncontent-type: ${res.headers.get('content-type') || '(없음)'}`);
-
-          if (res.ok) {
-            const blob = await res.blob();
-            dbg(`[2-blob] Worker 응답 OK\nblob size: ${blob.size}바이트\ntype: ${blob.type}`);
-          }
-        } catch (fetchErr) {
-          dbg(`[2-실패] Worker fetch 에러\n${fetchErr.name}: ${fetchErr.message}`);
-        }
+      const canvas = await _captureMonthReportImage();
+      let blob;
+      try {
+        blob = await new Promise((resolve, reject) => {
+          canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob null')), 'image/png', 0.95);
+        });
+      } catch (e) {
+        // canvas tainted (CORS 막힌 이미지 포함) → 표지 제거 후 재캡처
+        console.warn('[save] canvas tainted, retry without covers:', e.message);
+        if (typeof showToast === 'function') showToast('표지 제외하고 저장 중...');
+        const canvas2 = await _captureMonthReportImage({ skipCovers: true });
+        blob = await new Promise(res => canvas2.toBlob(res, 'image/png', 0.95));
       }
-
-      // 3. html2canvas 직접 캡처 (현재 코드)
-      dbg(`[3] html2canvas 캡처 시작...`);
-      const canvas = await html2canvas(ticketEl, {
-        backgroundColor: '#F5F5F0',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        imageTimeout: 10000,
-      });
-      dbg(`[3-결과] 캡처 완료\ncanvas: ${canvas.width} × ${canvas.height}`);
-
-      // 4. blob 변환
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
       if (!blob) {
-        dbg('[4] toBlob → null (canvas tainted로 추정)');
+        if (typeof showToast === 'function') showToast('저장에 실패했어요');
         return;
       }
-      dbg(`[4] blob 생성 OK\n크기: ${(blob.size / 1024).toFixed(1)}KB`);
-
-      // 5. 다운로드
       _triggerDownload(blob, _genFilename());
-      dbg('[5] 다운로드 트리거 완료 — 이미지 확인해주세요');
-
+      if (typeof showToast === 'function') showToast('저장 완료');
     } catch (e) {
       console.error('[saveMonthReport]', e);
-      dbg(`예외 발생:\n${e.name || 'Error'}: ${e.message || '(메시지 없음)'}\n${(e.stack || '').slice(0, 200)}`);
+      const msg = (e && e.message) ? e.message.slice(0, 60) : 'unknown';
+      if (typeof showToast === 'function') showToast('저장 실패: ' + msg);
     } finally {
       btn.classList.remove('loading');
     }
