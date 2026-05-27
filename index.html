@@ -29746,11 +29746,15 @@ function renderMonthStrip() {
       const t = esc(b.title || '');
       const short = t.length > 6 ? t.slice(0, 6) : t;
       const isDone = b.status === 'done';
-      // crossorigin="anonymous" — CDN이 CORS 헤더 주면 html2canvas가 그릴 수 있음
-      // 없으면 img 로드 자체 실패, 부모 그라데이션 + 제목으로 fallback
-      const img = b.coverUrl
-        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'"/>`
-        : '';
+      // Worker 프록시 경유 — Kakao CDN + 알라딘 + Google 모두 화이트리스트
+      // crossorigin="anonymous"로 html2canvas가 캡처 가능
+      let img = '';
+      if (b.coverUrl) {
+        const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
+          ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
+          : b.coverUrl;
+        img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
+      }
       return `<div class="mr-cover" title="${t}">
         ${img}
         <span class="cover-title">${esc(short)}</span>
@@ -30219,18 +30223,7 @@ function renderMonthStrip() {
     if (typeof showToast === 'function') showToast('이미지 저장 중...');
     try {
       const canvas = await _captureMonthReportImage();
-      let blob;
-      try {
-        blob = await new Promise((resolve, reject) => {
-          canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob null')), 'image/png', 0.95);
-        });
-      } catch (e) {
-        // canvas tainted (CORS 막힌 이미지 포함) → 표지 제거 후 재캡처
-        console.warn('[save] canvas tainted, retry without covers:', e.message);
-        if (typeof showToast === 'function') showToast('표지 제외하고 저장 중...');
-        const canvas2 = await _captureMonthReportImage({ skipCovers: true });
-        blob = await new Promise(res => canvas2.toBlob(res, 'image/png', 0.95));
-      }
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
       if (!blob) {
         if (typeof showToast === 'function') showToast('저장에 실패했어요');
         return;
