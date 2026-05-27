@@ -1190,12 +1190,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   pointer-events: none;
   transition: opacity .22s;
   -webkit-overflow-scrolling: touch;
-  /* v1.5.0 — 테마 파생 변수: --primary를 기반으로 리포트 내부 모든 색 자동 추종 */
-  --mr-primary: var(--primary, #6D4C41);
-  --mr-primary-dark: color-mix(in srgb, var(--mr-primary, #6D4C41) 70%, #000);
-  --mr-primary-50: color-mix(in srgb, var(--mr-primary, #6D4C41) 50%, transparent);
-  --mr-primary-30: color-mix(in srgb, var(--mr-primary, #6D4C41) 30%, transparent);
-  --mr-primary-15: color-mix(in srgb, var(--mr-primary, #6D4C41) 15%, transparent);
+  /* v1.5.0 — 테마 추종 색 (color-mix 제거 — html2canvas 호환). JS에서 setCustomProperty로 정확히 계산된 hex 주입 */
+  --mr-primary: #6D4C41;
+  --mr-primary-dark: #4A3328;
+  --mr-primary-50: rgba(109,76,65,.5);
+  --mr-primary-30: rgba(109,76,65,.3);
+  --mr-primary-15: rgba(109,76,65,.15);
 }
 .mr-modal.open { opacity: 1; pointer-events: auto; }
 
@@ -1664,7 +1664,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 하이라이트 카드 */
 .mr-highlight {
-  background: linear-gradient(135deg, var(--mr-primary-15, rgba(109,76,65,.15)), color-mix(in srgb, var(--mr-primary, #6D4C41) 4%, transparent));
+  background: linear-gradient(135deg, var(--mr-primary-15, rgba(109,76,65,.15)), rgba(109,76,65,.04));
   border: 1px solid var(--mr-primary-30, rgba(109,76,65,.3));
   border-radius: 8px;
   padding: 10px 13px;
@@ -29640,12 +29640,36 @@ function renderMonthStrip() {
 
   const MONTH_NAMES_EN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const DOW_LABELS = ['일','월','화','수','목','금','토'];
-  // v1.5.0 — 테마 추종: primary의 농도/명도 변형으로 4가지 매체 구분
+  // v1.5.0 — 매체별 색은 primary 농도 변화로. color-mix는 html2canvas가 못 파싱하므로 JS에서 dynamic 생성
+  function _formatColor(key, primaryHex) {
+    if (key === 'paper') return primaryHex;
+    if (key === 'ebook') return _mixHex(primaryHex, '#888888', 0.65);
+    if (key === 'audio') return _mixHex(primaryHex, '#CCCCCC', 0.40);
+    if (key === 'webnovel') return _mixHex(primaryHex, '#000000', 0.80);
+    return primaryHex;
+  }
+  function _genreColor(idx, primaryHex) {
+    if (idx === 0) return primaryHex;
+    if (idx === 1) return _mixHex(primaryHex, '#888888', 0.75);
+    if (idx === 2) return _mixHex(primaryHex, '#BBBBBB', 0.55);
+    if (idx === 3) return _mixHex(primaryHex, '#000000', 0.85);
+    return _mixHex(primaryHex, '#DDDDDD', 0.40);
+  }
+  function _currentPrimaryHex() {
+    const modal = document.getElementById('mrModal');
+    if (modal) {
+      const v = (modal.style.getPropertyValue('--mr-primary') || '').trim();
+      if (v.startsWith('#')) return v;
+    }
+    const docPrimary = (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '').trim();
+    return docPrimary.startsWith('#') ? docPrimary : '#6D4C41';
+  }
+
   const FORMAT_META = {
-    paper:    { lbl: '📕 종이책',  color: 'var(--mr-primary, #6D4C41)' },
-    ebook:    { lbl: '📱 전자책',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 65%, #888)' },
-    audio:    { lbl: '🎧 오디오',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 40%, #CCC)' },
-    webnovel: { lbl: '🌐 웹소설',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 80%, #000)' },
+    paper:    { lbl: '📕 종이책',  key: 'paper' },
+    ebook:    { lbl: '📱 전자책',  key: 'ebook' },
+    audio:    { lbl: '🎧 오디오',  key: 'audio' },
+    webnovel: { lbl: '🌐 웹소설',  key: 'webnovel' },
   };
 
   // 현재 보고 있는 월
@@ -29668,7 +29692,8 @@ function renderMonthStrip() {
   function donutSVG(formatPages) {
     const total = Object.values(formatPages).reduce((a, b) => a + b, 0);
     if (total <= 0) return '';
-    const C = 2 * Math.PI * 14;  // circumference ≈ 87.96
+    const C = 2 * Math.PI * 14;
+    const primaryHex = _currentPrimaryHex();
     let offset = 0;
     const order = ['paper', 'ebook', 'audio', 'webnovel'];
     const segments = order
@@ -29676,7 +29701,8 @@ function renderMonthStrip() {
       .map(k => {
         const pct = formatPages[k] / total;
         const len = (C * pct).toFixed(2);
-        const seg = `<circle cx="18" cy="18" r="14" fill="none" stroke="${FORMAT_META[k].color}" stroke-width="6" stroke-dasharray="${len} ${C.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
+        const color = _formatColor(k, primaryHex);
+        const seg = `<circle cx="18" cy="18" r="14" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${len} ${C.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
         offset += C * pct;
         return seg;
       })
@@ -29688,14 +29714,16 @@ function renderMonthStrip() {
     const total = Object.values(formatPages).reduce((a, b) => a + b, 0);
     if (total <= 0) return '';
     const order = ['paper', 'ebook', 'audio', 'webnovel'];
+    const primaryHex = _currentPrimaryHex();
     return order
       .filter(k => formatPages[k] > 0)
       .map(k => {
         const v = formatPages[k];
         const pct = Math.round((v / total) * 100);
+        const color = _formatColor(k, primaryHex);
         return `<div class="mr-donut-leg-row">
           <div class="mr-donut-leg-left">
-            <div class="mr-donut-leg-dot" style="background:${FORMAT_META[k].color}"></div>
+            <div class="mr-donut-leg-dot" style="background:${color}"></div>
             <div class="mr-donut-leg-name">${FORMAT_META[k].lbl}</div>
           </div>
           <div class="mr-donut-leg-val">${pct}% · ${v}p</div>
@@ -29734,19 +29762,14 @@ function renderMonthStrip() {
   function renderGenreBars(topGenres) {
     if (!topGenres.length) return '';
     const max = topGenres[0].count || 1;
-    const colors = [
-      'var(--mr-primary, #6D4C41)',
-      'color-mix(in srgb, var(--mr-primary, #6D4C41) 75%, #888)',
-      'color-mix(in srgb, var(--mr-primary, #6D4C41) 55%, #BBB)',
-      'color-mix(in srgb, var(--mr-primary, #6D4C41) 85%, #000)',
-      'color-mix(in srgb, var(--mr-primary, #6D4C41) 40%, #DDD)',
-    ];
+    const primaryHex = _currentPrimaryHex();
     return topGenres.map((g, i) => {
       const pct = (g.count / max) * 100;
       const lbl = (g.emoji ? g.emoji + ' ' : '') + esc(g.name);
+      const color = _genreColor(i, primaryHex);
       return `<div class="mr-bar-row">
         <div class="mr-bar-lbl">${lbl}</div>
-        <div class="mr-bar-track"><div class="mr-bar-fill" style="width:${pct.toFixed(1)}%; background:${colors[i] || colors[0]}"></div></div>
+        <div class="mr-bar-track"><div class="mr-bar-fill" style="width:${pct.toFixed(1)}%; background:${color}"></div></div>
         <div class="mr-bar-val">${g.count}권</div>
       </div>`;
     }).join('');
@@ -30001,6 +30024,46 @@ function renderMonthStrip() {
     }).join('');
   }
 
+  // v1.5.x — hex 색 믹스 헬퍼 (html2canvas가 color-mix를 못 파싱하므로 JS 계산)
+  function _hexToRgb(hex) {
+    const h = String(hex || '').trim().replace('#', '');
+    if (h.length === 3) {
+      return { r: parseInt(h[0]+h[0], 16), g: parseInt(h[1]+h[1], 16), b: parseInt(h[2]+h[2], 16) };
+    }
+    if (h.length === 6) {
+      return { r: parseInt(h.slice(0,2), 16), g: parseInt(h.slice(2,4), 16), b: parseInt(h.slice(4,6), 16) };
+    }
+    return { r: 109, g: 76, b: 65 };  // fallback: 카페라떼
+  }
+  function _mixHex(hex, otherHex, ratio) {
+    // ratio = 0 → 100% other, 1 → 100% hex
+    const a = _hexToRgb(hex);
+    const b = _hexToRgb(otherHex);
+    const r = Math.round(a.r * ratio + b.r * (1 - ratio));
+    const g = Math.round(a.g * ratio + b.g * (1 - ratio));
+    const bl = Math.round(a.b * ratio + b.b * (1 - ratio));
+    return '#' + [r, g, bl].map(n => n.toString(16).padStart(2, '0')).join('');
+  }
+  function _hexToRgba(hex, alpha) {
+    const { r, g, b } = _hexToRgb(hex);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // 현재 테마 primary 색 읽어서 mr-primary-* 변수 동적 계산 + 모달에 setProperty
+  function _applyThemeColors() {
+    const modal = document.getElementById('mrModal');
+    if (!modal) return;
+    // body의 --primary 변수 읽기 (테마별 색)
+    const primary = (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '').trim() || '#6D4C41';
+    // hex로 정규화 (이미 hex면 그대로)
+    const primaryHex = primary.startsWith('#') ? primary : '#6D4C41';
+    modal.style.setProperty('--mr-primary', primaryHex);
+    modal.style.setProperty('--mr-primary-dark', _mixHex(primaryHex, '#000000', 0.7));
+    modal.style.setProperty('--mr-primary-50', _hexToRgba(primaryHex, 0.5));
+    modal.style.setProperty('--mr-primary-30', _hexToRgba(primaryHex, 0.3));
+    modal.style.setProperty('--mr-primary-15', _hexToRgba(primaryHex, 0.15));
+  }
+
   function openMonthReport(year, month) {
     const modal = document.getElementById('mrModal');
     const backdrop = document.getElementById('mrBackdrop');
@@ -30010,6 +30073,7 @@ function renderMonthStrip() {
     curYear = year;
     curMonth = month;
 
+    _applyThemeColors();
     setStub(year, month);
     setMonthLabel(year, month);
     body.innerHTML = renderMonthReport(year, month);
