@@ -29746,14 +29746,9 @@ function renderMonthStrip() {
       const t = esc(b.title || '');
       const short = t.length > 6 ? t.slice(0, 6) : t;
       const isDone = b.status === 'done';
-      // 일별 다이얼리와 동일: 프록시 URL + crossorigin anonymous로 처음부터 CORS-clean
-      let img = '';
-      if (b.coverUrl) {
-        const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
-          ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
-          : b.coverUrl;
-        img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
-      }
+      const img = b.coverUrl
+        ? `<img src="${esc(b.coverUrl)}" alt="" loading="lazy"/>`
+        : '';
       return `<div class="mr-cover" title="${t}">
         ${img}
         <span class="cover-title">${esc(short)}</span>
@@ -30138,7 +30133,7 @@ function renderMonthStrip() {
     btn.setAttribute('aria-expanded', 'false');
   }
 
-  /* ─── 캡처 (html2canvas) ─── */
+  /* ─── 캡처 (html2canvas) — 모달에 보이는 그대로 캡처 ─── */
   async function _captureMonthReportImage() {
     if (typeof html2canvas === 'undefined') {
       throw new Error('html2canvas 라이브러리가 로드 안 됨');
@@ -30146,28 +30141,17 @@ function renderMonthStrip() {
     const ticketEl = document.getElementById('mrTicket');
     if (!ticketEl) throw new Error('mrTicket 요소 없음');
 
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; background:#F5F5F0; padding:20px 14px 24px; width:' + (ticketEl.offsetWidth + 28) + 'px;';
-    const clone = ticketEl.cloneNode(true);
-    clone.style.margin = '0';
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
-
-    try {
-      // 이미지는 렌더 시점에 crossorigin="anonymous" + 프록시 URL로 이미 CORS-clean 상태
-      // (일별 다이얼리 _captureTicketImage와 동일 패턴)
-      const canvas = await html2canvas(wrapper, {
-        backgroundColor: '#F5F5F0',
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        imageTimeout: 10000,
-      });
-      return canvas;
-    } finally {
-      document.body.removeChild(wrapper);
-    }
+    // 모달에 보이는 ticketEl 자체를 캡처 (clone X, 별도 wrapper X)
+    // 이미 모달에서 정상 렌더되고 있는 상태 그대로 저장됨
+    const canvas = await html2canvas(ticketEl, {
+      backgroundColor: '#F5F5F0',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,  // CORS 이미지도 일단 그리기 시도
+      logging: false,
+      imageTimeout: 10000,
+    });
+    return canvas;
   }
 
   function _genFilename() {
