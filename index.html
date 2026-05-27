@@ -1192,10 +1192,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   -webkit-overflow-scrolling: touch;
   /* v1.5.0 — 테마 파생 변수: --primary를 기반으로 리포트 내부 모든 색 자동 추종 */
   --mr-primary: var(--primary, #6D4C41);
-  --mr-primary-dark: color-mix(in srgb, var(--mr-primary) 70%, #000);
-  --mr-primary-50: color-mix(in srgb, var(--mr-primary) 50%, transparent);
-  --mr-primary-30: color-mix(in srgb, var(--mr-primary) 30%, transparent);
-  --mr-primary-15: color-mix(in srgb, var(--mr-primary) 15%, transparent);
+  --mr-primary-dark: color-mix(in srgb, var(--mr-primary, #6D4C41) 70%, #000);
+  --mr-primary-50: color-mix(in srgb, var(--mr-primary, #6D4C41) 50%, transparent);
+  --mr-primary-30: color-mix(in srgb, var(--mr-primary, #6D4C41) 30%, transparent);
+  --mr-primary-15: color-mix(in srgb, var(--mr-primary, #6D4C41) 15%, transparent);
 }
 .mr-modal.open { opacity: 1; pointer-events: auto; }
 
@@ -1272,7 +1272,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-month-dd-item:hover { background: var(--c-surface-2); }
 .mr-month-dd-item + .mr-month-dd-item { border-top: 1px solid var(--c-border-2); }
 .mr-month-dd-item.is-active {
-  background: var(--mr-primary);
+  background: var(--mr-primary, #6D4C41);
   color: #fff;
 }
 .mr-month-dd-item .count {
@@ -1305,7 +1305,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   position: relative;
 }
 .mr-stub {
-  background: linear-gradient(180deg, var(--mr-primary), var(--mr-primary-dark));
+  background: linear-gradient(180deg, var(--mr-primary, #6D4C41), var(--mr-primary-dark, #4A3328));
   color: #fff;
   padding: 18px 8px;
   writing-mode: vertical-rl;
@@ -1465,7 +1465,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-cover {
   aspect-ratio: 2/3;
   border-radius: 3px;
-  background: linear-gradient(135deg, var(--mr-primary), var(--mr-primary-dark));
+  background: linear-gradient(135deg, var(--mr-primary, #6D4C41), var(--mr-primary-dark, #4A3328));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1650,10 +1650,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-variant-numeric: tabular-nums;
   border: 1px solid var(--c-border-2);
 }
-.mr-heat-cell.lv1 { background: var(--mr-primary-15); border-color: transparent; color: var(--mr-primary); }
-.mr-heat-cell.lv2 { background: var(--mr-primary-30); border-color: transparent; color: #fff; }
-.mr-heat-cell.lv3 { background: var(--mr-primary-50); border-color: transparent; color: #fff; }
-.mr-heat-cell.lv4 { background: var(--mr-primary); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv1 { background: var(--mr-primary-15, rgba(109,76,65,.15)); border-color: transparent; color: var(--mr-primary, #6D4C41); }
+.mr-heat-cell.lv2 { background: var(--mr-primary-30, rgba(109,76,65,.3)); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv3 { background: var(--mr-primary-50, rgba(109,76,65,.5)); border-color: transparent; color: #fff; }
+.mr-heat-cell.lv4 { background: var(--mr-primary, #6D4C41); border-color: transparent; color: #fff; }
 .mr-heat-summary {
   font-size: 10px;
   color: var(--c-muted);
@@ -1664,14 +1664,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 하이라이트 카드 */
 .mr-highlight {
-  background: linear-gradient(135deg, var(--mr-primary-15), color-mix(in srgb, var(--mr-primary) 4%, transparent));
-  border: 1px solid var(--mr-primary-30);
+  background: linear-gradient(135deg, var(--mr-primary-15, rgba(109,76,65,.15)), color-mix(in srgb, var(--mr-primary, #6D4C41) 4%, transparent));
+  border: 1px solid var(--mr-primary-30, rgba(109,76,65,.3));
   border-radius: 8px;
   padding: 10px 13px;
 }
 .mr-highlight-k {
   font-size: 9px;
-  color: var(--mr-primary);
+  color: var(--mr-primary, #6D4C41);
   font-weight: 800;
   letter-spacing: .1em;
   margin-bottom: 3px;
@@ -1685,7 +1685,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-highlight-v .big {
   font-size: 17px;
   font-weight: 900;
-  color: var(--mr-primary);
+  color: var(--mr-primary, #6D4C41);
   margin: 0 3px;
 }
 .mr-highlight-sub {
@@ -1699,14 +1699,14 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-quote {
   background: var(--c-surface);
   border: 1px solid var(--c-border-2);
-  border-left: 3px solid var(--mr-primary);
+  border-left: 3px solid var(--mr-primary, #6D4C41);
   border-radius: 0 7px 7px 0;
   padding: 11px 14px;
 }
 .mr-quote-k {
   font-size: 9px;
   font-weight: 800;
-  color: var(--mr-primary);
+  color: var(--mr-primary, #6D4C41);
   letter-spacing: .1em;
   margin-bottom: 4px;
 }
@@ -29642,10 +29642,10 @@ function renderMonthStrip() {
   const DOW_LABELS = ['일','월','화','수','목','금','토'];
   // v1.5.0 — 테마 추종: primary의 농도/명도 변형으로 4가지 매체 구분
   const FORMAT_META = {
-    paper:    { lbl: '📕 종이책',  color: 'var(--mr-primary)' },
-    ebook:    { lbl: '📱 전자책',  color: 'color-mix(in srgb, var(--mr-primary) 65%, #888)' },
-    audio:    { lbl: '🎧 오디오',  color: 'color-mix(in srgb, var(--mr-primary) 40%, #CCC)' },
-    webnovel: { lbl: '🌐 웹소설',  color: 'color-mix(in srgb, var(--mr-primary) 80%, #000)' },
+    paper:    { lbl: '📕 종이책',  color: 'var(--mr-primary, #6D4C41)' },
+    ebook:    { lbl: '📱 전자책',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 65%, #888)' },
+    audio:    { lbl: '🎧 오디오',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 40%, #CCC)' },
+    webnovel: { lbl: '🌐 웹소설',  color: 'color-mix(in srgb, var(--mr-primary, #6D4C41) 80%, #000)' },
   };
 
   // 현재 보고 있는 월
@@ -29735,11 +29735,11 @@ function renderMonthStrip() {
     if (!topGenres.length) return '';
     const max = topGenres[0].count || 1;
     const colors = [
-      'var(--mr-primary)',
-      'color-mix(in srgb, var(--mr-primary) 75%, #888)',
-      'color-mix(in srgb, var(--mr-primary) 55%, #BBB)',
-      'color-mix(in srgb, var(--mr-primary) 85%, #000)',
-      'color-mix(in srgb, var(--mr-primary) 40%, #DDD)',
+      'var(--mr-primary, #6D4C41)',
+      'color-mix(in srgb, var(--mr-primary, #6D4C41) 75%, #888)',
+      'color-mix(in srgb, var(--mr-primary, #6D4C41) 55%, #BBB)',
+      'color-mix(in srgb, var(--mr-primary, #6D4C41) 85%, #000)',
+      'color-mix(in srgb, var(--mr-primary, #6D4C41) 40%, #DDD)',
     ];
     return topGenres.map((g, i) => {
       const pct = (g.count / max) * 100;
@@ -30081,6 +30081,19 @@ function renderMonthStrip() {
     const ticketEl = document.getElementById('mrTicket');
     if (!ticketEl) throw new Error('mrTicket 요소 없음');
 
+    // 캡처 직전 — 아직 인라이닝 안 끝난 표지 강제 변환 (모달 열고 바로 저장 누르는 케이스)
+    if (typeof _imageToDataUrl === 'function') {
+      const origImgs = ticketEl.querySelectorAll('.mr-cover img');
+      await Promise.all(Array.from(origImgs).map(async (img) => {
+        try {
+          const src = img.src;
+          if (!src || src.startsWith('data:')) return;
+          const dataUrl = await _imageToDataUrl(src);
+          if (dataUrl && img.isConnected) img.src = dataUrl;
+        } catch (_) { /* noop */ }
+      }));
+    }
+
     // 캡처용 임시 wrapper — 최소 옵션만
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; background:#F5F5F0; padding:20px 14px 24px; width:' + (ticketEl.offsetWidth + 28) + 'px;';
@@ -30094,7 +30107,7 @@ function renderMonthStrip() {
         backgroundColor: '#F5F5F0',
         scale: 2,
         useCORS: true,
-        allowTaint: true,  // CORS 실패해도 일단 그려라 (taint 허용)
+        allowTaint: true,  // CORS 실패해도 일단 그려라
         logging: false,
         imageTimeout: 8000,
       });
