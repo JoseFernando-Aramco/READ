@@ -39187,38 +39187,16 @@ function renderCategoryStats() {
 function renderCatStatsView(container) {
   const editBtn = `<button type="button" class="cat-stat-edit-btn" data-action="cat-stat-edit">✎ 분류 편집</button>`;
 
-  // 켜진 분류에 담긴 태그만 대상 (분류 편집/토글이 "보여줄 태그" 필터 역할)
-  const allowed = new Set();
-  CAT_GROUPS.filter(g => g.on).forEach(g => {
-    g.tags.forEach(n => {
-      if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(n)) return;
-      allowed.add(n);
-    });
-  });
+  // 켜진 분류 그룹별 고유 책 수 (중복 제거), 많은 순 정렬
+  const withCounts = CAT_GROUPS
+    .filter(g => g.on && g.tags.length > 0)
+    .map(g => ({ g, c: _groupBookCount(g), books: _groupBooks(g) }))
+    .filter(x => x.c > 0)
+    .sort((a, b) => b.c - a.c);
 
-  // 태그별 권수 + 대표 책 후보
-  const counts = {};
-  const repBooks = {};
-  if (Array.isArray(BOOKS)) {
-    BOOKS.forEach(book => {
-      const tags = Array.isArray(book.tags) ? book.tags : [];
-      tags.forEach(t => {
-        if (!allowed.has(t)) return;
-        counts[t] = (counts[t] || 0) + 1;
-        if (!repBooks[t]) repBooks[t] = [];
-        repBooks[t].push(book);
-      });
-    });
-  }
-
-  // 태그 많은 순 정렬 (0권 자동 제외)
-  const sorted = Object.keys(counts)
-    .map(name => ({ name, count: counts[name], books: repBooks[name] }))
-    .sort((a, b) => b.count - a.count);
-
-  if (!sorted.length) {
+  if (!withCounts.length) {
     container.innerHTML = `<div class="cat-stat-toolbar">${editBtn}</div>`
-      + '<div class="cat-stat-empty">표시할 태그가 없어요. 편집에서 분류를 켜거나 태그를 담아보세요</div>';
+      + '<div class="cat-stat-empty">표시할 분류가 없어요. 편집에서 분류를 켜거나 태그를 담아보세요</div>';
     return;
   }
 
@@ -39235,26 +39213,36 @@ function renderCatStatsView(container) {
     })[0];
   };
 
-  const total = sorted.length;
-  const visible = _catStatExpanded ? sorted : sorted.slice(0, CAT_STAT_INITIAL_LIMIT);
+  // 분류 대표 이모지 (첫 태그의 이모지)
+  const grpEmoji = (g) => {
+    for (const n of g.tags) {
+      const t = TAGS[n];
+      if (t && t.emoji) return t.emoji;
+    }
+    return '📚';
+  };
+
+  const total = withCounts.length;
+  const visible = _catStatExpanded ? withCounts : withCounts.slice(0, CAT_STAT_INITIAL_LIMIT);
   const hiddenCount = Math.max(0, total - visible.length);
 
-  const rows = visible.map((entry, idx) => {
+  const rows = visible.map((x, idx) => {
+    const g = x.g;
     const rank = idx + 1;
-    const rep = pickRepBook(entry.books);
+    const rep = pickRepBook(x.books);
     const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
-    const info = TAGS[entry.name] || {};
-    const emoji = info.emoji || '📚';
+    const emoji = grpEmoji(g);
     const coverImg = cover
       ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`
       : '';
     const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
+    const customBadge = g.custom ? `<span class="cat-grp-badge">내 분류</span>` : '';
     return `
-      <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
+      <button type="button" class="cat-stat-row" data-action="cat-grp-open" data-grp="${esc(g.id)}">
         <span class="cat-stat-rank">#${rank}</span>
         <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}">${coverImg}${fallback}</span>
-        <span class="cat-stat-name">${emoji} ${esc(entry.name)}</span>
-        <span class="cat-stat-cnt">${entry.count}</span>
+        <span class="cat-stat-name">${esc(g.name)}${customBadge}</span>
+        <span class="cat-stat-cnt">${x.c}</span>
         <span class="cat-stat-arrow">›</span>
       </button>`;
   }).join('');
