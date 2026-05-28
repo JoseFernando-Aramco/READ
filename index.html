@@ -15872,6 +15872,25 @@ body:has(.lib-edit-bar) .library-cards {
               max-width 0.55s ease,
               text-align 0.3s ease;
 }
+/* v1.5.x — 시네마 현재 시각 (상단 중앙, letterbox 아래) */
+.cn-clock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  z-index: 7;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.9s, transform 0.7s ease 0.9s, top 0.55s ease;
+  pointer-events: none;
+}
+.cn-overlay.cn-running .cn-clock {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.cn-overlay[data-cn-mode="portrait"]  .cn-clock { top: 11%; font-size: 13px; }
+.cn-overlay[data-cn-mode="landscape"] .cn-clock { top: 16%; font-size: 12px; }
 .cn-overlay[data-cn-mode="portrait"] .cn-meta-top {
   top: 16%; left: 50%;
   text-align: center;
@@ -21987,6 +22006,8 @@ body.cn-locked {
     <div class="cn-letterbox cn-letterbox-bottom"></div>
     <div class="cn-bg-glow"></div>
     <div class="cn-grain"></div>
+
+    <div class="cn-clock" id="cnClock">--:--</div>
 
     <div class="cn-meta-top">
       <div class="cn-meta-label">NOW READING</div>
@@ -33643,6 +33664,37 @@ const CINEMA = {
   prevThemeColor: null,    // 시네마 진입 전 theme-color 백업
   prevHtmlBg: null,        // 진입 전 html 배경 백업
   prevBodyBg: null,        // 진입 전 body 배경 백업
+  wakeLock: null,          // v1.5.x — 화면 꺼짐 방지 (Screen Wake Lock)
+  clockTimer: null,        // v1.5.x — 현재 시각 갱신 인터벌
+  visListener: null,       // v1.5.x — 가시성 변화 시 wakeLock 재요청
+
+  /* v1.5.x — 현재 시각 갱신 (오후 2:43 형식) */
+  _updateClock() {
+    const el = document.getElementById('cnClock');
+    if (!el) return;
+    const now = new Date();
+    let h = now.getHours();
+    const m = now.getMinutes();
+    const ampm = h < 12 ? '오전' : '오후';
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    el.textContent = `${ampm} ${h12}:${String(m).padStart(2, '0')}`;
+  },
+
+  /* v1.5.x — 화면 꺼짐 방지 요청 (지원 기기만, 실패해도 무시) */
+  async _requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && navigator.wakeLock.request) {
+        this.wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (_) { /* 미지원/거부 — 무시 */ }
+  },
+  async _releaseWakeLock() {
+    try {
+      if (this.wakeLock) { await this.wakeLock.release(); }
+    } catch (_) {}
+    this.wakeLock = null;
+  },
 
   /* 가로 화면인지 판정 — matchMedia 우선, 없으면 window 비교 */
   _isLandscape() {
@@ -33727,6 +33779,11 @@ const CINEMA = {
     // html/body 배경 검정 강제 (홈 인디케이터·노치 safe area 흰색 차단)
     this._lockBackgrounds();
 
+    // v1.5.x — 현재 시각 표시 시작 (풀스크린 await와 무관하게 즉시)
+    this._updateClock();
+    if (this.clockTimer) clearInterval(this.clockTimer);
+    this.clockTimer = setInterval(() => this._updateClock(), 15000);
+
     // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
     await this._tryFullscreen();
 
@@ -33742,6 +33799,17 @@ const CINEMA = {
 
     // orientation 변경 리스너 등록
     this._attachRotationListener();
+
+    // v1.5.x — 화면 꺼짐 방지 + 가시성 복귀 시 재요청 (OS가 lock을 해제하므로)
+    this._requestWakeLock();
+    if (!this.visListener) {
+      this.visListener = () => {
+        if (this.active && document.visibilityState === 'visible' && !this.wakeLock) {
+          this._requestWakeLock();
+        }
+      };
+      document.addEventListener('visibilitychange', this.visListener);
+    }
   },
 
   /* 풀스크린 요청 (가능한 경우만) */
@@ -33822,6 +33890,14 @@ const CINEMA = {
       window.removeEventListener('orientationchange', this.rotateListener);
       window.removeEventListener('resize', this.rotateListener);
       this.rotateListener = null;
+    }
+
+    // v1.5.x — 시계 인터벌 + wakeLock + 가시성 리스너 정리
+    if (this.clockTimer) { clearInterval(this.clockTimer); this.clockTimer = null; }
+    this._releaseWakeLock();
+    if (this.visListener) {
+      document.removeEventListener('visibilitychange', this.visListener);
+      this.visListener = null;
     }
 
     // 풀스크린 해제
