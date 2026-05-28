@@ -8584,6 +8584,9 @@ body:has(.lib-edit-bar) .library-cards {
   transition: opacity .22s ease;
 }
 .bd-backdrop.open { opacity: 1; pointer-events: auto; }
+/* v1.5.x — 묶음 시트(z 300/301) 위에 겹쳐 띄울 때 */
+.bd-backdrop.bd-above-grp { z-index: 320; }
+.bd-sheet.bd-above-grp { z-index: 321; }
 
 .bd-sheet {
   position: fixed;
@@ -32254,6 +32257,10 @@ function _grpExpandSheet(groupId, categoryFilter) {
     if (bookCard) {
       const bookId = parseInt(bookCard.dataset.bookId, 10);
       if (bookId && typeof openBookDetail === 'function') {
+        // v1.5.x — 묶음 시트는 닫지 않고 그 위에 책상세를 겹쳐 띄움
+        //   책상세에 above-grp 부여 → z를 묶음 시트(301) 위로. 닫으면 묶음이 그대로 남음
+        document.getElementById('bdSheet')?.classList.add('bd-above-grp');
+        document.getElementById('bdBackdrop')?.classList.add('bd-above-grp');
         openBookDetail(bookId);
       }
       return;
@@ -34434,11 +34441,6 @@ function closeQuickReadConfirm() {
 function openBookDetail(id) {
   const book = BOOKS.find(b => b.id === id);
   if (!book) return;
-  // v1.5.x — drilldown이 아직 열려있으면 먼저 닫음 (책상세가 묶음 리스트 뒤로 깔리는 문제 방지)
-  const ddSheet = document.getElementById('ddSheet');
-  if (ddSheet && ddSheet.classList.contains('open')) {
-    try { closeDrillDown(); } catch(e){}
-  }
   BD.book = book;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
@@ -34478,6 +34480,9 @@ function _closeBookDetailActual() {
   setTimeout(() => { 
     const ttlEl = document.getElementById('bdHeadTtl');
     if (ttlEl) ttlEl.textContent = '책 상세';
+    // v1.5.x — 묶음 위 겹침 클래스 해제 (다음 일반 열기 때 영향 없게)
+    document.getElementById('bdSheet')?.classList.remove('bd-above-grp');
+    document.getElementById('bdBackdrop')?.classList.remove('bd-above-grp');
     // 노트 뷰 → 책 본문으로 리셋 (다음 책 열 때 깨진 상태로 시작하지 않게)
     const body = document.getElementById('bdBody');
     const notesBody = document.getElementById('bdNotesBody');
