@@ -25273,8 +25273,10 @@ function _startBarcodeScan() {
     SCAN.html5qr = new Html5QrcodeLib('scanReader', {
       formatsToSupport: formats,
       experimentalFeatures: {
-        // 네이티브 BarcodeDetector API 있으면 사용 (Android Chrome)
-        useBarCodeDetectorIfSupported: true,
+        // v1.5.x — One UI 8.0 (갤럭시 S24+) WebView의 BarcodeDetector 구현 이슈로
+        // 스캔 시작 시 앱 다운 보고 → ZXing 폴리필 단일 경로로 통일 (CPU 디코드, 모든 환경 안전)
+        // 속도 차이는 무시 가능 수준 (ISBN-13/EAN-8/UPC-A만 지원이라 검색 공간 좁음)
+        useBarCodeDetectorIfSupported: false,
       },
       verbose: false,
     });
