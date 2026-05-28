@@ -1524,6 +1524,27 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   z-index: 2;
   text-shadow: 0 1px 2px rgba(0,0,0,.4);
 }
+/* v1.5.x — 시리즈 묶음 카드 (N권/화 뱃지 + 겹친 종이 느낌) */
+.mr-cover.is-series {
+  box-shadow: 3px 3px 0 -1px rgba(0,0,0,0.18), 6px 6px 0 -2px rgba(0,0,0,0.12);
+}
+.mr-cover-series {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  z-index: 3;
+  background: rgba(20,18,15,0.82);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.4;
+  text-shadow: none;
+}
+.mr-shelf.mode-compact .mr-cover-series { font-size: 7px; padding: 1px 4px; }
+.mr-shelf.mode-scroll .mr-cover-series { font-size: 6.5px; padding: 0 3px; }
 
 /* 매체 도넛 */
 .mr-donut-row {
@@ -30547,7 +30568,33 @@ function renderMonthStrip() {
       .join('');
   }
 
+  /* v1.5.x — 티켓 책 목록에서 같은 시리즈 묶음(groupId)을 한 장으로 접음.
+     20권 시리즈가 표지 20장으로 늘어지는 대신 [대표표지 + "N권/화" 뱃지] 하나로. */
+  function _collapseSeriesForShelf(books) {
+    const out = [];
+    const seen = new Map(); // groupId → out 내 인덱스
+    books.forEach(b => {
+      const gid = b.groupId;
+      if (!gid) { out.push(b); return; }
+      if (seen.has(gid)) {
+        const idx = seen.get(gid);
+        out[idx]._seriesCount = (out[idx]._seriesCount || 1) + 1;
+        if (!out[idx].coverUrl && b.coverUrl) out[idx].coverUrl = b.coverUrl;
+      } else {
+        const rep = { ...b, _seriesCount: 1, _isSeries: true };
+        let nm = null;
+        try { const g = _grpFindById(gid); if (g && g.name) nm = g.name; } catch(e){}
+        rep._seriesName = nm || (b.title || '').replace(/[\s]*[\d]+권?\s*$/u, '').trim() || b.title;
+        rep._seriesUnit = (b.format === 'webnovel' && b.episodeUnit === 'episode') ? '화' : '권';
+        out.push(rep);
+        seen.set(gid, out.length - 1);
+      }
+    });
+    return out;
+  }
+
   function renderShelf(books) {
+    books = _collapseSeriesForShelf(books);  // v1.5.x — 같은 시리즈는 한 장으로
     const n = books.length;
     if (n === 0) {
       return `<div class="mr-empty">이번 달 완독한 책이 없어요</div>`;
@@ -30558,10 +30605,9 @@ function renderMonthStrip() {
     else if (n >= 11) mode = 'mode-compact';
 
     const covers = books.map(b => {
-      const t = esc(b.title || '');
+      const isSeries = b._isSeries && b._seriesCount > 1;
+      const t = esc(isSeries ? (b._seriesName || b.title || '') : (b.title || ''));
       const isDone = b.status === 'done';
-      // Worker 프록시 경유 — Kakao CDN + 알라딘 + Google 모두 화이트리스트
-      // crossorigin="anonymous"로 html2canvas가 캡처 가능
       let img = '';
       if (b.coverUrl) {
         const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
@@ -30569,10 +30615,15 @@ function renderMonthStrip() {
           : b.coverUrl;
         img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
       }
-      // 표지 이미지 로드 실패 시 책 제목이 보이도록 — 글자수 제한 없이 풀로 표시
-      return `<div class="mr-cover" title="${t}">
+      // v1.5.x — 시리즈 묶음은 좌상단 "N권/화" 뱃지 + 스택 느낌
+      const seriesBadge = isSeries
+        ? `<span class="mr-cover-series">${b._seriesCount}${b._seriesUnit || '권'}</span>`
+        : '';
+      const stackCls = isSeries ? ' is-series' : '';
+      return `<div class="mr-cover${stackCls}" title="${t}">
         ${img}
         <span class="cover-title">${t}</span>
+        ${seriesBadge}
         ${isDone ? '<span class="star">★</span>' : ''}
       </div>`;
     }).join('');
