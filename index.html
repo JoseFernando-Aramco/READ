@@ -34434,6 +34434,11 @@ function closeQuickReadConfirm() {
 function openBookDetail(id) {
   const book = BOOKS.find(b => b.id === id);
   if (!book) return;
+  // v1.5.x — drilldown이 아직 열려있으면 먼저 닫음 (책상세가 묶음 리스트 뒤로 깔리는 문제 방지)
+  const ddSheet = document.getElementById('ddSheet');
+  if (ddSheet && ddSheet.classList.contains('open')) {
+    try { closeDrillDown(); } catch(e){}
+  }
   BD.book = book;
   BD.showRereadForm = false;
   BD.confirmDelete = false;
@@ -36921,7 +36926,8 @@ document.getElementById('ddList').addEventListener('click', (e) => {
   const id = parseInt(item.dataset.bookId, 10);
   if (id) {
     closeDrillDown();
-    setTimeout(() => openBookDetail(id), 250);
+    // dd 시트 닫힘 트랜지션(0.32s) 완료 후 열어야 책상세가 위로 뜸
+    setTimeout(() => openBookDetail(id), 360);
   }
 });
 
@@ -36932,7 +36938,7 @@ document.getElementById('ddGrid')?.addEventListener('click', (e) => {
   const id = parseInt(item.dataset.bookId, 10);
   if (id) {
     closeDrillDown();
-    setTimeout(() => openBookDetail(id), 250);
+    setTimeout(() => openBookDetail(id), 360);
   }
 });
 
