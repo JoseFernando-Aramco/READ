@@ -1323,14 +1323,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-stub {
   background: linear-gradient(180deg, var(--mr-primary, #6D4C41), var(--mr-primary-dark, #4A3328));
   color: #fff;
-  padding: 18px 8px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  width: 42px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 42px;
   position: relative;
 }
 .mr-stub::before,
@@ -1347,10 +1344,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .mr-stub::before { top: -5px; }
 .mr-stub::after  { bottom: -5px; }
 .mr-stub-line {
+  /* v1.5.x — writing-mode 대신 transform rotate (html2canvas가 세로쓰기 캡처 시 글자 회전시키는 버그 회피) */
+  transform: rotate(-90deg);
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .12em;
-  white-space: nowrap;
+  letter-spacing: .14em;
 }
 
 .mr-body {
