@@ -16795,6 +16795,22 @@ body.cn-locked {
   letter-spacing: -0.01em;
   backdrop-filter: blur(4px);
 }
+/* v1.5.x — 티켓 그리드 묶음 카드 (N권/화 뱃지 + 겹친 종이) */
+.dd-grid-grpbadge {
+  position: absolute;
+  top: 5px; left: 5px;
+  background: rgba(20,18,15,0.82);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.2px;
+  z-index: 3;
+}
+.dd-grid-item-stack .dd-grid-cover {
+  box-shadow: 3px 3px 0 -1px rgba(0,0,0,0.22), 6px 6px 0 -2px rgba(0,0,0,0.14);
+}
 
 /* 하단 바코드 */
 .dd-tk-barcode {
@@ -36930,33 +36946,65 @@ function _renderMonthGrid(books) {
     return bD - aD;
   });
 
-  grid.innerHTML = sorted.map(b => {
+  // v1.5.x — 같은 시리즈 묶음(groupId)을 한 장으로 접음 (표지 N장 → 대표 1장 + "N권/화")
+  const collapsed = [];
+  const seenGrp = new Map();
+  sorted.forEach(b => {
+    const gid = b.groupId;
+    if (!gid) { collapsed.push(b); return; }
+    if (seenGrp.has(gid)) {
+      const idx = seenGrp.get(gid);
+      collapsed[idx]._grpCount = (collapsed[idx]._grpCount || 1) + 1;
+      if (!collapsed[idx].coverUrl && b.coverUrl) collapsed[idx].coverUrl = b.coverUrl;
+    } else {
+      const rep = { ...b, _grpCount: 1, _isGrp: true };
+      let nm = null;
+      try { const g = _grpFindById(gid); if (g && g.name) nm = g.name; } catch(e){}
+      rep._grpName = nm || (b.title || '').replace(/[\s]*[\d]+권?\s*$/u, '').trim() || b.title;
+      rep._grpUnit = (b.format === 'webnovel' && b.episodeUnit === 'episode') ? '화' : '권';
+      rep._grpId = gid;
+      collapsed.push(rep);
+      seenGrp.set(gid, collapsed.length - 1);
+    }
+  });
+
+  grid.innerHTML = collapsed.map(b => {
+    const isGrp = b._isGrp && b._grpCount > 1;
     const hasCover = b.coverUrl && b.coverUrl.length > 0;
     const palColor = PALETTE_DARK[b.palette] || '#64748b';
+    const titleForFallback = isGrp ? (b._grpName || b.title) : b.title;
     const rating = (typeof b.rating === 'number' && b.rating > 0)
       ? `<div class="dd-grid-rating">★${b.rating.toFixed(1)}</div>`
       : '';
     const lifebook = b.isLifeBook
       ? `<div class="dd-grid-lifebook">LIFE</div>`
       : '';
-    // v1.5.x — Worker 프록시 + crossorigin anonymous로 처음부터 CORS-clean
-    //   Worker에 Kakao search CDN 화이트리스트 추가됨 (v2026.05.27 배포)
-    //   캡처 시 html2canvas가 바로 캔버스에 그릴 수 있음
+    // v1.5.x — 묶음이면 좌상단 "N권/화" 뱃지 + 스택 느낌
+    const grpBadge = isGrp
+      ? `<div class="dd-grid-grpbadge">${b._grpCount}${b._grpUnit || '권'}</div>`
+      : '';
     let coverHtml;
     if (hasCover) {
       const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
         ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
         : b.coverUrl;
-      coverHtml = `<img src="${esc(proxied)}" alt="${esc(b.title)}" loading="eager" crossorigin="anonymous" referrerpolicy="no-referrer" draggable="false"
-             onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(b.title)}</div>'">`;
+      coverHtml = `<img src="${esc(proxied)}" alt="${esc(titleForFallback)}" loading="eager" crossorigin="anonymous" referrerpolicy="no-referrer" draggable="false"
+             onerror="this.outerHTML='<div class=&quot;dd-grid-cover-fallback&quot; style=&quot;background:${palColor}&quot;>${esc(titleForFallback)}</div>'">`;
     } else {
-      coverHtml = `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(b.title)}</div>`;
+      coverHtml = `<div class="dd-grid-cover-fallback" style="background:${palColor}">${esc(titleForFallback)}</div>`;
     }
 
+    // 묶음이면 그룹 id, 단권이면 책 id를 data에 (클릭 분기용)
+    const dataAttr = isGrp
+      ? `data-grp-id="${esc(b._grpId)}"`
+      : `data-book-id="${b.id}"`;
+    const stackCls = isGrp ? ' dd-grid-item-stack' : '';
+
     return `
-      <div class="dd-grid-item" data-book-id="${b.id}">
+      <div class="dd-grid-item${stackCls}" ${dataAttr}>
         <div class="dd-grid-cover">
           ${coverHtml}
+          ${grpBadge}
           ${lifebook}
           ${rating}
         </div>
@@ -36987,8 +37035,18 @@ document.getElementById('ddList').addEventListener('click', (e) => {
   }
 });
 
-/* ─── 그리드 아이템 탭 → 책 상세로 전환 ─── */
+/* ─── 그리드 아이템 탭 → 책 상세 / 묶음 시트로 전환 ─── */
 document.getElementById('ddGrid')?.addEventListener('click', (e) => {
+  // v1.5.x — 묶음 카드는 묶음 시트 열기
+  const grpItem = e.target.closest('[data-grp-id]');
+  if (grpItem) {
+    const gid = grpItem.dataset.grpId;
+    closeDrillDown();
+    setTimeout(() => {
+      if (typeof _grpExpandSheet === 'function') _grpExpandSheet(gid);
+    }, 360);
+    return;
+  }
   const item = e.target.closest('[data-book-id]');
   if (!item) return;
   const id = parseInt(item.dataset.bookId, 10);
