@@ -1242,6 +1242,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 13px;
   font-weight: 700;
   color: var(--c-text);
+  white-space: nowrap;
   cursor: pointer;
   font-family: inherit;
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
@@ -1326,9 +1327,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   writing-mode: vertical-rl;
   text-orientation: mixed;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   width: 42px;
   position: relative;
@@ -1345,24 +1345,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   background: var(--c-bg);
 }
 .mr-stub::before { top: -5px; }
-.mr-stub::after { bottom: -5px; }
-.mr-stub-brand {
-  font-size: 8px;
+.mr-stub::after  { bottom: -5px; }
+.mr-stub-line {
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: .3em;
-  opacity: .85;
-}
-.mr-stub-month {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: .18em;
-  line-height: 1;
-}
-.mr-stub-year {
-  font-size: 10px;
-  font-weight: 600;
-  opacity: .9;
-  letter-spacing: .16em;
+  letter-spacing: .12em;
+  white-space: nowrap;
 }
 
 .mr-body {
@@ -22376,9 +22364,7 @@ body.cn-locked {
     <!-- 메인 티켓 -->
     <div class="mr-ticket" id="mrTicket">
       <div class="mr-stub">
-        <div class="mr-stub-brand">KEEPBOOK</div>
-        <div class="mr-stub-month" id="mrStubMonth">MAY</div>
-        <div class="mr-stub-year" id="mrStubYear">2026</div>
+        <div class="mr-stub-line" id="mrStubLine">KEEPBOOK · MAY 2026</div>
       </div>
       <div class="mr-body" id="mrBody">
         <!-- renderMonthReport()가 채움 -->
@@ -30036,15 +30022,13 @@ function renderMonthStrip() {
   }
 
   function setStub(year, month) {
-    const sm = document.getElementById('mrStubMonth');
-    const sy = document.getElementById('mrStubYear');
-    if (sm) sm.textContent = MONTH_NAMES_EN[month];
-    if (sy) sy.textContent = String(year);
+    const line = document.getElementById('mrStubLine');
+    if (line) line.textContent = `KEEPBOOK · ${MONTH_NAMES_EN[month]} ${year}`;
   }
 
   function setMonthLabel(year, month) {
     const lbl = document.getElementById('mrMonthLabel');
-    if (lbl) lbl.textContent = `${year}년 ${month + 1}월`;
+    if (lbl) lbl.textContent = `${year}.${String(month + 1).padStart(2, '0')}`;
   }
 
   function rebuildMonthDropdown() {
