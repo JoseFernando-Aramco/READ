@@ -8174,6 +8174,17 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .tag-chip .tc-action.tc-hide { background: #6B7280; }
 .tag-chip .tc-action.tc-delete { background: #DC2626; }
+/* v1.5.x — 연필(수정) 버튼: 칩 왼쪽에 배치. 사용자 태그는 좌우 모두 패딩 확보 */
+.tag-chip .tc-action.tc-edit {
+  background: var(--primary, #6D4C41);
+  left: 4px;
+  right: auto;
+  font-size: 10px;
+}
+.tag-chip.is-editable.is-delete-mode {
+  padding-left: 26px;
+  padding-right: 26px;
+}
 .tag-chip .tc-action.tc-restore {
   background: #059669;
   width: 22px;
@@ -9389,6 +9400,81 @@ body:has(.lib-edit-bar) .library-cards {
   font-weight: 600;
   font-size: 12.5px;
 }
+
+/* v1.5.x — 태그 수정 시트 */
+.tag-edit-sheet .tes-head {
+  margin-bottom: 16px;
+}
+.tes-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--c-text);
+  margin-bottom: 4px;
+}
+.tes-count {
+  font-size: 12px;
+  color: var(--c-text-2, #8a8a8a);
+  line-height: 1.4;
+}
+.tes-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.tes-emoji-btn {
+  width: 48px;
+  height: 44px;
+  flex: 0 0 48px;
+  font-size: 22px;
+  border: 1px solid var(--c-border, #ddd);
+  border-radius: 10px;
+  background: var(--c-surface-2, #f4f4f2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.tes-name-input {
+  flex: 1;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid var(--c-border, #ddd);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text);
+  box-sizing: border-box;
+}
+.tes-name-input:focus {
+  outline: none;
+  border-color: var(--primary, #6D4C41);
+}
+.tes-emoji-grid {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  margin-bottom: 14px;
+  background: var(--c-surface-2, #f4f4f2);
+  border-radius: 10px;
+}
+.tes-emoji-grid button {
+  width: 36px;
+  height: 36px;
+  font-size: 19px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--c-surface, #fff);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.tes-emoji-grid button.sel {
+  border-color: var(--primary, #6D4C41);
+  border-width: 2px;
+}
+
 
 /* 노트 카드 review 타입 라벨 색상 (인용/생각 옆에 자연 합류) */
 .note-type-pill.review {
@@ -17925,6 +18011,243 @@ body.cn-locked {
   background: var(--c-border);
 }
 
+/* v1.5.x — 분류별 정리 그룹 + 편집 */
+.cat-stat-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.cat-stat-edit-btn {
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 0.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text-2, #777);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-stat-edit-btn.is-done {
+  background: var(--c-text, #15110D);
+  color: #fff;
+  border-color: transparent;
+}
+.cat-grp-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0 0 14px;
+  margin: 0;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-grp-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.cat-grp-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.cat-grp-badge {
+  font-size: 9px;
+  color: var(--primary, #6D4C41);
+  border: 0.5px solid var(--primary, #6D4C41);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.cat-grp-cnt {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.cat-grp-cnt-unit {
+  font-size: 11px;
+  color: var(--c-muted);
+  font-weight: 400;
+}
+.cat-grp-bar {
+  display: block;
+  height: 8px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cat-grp-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+.cat-grp-tags {
+  display: block;
+  font-size: 10px;
+  color: var(--c-muted);
+  line-height: 1.4;
+}
+.cat-edit-help {
+  font-size: 12px;
+  color: var(--c-text-2, #777);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.cat-edit-grp {
+  border: 0.5px solid var(--c-border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.cat-edit-grp.is-open {
+  border-color: var(--primary, #6D4C41);
+  border-width: 1.5px;
+}
+.cat-edit-grp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--c-surface-2, #f4f4f2);
+}
+.cat-toggle {
+  width: 38px;
+  height: 22px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  background: var(--c-border, #ccc);
+  transition: background .15s;
+  padding: 0;
+}
+.cat-toggle.is-on {
+  background: var(--primary, #6D4C41);
+}
+.cat-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left .15s;
+}
+.cat-toggle.is-on .cat-toggle-knob {
+  left: 18px;
+}
+.cat-edit-grp-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.cat-edit-grp-info.is-off {
+  opacity: 0.5;
+}
+.cat-grp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.cat-edit-grp-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-edit-grp-meta {
+  font-size: 11px;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.cat-edit-grp-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cat-mini-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 0.5px solid var(--c-border);
+  background: var(--c-surface, #fff);
+  color: var(--c-text);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-mini-btn.danger {
+  color: #DC2626;
+}
+.cat-edit-picker {
+  padding: 12px;
+}
+.cat-edit-picker-hint {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+.cat-edit-picker-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cat-pick-tag {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  border: 0.5px solid var(--c-border);
+  background: var(--c-surface, #fff);
+  color: var(--c-text);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-pick-tag.is-in {
+  border: 1.5px solid var(--primary, #6D4C41);
+  background: var(--primary-bg, #f0e9e5);
+  color: var(--primary, #6D4C41);
+}
+.cat-edit-add {
+  width: 100%;
+  font-size: 13px;
+  padding: 11px;
+  border-radius: 8px;
+  border: 0.5px dashed var(--c-border);
+  background: transparent;
+  color: var(--c-text-2, #777);
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-edit-reset {
+  width: 100%;
+  font-size: 12px;
+  padding: 9px;
+  border: none;
+  background: transparent;
+  color: var(--c-muted);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
 /* ═══════════════════════════════════════════════════════════
    v1.8.0 — 종이값 (책에 들인 돈) 시트
    매체 무관 합산 · 동전 골드 톤 · 알라딘 자동 + 수동 편집
@@ -21979,7 +22302,25 @@ body.cn-locked {
   </div>
 </aside>
 
-<!-- ═══════════ 앱 정보 모달 ═══════════ -->
+<!-- v1.5.x — 태그 수정 시트 (이름·이모지 변경, 사용자 태그 전용) -->
+<div class="qn-backdrop" id="tagEditBackdrop"></div>
+<aside class="qn-sheet tag-edit-sheet" id="tagEditSheet" aria-hidden="true">
+  <div class="qn-grip"></div>
+  <div class="tes-head">
+    <div class="tes-title">태그 수정</div>
+    <div class="tes-count" id="tagEditCount"></div>
+  </div>
+  <div class="tes-row">
+    <button type="button" class="tes-emoji-btn" id="tagEditEmojiBtn" aria-label="이모지 선택">🏷</button>
+    <input type="text" class="tes-name-input" id="tagEditNameInput" maxlength="20" placeholder="예: 꿈도희망도없음" />
+  </div>
+  <div class="tes-emoji-grid" id="tagEditEmojiGrid"></div>
+  <div class="qn-actions">
+    <button class="qn-btn secondary" id="tagEditCancel">취소</button>
+    <button class="qn-btn primary" id="tagEditSave">저장</button>
+  </div>
+</aside>
+
 <div class="ab-backdrop" id="abBackdrop"></div>
 <div class="ab-modal" id="abModal" aria-hidden="true">
   <div class="ab-card">
@@ -26930,7 +27271,8 @@ function submitManual() {
 
   BA.selected = {
     title, author,
-    pages: isWebnovelFmt ? 0 : (Number.isFinite(pages) && pages > 0 ? pages : 0),
+    // v1.5.x — 웹소설도 페이지 입력값 저장 (회차와 병행). 기존 isWebnovelFmt?0 강제 제거.
+    pages: (Number.isFinite(pages) && pages > 0 ? pages : 0),
     year: String(fd.get('year') || '').trim(),
     publisher: String(fd.get('publisher') || '').trim(),
     cover: BA.manualCover || '',
@@ -26982,16 +27324,32 @@ function submitManualBundle() {
     const isWebnov = b.format === 'webnovel';
     const baseTimestamp = Date.now();
 
+    // v1.5.x — id 충돌 버그 수정 (기록 사라짐 원인)
+    //   기존 (baseTimestamp + i + random*1000)은 i 증가폭(1)<random 범위(0~999)라
+    //   20권 등록 시 ~17% 확률로 권끼리 id 충돌 → updateBook의 findIndex가 첫 매칭만 잡아
+    //   다른 권의 세션/상태가 사라지거나 덮어쓰임.
+    //   → 기존 BOOKS의 모든 id + 이번에 발급한 id를 Set으로 추적해서 충돌 시 재발급, 고유 보장.
+    const _usedIds = new Set(BOOKS.map(x => x.id));
+    const _genUniqueId = () => {
+      let id;
+      do {
+        id = baseTimestamp + Math.floor(Math.random() * 1e9);
+      } while (_usedIds.has(id));
+      _usedIds.add(id);
+      return id;
+    };
+
     // N권 책 객체 생성
     const newBooks = [];
     for (let i = 1; i <= n; i++) {
       const volTitle = baseTitle + ' ' + i;
       const palette = pickPalette(volTitle + (b.author || ''));
       const newBook = {
-        id: baseTimestamp + i + Math.floor(Math.random() * 1000),
+        id: _genUniqueId(),
         title: volTitle,
         author: b.author || '',
-        pages: isWebnov ? 0 : (b.pages || 0),
+        // v1.5.x — 웹소설도 페이지 입력값 사용 (회차와 병행). 기존 isWebnov?0 강제 제거.
+        pages: b.pages || 0,
         palette,
         status: 'wish',  // 일괄 wish default
         tags: [],
@@ -27093,25 +27451,29 @@ function renderConfirm() {
       <div class="confirm-meta">${esc(metaParts)}</div>
     </div>`;
 
-  // 페이지 수 input — 웹소설일 땐 섹션 자체를 숨김
+  // v1.5.x — 페이지 수 input: 모든 매체에서 노출 (웹소설도 회차와 페이지 병행 관리).
+  //   기존엔 웹소설이면 섹션을 숨겨 페이지 입력이 불가능했음.
   const pagesInput = document.getElementById('confirmPages');
   const pagesHint = document.getElementById('pagesHint');
   const pagesSection = pagesInput ? pagesInput.closest('.confirm-section') : null;
-  if (pagesSection) pagesSection.hidden = isWebnov;
-  if (pagesInput && !isWebnov) {
+  if (pagesSection) pagesSection.hidden = false;
+  if (pagesInput) {
     pagesInput.value = b.pages > 0 ? b.pages : '';
-    pagesInput.placeholder = '예: 248';
+    pagesInput.placeholder = isWebnov ? '회차당 평균 분량 등 (선택)' : '예: 248';
     // 확정 시 BA.selected.pages 동기화를 위한 input 이벤트
     pagesInput.oninput = (e) => {
       const v = parseInt(e.target.value, 10);
       if (!isNaN(v) && v > 0) BA.selected.pages = v;
-      // 미리보기 meta도 실시간 갱신
-      const metaEl = preview.querySelector('.confirm-meta');
-      if (metaEl) {
-        const parts = [b.year, `${v || b.pages || '?'}p`,
-          b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
-          .filter(Boolean).join(' · ');
-        metaEl.textContent = parts;
+      else if (e.target.value.trim() === '') BA.selected.pages = 0;
+      // 미리보기 meta도 실시간 갱신 (웹소설은 회차 메타 유지)
+      if (!isWebnov) {
+        const metaEl = preview.querySelector('.confirm-meta');
+        if (metaEl) {
+          const parts = [b.year, `${v || b.pages || '?'}p`,
+            b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
+            .filter(Boolean).join(' · ');
+          metaEl.textContent = parts;
+        }
       }
     };
   }
@@ -27376,11 +27738,161 @@ function tryDeleteTag(name, onDone) {
       if (Array.isArray(BA.tagsSelected)) {
         BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
       }
+      // v1.5.x — 분류 그룹에서도 제거
+      if (typeof CAT_GROUPS !== 'undefined' && Array.isArray(CAT_GROUPS)) {
+        CAT_GROUPS.forEach(g => {
+          const gi = g.tags.indexOf(name);
+          if (gi >= 0) g.tags.splice(gi, 1);
+        });
+        if (typeof _saveCatGroups === 'function') _saveCatGroups(CAT_GROUPS);
+      }
       showToast(`"${name}" 태그를 삭제했어요`);
       if (typeof onDone === 'function') onDone();
     },
   });
 }
+
+/* v1.5.x — 사용자 태그 수정 (이름·이모지). 사용 중이어도 가능, 모든 책에 전파 */
+function openTagEditSheet(oldName) {
+  const t = TAGS[oldName];
+  if (!t) return;
+  if (t.source !== 'user') {
+    showToast('기본 태그는 수정할 수 없어요');
+    return;
+  }
+  // 사용 중인 책 수 카운트
+  let usedCount = 0;
+  if (Array.isArray(BOOKS)) {
+    BOOKS.forEach(b => {
+      if (Array.isArray(b.tags) && b.tags.includes(oldName)) usedCount++;
+    });
+  }
+  const sheet = document.getElementById('tagEditSheet');
+  const backdrop = document.getElementById('tagEditBackdrop');
+  const nameInput = document.getElementById('tagEditNameInput');
+  const emojiBtn = document.getElementById('tagEditEmojiBtn');
+  const countEl = document.getElementById('tagEditCount');
+  const grid = document.getElementById('tagEditEmojiGrid');
+  if (!sheet || !backdrop || !nameInput) return;
+
+  // 상태 저장
+  sheet.dataset.oldName = oldName;
+  sheet.dataset.emoji = t.emoji || '🏷';
+  nameInput.value = oldName;
+  if (emojiBtn) emojiBtn.textContent = t.emoji || '🏷';
+  if (countEl) countEl.textContent = usedCount > 0
+    ? `이 태그가 붙은 책 ${usedCount}권에 자동 반영돼요`
+    : '아직 사용된 책이 없어요';
+  if (grid) grid.style.display = 'none';
+
+  backdrop.classList.add('is-open');
+  sheet.classList.add('is-open');
+  sheet.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+
+function closeTagEditSheet() {
+  const sheet = document.getElementById('tagEditSheet');
+  const backdrop = document.getElementById('tagEditBackdrop');
+  if (!sheet || !backdrop) return;
+  sheet.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+  sheet.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+
+/* 태그 이름 변경을 모든 책의 tags 배열에 전파 */
+function _renameTagEverywhere(oldName, newName) {
+  if (oldName === newName) return 0;
+  let changed = 0;
+  if (Array.isArray(BOOKS)) {
+    BOOKS.forEach(b => {
+      if (!Array.isArray(b.tags)) return;
+      const idx = b.tags.indexOf(oldName);
+      if (idx >= 0) {
+        // 새 이름이 이미 있으면 중복 제거하며 교체
+        if (b.tags.includes(newName)) {
+          b.tags.splice(idx, 1);
+        } else {
+          b.tags[idx] = newName;
+        }
+        changed++;
+      }
+    });
+  }
+  return changed;
+}
+
+function saveTagEdit() {
+  const sheet = document.getElementById('tagEditSheet');
+  const nameInput = document.getElementById('tagEditNameInput');
+  if (!sheet || !nameInput) return;
+  const oldName = sheet.dataset.oldName;
+  const newEmoji = sheet.dataset.emoji || '🏷';
+  const newName = nameInput.value.trim();
+
+  if (!newName) { showToast('태그 이름을 입력해주세요'); return; }
+  if (newName.length > 20) { showToast('태그 이름이 너무 길어요 (최대 20자)'); return; }
+  // 중복 검사 (자기 자신 제외)
+  if (newName !== oldName && TAGS[newName]) {
+    showToast('이미 있는 태그 이름이에요');
+    return;
+  }
+  const t = TAGS[oldName];
+  if (!t) { closeTagEditSheet(); return; }
+
+  const nameChanged = (newName !== oldName);
+  let bookCount = 0;
+
+  if (nameChanged) {
+    // 1) TAGS 키 교체 (emoji/color/category/source 유지)
+    delete TAGS[oldName];
+    TAGS[newName] = { ...t, emoji: newEmoji };
+    // 2) HIDDEN_TAGS에 있었다면 키 교체
+    if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(oldName)) {
+      HIDDEN_TAGS.delete(oldName);
+      HIDDEN_TAGS.add(newName);
+    }
+    // 3) BA 선택 목록 교체
+    if (Array.isArray(BA.tagsSelected)) {
+      BA.tagsSelected = BA.tagsSelected.map(x => x === oldName ? newName : x);
+    }
+    // 4) 모든 책 전파
+    bookCount = _renameTagEverywhere(oldName, newName);
+    // 5) 분류 그룹(CAT_GROUPS)의 tags 배열에도 반영
+    if (typeof CAT_GROUPS !== 'undefined' && Array.isArray(CAT_GROUPS)) {
+      CAT_GROUPS.forEach(g => {
+        const gi = g.tags.indexOf(oldName);
+        if (gi >= 0) {
+          if (g.tags.includes(newName)) g.tags.splice(gi, 1);
+          else g.tags[gi] = newName;
+        }
+      });
+      if (typeof _saveCatGroups === 'function') _saveCatGroups(CAT_GROUPS);
+    }
+  } else {
+    // 이모지만 변경
+    TAGS[oldName] = { ...t, emoji: newEmoji };
+  }
+
+  // 저장
+  STORE.set('tags', TAGS);
+  if (typeof HIDDEN_TAGS !== 'undefined') { try { STORE.set('hiddenTags', Array.from(HIDDEN_TAGS)); } catch(e){} }
+  if (nameChanged) STORE.set('books', BOOKS);
+
+  closeTagEditSheet();
+  renderTagChips();
+  try { renderTagRadar && renderTagRadar(); } catch(e){}
+  try { renderCategoryStats && renderCategoryStats(); } catch(e){}
+  try { renderBookDetailTags && renderBookDetailTags(); } catch(e){}
+
+  if (nameChanged) {
+    showToast(`"${oldName}" → "${newName}" 변경 · 책 ${bookCount}권 반영됨`);
+  } else {
+    showToast('이모지를 바꿨어요');
+  }
+}
+
 
 /* v1.9.0 — 카테고리별 가시 태그 (숨김 제외) */
 function _getTagsByCategory(cat) {
@@ -27511,7 +28023,9 @@ function renderTagChips() {
       let actionBtn = '';
       if (editing) {
         if (t.source === 'user') {
-          actionBtn = `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
+          // v1.5.x — 사용자 태그: 왼쪽 연필(이름·이모지 수정) + 오른쪽 빨간 ×(영구 삭제)
+          actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
+            + `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
         } else {
           actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
         }
@@ -27539,6 +28053,8 @@ function renderTagChips() {
           _restoreTag(name);
         } else if (action === 'delete') {
           tryDeleteTag(name, () => renderTagChips());
+        } else if (action === 'edit') {
+          openTagEditSheet(name);
         }
         return;
       }
@@ -27820,13 +28336,13 @@ function confirmAddBook() {
   const today = new Date().toISOString().slice(0, 10);
   const palette = pickPalette(b.title + b.author);
 
-  // v1.10.1 — 웹소설은 페이지 수 검증 건너뜀 (회차 기반)
+  // v1.5.x — 웹소설도 페이지 입력 허용 (회차와 병행 관리).
+  //   기존엔 웹소설이면 inputPages=0으로 강제해서, confirm 화면에 보이는 페이지 칸에
+  //   값을 넣어도 무시됐음 (사용자 혼란 + "페이지 안 먹힘" 버그). 이제 모든 매체 동일하게 입력값 사용.
   const isWebnov = b.format === 'webnovel';
   let inputPages;
-  if (isWebnov) {
-    inputPages = 0;
-  } else {
-    // v1.3.0 — 페이지 수 선택 항목. 빈 값/0이면 0으로 저장 허용. 너무 큰 값만 차단
+  {
+    // 페이지 수 선택 항목. 빈 값/0이면 0으로 저장 허용. 너무 큰 값만 차단
     const pagesInputEl = document.getElementById('confirmPages');
     const raw = pagesInputEl ? pagesInputEl.value.trim() : '';
     if (raw === '') {
@@ -28004,7 +28520,7 @@ document.getElementById('webnovelQuickBtn')?.addEventListener('click', () => {
   const pagesInput = pagesYearRow ? pagesYearRow.querySelector('input[name="pages"]') : null;
   const episodesInput = webnovelFields ? webnovelFields.querySelector('input[name="episodes"]') : null;
   if (fmtRow) fmtRow.hidden = true;
-  if (pagesYearRow) pagesYearRow.hidden = true;
+  if (pagesYearRow) pagesYearRow.hidden = false;  // v1.5.x — 웹소설도 페이지 입력 허용 (회차와 병행)
   if (webnovelFields) webnovelFields.hidden = false;
   if (pagesInput) pagesInput.required = false;
   if (episodesInput) episodesInput.required = true;
@@ -28152,7 +28668,7 @@ document.getElementById('coverClearBtn').addEventListener('click', () => {
     const authorInput = document.getElementById('manualAuthorInput');
     const authorReq = document.getElementById('manualAuthorReq');
     if (fmt === 'webnovel') {
-      if (pagesYearRow) pagesYearRow.hidden = true;
+      if (pagesYearRow) pagesYearRow.hidden = false;  // v1.5.x — 웹소설도 페이지 입력 허용 (회차와 병행)
       if (webnovelFields) webnovelFields.hidden = false;
       if (pagesInput) pagesInput.required = false;
       if (episodesInput) episodesInput.required = true;
@@ -31900,6 +32416,48 @@ function _qnAutoResize() {
     const bookId = parseInt(card.dataset.bookId, 10);
     if (!bookId) return;
     openQuickNote(bookId);
+  });
+})();
+
+/* v1.5.x — 태그 수정 시트 wire (이모지 그리드 + 버튼) */
+(function wireTagEditSheet() {
+  const EMOJIS = ['🏷','🌃','🌑','💀','🥀','🌌','🔥','⚡','🗡','🐉','🔍','💕','🧠','🌿','📜','⏪','♻️','✨','🎭','📈','🏛','💰','🚀','👻','📖','🌙','⭐','🎯','🧩','🎨'];
+  const emojiBtn = document.getElementById('tagEditEmojiBtn');
+  const grid = document.getElementById('tagEditEmojiGrid');
+  const cancel = document.getElementById('tagEditCancel');
+  const save = document.getElementById('tagEditSave');
+  const backdrop = document.getElementById('tagEditBackdrop');
+  const sheet = document.getElementById('tagEditSheet');
+
+  // 이모지 그리드 빌드
+  if (grid) {
+    grid.innerHTML = EMOJIS.map(e => `<button type="button" data-emoji="${e}">${e}</button>`).join('');
+    grid.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        const e = b.dataset.emoji;
+        if (sheet) sheet.dataset.emoji = e;
+        if (emojiBtn) emojiBtn.textContent = e;
+        grid.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x.dataset.emoji === e));
+        grid.style.display = 'none';
+      });
+    });
+  }
+  // 이모지 버튼 → 그리드 토글
+  if (emojiBtn && grid) {
+    emojiBtn.addEventListener('click', () => {
+      const cur = sheet ? sheet.dataset.emoji : '';
+      grid.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x.dataset.emoji === cur));
+      grid.style.display = (grid.style.display === 'flex') ? 'none' : 'flex';
+    });
+  }
+  if (cancel) cancel.addEventListener('click', closeTagEditSheet);
+  if (backdrop) backdrop.addEventListener('click', closeTagEditSheet);
+  if (save) save.addEventListener('click', saveTagEdit);
+
+  document.addEventListener('keydown', (e) => {
+    if (!sheet || !sheet.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeTagEditSheet();
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') saveTagEdit();
   });
 })();
 
@@ -38511,106 +39069,165 @@ function renderRentStatCard() {
   }).join('');
 }
 
-/* v1.0.1 — 분류별 정리 (장르 + 논픽션 권수 랭킹, 상위 5 + 더보기) */
+/* v1.5.x — 분류별 정리 (사용자 구성 가능 분류 그룹 + 토글/태그선택/편집) */
 const CAT_STAT_INITIAL_LIMIT = 5;
 let _catStatExpanded = false;
+let _catStatEditMode = false;   // 편집 모드
+let _catStatOpenGroup = null;   // 태그 고르기 펼친 그룹 id
+
+const CAT_GROUPS_KEY = 'read.catGroups.v1';
+
+/* 기본 분류 그룹 빌드 — TAG_CATEGORIES 각 카테고리 + 그 안의 태그들 */
+function _buildDefaultCatGroups() {
+  const groups = [];
+  Object.entries(TAG_CATEGORIES).forEach(([catId, label]) => {
+    const tags = Object.entries(TAGS)
+      .filter(([n, t]) => t.category === catId)
+      .map(([n]) => n);
+    groups.push({ id: catId, name: label, tags, custom: false, on: true });
+  });
+  return groups;
+}
+
+/* 분류 그룹 로드 (저장본이 진실, 없으면 기본) */
+function _loadCatGroups() {
+  const saved = STORE.get(CAT_GROUPS_KEY, null);
+  if (Array.isArray(saved) && saved.length) {
+    // 저장본의 태그 중 현재 존재하지 않는(삭제된) 태그는 정리
+    return saved.map(g => ({
+      ...g,
+      tags: Array.isArray(g.tags) ? g.tags.filter(n => TAGS[n]) : [],
+    }));
+  }
+  return _buildDefaultCatGroups();
+}
+
+function _saveCatGroups(groups) {
+  try { STORE.set(CAT_GROUPS_KEY, groups); } catch(e){}
+}
+
+let CAT_GROUPS = null;  // lazy init (TAGS 준비 후)
+
+/* 그룹의 고유 책 수 (중복 제거 — 한 책이 그룹 내 여러 태그 가져도 1권) */
+function _groupBookCount(group) {
+  if (!Array.isArray(BOOKS)) return 0;
+  let n = 0;
+  BOOKS.forEach(b => {
+    const tags = Array.isArray(b.tags) ? b.tags : [];
+    if (group.tags.some(t => tags.includes(t))) n++;
+  });
+  return n;
+}
+
+/* 그룹에 속한 책 목록 (drilldown용, 중복 제거) */
+function _groupBooks(group) {
+  if (!Array.isArray(BOOKS)) return [];
+  return BOOKS.filter(b => {
+    const tags = Array.isArray(b.tags) ? b.tags : [];
+    return group.tags.some(t => tags.includes(t));
+  });
+}
 
 function renderCategoryStats() {
   const container = document.getElementById('catStatList');
   if (!container) return;
-  
-  // 1) 카운트: 장르 + 논픽션 카테고리 태그만 대상, 전체 책(모든 상태) 포함
-  //    한 책이 여러 태그를 가질 수 있으므로 태그마다 ++
-  const counts = {};      // tagName → 권수
-  const repBooks = {};    // tagName → 대표 책 후보 배열
-  
-  if (typeof DEFAULT_TAGS === 'undefined' || !Array.isArray(BOOKS)) {
+  if (typeof TAG_CATEGORIES === 'undefined' || !Array.isArray(BOOKS)) {
     container.innerHTML = '';
     return;
   }
-  
-  // 대상 태그 목록 (genre + nonfiction 카테고리만, HIDDEN_TAGS 제외)
-  const targetTags = new Set();
-  Object.entries(DEFAULT_TAGS).forEach(([name, info]) => {
-    if (info.category !== 'genre' && info.category !== 'nonfiction') return;
-    if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(name)) return;
-    targetTags.add(name);
-  });
-  
-  // 카운트
-  BOOKS.forEach(book => {
-    const tags = Array.isArray(book.tags) ? book.tags : [];
-    tags.forEach(t => {
-      if (!targetTags.has(t)) return;
-      counts[t] = (counts[t] || 0) + 1;
-      if (!repBooks[t]) repBooks[t] = [];
-      repBooks[t].push(book);
-    });
-  });
-  
-  // 2) 정렬: 권수 많은 순. 0인 분류는 자동 제외 (counts에 없으니까)
-  const sorted = Object.keys(counts)
-    .map(name => ({ name, count: counts[name], books: repBooks[name] }))
-    .sort((a, b) => b.count - a.count);
-  
-  if (!sorted.length) {
-    container.innerHTML = '<div class="cat-stat-empty">분류 태그가 부여된 책이 아직 없어요</div>';
+  if (!CAT_GROUPS) CAT_GROUPS = _loadCatGroups();
+
+  if (_catStatEditMode) {
+    renderCatStatsEdit(container);
+  } else {
+    renderCatStatsView(container);
+  }
+}
+
+/* 보기 모드 — 켜진 그룹만, 고유 책수 막대 */
+function renderCatStatsView(container) {
+  const PAL = ['#6b21a8', '#9a3412', '#0f766e', '#1e40af', '#be185d', '#854f0b', '#3b6d11', '#334155'];
+  const onGroups = CAT_GROUPS.filter(g => g.on && g.tags.length > 0);
+  const withCounts = onGroups
+    .map(g => ({ g, c: _groupBookCount(g) }))
+    .filter(x => x.c > 0)
+    .sort((a, b) => b.c - a.c);
+
+  const editBtn = `<button type="button" class="cat-stat-edit-btn" data-action="cat-stat-edit">✎ 분류 편집</button>`;
+
+  if (!withCounts.length) {
+    container.innerHTML = `<div class="cat-stat-toolbar">${editBtn}</div>`
+      + '<div class="cat-stat-empty">표시할 분류가 없어요. 편집에서 분류를 켜거나 태그를 담아보세요</div>';
     return;
   }
-  
-  // 3) 대표 책 선정: 인생책(isLifeBook) → 최근(updatedAt or addedAt or dateEnd) → 별점 우선
-  const pickRepBook = (books) => {
-    if (!books || !books.length) return null;
-    // 인생책 먼저
-    const lifeBook = books.find(b => b.isLifeBook);
-    if (lifeBook) return lifeBook;
-    // 최근 → 별점 순 정렬
-    const sortedBooks = [...books].sort((a, b) => {
-      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
-      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
-      if (bTime !== aTime) return bTime - aTime;
-      const aRating = a.rating || 0;
-      const bRating = b.rating || 0;
-      return bRating - aRating;
-    });
-    return sortedBooks[0];
-  };
-  
-  // 4) 상위 5 + 더보기 처리
-  const total = sorted.length;
-  const visible = _catStatExpanded ? sorted : sorted.slice(0, CAT_STAT_INITIAL_LIMIT);
+
+  const max = Math.max(1, ...withCounts.map(x => x.c));
+  const total = withCounts.length;
+  const visible = _catStatExpanded ? withCounts : withCounts.slice(0, CAT_STAT_INITIAL_LIMIT);
   const hiddenCount = Math.max(0, total - visible.length);
-  
-  // 5) 렌더
-  const tagInfo = DEFAULT_TAGS;
-  const rowsHtml = visible.map((entry, idx) => {
-    const rank = idx + 1;
-    const rep = pickRepBook(entry.books);
-    const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
-    const info = tagInfo[entry.name] || {};
-    const emoji = info.emoji || '📚';
-    const coverImg = cover
-      ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`
-      : '';
-    const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
+
+  const rows = visible.map((x, i) => {
+    const g = x.g, c = x.c;
+    const color = PAL[CAT_GROUPS.indexOf(g) % PAL.length];
+    const customBadge = g.custom ? `<span class="cat-grp-badge">내 분류</span>` : '';
     return `
-      <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
-        <span class="cat-stat-rank">#${rank}</span>
-        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}">${coverImg}${fallback}</span>
-        <span class="cat-stat-name">${esc(entry.name)}</span>
-        <span class="cat-stat-cnt">${entry.count}</span>
-        <span class="cat-stat-arrow">›</span>
+      <button type="button" class="cat-grp-row" data-action="cat-grp-open" data-grp="${esc(g.id)}">
+        <span class="cat-grp-head">
+          <span class="cat-grp-name">${esc(g.name)}${customBadge}</span>
+          <span class="cat-grp-cnt">${c}<span class="cat-grp-cnt-unit">권</span></span>
+        </span>
+        <span class="cat-grp-bar"><span class="cat-grp-bar-fill" style="width:${Math.round(c / max * 100)}%; background:${color};"></span></span>
       </button>`;
   }).join('');
-  
+
   let moreHtml = '';
   if (hiddenCount > 0) {
     moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-more">+ 더보기 ${hiddenCount}개</button>`;
   } else if (_catStatExpanded && total > CAT_STAT_INITIAL_LIMIT) {
     moreHtml = `<button type="button" class="cat-stat-more" data-action="cat-stat-collapse">접기</button>`;
   }
-  
-  container.innerHTML = rowsHtml + moreHtml;
+
+  container.innerHTML = `<div class="cat-stat-toolbar">${editBtn}</div>` + rows + moreHtml;
+}
+
+/* 편집 모드 — 토글 / 태그 고르기 / 이름변경 / 삭제 / 새분류 / 되돌리기 */
+function renderCatStatsEdit(container) {
+  const PAL = ['#6b21a8', '#9a3412', '#0f766e', '#1e40af', '#be185d', '#854f0b', '#3b6d11', '#334155'];
+  let h = `<div class="cat-stat-toolbar"><button type="button" class="cat-stat-edit-btn is-done" data-action="cat-stat-edit-done">완료</button></div>`;
+  h += `<div class="cat-edit-help">분류를 켜고/끌 수 있어요. 태그를 직접 담거나 새 분류도 만들 수 있어요.</div>`;
+
+  CAT_GROUPS.forEach(g => {
+    const color = PAL[CAT_GROUPS.indexOf(g) % PAL.length];
+    const isOpen = _catStatOpenGroup === g.id;
+    const dim = g.on ? '' : ' is-off';
+    h += `<div class="cat-edit-grp${isOpen ? ' is-open' : ''}">`;
+    h += `<div class="cat-edit-grp-head">`;
+    h += `<button type="button" class="cat-toggle${g.on ? ' is-on' : ''}" data-action="cat-grp-toggle" data-grp="${esc(g.id)}" aria-label="켜기끄기"><span class="cat-toggle-knob"></span></button>`;
+    h += `<span class="cat-edit-grp-info${dim}"><span class="cat-grp-dot" style="background:${color}"></span><span class="cat-edit-grp-name">${esc(g.name)}</span><span class="cat-edit-grp-meta">${g.tags.length}개 · ${_groupBookCount(g)}권</span></span>`;
+    h += `<span class="cat-edit-grp-actions">`;
+    h += `<button type="button" class="cat-mini-btn" data-action="cat-grp-rename" data-grp="${esc(g.id)}" aria-label="이름변경">✎</button>`;
+    if (g.custom) h += `<button type="button" class="cat-mini-btn danger" data-action="cat-grp-del" data-grp="${esc(g.id)}" aria-label="삭제">✕</button>`;
+    h += `<button type="button" class="cat-mini-btn" data-action="cat-grp-pick" data-grp="${esc(g.id)}">${isOpen ? '닫기' : '태그'}</button>`;
+    h += `</span></div>`;
+
+    if (isOpen) {
+      h += `<div class="cat-edit-picker">`;
+      h += `<div class="cat-edit-picker-hint">담을 태그를 탭하세요 (겹치면 빼면 돼요)</div>`;
+      h += `<div class="cat-edit-picker-tags">`;
+      // 모든 태그 (숨김 제외)
+      Object.entries(TAGS).forEach(([n, t]) => {
+        if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(n)) return;
+        const inG = g.tags.includes(n);
+        h += `<button type="button" class="cat-pick-tag${inG ? ' is-in' : ''}" data-action="cat-grp-toggletag" data-grp="${esc(g.id)}" data-tag="${esc(n)}">${inG ? '✓ ' : ''}${t.emoji || ''} ${esc(n)}</button>`;
+      });
+      h += `</div></div>`;
+    }
+    h += `</div>`;
+  });
+
+  h += `<button type="button" class="cat-edit-add" data-action="cat-grp-add">+ 새 분류 만들기</button>`;
+  h += `<button type="button" class="cat-edit-reset" data-action="cat-grp-reset">↺ 기본 분류로 되돌리기</button>`;
+  container.innerHTML = h;
 }
 
 /* v1.0.1 — 분류 행 클릭 → drilldown 시트 + 더보기/접기 토글 */
@@ -38631,25 +39248,109 @@ function renderCategoryStats() {
       renderCategoryStats();
       return;
     }
-    // 분류 행 클릭 → drilldown
-    const btn = e.target.closest('[data-action="cat-stat-open"]');
-    if (!btn) return;
-    const tagName = btn.dataset.tag;
-    if (!tagName) return;
-    // 해당 태그가 부여된 모든 책 추출 (전체 상태)
-    const books = (BOOKS || []).filter(b => Array.isArray(b.tags) && b.tags.includes(tagName));
-    if (!books.length) return;
-    // 정렬: 최근 → 별점 우선 (드릴다운 안에서 일관성)
-    const sorted = books.sort((a, b) => {
-      const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
-      const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
-      if (bTime !== aTime) return bTime - aTime;
-      return (b.rating || 0) - (a.rating || 0);
-    });
-    const info = (typeof DEFAULT_TAGS !== 'undefined' ? DEFAULT_TAGS[tagName] : null) || {};
-    const emoji = info.emoji || '🏷';
-    if (typeof openDrillDown === 'function') {
-      openDrillDown(`${emoji} ${tagName}`, `총 ${sorted.length}권`, sorted);
+    // 편집 모드 토글
+    if (e.target.closest('[data-action="cat-stat-edit"]')) {
+      _catStatEditMode = true;
+      _catStatOpenGroup = null;
+      renderCategoryStats();
+      return;
+    }
+    if (e.target.closest('[data-action="cat-stat-edit-done"]')) {
+      _catStatEditMode = false;
+      _catStatOpenGroup = null;
+      _saveCatGroups(CAT_GROUPS);
+      renderCategoryStats();
+      return;
+    }
+    // 그룹 켜기/끄기
+    const toggleBtn = e.target.closest('[data-action="cat-grp-toggle"]');
+    if (toggleBtn) {
+      const g = CAT_GROUPS.find(x => x.id === toggleBtn.dataset.grp);
+      if (g) { g.on = !g.on; _saveCatGroups(CAT_GROUPS); renderCategoryStats(); }
+      return;
+    }
+    // 태그 고르기 펼침/접기
+    const pickBtn = e.target.closest('[data-action="cat-grp-pick"]');
+    if (pickBtn) {
+      const id = pickBtn.dataset.grp;
+      _catStatOpenGroup = (_catStatOpenGroup === id) ? null : id;
+      renderCategoryStats();
+      return;
+    }
+    // 태그 담기/빼기
+    const tagBtn = e.target.closest('[data-action="cat-grp-toggletag"]');
+    if (tagBtn) {
+      const g = CAT_GROUPS.find(x => x.id === tagBtn.dataset.grp);
+      const tn = tagBtn.dataset.tag;
+      if (g) {
+        const i = g.tags.indexOf(tn);
+        if (i >= 0) g.tags.splice(i, 1); else g.tags.push(tn);
+        _saveCatGroups(CAT_GROUPS);
+        renderCategoryStats();
+      }
+      return;
+    }
+    // 이름 변경
+    const renameBtn = e.target.closest('[data-action="cat-grp-rename"]');
+    if (renameBtn) {
+      const g = CAT_GROUPS.find(x => x.id === renameBtn.dataset.grp);
+      if (g) {
+        const nv = prompt('분류 이름 변경', g.name);
+        if (nv && nv.trim()) { g.name = nv.trim(); _saveCatGroups(CAT_GROUPS); renderCategoryStats(); }
+      }
+      return;
+    }
+    // 분류 삭제 (내 분류만)
+    const delBtn = e.target.closest('[data-action="cat-grp-del"]');
+    if (delBtn) {
+      const g = CAT_GROUPS.find(x => x.id === delBtn.dataset.grp);
+      if (g && confirm(`"${g.name}" 분류를 삭제할까요? (태그 자체는 안 지워져요)`)) {
+        CAT_GROUPS = CAT_GROUPS.filter(x => x.id !== g.id);
+        if (_catStatOpenGroup === g.id) _catStatOpenGroup = null;
+        _saveCatGroups(CAT_GROUPS);
+        renderCategoryStats();
+      }
+      return;
+    }
+    // 새 분류
+    if (e.target.closest('[data-action="cat-grp-add"]')) {
+      const nv = prompt('새 분류 이름 (예: 어두운 이야기, 마음 따뜻한)');
+      if (nv && nv.trim()) {
+        const id = 'cg_' + Date.now();
+        CAT_GROUPS.push({ id, name: nv.trim(), tags: [], custom: true, on: true });
+        _catStatOpenGroup = id;
+        _saveCatGroups(CAT_GROUPS);
+        renderCategoryStats();
+      }
+      return;
+    }
+    // 기본 분류로 되돌리기
+    if (e.target.closest('[data-action="cat-grp-reset"]')) {
+      if (confirm('분류 구성을 처음 기본 상태로 되돌릴까요?')) {
+        CAT_GROUPS = _buildDefaultCatGroups();
+        _catStatOpenGroup = null;
+        _saveCatGroups(CAT_GROUPS);
+        renderCategoryStats();
+      }
+      return;
+    }
+    // 그룹 행 클릭 → drilldown (보기 모드)
+    const grpRow = e.target.closest('[data-action="cat-grp-open"]');
+    if (grpRow) {
+      const g = CAT_GROUPS.find(x => x.id === grpRow.dataset.grp);
+      if (!g) return;
+      const books = _groupBooks(g);
+      if (!books.length) return;
+      const sorted = books.sort((a, b) => {
+        const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+        const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+        if (bTime !== aTime) return bTime - aTime;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+      if (typeof openDrillDown === 'function') {
+        openDrillDown(g.name, `총 ${sorted.length}권`, sorted);
+      }
+      return;
     }
   });
 })();
