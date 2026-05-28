@@ -15878,7 +15878,8 @@ body:has(.lib-edit-bar) .library-cards {
   left: 50%;
   transform: translateX(-50%) translateY(-4px);
   z-index: 7;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 300;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
   opacity: 0;
@@ -15889,8 +15890,8 @@ body:has(.lib-edit-bar) .library-cards {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-.cn-overlay[data-cn-mode="portrait"]  .cn-clock { top: 11%; font-size: 13px; }
-.cn-overlay[data-cn-mode="landscape"] .cn-clock { top: 16%; font-size: 12px; }
+.cn-overlay[data-cn-mode="portrait"]  .cn-clock { top: 11%; font-size: 20px; }
+.cn-overlay[data-cn-mode="landscape"] .cn-clock { top: 16%; font-size: 18px; }
 .cn-overlay[data-cn-mode="portrait"] .cn-meta-top {
   top: 16%; left: 50%;
   text-align: center;
@@ -16008,7 +16009,8 @@ body:has(.lib-edit-bar) .library-cards {
 
 .cn-ctrl-exit,
 .cn-ctrl-pause,
-.cn-ctrl-save {
+.cn-ctrl-save,
+.cn-ctrl-lock {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -16025,7 +16027,8 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .cn-ctrl-exit svg,
 .cn-ctrl-pause svg,
-.cn-ctrl-save svg {
+.cn-ctrl-save svg,
+.cn-ctrl-lock svg {
   width: 16px; height: 16px;
   flex-shrink: 0;
 }
@@ -16057,6 +16060,78 @@ body:has(.lib-edit-bar) .library-cards {
 .cn-ctrl-save:active {
   background: var(--cn-gold-soft);
   transform: scale(0.97);
+}
+/* v1.5.x — 자물쇠 버튼 */
+.cn-ctrl-lock {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+}
+.cn-ctrl-lock:active {
+  background: rgba(255,255,255,0.14);
+  transform: scale(0.97);
+}
+
+/* ─── v1.5.x — 터치 잠금 ─── */
+/* 잠금 중: 컨트롤 숨김 + 모든 터치 통과 차단(무대가 흡수) */
+.cn-overlay.cn-touchlocked .cn-controls { display: none !important; }
+/* 해제 안내 — 평소 숨김, 잠금 중 누를 때만 표시 */
+/* v1.5.x — 터치 잠금: 정보는 그대로 보이고, 타이머 아래 자물쇠만 추가 */
+.cn-unlock-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+/* 타이머(cn-time) 아래에 위치 — 큰 폰트만큼 내림 */
+.cn-overlay[data-cn-mode="portrait"]  .cn-unlock-hint { top: calc(50% + clamp(70px, 16vw, 150px)); }
+.cn-overlay[data-cn-mode="landscape"] .cn-unlock-hint { top: calc(50% + clamp(64px, 11vw, 150px)); }
+/* 잠금 중엔 자물쇠 항상 보이고, 누를 때 또렷 */
+.cn-overlay.cn-touchlocked .cn-unlock-hint { opacity: 0.85; }
+.cn-overlay.cn-touchlocked.cn-unlocking .cn-unlock-hint { opacity: 1; }
+.cn-unlock-ring {
+  position: relative;
+  width: 54px;
+  height: 54px;
+}
+.cn-unlock-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 54px;
+  height: 54px;
+  transform: rotate(-90deg);
+}
+.cn-unlock-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 3;
+}
+.cn-unlock-ring-fg {
+  fill: none;
+  stroke: var(--cn-gold);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 131.95;
+  stroke-dashoffset: 131.95;
+}
+.cn-unlock-lock-ic {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 22px; height: 22px;
+  transform: translate(-50%, -50%);
+  color: rgba(255,255,255,0.92);
+}
+.cn-unlock-text {
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  letter-spacing: 0.3px;
 }
 
 /* ─── 일시정지 상태 — 시계 dim + PAUSED 배지 ─── */
@@ -22042,6 +22117,28 @@ body.cn-locked {
         </svg>
         <span>기록 저장</span>
       </button>
+      <button class="cn-ctrl-lock" id="cnCtrlLock" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+        <span>화면 잠금</span>
+      </button>
+    </div>
+
+    <!-- v1.5.x — 터치 잠금 해제 안내 (길게 누르기) -->
+    <div class="cn-unlock-hint" id="cnUnlockHint">
+      <div class="cn-unlock-ring">
+        <svg class="cn-unlock-ring-svg" viewBox="0 0 48 48" aria-hidden="true">
+          <circle class="cn-unlock-ring-bg" cx="24" cy="24" r="21"/>
+          <circle class="cn-unlock-ring-fg" id="cnUnlockRing" cx="24" cy="24" r="21"/>
+        </svg>
+        <svg class="cn-unlock-lock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+      </div>
+      <div class="cn-unlock-text">잠금 해제는 자물쇠를 꾹 눌러주세요</div>
     </div>
   </div>
 </div>
@@ -33667,6 +33764,54 @@ const CINEMA = {
   wakeLock: null,          // v1.5.x — 화면 꺼짐 방지 (Screen Wake Lock)
   clockTimer: null,        // v1.5.x — 현재 시각 갱신 인터벌
   visListener: null,       // v1.5.x — 가시성 변화 시 wakeLock 재요청
+  touchLocked: false,      // v1.5.x — 터치 잠금 상태
+  _unlockTimer: null,      // 길게 누르기 타이머
+  _unlockRaf: null,        // 링 애니메이션 raf
+
+  /* v1.5.x — 터치 잠금 켜기 */
+  _lockTouch() {
+    this.touchLocked = true;
+    const overlay = document.getElementById('cnOverlay');
+    overlay.classList.add('cn-touchlocked');
+    overlay.classList.remove('show-controls');
+    if (this.controlsTimer) { clearTimeout(this.controlsTimer); this.controlsTimer = null; }
+    showToast('화면을 잠갔어요 · 자물쇠를 꾹 누르면 해제돼요');
+  },
+  /* 터치 잠금 끄기 */
+  _unlockTouch() {
+    this.touchLocked = false;
+    const overlay = document.getElementById('cnOverlay');
+    overlay.classList.remove('cn-touchlocked', 'cn-unlocking');
+    this._cancelUnlockHold();
+  },
+  /* 길게 누르기 시작 — 1.5초 채우면 해제 */
+  _startUnlockHold() {
+    const overlay = document.getElementById('cnOverlay');
+    const ring = document.getElementById('cnUnlockRing');
+    overlay.classList.add('cn-unlocking');
+    const DUR = 1500;
+    const CIRC = 131.95;
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / DUR);
+      if (ring) ring.style.strokeDashoffset = String(CIRC * (1 - p));
+      if (p >= 1) {
+        this._unlockTouch();
+        showToast('잠금이 풀렸어요');
+        return;
+      }
+      this._unlockRaf = requestAnimationFrame(step);
+    };
+    this._unlockRaf = requestAnimationFrame(step);
+  },
+  /* 길게 누르기 취소 (손 떼면 원위치) */
+  _cancelUnlockHold() {
+    const overlay = document.getElementById('cnOverlay');
+    const ring = document.getElementById('cnUnlockRing');
+    if (this._unlockRaf) { cancelAnimationFrame(this._unlockRaf); this._unlockRaf = null; }
+    if (ring) ring.style.strokeDashoffset = '131.95';
+    if (this.touchLocked) overlay.classList.remove('cn-unlocking');
+  },
 
   /* v1.5.x — 현재 시각 갱신 (오후 2:43 형식) */
   _updateClock() {
@@ -33899,6 +34044,8 @@ const CINEMA = {
       document.removeEventListener('visibilitychange', this.visListener);
       this.visListener = null;
     }
+    // v1.5.x — 터치 잠금 해제
+    if (this.touchLocked) this._unlockTouch();
 
     // 풀스크린 해제
     if (this.fullscreenLocked) {
@@ -33924,18 +34071,39 @@ const CINEMA = {
   const btnExit = document.getElementById('cnCtrlExit');
   const btnPause = document.getElementById('cnCtrlPause');
   const btnSave = document.getElementById('cnCtrlSave');
+  const btnLock = document.getElementById('cnCtrlLock');
 
-  // 무대 탭 → 컨트롤 토글 (이미 보이면 즉시 숨김, 아니면 보임)
+  // 무대 탭 → 컨트롤 토글 (잠금 중이면 무시)
   stage.addEventListener('click', (e) => {
-    // 컨트롤 버튼 클릭은 자체 핸들러가 처리
     if (e.target.closest('.cn-controls')) return;
+    if (CINEMA.touchLocked) return; // 잠금 중엔 탭 무시 (해제는 길게 누르기)
     if (overlay.classList.contains('show-controls')) {
       overlay.classList.remove('show-controls');
       if (CINEMA.controlsTimer) { clearTimeout(CINEMA.controlsTimer); CINEMA.controlsTimer = null; }
     } else {
-      // 일시정지 중이면 컨트롤을 더 오래 보여줌 (자동 재개 안 되게)
       CINEMA._showControls(isTimerPaused() ? 6000 : 3000);
     }
+  });
+
+  // v1.5.x — 잠금 중 길게 누르기 → 해제 (pointer 이벤트로 누르는 동안 감지)
+  const onDown = (e) => {
+    if (!CINEMA.touchLocked) return;
+    if (e.target.closest('.cn-controls')) return;
+    CINEMA._startUnlockHold();
+  };
+  const onUp = () => {
+    if (!CINEMA.touchLocked) return;
+    CINEMA._cancelUnlockHold();
+  };
+  stage.addEventListener('pointerdown', onDown);
+  stage.addEventListener('pointerup', onUp);
+  stage.addEventListener('pointercancel', onUp);
+  stage.addEventListener('pointerleave', onUp);
+
+  // v1.5.x — 자물쇠 버튼 → 터치 잠금
+  if (btnLock) btnLock.addEventListener('click', (e) => {
+    e.stopPropagation();
+    CINEMA._lockTouch();
   });
 
   // "앱으로" — 시네마만 종료, 타이머 유지
