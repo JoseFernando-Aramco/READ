@@ -7001,6 +7001,29 @@ body:has(.lib-edit-bar) .library-cards {
 .cd-btn-confirm.destructive:active {
   opacity: 0.85;
 }
+/* v1.5.x — 3번째 버튼 (세로 스택) */
+.cd-actions.cd-actions-stack {
+  flex-direction: column;
+  gap: 8px;
+}
+.cd-actions-row {
+  display: flex;
+  gap: 8px;
+}
+.cd-actions-row .cd-btn { flex: 1; }
+.cd-btn-extra {
+  flex: none;
+  width: 100%;
+  background: var(--c-border-2);
+  color: var(--c-text);
+}
+.cd-btn-extra:active { background: var(--c-border); }
+.cd-btn-extra.destructive {
+  background: transparent;
+  color: #C1272D;
+  border: 1px solid #C1272D;
+}
+.cd-btn-extra.destructive:active { background: rgba(193,39,45,0.08); }
 
 .bas-backdrop {
   position: fixed; inset: 0;
@@ -27722,7 +27745,70 @@ function isTagUsed(name) {
 
 function tryDeleteTag(name, onDone) {
   if (isTagUsed(name)) {
-    showToast('사용 중인 태그라 삭제할 수 없어요');
+    // v1.5.x — 사용 중이면 삭제 불가 안내 + 책 보기 + 모든 책에서 제거
+    const usedBooks = BOOKS.filter(b => Array.isArray(b.tags) && b.tags.includes(name));
+    const info = TAGS[name] || {};
+    const emoji = info.emoji || '🏷';
+    const isUser = info.source === 'user';
+    showConfirm({
+      title: `"${name}" 태그는 삭제할 수 없어요`,
+      message: `이 태그를 사용 중인 책이 ${usedBooks.length}권 있어요.\n책에서 태그를 먼저 떼면 삭제할 수 있어요.`,
+      // 3번째 버튼 (파괴적) — 모든 책에서 제거. 사용자 태그면 태그 자체도 삭제.
+      extraLabel: `모든 책(${usedBooks.length}권)에서 이 태그 제거`,
+      extraDestructive: true,
+      onExtra: () => {
+        showConfirm({
+          title: `정말 제거할까요?`,
+          message: `${usedBooks.length}권의 책에서 "${name}" 태그를 떼어내요.${isUser ? '\n그리고 태그 자체도 삭제돼요.' : ''}\n이 작업은 되돌릴 수 없어요.`,
+          confirmLabel: '제거',
+          cancelLabel: '취소',
+          destructive: true,
+          onConfirm: () => {
+            const removed = _removeTagFromAllBooks(name);
+            STORE.set('books', BOOKS);
+            // 분류 그룹에서도 해당 태그 제거 + 사용자 태그면 TAGS에서 삭제
+            if (isUser) {
+              delete TAGS[name];
+              STORE.set('tags', TAGS);
+              if (Array.isArray(BA.tagsSelected)) {
+                BA.tagsSelected = BA.tagsSelected.filter(t => t !== name);
+              }
+            }
+            if (typeof CAT_GROUPS !== 'undefined' && Array.isArray(CAT_GROUPS)) {
+              CAT_GROUPS.forEach(g => {
+                const gi = g.tags.indexOf(name);
+                if (gi >= 0) g.tags.splice(gi, 1);
+              });
+              if (typeof _saveCatGroups === 'function') _saveCatGroups(CAT_GROUPS);
+            }
+            // 리렌더
+            try { renderTagChips && renderTagChips(); } catch(e){}
+            try { renderBookDetailTags && renderBookDetailTags(); } catch(e){}
+            try { refreshTagSummary && refreshTagSummary(); } catch(e){}
+            try { renderTagRadar && renderTagRadar(); } catch(e){}
+            try { renderCategoryStats && renderCategoryStats(); } catch(e){}
+            try { renderLibraryCards && renderLibraryCards(); } catch(e){}
+            showToast(isUser
+              ? `"${name}" 태그를 ${removed}권에서 떼고 삭제했어요`
+              : `"${name}" 태그를 ${removed}권에서 뗐어요`);
+            if (typeof onDone === 'function') onDone();
+          },
+        });
+      },
+      confirmLabel: '사용 중인 책 보기',
+      cancelLabel: '닫기',
+      onConfirm: () => {
+        if (typeof openDrillDown === 'function' && usedBooks.length) {
+          const sorted = [...usedBooks].sort((a, b) => {
+            const at = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+            const bt = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+            if (bt !== at) return bt - at;
+            return (b.rating || 0) - (a.rating || 0);
+          });
+          openDrillDown(`${emoji} ${name}`, `이 태그를 쓰는 책 ${sorted.length}권`, sorted);
+        }
+      },
+    });
     return;
   }
   if (!TAGS[name]) return;
@@ -27817,6 +27903,22 @@ function _renameTagEverywhere(oldName, newName) {
         } else {
           b.tags[idx] = newName;
         }
+        changed++;
+      }
+    });
+  }
+  return changed;
+}
+
+/* v1.5.x — 모든 책에서 태그 제거 (사용 중 태그 일괄 정리용) */
+function _removeTagFromAllBooks(name) {
+  let changed = 0;
+  if (Array.isArray(BOOKS)) {
+    BOOKS.forEach(b => {
+      if (!Array.isArray(b.tags)) return;
+      const idx = b.tags.indexOf(name);
+      if (idx >= 0) {
+        b.tags.splice(idx, 1);
         changed++;
       }
     });
@@ -34843,7 +34945,7 @@ function _applyStatusChange(b, newStatus) {
 }
 
 /* ─── 재사용 가능한 확인 다이얼로그 ─── */
-function showConfirm({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel, destructive }) {
+function showConfirm({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel, destructive, extraLabel, onExtra, extraDestructive }) {
   // 기존 dialog 있으면 제거
   document.querySelectorAll('.cd-backdrop, .cd-dialog').forEach(el => el.remove());
 
@@ -34853,13 +34955,20 @@ function showConfirm({ title, message, confirmLabel, cancelLabel, onConfirm, onC
   const dialog = document.createElement('div');
   dialog.className = 'cd-dialog';
   dialog.setAttribute('role', 'alertdialog');
+  // v1.5.x — extraLabel 있으면 3번째 버튼 추가 (세로 스택)
+  const extraBtn = extraLabel
+    ? `<button class="cd-btn cd-btn-extra${extraDestructive ? ' destructive' : ''}" type="button">${esc(extraLabel)}</button>`
+    : '';
   dialog.innerHTML = `
     <div class="cd-inner">
       <div class="cd-title">${esc(title || '확인')}</div>
       <div class="cd-message">${(message || '').split('\n').map(l => esc(l)).join('<br>')}</div>
-      <div class="cd-actions">
-        <button class="cd-btn cd-btn-cancel" type="button">${esc(cancelLabel || '취소')}</button>
-        <button class="cd-btn cd-btn-confirm${destructive ? ' destructive' : ''}" type="button">${esc(confirmLabel || '확인')}</button>
+      <div class="cd-actions${extraLabel ? ' cd-actions-stack' : ''}">
+        ${extraBtn}
+        <div class="cd-actions-row">
+          <button class="cd-btn cd-btn-cancel" type="button">${esc(cancelLabel || '취소')}</button>
+          <button class="cd-btn cd-btn-confirm${destructive ? ' destructive' : ''}" type="button">${esc(confirmLabel || '확인')}</button>
+        </div>
       </div>
     </div>
   `;
@@ -34882,6 +34991,13 @@ function showConfirm({ title, message, confirmLabel, cancelLabel, onConfirm, onC
     }, 200);
   };
 
+  const extraEl = dialog.querySelector('.cd-btn-extra');
+  if (extraEl) {
+    extraEl.addEventListener('click', () => {
+      close();
+      if (typeof onExtra === 'function') onExtra();
+    });
+  }
   dialog.querySelector('.cd-btn-cancel').addEventListener('click', () => {
     close();
     if (typeof onCancel === 'function') onCancel();
