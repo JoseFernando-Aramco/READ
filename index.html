@@ -1989,6 +1989,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .book-card {
   width: 100%;
   cursor: pointer;
+  /* v1.5.x — 책마다 텍스트 길이 달라도 표지 크기 일정하게: 카드를 grid cell 위쪽에 정렬 */
+  align-self: start;
 }
 
 
@@ -2463,6 +2465,11 @@ body:has(.lib-edit-bar) .library-cards {
 /* 표지 안의 img/svg도 명시적으로 (inherit 안 됨) */
 .book-card-cover img,
 .book-card-cover svg {
+  /* v1.5.x — img 원본 크기 무시, 컨테이너 비율로 강제 (서재 표지 크기 일정화) */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
   -webkit-user-select: none;
@@ -2613,6 +2620,18 @@ body:has(.lib-edit-bar) .library-cards {
   font-size: 10px; font-weight: 500;
   color: var(--c-label); margin-top: 2px;
   display: flex; align-items: center; gap: 3px;
+  /* v1.5.x — 긴 저자명도 1줄로 자르기 (카드 높이 균일) */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.book-card-meta > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .book-card-star {
   font-family: inherit;
@@ -9295,7 +9314,6 @@ body:has(.lib-edit-bar) .library-cards {
 .qn-textarea {
   width: 100%;
   min-height: 110px;
-  max-height: 200px;
   padding: 12px 14px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
@@ -9306,7 +9324,8 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.5;
   resize: none;
   outline: none;
-  overflow-y: auto;
+  /* v1.5.x — JS auto-grow로 줄 수 만큼 자동 확장 */
+  overflow: hidden;
   transition: border-color 0.15s, background 0.15s;
   box-sizing: border-box;
 }
@@ -11206,7 +11225,9 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.5;
   letter-spacing: -0.01em;
   outline: none;
-  resize: vertical;
+  /* v1.5.x — auto-grow로 줄 수 만큼 자동 확장. 수동 리사이즈 비활성 */
+  resize: none;
+  overflow: hidden;
   transition: border-color .15s;
 }
 .bd-wish-note:focus,
@@ -30536,7 +30557,17 @@ function renderLibraryCards() {
   if (!container) return;
 
   // v1.11.0 — raw 책 리스트 (카테고리 카운트 + 정렬용)
-  const readingRaw = BOOKS.filter(b => b.status === 'reading');
+  // v1.5.x — 독서중 책 정렬: 가장 최근 세션 날짜 내림차순 (세션 없으면 dateStart, 그것도 없으면 0)
+  const _lastActivityISO = (b) => {
+    const sessions = b.readingSessions || [];
+    let maxDate = '';
+    for (const s of sessions) {
+      if (s && s.date && s.date > maxDate) maxDate = s.date;
+    }
+    return maxDate || b.dateStart || '';
+  };
+  const readingRaw = BOOKS.filter(b => b.status === 'reading')
+                    .sort((a, b) => _lastActivityISO(b).localeCompare(_lastActivityISO(a)));
   // 완독 · 최근순 (dateEnd 내림차순)
   const doneAllRaw = BOOKS.filter(b => b.status === 'done')
                     .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
@@ -31814,14 +31845,12 @@ function closeQuickNote() {
   unlockBodyScroll();
 }
 
-/* v1.0.4 — 한줄평 textarea 자동 높이 조절 (글자 제한 없이 마음껏 쓰게)
-   ─ 입력 길이에 따라 textarea 높이 자동 확장 (최대 200px까지)
-   ─ 그 이상은 textarea 내부 스크롤 */
+/* v1.5.x — 한줄평 textarea 자동 높이 조절 (제한 없이 줄 수 만큼 확장) */
 function _qnAutoResize() {
   const ta = document.getElementById('qnTextarea');
   if (!ta) return;
   ta.style.height = 'auto';
-  ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+  ta.style.height = ta.scrollHeight + 'px';
 }
 
 /* 한줄평 시트 wire — 버튼 + 백드롭 + 단축키 */
@@ -34795,10 +34824,17 @@ function wireBookDetailEvents() {
       savedTimer = setTimeout(() => { checkState(); }, 2000);
     }
 
+    // v1.5.x — 입력 시 textarea 자동 높이 조정 (한 줄 평처럼 무제한 확장)
+    function autoGrow() {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+
     // 초기 상태
     setIdle();
+    autoGrow();  // 기존 값이 길면 처음부터 펼쳐서 보이게
 
-    ta.addEventListener('input', checkState);
+    ta.addEventListener('input', () => { checkState(); autoGrow(); });
     btn.addEventListener('click', doSave);
   }
 
