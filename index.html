@@ -8205,7 +8205,8 @@ body:has(.lib-edit-bar) .library-cards {
   right: auto;
   font-size: 10px;
 }
-.tag-chip.is-editable.is-delete-mode {
+.tag-chip.is-editable.is-delete-mode,
+.tag-chip.is-editable.is-hide-mode {
   padding-left: 26px;
   padding-right: 26px;
 }
@@ -27843,10 +27844,7 @@ function tryDeleteTag(name, onDone) {
 function openTagEditSheet(oldName) {
   const t = TAGS[oldName];
   if (!t) return;
-  if (t.source !== 'user') {
-    showToast('기본 태그는 수정할 수 없어요');
-    return;
-  }
+  // v1.5.x — 기본 태그도 이름·이모지 수정 허용 (기존 source!=='user' 차단 제거)
   // 사용 중인 책 수 카운트
   let usedCount = 0;
   if (Array.isArray(BOOKS)) {
@@ -27948,6 +27946,16 @@ function saveTagEdit() {
   let bookCount = 0;
 
   if (nameChanged) {
+    // v1.5.x — 기본 태그를 개명하면 원본 이름이 hydrate 자동보강으로 부활하지 않도록 기록
+    if (t.source === 'default') {
+      try {
+        const renamed = STORE.get('read.renamedDefaultTags', []) || [];
+        if (!renamed.includes(oldName)) {
+          renamed.push(oldName);
+          STORE.set('read.renamedDefaultTags', renamed);
+        }
+      } catch(e){}
+    }
     // 1) TAGS 키 교체 (emoji/color/category/source 유지)
     delete TAGS[oldName];
     TAGS[newName] = { ...t, emoji: newEmoji };
@@ -28131,7 +28139,9 @@ function renderTagChips() {
           actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
             + `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
         } else {
-          actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
+          // v1.5.x — 기본 태그: 왼쪽 연필(이름·이모지 수정) + 오른쪽 회색 ×(숨기기)
+          actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
+            + `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
         }
       }
       return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
@@ -28327,7 +28337,9 @@ function renderBookDetailTags() {
             actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
               + `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
           } else {
-            actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
+            // v1.5.x — 기본 태그: 왼쪽 연필(수정) + 오른쪽 회색 ×(숨기기)
+            actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
+              + `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
           }
         }
         return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
@@ -29500,8 +29512,11 @@ const NA = {
       '먼치킨', '회귀', '환생', '빙의', '사극·동양', '현대물', 'BL', '회사·재벌', '학원물',
     ]);
     const existingCategories = new Set(Object.values(TAGS).map(t => t.category).filter(Boolean));
+    // v1.5.x — 사용자가 개명한 기본 태그의 원본 이름은 부활시키지 않음
+    const renamedDefaults = new Set(STORE.get('read.renamedDefaultTags', []) || []);
     Object.keys(DEFAULT_TAGS).forEach(name => {
       if (TAGS[name]) return; // 이미 있으면 건드리지 않음
+      if (renamedDefaults.has(name)) return; // 개명된 기본 태그 → 원본 부활 방지
       const defTag = DEFAULT_TAGS[name];
       // (1) 신규 카테고리이거나 (2) v1.10.1 신규 태그면 보강
       const isNewCategory = !existingCategories.has(defTag.category);
