@@ -1350,6 +1350,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .14em;
+  display: inline-flex;
+  align-items: center;
+}
+.mr-stub-logo {
+  /* 검은색 로고 PNG를 흰색으로 (갈색 스텁 배경 대비) */
+  filter: brightness(0) invert(1);
+  height: 1.1em;
+  margin-right: .35em;
+  /* keepbook-logo의 글자 들여쓰기/숨김 유지 위해 letter-spacing 무시 */
+  letter-spacing: 0;
+}
+.mr-stub-date {
+  opacity: .92;
 }
 
 .mr-body {
@@ -22369,7 +22382,7 @@ body.cn-locked {
     <!-- 메인 티켓 -->
     <div class="mr-ticket" id="mrTicket">
       <div class="mr-stub">
-        <div class="mr-stub-line" id="mrStubLine">KEEPBOOK · MAY 2026</div>
+        <div class="mr-stub-line" id="mrStubLine"><span class="mr-stub-logo keepbook-logo" aria-label="keepbook">keepbook</span><span class="mr-stub-date" id="mrStubDate"> · MAY 2026</span></div>
       </div>
       <div class="mr-body" id="mrBody">
         <!-- renderMonthReport()가 채움 -->
@@ -30029,8 +30042,8 @@ function renderMonthStrip() {
   }
 
   function setStub(year, month) {
-    const line = document.getElementById('mrStubLine');
-    if (line) line.textContent = `KEEPBOOK · ${MONTH_NAMES_EN[month]} ${year}`;
+    const date = document.getElementById('mrStubDate');
+    if (date) date.textContent = ` · ${MONTH_NAMES_EN[month]} ${year}`;
   }
 
   function setMonthLabel(year, month) {
