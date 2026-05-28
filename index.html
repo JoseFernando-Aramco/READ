@@ -39185,37 +39185,77 @@ function renderCategoryStats() {
 
 /* 보기 모드 — 켜진 그룹만, 고유 책수 막대 */
 function renderCatStatsView(container) {
-  const PAL = ['#6b21a8', '#9a3412', '#0f766e', '#1e40af', '#be185d', '#854f0b', '#3b6d11', '#334155'];
-  const onGroups = CAT_GROUPS.filter(g => g.on && g.tags.length > 0);
-  const withCounts = onGroups
-    .map(g => ({ g, c: _groupBookCount(g) }))
-    .filter(x => x.c > 0)
-    .sort((a, b) => b.c - a.c);
-
   const editBtn = `<button type="button" class="cat-stat-edit-btn" data-action="cat-stat-edit">✎ 분류 편집</button>`;
 
-  if (!withCounts.length) {
+  // 켜진 분류에 담긴 태그만 대상 (분류 편집/토글이 "보여줄 태그" 필터 역할)
+  const allowed = new Set();
+  CAT_GROUPS.filter(g => g.on).forEach(g => {
+    g.tags.forEach(n => {
+      if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(n)) return;
+      allowed.add(n);
+    });
+  });
+
+  // 태그별 권수 + 대표 책 후보
+  const counts = {};
+  const repBooks = {};
+  if (Array.isArray(BOOKS)) {
+    BOOKS.forEach(book => {
+      const tags = Array.isArray(book.tags) ? book.tags : [];
+      tags.forEach(t => {
+        if (!allowed.has(t)) return;
+        counts[t] = (counts[t] || 0) + 1;
+        if (!repBooks[t]) repBooks[t] = [];
+        repBooks[t].push(book);
+      });
+    });
+  }
+
+  // 태그 많은 순 정렬 (0권 자동 제외)
+  const sorted = Object.keys(counts)
+    .map(name => ({ name, count: counts[name], books: repBooks[name] }))
+    .sort((a, b) => b.count - a.count);
+
+  if (!sorted.length) {
     container.innerHTML = `<div class="cat-stat-toolbar">${editBtn}</div>`
-      + '<div class="cat-stat-empty">표시할 분류가 없어요. 편집에서 분류를 켜거나 태그를 담아보세요</div>';
+      + '<div class="cat-stat-empty">표시할 태그가 없어요. 편집에서 분류를 켜거나 태그를 담아보세요</div>';
     return;
   }
 
-  const max = Math.max(1, ...withCounts.map(x => x.c));
-  const total = withCounts.length;
-  const visible = _catStatExpanded ? withCounts : withCounts.slice(0, CAT_STAT_INITIAL_LIMIT);
+  // 대표 책 선정 (인생책 → 최근 → 별점)
+  const pickRepBook = (books) => {
+    if (!books || !books.length) return null;
+    const life = books.find(b => b.isLifeBook);
+    if (life) return life;
+    return [...books].sort((a, b) => {
+      const at = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+      const bt = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+      if (bt !== at) return bt - at;
+      return (b.rating || 0) - (a.rating || 0);
+    })[0];
+  };
+
+  const total = sorted.length;
+  const visible = _catStatExpanded ? sorted : sorted.slice(0, CAT_STAT_INITIAL_LIMIT);
   const hiddenCount = Math.max(0, total - visible.length);
 
-  const rows = visible.map((x, i) => {
-    const g = x.g, c = x.c;
-    const color = PAL[CAT_GROUPS.indexOf(g) % PAL.length];
-    const customBadge = g.custom ? `<span class="cat-grp-badge">내 분류</span>` : '';
+  const rows = visible.map((entry, idx) => {
+    const rank = idx + 1;
+    const rep = pickRepBook(entry.books);
+    const cover = (rep && rep.coverUrl) ? rep.coverUrl : '';
+    const info = TAGS[entry.name] || {};
+    const emoji = info.emoji || '📚';
+    const coverImg = cover
+      ? `<img src="${esc(cover)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`
+      : '';
+    const fallback = cover ? '' : `<span class="cat-stat-cover-fallback">${emoji}</span>`;
     return `
-      <button type="button" class="cat-grp-row" data-action="cat-grp-open" data-grp="${esc(g.id)}">
-        <span class="cat-grp-head">
-          <span class="cat-grp-name">${esc(g.name)}${customBadge}</span>
-          <span class="cat-grp-cnt">${c}<span class="cat-grp-cnt-unit">권</span></span>
-        </span>
-        <span class="cat-grp-bar"><span class="cat-grp-bar-fill" style="width:${Math.round(c / max * 100)}%; background:${color};"></span></span>
+      <button type="button" class="cat-stat-row" data-action="cat-stat-open" data-tag="${esc(entry.name)}">
+        <span class="cat-stat-rank">#${rank}</span>
+        <span class="cat-stat-cover ${cover ? '' : 'cat-stat-cover-fallback'}">${coverImg}${fallback}</span>
+        <span class="cat-stat-name">${emoji} ${esc(entry.name)}</span>
+        <span class="cat-stat-cnt">${entry.count}</span>
+        <span class="cat-stat-arrow">›</span>
       </button>`;
   }).join('');
 
@@ -39388,6 +39428,26 @@ function renderCatStatsEdit(container) {
       });
       if (typeof openDrillDown === 'function') {
         openDrillDown(g.name, `총 ${sorted.length}권`, sorted);
+      }
+      return;
+    }
+    // 태그 행 클릭 → drilldown (태그 랭킹 보기 모드)
+    const tagRow = e.target.closest('[data-action="cat-stat-open"]');
+    if (tagRow) {
+      const tagName = tagRow.dataset.tag;
+      if (!tagName) return;
+      const books = (BOOKS || []).filter(b => Array.isArray(b.tags) && b.tags.includes(tagName));
+      if (!books.length) return;
+      const sorted = books.sort((a, b) => {
+        const aTime = new Date(a.updatedAt || a.dateEnd || a.dateStart || 0).getTime();
+        const bTime = new Date(b.updatedAt || b.dateEnd || b.dateStart || 0).getTime();
+        if (bTime !== aTime) return bTime - aTime;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+      const info = TAGS[tagName] || {};
+      const emoji = info.emoji || '🏷';
+      if (typeof openDrillDown === 'function') {
+        openDrillDown(`${emoji} ${tagName}`, `총 ${sorted.length}권`, sorted);
       }
       return;
     }
