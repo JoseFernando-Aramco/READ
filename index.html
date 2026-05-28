@@ -8103,14 +8103,15 @@ body:has(.lib-edit-bar) .library-cards {
 .tag-chip.is-user-tag {
   position: relative;
 }
-.tag-chip.is-user-tag::before {
+.tag-chip.is-user-tag .tc-name::after {
   content: "";
-  position: absolute;
-  top: 4px; left: 4px;
-  width: 4px; height: 4px;
+  display: inline-block;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--c-coin-deep);
-  opacity: 0.55;
+  background: var(--primary, #6D4C41);
+  margin-left: 5px;
+  vertical-align: middle;
   pointer-events: none;
 }
 
