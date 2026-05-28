@@ -27885,6 +27885,7 @@ function saveTagEdit() {
   try { renderTagRadar && renderTagRadar(); } catch(e){}
   try { renderCategoryStats && renderCategoryStats(); } catch(e){}
   try { renderBookDetailTags && renderBookDetailTags(); } catch(e){}
+  try { refreshTagSummary && refreshTagSummary(); } catch(e){}
 
   if (nameChanged) {
     showToast(`"${oldName}" → "${newName}" 변경 · 책 ${bookCount}권 반영됨`);
@@ -28219,7 +28220,9 @@ function renderBookDetailTags() {
         let actionBtn = '';
         if (editing) {
           if (t.source === 'user') {
-            actionBtn = `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
+            // v1.5.x — 사용자 태그: 왼쪽 연필(수정) + 오른쪽 빨간 ×(삭제)
+            actionBtn = `<button type="button" class="tc-action tc-edit" data-action="edit" data-tag="${esc(t.name)}" aria-label="수정">✎</button>`
+              + `<button type="button" class="tc-action tc-delete" data-action="delete" data-tag="${esc(t.name)}">×</button>`;
           } else {
             actionBtn = `<button type="button" class="tc-action tc-hide" data-action="hide" data-tag="${esc(t.name)}">×</button>`;
           }
@@ -28261,6 +28264,8 @@ function renderBookDetailTags() {
           showToast(`"${name}" 복구됨`);
         } else if (action === 'delete') {
           tryDeleteTag(name, () => renderBookDetail());
+        } else if (action === 'edit') {
+          openTagEditSheet(name);
         }
         return;
       }
@@ -39075,16 +39080,50 @@ let _catStatExpanded = false;
 let _catStatEditMode = false;   // 편집 모드
 let _catStatOpenGroup = null;   // 태그 고르기 펼친 그룹 id
 
-const CAT_GROUPS_KEY = 'read.catGroups.v1';
+const CAT_GROUPS_KEY = 'read.catGroups.v2';
 
 /* 기본 분류 그룹 빌드 — TAG_CATEGORIES 각 카테고리 + 그 안의 태그들 */
+/* v1.5.x — 장르·논픽션은 더 잘게 나눠서 기본 제공 (세분화).
+   매핑에 없는 태그(사용자 추가분 등)는 누락되지 않도록 각 카테고리의 폴백 그룹에 담음. */
+const CAT_SUBDIVIDE = {
+  genre: [
+    { id: 'genre_lit',   name: '순문학·소설', tags: ['국내고전','해외고전','한국소설','외국소설','일본문학','라틴아메리카','에세이','시·시집'] },
+    { id: 'genre_fic',   name: '장르소설',     tags: ['판타지','SF','미스터리','스릴러','추리','로맨스','역사소설'], fallback: true },
+  ],
+  nonfiction: [
+    { id: 'nonfic_hum',  name: '인문·사회',   tags: ['심리','역사','사회','예술','종교'] },
+    { id: 'nonfic_prac', name: '실용·교양',   tags: ['경영','경제','과학','기술/IT','환경','건강','요리','여행','외국어학습'], fallback: true },
+  ],
+};
+
 function _buildDefaultCatGroups() {
   const groups = [];
   Object.entries(TAG_CATEGORIES).forEach(([catId, label]) => {
-    const tags = Object.entries(TAGS)
+    // 이 카테고리의 현재 존재하는 태그 전부
+    const allTags = Object.entries(TAGS)
       .filter(([n, t]) => t.category === catId)
       .map(([n]) => n);
-    groups.push({ id: catId, name: label, tags, custom: false, on: true });
+
+    const sub = CAT_SUBDIVIDE[catId];
+    if (sub) {
+      // 세분화 — 매핑된 태그만 각 하위 그룹에 담고, 매핑 안 된 태그는 fallback 그룹에
+      const assigned = new Set();
+      sub.forEach(s => {
+        const tags = s.tags.filter(n => allTags.includes(n));
+        tags.forEach(n => assigned.add(n));
+        groups.push({ id: s.id, name: s.name, tags, custom: false, on: true });
+      });
+      // 누락 태그 → fallback 그룹에 합류 (없으면 마지막 그룹)
+      const leftover = allTags.filter(n => !assigned.has(n));
+      if (leftover.length) {
+        const target = sub.find(s => s.fallback) || sub[sub.length - 1];
+        const g = groups.find(x => x.id === target.id);
+        if (g) leftover.forEach(n => { if (!g.tags.includes(n)) g.tags.push(n); });
+      }
+    } else {
+      // 세분화 안 함 (자기개발/형식/웹소설 등) — 카테고리 그대로
+      groups.push({ id: catId, name: label, tags: allTags, custom: false, on: true });
+    }
   });
   return groups;
 }
