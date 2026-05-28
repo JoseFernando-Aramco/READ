@@ -15987,8 +15987,14 @@ body:has(.lib-edit-bar) .library-cards {
   transform: translate(-50%, -50%) translateY(8px);
   z-index: 8;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 92vw;
+  padding: 0 12px;
+  box-sizing: border-box;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.32s ease, transform 0.32s ease, top 0.5s ease;
@@ -16013,10 +16019,10 @@ body:has(.lib-edit-bar) .library-cards {
 .cn-ctrl-lock {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 13px 22px;
+  gap: 7px;
+  padding: 12px 17px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
   border-radius: 999px;
@@ -16024,6 +16030,7 @@ body:has(.lib-edit-bar) .library-cards {
   transition: transform 0.12s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .cn-ctrl-exit svg,
 .cn-ctrl-pause svg,
@@ -16061,11 +16068,13 @@ body:has(.lib-edit-bar) .library-cards {
   background: var(--cn-gold-soft);
   transform: scale(0.97);
 }
-/* v1.5.x — 자물쇠 버튼 */
+/* v1.5.x — 자물쇠 버튼 (아이콘 전용, 정사각형) */
 .cn-ctrl-lock {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.18);
   color: rgba(255,255,255,0.85);
+  padding: 12px;
+  gap: 0;
 }
 .cn-ctrl-lock:active {
   background: rgba(255,255,255,0.14);
@@ -22117,12 +22126,11 @@ body.cn-locked {
         </svg>
         <span>기록 저장</span>
       </button>
-      <button class="cn-ctrl-lock" id="cnCtrlLock" type="button">
+      <button class="cn-ctrl-lock" id="cnCtrlLock" type="button" aria-label="화면 잠금">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="5" y="11" width="14" height="10" rx="2"/>
           <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
         </svg>
-        <span>화면 잠금</span>
       </button>
     </div>
 
