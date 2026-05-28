@@ -1979,6 +1979,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   cursor: pointer;
   /* v1.5.x — 책마다 텍스트 길이 달라도 표지 크기 일정하게: 카드를 grid cell 위쪽에 정렬 */
   align-self: start;
+  /* v1.5.x — grid 자식 기본 min-width:auto로 콘텐츠가 카드를 부풀리는 문제 차단 (독서중 탭 진행률 텍스트 + 미디어 아이콘으로 두드러짐) */
+  min-width: 0;
 }
 
 
@@ -2576,6 +2578,10 @@ body:has(.lib-edit-bar) .library-cards {
   margin-top: 7px; line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
+  /* v1.5.x — 긴 한국어/영문 단어가 카드를 부풀리지 않게 강제 wrap */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 /* v1.9.1 — 책 데이터 미완성 표시 (페이지·표지·가격·ISBN 중 누락 있을 때) */
 .book-card-incomplete-dot {
