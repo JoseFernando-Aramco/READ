@@ -14714,6 +14714,97 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .mig-modal.open .mig-card { transform: scale(1); }
 
+/* v1.5.x — 데이터 헬스 알림 모달 (크기 경고 / 손상 안내) */
+.da-card-body {
+  padding: 22px 22px 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: auto;
+}
+.da-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.da-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.da-icon.warn {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.da-icon.danger {
+  background: rgba(180, 50, 40, 0.12);
+  color: #B43228;
+}
+.da-title {
+  font-size: 16px; font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.da-body-text {
+  font-size: 14px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.da-body-text strong {
+  color: var(--c-text);
+  font-weight: 600;
+}
+.da-tip {
+  background: var(--c-canvas);
+  border-left: 3px solid #C99540;
+  border-radius: 0 8px 8px 0;
+  padding: 11px 13px;
+  margin-bottom: 18px;
+}
+.da-tip-ttl {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.da-tip-body {
+  font-size: 12.5px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+}
+.da-actions {
+  padding: 6px 22px 22px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.da-btn-primary {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--c-text);
+  color: var(--c-surface);
+  border: none;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  transition: opacity 0.15s;
+}
+.da-btn-primary:active { opacity: 0.85; }
+.da-btn-secondary {
+  width: 100%;
+  padding: 11px 0;
+  background: transparent;
+  color: var(--c-text-2);
+  border: none;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+}
+.da-btn-secondary:active { color: var(--c-text); }
+
 /* D-day 박스 (헤더 최상단) */
 .dday-box {
   display: inline-flex;
@@ -23573,6 +23664,31 @@ body.cn-locked {
 </div>
 
 
+<!-- ═══════════ 데이터 헬스 알림 모달 (v1.5.x · 크기 경고 / 손상 안내) ═══════════ -->
+<div class="mig-backdrop" id="dataAlertBackdrop" aria-hidden="true"></div>
+<div class="mig-modal" id="dataAlertModal" aria-hidden="true" role="dialog" aria-labelledby="daTitle">
+  <div class="mig-card">
+    <div class="da-card-body">
+      <div class="da-head">
+        <div class="da-icon warn" id="daIcon">📚</div>
+        <h2 class="da-title" id="daTitle">기록이 많이 쌓였어요</h2>
+      </div>
+      <div class="da-body-text" id="daBody">
+        현재 저장된 데이터가 <strong id="daSize">— MB</strong>로 적지 않아요. 아이폰 PWA에선 데이터가 매우 클 경우 앱이 갑자기 종료될 수 있어요.
+      </div>
+      <div class="da-tip" id="daTip">
+        <div class="da-tip-ttl">💡 미리 백업해두세요</div>
+        <div class="da-tip-body">설정 → 데이터 내보내기에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
+      </div>
+    </div>
+    <div class="da-actions">
+      <button class="da-btn-primary" id="daBtnPrimary" type="button">백업하러 가기</button>
+      <button class="da-btn-secondary" id="daBtnSecondary" type="button">나중에 할게요</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ═══════════ 이번 달 요약 (i) 바텀시트 (v1.10.3) ═══════════ -->
 <div class="ms-sheet-backdrop" id="msSheetBackdrop"></div>
 <div class="ms-sheet" id="msSheet" aria-hidden="true" role="dialog">
@@ -23623,7 +23739,26 @@ body.cn-locked {
    ═══════════════════════════════════════════════════════════ */
 const STORE = {
   get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
-  set(key, v)  { try { localStorage.setItem('read.' + key, JSON.stringify(v)); } catch {} },
+  set(key, v)  {
+    try {
+      localStorage.setItem('read.' + key, JSON.stringify(v));
+      return true;
+    } catch (e) {
+      // v1.5.x — quota 초과 등 실패 감지. 사용자에게 알릴 수 있게 false 반환
+      if (e && (e.name === 'QuotaExceededError' || /quota/i.test(e.message || ''))) {
+        try { window._lastStoreSetError = { key, error: 'QuotaExceeded', at: Date.now() }; } catch(_){}
+        try { showToast && showToast('저장 공간 부족: 일부 데이터가 저장되지 않았어요'); } catch(_){}
+      }
+      return false;
+    }
+  },
+  /* v1.5.x — 메모리 폭발 위험 없이 raw 크기만 확인 (parse 안 함) */
+  rawSize(key) {
+    try {
+      const s = localStorage.getItem('read.' + key);
+      return s ? s.length : 0;
+    } catch { return 0; }
+  },
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -29696,7 +29831,50 @@ const NA = {
 
 /* ─── 저장된 BOOKS / TAGS / NOTES 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
 (function hydrateData() {
-  const savedBooks = STORE.get('books', null);
+  // v1.5.x — 부팅 시 데이터 크기 감지 (parse 전, 메모리 폭발 없이 raw 크기로)
+  //   2500권+ 사용자 케이스: JSON.parse가 iOS Safari PWA 메모리 한계 칠 수 있음
+  const booksRawSize = STORE.rawSize('books');
+  const totalRawSize = (function() {
+    let total = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('read.')) {
+          total += (localStorage.getItem(k) || '').length;
+        }
+      }
+    } catch(e){}
+    return total;
+  })();
+  // 임계점: BOOKS raw 3MB+ 또는 전체 read.* 4MB+ → 위험 신호 기록 (모달은 DOM 준비 후 띄움)
+  const SIZE_DANGER = 3 * 1024 * 1024;       // 3MB
+  const TOTAL_DANGER = 4 * 1024 * 1024;      // 4MB
+  if (booksRawSize > SIZE_DANGER || totalRawSize > TOTAL_DANGER) {
+    try {
+      window._dataSizeWarning = {
+        booksMB: (booksRawSize / 1024 / 1024).toFixed(2),
+        totalMB: (totalRawSize / 1024 / 1024).toFixed(2),
+        at: Date.now(),
+      };
+    } catch(_){}
+  }
+
+  // v1.5.x — books parse를 try/catch로 감쌈. 실패 시 손상 백업 + 빈 시작
+  let savedBooks = null;
+  try {
+    savedBooks = STORE.get('books', null);
+  } catch (e) {
+    console.error('[hydrate] books parse failed', e);
+    try {
+      // 손상된 raw를 별도 키에 백업 (사용자가 복구 시도 가능)
+      const raw = localStorage.getItem('read.books');
+      if (raw) {
+        localStorage.setItem('read.books.corrupted.' + Date.now(), raw);
+      }
+      window._hydrateError = { stage: 'books', message: String(e), at: Date.now() };
+    } catch(_){}
+    savedBooks = null;
+  }
   // 저장된 값이 배열이면 (빈 배열이라도) 사용 → 사용자 삭제가 새로고침에도 유지됨
   if (Array.isArray(savedBooks)) {
     BOOKS.length = 0;
@@ -29850,6 +30028,112 @@ const NA = {
     if (!('priceSales' in b)) b.priceSales = null;
     if (!('priceSource' in b)) b.priceSource = null;
   });
+})();
+
+/* v1.5.x — 데이터 크기/손상 안내 (hydrateData 종료 직후, DOM 준비되면 알림) */
+(function _showDataHealthAlerts() {
+  const _openDataAlert = (opts) => {
+    const backdrop = document.getElementById('dataAlertBackdrop');
+    const modal = document.getElementById('dataAlertModal');
+    const icon = document.getElementById('daIcon');
+    const title = document.getElementById('daTitle');
+    const body = document.getElementById('daBody');
+    const tip = document.getElementById('daTip');
+    const sizeEl = document.getElementById('daSize');
+    const btnPrimary = document.getElementById('daBtnPrimary');
+    const btnSecondary = document.getElementById('daBtnSecondary');
+    if (!backdrop || !modal) return;
+
+    // 내용 채우기
+    icon.className = 'da-icon ' + (opts.danger ? 'danger' : 'warn');
+    icon.textContent = opts.iconEmoji || '📚';
+    title.textContent = opts.title || '';
+    body.innerHTML = opts.bodyHtml || '';
+    if (sizeEl && opts.sizeText) sizeEl.textContent = opts.sizeText;
+    if (tip) {
+      if (opts.tipTitle || opts.tipBody) {
+        tip.style.display = '';
+        tip.querySelector('.da-tip-ttl').textContent = opts.tipTitle || '';
+        tip.querySelector('.da-tip-body').textContent = opts.tipBody || '';
+      } else {
+        tip.style.display = 'none';
+      }
+    }
+    btnPrimary.textContent = opts.primaryLabel || '확인';
+    if (opts.secondaryLabel) {
+      btnSecondary.style.display = '';
+      btnSecondary.textContent = opts.secondaryLabel;
+    } else {
+      btnSecondary.style.display = 'none';
+    }
+
+    // 열기
+    backdrop.classList.add('open');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+
+    const close = () => {
+      backdrop.classList.remove('open');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      btnPrimary.onclick = null;
+      btnSecondary.onclick = null;
+      backdrop.onclick = null;
+    };
+    btnPrimary.onclick = () => { close(); try { opts.onPrimary && opts.onPrimary(); } catch(_){} };
+    btnSecondary.onclick = () => { close(); try { opts.onSecondary && opts.onSecondary(); } catch(_){} };
+    // 백드롭 클릭 시 닫기는 위험한 알림(danger)에선 비활성
+    if (!opts.danger) {
+      backdrop.onclick = () => { close(); try { opts.onSecondary && opts.onSecondary(); } catch(_){} };
+    }
+  };
+
+  const showAlerts = () => {
+    // 1) Parse 실패 (가장 심각) — danger 톤, 닫기만
+    if (window._hydrateError) {
+      const err = window._hydrateError;
+      setTimeout(() => {
+        _openDataAlert({
+          danger: true,
+          iconEmoji: '⚠️',
+          title: '데이터를 불러오지 못했어요',
+          bodyHtml: '저장된 기록을 읽는 중 문제가 발생했어요.<br><br>손상된 원본은 <strong>자동으로 안전한 위치에 백업</strong>해뒀습니다. 설정에서 현재 상태를 내보낸 후, 카페에 문의해주시면 복구를 도와드릴게요.',
+          tipTitle: '🔐 백업 키',
+          tipBody: 'read.books.corrupted.' + err.at,
+          primaryLabel: '설정으로 이동',
+          secondaryLabel: '닫기',
+          onPrimary: () => { try { document.getElementById('tab-settings')?.click(); } catch(_){} },
+        });
+      }, 800);
+      return;
+    }
+    // 2) 데이터가 너무 큰 경우 — warn 톤, 백업 안내 (sessionStorage 가드 · 한 번만)
+    if (window._dataSizeWarning) {
+      const w = window._dataSizeWarning;
+      try {
+        if (sessionStorage.getItem('read.dataSizeNotified')) return;
+      } catch(_){}
+      setTimeout(() => {
+        _openDataAlert({
+          danger: false,
+          iconEmoji: '📚',
+          title: '기록이 많이 쌓였어요',
+          bodyHtml: '현재 저장된 데이터가 <strong>' + w.totalMB + ' MB</strong>로 적지 않아요. 아이폰 PWA에선 데이터가 매우 클 경우 앱이 갑자기 종료될 수 있어요.',
+          tipTitle: '💡 미리 백업해두세요',
+          tipBody: '설정 → 데이터 내보내기에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.',
+          primaryLabel: '백업하러 가기',
+          secondaryLabel: '나중에 할게요',
+          onPrimary: () => { try { document.getElementById('tab-settings')?.click(); } catch(_){} },
+        });
+        try { sessionStorage.setItem('read.dataSizeNotified', '1'); } catch(_){}
+      }, 1200);
+    }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showAlerts);
+  } else {
+    setTimeout(showAlerts, 0);
+  }
 })();
 
 /* ─── 표지 없는 책은 Kakao에서 자동 보강 (로드 후 백그라운드) ─── */
