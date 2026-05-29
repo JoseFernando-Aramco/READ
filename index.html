@@ -11382,11 +11382,29 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.5;
   letter-spacing: -0.01em;
   outline: none;
-  /* v1.5.x — auto-grow로 줄 수 만큼 자동 확장. 수동 리사이즈 비활성 */
   resize: none;
-  overflow: hidden;
+  /* v1.5.x — 30줄(14px × 1.5 × 30 ≈ 630px)에서 멈춤, 그 안에서 스크롤. iOS 점프 차단 */
+  max-height: 630px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.35) transparent;
   transition: border-color .15s;
 }
+.bd-wish-note::-webkit-scrollbar,
+.bd-reading-note::-webkit-scrollbar {
+  width: 8px;
+  -webkit-appearance: none;
+}
+.bd-wish-note::-webkit-scrollbar-thumb,
+.bd-reading-note::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.35);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.bd-wish-note::-webkit-scrollbar-track,
+.bd-reading-note::-webkit-scrollbar-track { background: transparent; }
 .bd-wish-note:focus,
 .bd-reading-note:focus { border-color: var(--primary); }
 .bd-wish-note::placeholder,
@@ -35912,11 +35930,31 @@ function wireBookDetailEvents() {
       savedTimer = setTimeout(() => { checkState(); }, 2000);
     }
 
-    // v1.5.x — 입력 시 textarea 자동 높이 조정 (한 줄 평처럼 무제한 확장)
+    // v1.5.x — 입력 시 textarea 자동 높이 조정
+    // 30줄(630px)에서 멈춤 → 내부 스크롤로 처리 (iOS 큰 textarea 점프 차단)
+    // 한글 IME 조합 중엔 갱신 X, rAF 디바운스로 한 프레임당 1회만 실행
+    const MAX_MEMO_H = 630;
+    let composing = false;
+    let growRAF = null;
     function autoGrow() {
-      ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
+      if (composing) return;
+      if (growRAF) return;
+      growRAF = requestAnimationFrame(() => {
+        growRAF = null;
+        const currentH = ta.offsetHeight;
+        const contentH = ta.scrollHeight;
+        // max 도달했고 콘텐츠도 max 이상이면 더 안 건드림 (내부 스크롤로 처리)
+        if (currentH >= MAX_MEMO_H && contentH >= MAX_MEMO_H) return;
+        if (contentH > currentH) {
+          ta.style.height = Math.min(contentH, MAX_MEMO_H) + 'px';
+        } else if (contentH < currentH - 21) {
+          ta.style.height = 'auto';
+          ta.style.height = Math.min(ta.scrollHeight, MAX_MEMO_H) + 'px';
+        }
+      });
     }
+    ta.addEventListener('compositionstart', () => { composing = true; });
+    ta.addEventListener('compositionend', () => { composing = false; autoGrow(); });
 
     // 초기 상태
     setIdle();
