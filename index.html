@@ -23752,13 +23752,6 @@ const STORE = {
       return false;
     }
   },
-  /* v1.5.x — 메모리 폭발 위험 없이 raw 크기만 확인 (parse 안 함) */
-  rawSize(key) {
-    try {
-      const s = localStorage.getItem('read.' + key);
-      return s ? s.length : 0;
-    } catch { return 0; }
-  },
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -29835,34 +29828,6 @@ const NA = {
 
 /* ─── 저장된 BOOKS / TAGS / NOTES 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
 (function hydrateData() {
-  // v1.5.x — 부팅 시 데이터 크기 감지 (parse 전, 메모리 폭발 없이 raw 크기로)
-  //   2500권+ 사용자 케이스: JSON.parse가 iOS Safari PWA 메모리 한계 칠 수 있음
-  const booksRawSize = STORE.rawSize('books');
-  const totalRawSize = (function() {
-    let total = 0;
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith('read.')) {
-          total += (localStorage.getItem(k) || '').length;
-        }
-      }
-    } catch(e){}
-    return total;
-  })();
-  // 임계점: BOOKS raw 3MB+ 또는 전체 read.* 4MB+ → 위험 신호 기록 (모달은 DOM 준비 후 띄움)
-  const SIZE_DANGER = 3 * 1024 * 1024;       // 3MB
-  const TOTAL_DANGER = 4 * 1024 * 1024;      // 4MB
-  if (booksRawSize > SIZE_DANGER || totalRawSize > TOTAL_DANGER) {
-    try {
-      window._dataSizeWarning = {
-        booksMB: (booksRawSize / 1024 / 1024).toFixed(2),
-        totalMB: (totalRawSize / 1024 / 1024).toFixed(2),
-        at: Date.now(),
-      };
-    } catch(_){}
-  }
-
   // v1.5.x — books parse를 try/catch로 감쌈. 실패 시 손상 백업 + 빈 시작
   let savedBooks = null;
   try {
@@ -30111,27 +30076,8 @@ const NA = {
       }, 800);
       return;
     }
-    // 2) 데이터가 너무 큰 경우 — warn 톤, 백업 안내 (sessionStorage 가드 · 한 번만)
-    if (window._dataSizeWarning) {
-      const w = window._dataSizeWarning;
-      try {
-        if (sessionStorage.getItem('read.dataSizeNotified')) return;
-      } catch(_){}
-      setTimeout(() => {
-        _openDataAlert({
-          danger: false,
-          iconEmoji: '📚',
-          title: '기록이 많이 쌓였어요',
-          bodyHtml: '현재 저장된 데이터가 <strong>' + w.totalMB + ' MB</strong>로 적지 않아요. 아이폰 PWA에선 데이터가 매우 클 경우 앱이 갑자기 종료될 수 있어요.',
-          tipTitle: '💡 미리 백업해두세요',
-          tipBody: '설정 → 데이터 내보내기에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.',
-          primaryLabel: '백업하러 가기',
-          secondaryLabel: '나중에 할게요',
-          onPrimary: () => { try { document.getElementById('tab-settings')?.click(); } catch(_){} },
-        });
-        try { sessionStorage.setItem('read.dataSizeNotified', '1'); } catch(_){}
-      }, 1200);
-    }
+    // v1.5.x — 데이터 크기 경고는 제거됨 (표지 지연 로딩으로 근본 해결, 사용자 불편)
+    //   손상 알림만 유지 (위 _hydrateError 분기)
   };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', showAlerts);
