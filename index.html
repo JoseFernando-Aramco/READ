@@ -15206,7 +15206,9 @@ body:has(.lib-edit-bar) .library-cards {
   left: 50%; bottom: 0;
   transform: translate(-50%, 100%);
   width: 100%; max-width: 480px;
+  /* v1.5.x — 키보드 뜨면 자동 축소되도록 dvh (미지원 기기는 vh) */
   height: 88vh;
+  height: 88dvh;
   background: var(--c-canvas);
   border-radius: 12px 12px 0 0;
   z-index: var(--z-sub-sheet-fg);
@@ -15308,7 +15310,7 @@ body:has(.lib-edit-bar) .library-cards {
 .na-textarea {
   resize: none;
   min-height: 220px;
-  max-height: 60vh;
+  /* v1.5.x — max-height는 JS가 visualViewport 기반으로 동적 설정 (키보드 대응) */
   line-height: 1.6;
   overflow-y: auto;
 }
@@ -41926,20 +41928,84 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
-// 노트 textarea 자동 높이 조정 (auto-grow)
+// v1.5.x — 노트 textarea 자동 높이 조정 + 키보드 대응
 function _naAutoGrow() {
   const ta = document.getElementById('naBody');
   if (!ta) return;
+  // 1) max-height: 키보드 뜬 가용 높이 기반 (visualViewport > 폴백 window)
+  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  // 시트 헤더/저장버튼/즐겨찾기 토글 등 고정 영역 대략 240px 빼고, 추가 40px 안전 여유
+  const maxH = Math.max(120, Math.floor(vh - 280));
+  ta.style.maxHeight = maxH + 'px';
+  // 2) 콘텐츠 높이만큼 늘림 (max-height에서 멈춤)
   ta.style.height = 'auto';
-  // CSS의 min-height(220px) / max-height(60vh)는 그대로 적용됨
-  ta.style.height = ta.scrollHeight + 'px';
+  ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px';
+}
+
+// v1.5.x — 캐럿이 항상 보이도록 textarea 내부 스크롤 동기화
+function _naScrollCaretIntoView() {
+  const ta = document.getElementById('naBody');
+  if (!ta) return;
+  // 1) max-height에 도달한 경우 — textarea 내부 스크롤을 캐럿 위치로
+  //    textarea는 캐럿 자동 추적이 약해서 input 후 한 번 더 보장
+  try {
+    const caretPos = ta.selectionEnd;
+    // 임시 div로 캐럿 위치까지의 height 계산
+    const before = ta.value.substring(0, caretPos);
+    const mirror = document.createElement('div');
+    const cs = getComputedStyle(ta);
+    mirror.style.cssText = `
+      position:absolute; visibility:hidden; white-space:pre-wrap; word-wrap:break-word;
+      width:${ta.clientWidth}px;
+      font-family:${cs.fontFamily}; font-size:${cs.fontSize}; line-height:${cs.lineHeight};
+      padding:${cs.padding}; border:${cs.border}; box-sizing:${cs.boxSizing};
+    `;
+    mirror.textContent = before + '\u200b'; // 제로폭 공백으로 마지막 줄 보장
+    document.body.appendChild(mirror);
+    const caretY = mirror.scrollHeight;
+    mirror.remove();
+
+    // 캐럿이 textarea 보이는 영역 밖이면 스크롤
+    const visTop = ta.scrollTop;
+    const visBot = visTop + ta.clientHeight;
+    if (caretY < visTop + 40) {
+      ta.scrollTop = Math.max(0, caretY - 40);
+    } else if (caretY > visBot - 30) {
+      ta.scrollTop = caretY - ta.clientHeight + 30;
+    }
+  } catch(e) { /* 폴백: 그냥 끝으로 */ }
+
+  // 2) 시트 자체도 textarea를 가시 영역으로 (긴 메모로 시트가 스크롤되는 경우)
+  const body = document.querySelector('.na-body');
+  if (body && ta) {
+    try {
+      const rect = ta.getBoundingClientRect();
+      const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      // textarea가 가용 화면 하단을 넘어가면 시트 스크롤
+      if (rect.bottom > vh - 20) {
+        body.scrollTop += (rect.bottom - vh + 40);
+      }
+    } catch(e) {}
+  }
 }
 
 document.getElementById('naBody').addEventListener('input', (e) => {
   NA.body = e.target.value;
   updateNASaveBtn();
   _naAutoGrow();
+  _naScrollCaretIntoView();
 });
+
+// v1.5.x — 키보드 뜨고 닫힐 때 textarea max-height 재계산
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const sheet = document.getElementById('naSheet');
+    if (sheet && sheet.classList.contains('open')) {
+      _naAutoGrow();
+      _naScrollCaretIntoView();
+    }
+  });
+}
 
 document.getElementById('naFav').addEventListener('click', () => {
   NA.favorite = !NA.favorite;
