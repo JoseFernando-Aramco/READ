@@ -15310,8 +15310,8 @@ body:has(.lib-edit-bar) .library-cards {
 .na-textarea {
   resize: none;
   min-height: 220px;
-  /* v1.5.x — 40줄(line-height 1.6 × font-size 15px × 40 ≈ 960px)에서 멈춤, 그 안에서 스크롤 */
-  max-height: 960px;
+  /* v1.5.x — 30줄(24px × 30 = 720px)에서 멈춤, 그 안에서 스크롤 */
+  max-height: 720px;
   line-height: 1.6;
   overflow-y: auto;
   -webkit-overflow-scrolling: auto;
@@ -41933,7 +41933,7 @@ document.getElementById('naPage').addEventListener('input', (e) => {
 // v1.5.x — 노트 textarea 자동 높이 (40줄 = 960px에서 멈춤)
 // 그 이후엔 textarea 내부 스크롤로 사용자가 직접 스크롤 (iOS 점프 회피)
 // 한글 조합 중엔 갱신 차단, rAF 디바운스로 한 프레임당 1회만 실행
-const MAX_TA_H = 960;
+const MAX_TA_H = 720;
 let _naComposing = false;
 let _naGrowRAF = null;
 function _naAutoGrow() {
