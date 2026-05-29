@@ -15310,9 +15310,9 @@ body:has(.lib-edit-bar) .library-cards {
 .na-textarea {
   resize: none;
   min-height: 220px;
-  /* v1.5.x — max-height는 JS가 visualViewport 기반으로 동적 설정 (키보드 대응) */
+  /* v1.5.x — max-height 없음, 콘텐츠만큼 무한히 늘어남. 내부 스크롤 X (시트 본문이 알아서 스크롤) */
   line-height: 1.6;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .na-fav-toggle {
@@ -41928,131 +41928,19 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
-// v1.5.x — 노트 textarea 자동 높이 조정 + 키보드 대응
+// v1.5.x — 노트 textarea 자동 높이: 콘텐츠만큼 무한히 늘어남. 시트 본문(na-body)이 자연 스크롤
 function _naAutoGrow() {
   const ta = document.getElementById('naBody');
   if (!ta) return;
-  // 가용 max-height 계산 (visualViewport 기반, 키보드 뜬 상태 반영)
-  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  const maxH = Math.max(120, Math.floor(vh - 280));
-  ta.style.maxHeight = maxH + 'px';
-
-  // 현재 콘텐츠가 max-height을 이미 넘으면 → height 고정(max-height), 더 안 건드림
-  // (내부 스크롤로 알아서 처리됨. 매번 height auto→scrollHeight 갱신하면 시트 튐)
-  if (ta.scrollHeight > maxH) {
-    if (ta.style.height !== maxH + 'px') ta.style.height = maxH + 'px';
-    return;
-  }
-  // 아직 max 도달 전 — 콘텐츠만큼 늘림
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight + 'px';
-}
-
-// v1.5.x — 캐럿이 항상 textarea 하단(키보드 바로 위)에 보이도록 내부 스크롤만 조정
-// 시트 스크롤은 절대 건드리지 않음 (들쑥날쑥 튐 방지)
-function _naScrollCaretIntoView() {
-  const ta = document.getElementById('naBody');
-  if (!ta) return;
-  try {
-    const caretPos = ta.selectionEnd;
-    const before = ta.value.substring(0, caretPos);
-    const mirror = document.createElement('div');
-    const cs = getComputedStyle(ta);
-    mirror.style.cssText = `
-      position:absolute; visibility:hidden; white-space:pre-wrap; word-wrap:break-word;
-      width:${ta.clientWidth}px;
-      font-family:${cs.fontFamily}; font-size:${cs.fontSize}; line-height:${cs.lineHeight};
-      padding:${cs.padding}; border:${cs.border}; box-sizing:${cs.boxSizing};
-    `;
-    mirror.textContent = before + '\u200b';
-    document.body.appendChild(mirror);
-    const caretY = mirror.scrollHeight;
-    mirror.remove();
-
-    // 캐럿이 textarea 보이는 영역의 하단 30px 안에 머물도록 (키보드 위 안정)
-    // 위로 올라가는 경우는 건드리지 않음 (사용자가 의도적으로 위로 스크롤한 경우)
-    const visTop = ta.scrollTop;
-    const visBot = visTop + ta.clientHeight;
-    if (caretY > visBot - 30) {
-      ta.scrollTop = caretY - ta.clientHeight + 30;
-    } else if (caretY < visTop + 20) {
-      // 백스페이스로 위로 갔을 때만
-      ta.scrollTop = Math.max(0, caretY - 20);
-    }
-  } catch(e) {}
 }
 
 document.getElementById('naBody').addEventListener('input', (e) => {
   NA.body = e.target.value;
   updateNASaveBtn();
   _naAutoGrow();
-  _naScrollCaretIntoView();
 });
-
-// v1.5.x — textarea focus 시 시트 스크롤을 textarea 보이는 위치로 정렬 후 잠금
-// (iOS가 입력 중 캐럿 가시화하려고 부모 스크롤 컨테이너를 움직이는 걸 차단)
-let _naBodyScrollLocked = false;
-let _naLockedScrollTop = 0;
-document.getElementById('naBody').addEventListener('focus', () => {
-  const body = document.querySelector('.na-body');
-  const ta = document.getElementById('naBody');
-  if (!body || !ta) return;
-  // textarea가 시트 보이는 영역 안에 잘 들어오게 한 번 정렬
-  // (textarea 위쪽이 시트 상단에서 약간 떨어진 위치에 오도록)
-  requestAnimationFrame(() => {
-    try {
-      const taRect = ta.getBoundingClientRect();
-      const bodyRect = body.getBoundingClientRect();
-      // textarea 상단을 시트 보이는 영역 상단에서 12px 아래로
-      const desiredTop = bodyRect.top + 12;
-      const delta = taRect.top - desiredTop;
-      if (Math.abs(delta) > 4) {
-        body.scrollTop += delta;
-      }
-      _naLockedScrollTop = body.scrollTop;
-      _naBodyScrollLocked = true;
-    } catch(e) {}
-  });
-});
-document.getElementById('naBody').addEventListener('blur', () => {
-  _naBodyScrollLocked = false;
-});
-// 시트 스크롤이 움직이려 하면 잠긴 위치로 강제 복귀 (iOS 자동 스크롤 차단)
-document.querySelector('.na-body')?.addEventListener('scroll', () => {
-  if (!_naBodyScrollLocked) return;
-  const body = document.querySelector('.na-body');
-  if (body && Math.abs(body.scrollTop - _naLockedScrollTop) > 1) {
-    body.scrollTop = _naLockedScrollTop;
-  }
-}, { passive: true });
-
-// v1.5.x — 키보드 뜨고 닫힐 때 textarea max-height 재계산
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    const sheet = document.getElementById('naSheet');
-    if (sheet && sheet.classList.contains('open')) {
-      _naAutoGrow();
-      _naScrollCaretIntoView();
-      // 키보드 상태 바뀌면 잠긴 위치도 갱신
-      if (_naBodyScrollLocked) {
-        const body = document.querySelector('.na-body');
-        const ta = document.getElementById('naBody');
-        if (body && ta) {
-          requestAnimationFrame(() => {
-            try {
-              const taRect = ta.getBoundingClientRect();
-              const bodyRect = body.getBoundingClientRect();
-              const desiredTop = bodyRect.top + 12;
-              const delta = taRect.top - desiredTop;
-              if (Math.abs(delta) > 4) body.scrollTop += delta;
-              _naLockedScrollTop = body.scrollTop;
-            } catch(e) {}
-          });
-        }
-      }
-    }
-  });
-}
 
 document.getElementById('naFav').addEventListener('click', () => {
   NA.favorite = !NA.favorite;
