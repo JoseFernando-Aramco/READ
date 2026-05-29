@@ -41928,26 +41928,37 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
-// v1.5.x — 노트 textarea 자동 높이: 콘텐츠만큼 무한히 늘어남. 시트 본문(na-body)이 자연 스크롤
-// iOS에선 height: 'auto' 리셋 시 textarea가 잠깐 작아졌다 다시 늘어나며 점프 유발 → 직접 갱신만
+// v1.5.x — 노트 textarea 자동 높이
+// iOS Safari: 한글 IME 조합 중 input 이벤트가 매 자모마다 발사되며, 그때마다 height 갱신하면
+//   큰 textarea(45줄 이상, ~1000px+)에서 점프 발생. 조합 중엔 갱신 차단.
+// rAF 디바운스: 한 프레임당 1회만 갱신해서 iOS 리플로우 부담 줄임.
+let _naComposing = false;
+let _naGrowRAF = null;
 function _naAutoGrow() {
-  const ta = document.getElementById('naBody');
-  if (!ta) return;
-  // 줄어드는 케이스(백스페이스로 삭제) 대응: 현재 height < scrollHeight면 그대로
-  // 늘어나는 케이스만 height 갱신. 리셋 없이.
-  const currentH = ta.offsetHeight;
-  const contentH = ta.scrollHeight;
-  if (contentH > currentH) {
-    ta.style.height = contentH + 'px';
-  } else if (contentH < currentH - 24) {
-    // 한 줄(24px) 이상 줄어들었을 때만 한 번 리셋 (삭제 케이스)
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
-  }
-  // 그 외(같거나 거의 같음)는 안 건드림 → 점프 방지
+  if (_naComposing) return; // 한글 조합 중엔 갱신 안 함
+  if (_naGrowRAF) return;
+  _naGrowRAF = requestAnimationFrame(() => {
+    _naGrowRAF = null;
+    const ta = document.getElementById('naBody');
+    if (!ta) return;
+    const currentH = ta.offsetHeight;
+    const contentH = ta.scrollHeight;
+    if (contentH > currentH) {
+      ta.style.height = contentH + 'px';
+    } else if (contentH < currentH - 24) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+  });
 }
 
-document.getElementById('naBody').addEventListener('input', (e) => {
+const _naBodyEl = document.getElementById('naBody');
+_naBodyEl.addEventListener('compositionstart', () => { _naComposing = true; });
+_naBodyEl.addEventListener('compositionend', () => {
+  _naComposing = false;
+  _naAutoGrow(); // 조합 끝나면 한 번 갱신
+});
+_naBodyEl.addEventListener('input', (e) => {
   NA.body = e.target.value;
   updateNASaveBtn();
   _naAutoGrow();
