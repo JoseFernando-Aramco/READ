@@ -41989,6 +41989,43 @@ document.getElementById('naBody').addEventListener('input', (e) => {
   _naScrollCaretIntoView();
 });
 
+// v1.5.x — textarea focus 시 시트 스크롤을 textarea 보이는 위치로 정렬 후 잠금
+// (iOS가 입력 중 캐럿 가시화하려고 부모 스크롤 컨테이너를 움직이는 걸 차단)
+let _naBodyScrollLocked = false;
+let _naLockedScrollTop = 0;
+document.getElementById('naBody').addEventListener('focus', () => {
+  const body = document.querySelector('.na-body');
+  const ta = document.getElementById('naBody');
+  if (!body || !ta) return;
+  // textarea가 시트 보이는 영역 안에 잘 들어오게 한 번 정렬
+  // (textarea 위쪽이 시트 상단에서 약간 떨어진 위치에 오도록)
+  requestAnimationFrame(() => {
+    try {
+      const taRect = ta.getBoundingClientRect();
+      const bodyRect = body.getBoundingClientRect();
+      // textarea 상단을 시트 보이는 영역 상단에서 12px 아래로
+      const desiredTop = bodyRect.top + 12;
+      const delta = taRect.top - desiredTop;
+      if (Math.abs(delta) > 4) {
+        body.scrollTop += delta;
+      }
+      _naLockedScrollTop = body.scrollTop;
+      _naBodyScrollLocked = true;
+    } catch(e) {}
+  });
+});
+document.getElementById('naBody').addEventListener('blur', () => {
+  _naBodyScrollLocked = false;
+});
+// 시트 스크롤이 움직이려 하면 잠긴 위치로 강제 복귀 (iOS 자동 스크롤 차단)
+document.querySelector('.na-body')?.addEventListener('scroll', () => {
+  if (!_naBodyScrollLocked) return;
+  const body = document.querySelector('.na-body');
+  if (body && Math.abs(body.scrollTop - _naLockedScrollTop) > 1) {
+    body.scrollTop = _naLockedScrollTop;
+  }
+}, { passive: true });
+
 // v1.5.x — 키보드 뜨고 닫힐 때 textarea max-height 재계산
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
@@ -41996,6 +42033,23 @@ if (window.visualViewport) {
     if (sheet && sheet.classList.contains('open')) {
       _naAutoGrow();
       _naScrollCaretIntoView();
+      // 키보드 상태 바뀌면 잠긴 위치도 갱신
+      if (_naBodyScrollLocked) {
+        const body = document.querySelector('.na-body');
+        const ta = document.getElementById('naBody');
+        if (body && ta) {
+          requestAnimationFrame(() => {
+            try {
+              const taRect = ta.getBoundingClientRect();
+              const bodyRect = body.getBoundingClientRect();
+              const desiredTop = bodyRect.top + 12;
+              const delta = taRect.top - desiredTop;
+              if (Math.abs(delta) > 4) body.scrollTop += delta;
+              _naLockedScrollTop = body.scrollTop;
+            } catch(e) {}
+          });
+        }
+      }
     }
   });
 }
