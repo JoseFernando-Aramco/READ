@@ -9380,6 +9380,8 @@ body:has(.lib-edit-bar) .library-cards {
 .qn-textarea {
   width: 100%;
   min-height: 110px;
+  /* v1.5.x — 30줄(14.5px × 1.5 × 30 ≈ 660px)에서 멈춤, 그 안에서 스크롤 */
+  max-height: 660px;
   padding: 12px 14px;
   background: var(--c-canvas);
   border: 1px solid var(--c-border);
@@ -9390,11 +9392,25 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.5;
   resize: none;
   outline: none;
-  /* v1.5.x — JS auto-grow로 줄 수 만큼 자동 확장 */
-  overflow: hidden;
+  /* v1.5.x — 30줄 도달 후 내부 스크롤 (iOS 점프 차단 위해 모멘텀 OFF) */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.35) transparent;
   transition: border-color 0.15s, background 0.15s;
   box-sizing: border-box;
 }
+.qn-textarea::-webkit-scrollbar {
+  width: 8px;
+  -webkit-appearance: none;
+}
+.qn-textarea::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.35);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.qn-textarea::-webkit-scrollbar-track { background: transparent; }
 .qn-textarea:focus {
   border-color: var(--c-sage-500, #5F6B5F);
   background: var(--c-surface);
@@ -15315,6 +15331,24 @@ body:has(.lib-edit-bar) .library-cards {
   line-height: 1.6;
   overflow-y: auto;
   -webkit-overflow-scrolling: auto;
+  /* 스크롤바 항상 표시 (iOS overlay 스크롤바 무시) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.35) transparent;
+}
+/* WebKit (iOS Safari · Chrome): 스크롤바 강제 표시 */
+.na-textarea::-webkit-scrollbar {
+  width: 8px;
+  -webkit-appearance: none;
+  background: transparent;
+}
+.na-textarea::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.35);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.na-textarea::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .na-fav-toggle {
@@ -32692,12 +32726,29 @@ function closeQuickNote() {
   unlockBodyScroll();
 }
 
-/* v1.5.x — 한줄평 textarea 자동 높이 조절 (제한 없이 줄 수 만큼 확장) */
+/* v1.5.x — 한줄평 textarea 자동 높이 (30줄=660px에서 멈춤, 그 안에서 스크롤)
+   iOS Safari 큰 textarea 점프 차단: 한글 조합 중엔 갱신 X, rAF 디바운스 */
+const MAX_QN_H = 660;
+let _qnComposing = false;
+let _qnResizeRAF = null;
 function _qnAutoResize() {
-  const ta = document.getElementById('qnTextarea');
-  if (!ta) return;
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight + 'px';
+  if (_qnComposing) return;
+  if (_qnResizeRAF) return;
+  _qnResizeRAF = requestAnimationFrame(() => {
+    _qnResizeRAF = null;
+    const ta = document.getElementById('qnTextarea');
+    if (!ta) return;
+    const currentH = ta.offsetHeight;
+    const contentH = ta.scrollHeight;
+    // 이미 max 도달 후엔 더 안 건드림 (내부 스크롤로 처리)
+    if (currentH >= MAX_QN_H && contentH >= MAX_QN_H) return;
+    if (contentH > currentH) {
+      ta.style.height = Math.min(contentH, MAX_QN_H) + 'px';
+    } else if (contentH < currentH - 22) {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, MAX_QN_H) + 'px';
+    }
+  });
 }
 
 /* 한줄평 시트 wire — 버튼 + 백드롭 + 단축키 */
@@ -32708,7 +32759,12 @@ function _qnAutoResize() {
   const del = document.getElementById('qnDelete');
   const backdrop = document.getElementById('qnBackdrop');
 
-  if (ta) ta.addEventListener('input', _qnAutoResize);
+  if (ta) {
+    ta.addEventListener('input', _qnAutoResize);
+    // v1.5.x — 한글 IME 조합 중 height 갱신 차단 (iOS 큰 textarea 점프 방지)
+    ta.addEventListener('compositionstart', () => { _qnComposing = true; });
+    ta.addEventListener('compositionend', () => { _qnComposing = false; _qnAutoResize(); });
+  }
   if (save) save.addEventListener('click', () => {
     const ta = document.getElementById('qnTextarea');
     if (!ta) return;
