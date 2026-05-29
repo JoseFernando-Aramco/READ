@@ -41932,25 +41932,29 @@ document.getElementById('naPage').addEventListener('input', (e) => {
 function _naAutoGrow() {
   const ta = document.getElementById('naBody');
   if (!ta) return;
-  // 1) max-height: 키보드 뜬 가용 높이 기반 (visualViewport > 폴백 window)
+  // 가용 max-height 계산 (visualViewport 기반, 키보드 뜬 상태 반영)
   const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  // 시트 헤더/저장버튼/즐겨찾기 토글 등 고정 영역 대략 240px 빼고, 추가 40px 안전 여유
   const maxH = Math.max(120, Math.floor(vh - 280));
   ta.style.maxHeight = maxH + 'px';
-  // 2) 콘텐츠 높이만큼 늘림 (max-height에서 멈춤)
+
+  // 현재 콘텐츠가 max-height을 이미 넘으면 → height 고정(max-height), 더 안 건드림
+  // (내부 스크롤로 알아서 처리됨. 매번 height auto→scrollHeight 갱신하면 시트 튐)
+  if (ta.scrollHeight > maxH) {
+    if (ta.style.height !== maxH + 'px') ta.style.height = maxH + 'px';
+    return;
+  }
+  // 아직 max 도달 전 — 콘텐츠만큼 늘림
   ta.style.height = 'auto';
-  ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px';
+  ta.style.height = ta.scrollHeight + 'px';
 }
 
-// v1.5.x — 캐럿이 항상 보이도록 textarea 내부 스크롤 동기화
+// v1.5.x — 캐럿이 항상 textarea 하단(키보드 바로 위)에 보이도록 내부 스크롤만 조정
+// 시트 스크롤은 절대 건드리지 않음 (들쑥날쑥 튐 방지)
 function _naScrollCaretIntoView() {
   const ta = document.getElementById('naBody');
   if (!ta) return;
-  // 1) max-height에 도달한 경우 — textarea 내부 스크롤을 캐럿 위치로
-  //    textarea는 캐럿 자동 추적이 약해서 input 후 한 번 더 보장
   try {
     const caretPos = ta.selectionEnd;
-    // 임시 div로 캐럿 위치까지의 height 계산
     const before = ta.value.substring(0, caretPos);
     const mirror = document.createElement('div');
     const cs = getComputedStyle(ta);
@@ -41960,33 +41964,22 @@ function _naScrollCaretIntoView() {
       font-family:${cs.fontFamily}; font-size:${cs.fontSize}; line-height:${cs.lineHeight};
       padding:${cs.padding}; border:${cs.border}; box-sizing:${cs.boxSizing};
     `;
-    mirror.textContent = before + '\u200b'; // 제로폭 공백으로 마지막 줄 보장
+    mirror.textContent = before + '\u200b';
     document.body.appendChild(mirror);
     const caretY = mirror.scrollHeight;
     mirror.remove();
 
-    // 캐럿이 textarea 보이는 영역 밖이면 스크롤
+    // 캐럿이 textarea 보이는 영역의 하단 30px 안에 머물도록 (키보드 위 안정)
+    // 위로 올라가는 경우는 건드리지 않음 (사용자가 의도적으로 위로 스크롤한 경우)
     const visTop = ta.scrollTop;
     const visBot = visTop + ta.clientHeight;
-    if (caretY < visTop + 40) {
-      ta.scrollTop = Math.max(0, caretY - 40);
-    } else if (caretY > visBot - 30) {
+    if (caretY > visBot - 30) {
       ta.scrollTop = caretY - ta.clientHeight + 30;
+    } else if (caretY < visTop + 20) {
+      // 백스페이스로 위로 갔을 때만
+      ta.scrollTop = Math.max(0, caretY - 20);
     }
-  } catch(e) { /* 폴백: 그냥 끝으로 */ }
-
-  // 2) 시트 자체도 textarea를 가시 영역으로 (긴 메모로 시트가 스크롤되는 경우)
-  const body = document.querySelector('.na-body');
-  if (body && ta) {
-    try {
-      const rect = ta.getBoundingClientRect();
-      const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-      // textarea가 가용 화면 하단을 넘어가면 시트 스크롤
-      if (rect.bottom > vh - 20) {
-        body.scrollTop += (rect.bottom - vh + 40);
-      }
-    } catch(e) {}
-  }
+  } catch(e) {}
 }
 
 document.getElementById('naBody').addEventListener('input', (e) => {
