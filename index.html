@@ -15310,9 +15310,11 @@ body:has(.lib-edit-bar) .library-cards {
 .na-textarea {
   resize: none;
   min-height: 220px;
-  /* v1.5.x — max-height 없음, 콘텐츠만큼 무한히 늘어남. 내부 스크롤 X (시트 본문이 알아서 스크롤) */
+  /* v1.5.x — 40줄(line-height 1.6 × font-size 15px × 40 ≈ 960px)에서 멈춤, 그 안에서 스크롤 */
+  max-height: 960px;
   line-height: 1.6;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: auto;
 }
 
 .na-fav-toggle {
@@ -41928,14 +41930,14 @@ document.getElementById('naPage').addEventListener('input', (e) => {
   NA.page = v ? parseInt(v, 10) : null;
 });
 
-// v1.5.x — 노트 textarea 자동 높이
-// iOS Safari: 한글 IME 조합 중 input 이벤트가 매 자모마다 발사되며, 그때마다 height 갱신하면
-//   큰 textarea(45줄 이상, ~1000px+)에서 점프 발생. 조합 중엔 갱신 차단.
-// rAF 디바운스: 한 프레임당 1회만 갱신해서 iOS 리플로우 부담 줄임.
+// v1.5.x — 노트 textarea 자동 높이 (40줄 = 960px에서 멈춤)
+// 그 이후엔 textarea 내부 스크롤로 사용자가 직접 스크롤 (iOS 점프 회피)
+// 한글 조합 중엔 갱신 차단, rAF 디바운스로 한 프레임당 1회만 실행
+const MAX_TA_H = 960;
 let _naComposing = false;
 let _naGrowRAF = null;
 function _naAutoGrow() {
-  if (_naComposing) return; // 한글 조합 중엔 갱신 안 함
+  if (_naComposing) return;
   if (_naGrowRAF) return;
   _naGrowRAF = requestAnimationFrame(() => {
     _naGrowRAF = null;
@@ -41943,11 +41945,13 @@ function _naAutoGrow() {
     if (!ta) return;
     const currentH = ta.offsetHeight;
     const contentH = ta.scrollHeight;
+    // 이미 max에 도달했고 콘텐츠도 max 이상이면 더 안 건드림 (내부 스크롤로 처리)
+    if (currentH >= MAX_TA_H && contentH >= MAX_TA_H) return;
     if (contentH > currentH) {
-      ta.style.height = contentH + 'px';
+      ta.style.height = Math.min(contentH, MAX_TA_H) + 'px';
     } else if (contentH < currentH - 24) {
       ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
+      ta.style.height = Math.min(ta.scrollHeight, MAX_TA_H) + 'px';
     }
   });
 }
@@ -41956,7 +41960,7 @@ const _naBodyEl = document.getElementById('naBody');
 _naBodyEl.addEventListener('compositionstart', () => { _naComposing = true; });
 _naBodyEl.addEventListener('compositionend', () => {
   _naComposing = false;
-  _naAutoGrow(); // 조합 끝나면 한 번 갱신
+  _naAutoGrow();
 });
 _naBodyEl.addEventListener('input', (e) => {
   NA.body = e.target.value;
