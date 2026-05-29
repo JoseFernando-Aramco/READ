@@ -27596,7 +27596,7 @@ async function processCoverImage(file) {
     r.readAsDataURL(file);
   });
 
-  // 큰 이미지는 600x900 기준으로 리사이즈 (책 표지 비율 4:6)
+  // v1.5.x — 큰 이미지는 400x600 기준으로 리사이즈 (책 표지 비율 4:6, 모바일 표시엔 충분)
   const img = await new Promise((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -27604,7 +27604,7 @@ async function processCoverImage(file) {
     i.src = dataUrl;
   });
 
-  const MAX_W = 600, MAX_H = 900;
+  const MAX_W = 400, MAX_H = 600;
   let w = img.naturalWidth, h = img.naturalHeight;
   if (w > MAX_W || h > MAX_H) {
     const ratio = Math.min(MAX_W / w, MAX_H / h);
@@ -27615,7 +27615,11 @@ async function processCoverImage(file) {
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, w, h);
-  // JPEG 80% — 파일 크기와 품질 균형
+
+  // v1.5.x — WebP 80% 우선 시도 (JPEG보다 25~35% 작음). 실패 시 JPEG 80% 폴백.
+  // 브라우저가 WebP 미지원이면 toDataURL이 자동으로 PNG 반환하므로 mime 체크로 분기.
+  const webp = canvas.toDataURL('image/webp', 0.8);
+  if (webp && webp.startsWith('data:image/webp')) return webp;
   return canvas.toDataURL('image/jpeg', 0.8);
 }
 
@@ -30536,10 +30540,20 @@ function bookCoverMeta(b) {
 function renderBookCoverInner(b, number) {
   // 표지 이미지가 있으면 실제 이미지로 렌더
   if (b.coverUrl) {
+    // v1.5.x — IntersectionObserver 기반 지연 로딩
+    //   초기 src는 1x1 투명 placeholder, 실제 URL은 data-src에 보관
+    //   카드가 viewport 근처에 들어올 때만 src 채움 (Safari 캐시 폭발 방지)
+    //   data: URL(직접 첨부 표지)은 외부 fetch 없으니 즉시 로드
+    if (b.coverUrl.startsWith('data:')) {
+      return `
+        <img class="bc-img" src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+             referrerpolicy="no-referrer" draggable="false"
+             onerror="this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
+    }
     return `
-      <img class="bc-img" src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+      <img class="bc-img bc-img-lazy" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${esc(b.coverUrl)}" alt="${esc(b.title)}"
            referrerpolicy="no-referrer" draggable="false"
-           onerror="this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
+           onerror="if(this.dataset.src){return;} this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
   }
   // 표지 없으면 기존 팔레트 에디토리얼 디자인
   const { cat, year } = bookCoverMeta(b);
@@ -30557,6 +30571,41 @@ function renderBookCoverInner(b, number) {
         <div class="bc-meta">${esc(year)}${numStr}</div>
       </div>
     </div>`;
+}
+
+/* v1.5.x — 표지 lazy 로딩 옵저버
+   .bc-img-lazy 요소가 viewport 근처(rootMargin 200px) 들어오면 data-src → src
+   2,500권+ 사용자: 위시/완독 카테고리 전체 카드가 DOM에 있어도 실제 fetch는
+   화면에 보이는 ~20장만 발생 → Safari PWA 이미지 캐시 폭발 방지
+   브라우저 미지원 시(IO 없음) 즉시 모든 src 채움 (폴백) */
+const _coverLazyObserver = (() => {
+  if (typeof IntersectionObserver === 'undefined') return null;
+  return new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const img = e.target;
+      const realSrc = img.getAttribute('data-src');
+      if (realSrc) {
+        img.src = realSrc;
+        img.removeAttribute('data-src');
+        img.classList.remove('bc-img-lazy');
+      }
+      obs.unobserve(img);
+    });
+  }, { rootMargin: '300px 0px', threshold: 0.01 });
+})();
+function _attachCoverLazyObserver(root) {
+  const container = root || document;
+  const targets = container.querySelectorAll('img.bc-img-lazy[data-src]');
+  if (!_coverLazyObserver) {
+    // 폴백: IO 미지원 환경
+    targets.forEach(img => {
+      const realSrc = img.getAttribute('data-src');
+      if (realSrc) { img.src = realSrc; img.removeAttribute('data-src'); img.classList.remove('bc-img-lazy'); }
+    });
+    return;
+  }
+  targets.forEach(img => _coverLazyObserver.observe(img));
 }
 
 /* 북 카드 하나 (커버 + 제목 + 메타) */
@@ -31903,6 +31952,8 @@ function renderLibraryCards() {
   if (typeof window._libEditFabRefresh === 'function') {
     window._libEditFabRefresh();
   }
+  // v1.5.x — 새로 그려진 카드들의 표지 lazy 옵저버 부착
+  try { _attachCoverLazyObserver(container); } catch(e){}
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
