@@ -31676,6 +31676,8 @@ function renderHallOfFame() {
       if (id) openBookDetail(id);
     });
   });
+  // v1.5.x — 표지 lazy 옵저버 부착 (없으면 placeholder만 남고 표지 안 뜸)
+  try { _attachCoverLazyObserver(container); } catch(e){}
 }
 
 /* 완독 섹션 "더보기" 상태 — 페이지 세션 내 유지 */
@@ -32696,6 +32698,8 @@ function _grpExpandSheet(groupId, categoryFilter) {
 
   document.body.appendChild(backdrop);
   document.body.appendChild(sheet);
+  // v1.5.x — 묶음 시트 안 표지 lazy 옵저버 부착
+  try { _attachCoverLazyObserver(sheet); } catch(e){}
 
   // 백드롭 클릭 = 닫기
   backdrop.addEventListener('click', () => _grpCloseSheet());
@@ -35049,7 +35053,11 @@ function _grpRefreshOpenSheetIfAny() {
   // 그리드 + 카운트 갱신
   const grid = sheet.querySelector('.grp-sheet-grid');
   const subEl = sheet.querySelector('.grp-sheet-sub');
-  if (grid) grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
+  if (grid) {
+    grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
+    // v1.5.x — 갱신된 카드에 lazy 옵저버 재부착
+    try { _attachCoverLazyObserver(grid); } catch(e){}
+  }
   if (subEl) subEl.textContent = `묶음 ${booksInGrp.length}권`;
 }
 
