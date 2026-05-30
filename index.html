@@ -26771,6 +26771,34 @@ function _dedupeByIsbn(arr) {
   return out;
 }
 
+/* v1.5.x — 책 제목 정규화 (알라딘 등 부가정보 괄호 제거)
+   - "양장본/HardCover/총서/시리즈/세트" 등 키워드 매치된 괄호: 길이 무관 제거
+   - 키워드 없는 괄호: 8자 이상이면 제거, 미만이면 보존 ((상), (1권), (개정판) 등)
+   - 끝쪽 짧은 괄호를 만나면 그 앞은 건드리지 않음 (안전망)
+   - 검색 결과 통일 처리에만 사용. 기존 BOOKS, CSV 임포트는 손대지 않음. */
+function _normalizeBookTitle(title) {
+  if (!title || typeof title !== 'string') return title;
+  const KILL_KEYWORDS = /(양장본|반양장|HardCover|Hard\s*Cover|Paperback|paperback|큰글자|eBook|ebook|전자책|오디오북|총서|문고|시리즈|세트|전집|완역본|특별판|한정판|학술명저|장편소설|Edition|edition)/i;
+  let result = title;
+  // 끝쪽 괄호부터 하나씩 검사. 짧고 키워드 없는 괄호 만나면 중단 (안전망)
+  for (let i = 0; i < 5; i++) {
+    const m = result.match(/^(.+?)\s*[(（]([^()（）]*)[)）]\s*$/);
+    if (!m) break;
+    const before = m[1];
+    const inside = m[2];
+    if (KILL_KEYWORDS.test(inside)) {
+      result = before.trim();
+      continue;
+    }
+    if (inside.length >= 8) {
+      result = before.trim();
+      continue;
+    }
+    break;
+  }
+  return result.trim();
+}
+
 /* v1.9.1 — 같은 ISBN(또는 제목+저자+출판사 키)의 후보들을 그룹화 후 항목별 best source 데이터로 합성.
  *
  * 우선순위 (Jason 결정):
@@ -26933,6 +26961,9 @@ async function searchBooks(query) {
     }
 
     console.log(`[search] 결과: Kakao ${kakaoItems.length} · Aladin ${aladinItems.length} · Google ${googleItems.length} · merged ${merged.length}`);
+
+    // v1.5.x — 책 제목 정규화 (알라딘 등 부가정보 괄호 제거)
+    merged.forEach(b => { if (b) b.title = _normalizeBookTitle(b.title); });
 
     if (merged.length === 0) {
       // 셋 다 실패면 진짜 에러, 일부만 빈 결과면 그대로 빈 결과 표시
