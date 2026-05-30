@@ -26175,6 +26175,8 @@ async function _onBarcodeDetected(isbn) {
   try {
     // 알라딘 프록시로 ISBN 조회 → 책 메타 가져오기
     const book = await _fetchBookByIsbnForScan(isbn);
+    // v1.5.x — 검색과 동일하게 책 제목 정규화 (알라딘 등 부가정보 괄호 제거)
+    if (book && book.title) book.title = _normalizeBookTitle(book.title);
     if (!book) {
       _setScanLoading(false);
       _setScanStatus('책을 찾지 못했어요 · 다시 시도', 'warn');
