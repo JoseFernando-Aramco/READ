@@ -14691,7 +14691,11 @@ body:has(.lib-edit-bar) .library-cards {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 14px;
+  /* v1.5.x — iOS PWA safe area 대응 (status bar·홈 인디케이터 피함) */
+  padding-top:    max(20px, env(safe-area-inset-top, 20px));
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  padding-left:   max(14px, env(safe-area-inset-left, 14px));
+  padding-right:  max(14px, env(safe-area-inset-right, 14px));
   opacity: 0;
   pointer-events: none;
   transition: opacity 220ms ease;
@@ -14708,7 +14712,12 @@ body:has(.lib-edit-bar) .library-cards {
   box-shadow: 0 20px 60px rgba(0,0,0,0.18);
   transform: scale(0.96);
   transition: transform 220ms ease;
+  /* v1.5.x — dvh + safe area 빼서 카드가 status bar/홈 인디케이터 영역 침범 안 함 */
   max-height: calc(100vh - 40px);
+  max-height: calc(100dvh
+    - max(20px, env(safe-area-inset-top, 20px))
+    - max(20px, env(safe-area-inset-bottom, 20px))
+    - 20px);
   display: flex;
   flex-direction: column;
 }
