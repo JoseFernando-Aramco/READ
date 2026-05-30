@@ -31679,8 +31679,8 @@ function renderHallOfFame() {
 }
 
 /* 완독 섹션 "더보기" 상태 — 페이지 세션 내 유지 */
-let _visibleDoneCount = 12;
-const DONE_PAGE_SIZE = 20;
+let _visibleDoneCount = 30;
+const DONE_PAGE_SIZE = 30;
 // v1.5.x — 대량 데이터 사용자 (2,500권+) 대응: 위시/독서중/하차도 페이지네이션
 //   완독과 동일하게 첫 진입 시 일부만 그리고 "더보기" 버튼으로 추가 로드
 let _visibleWishCount = 30;
@@ -31701,7 +31701,7 @@ let _wishSortMode = 'recent';
 /* ═══════════════════════════════════════════════════════════
    위시리스트 전용 렌더 — 정렬 토글 + 취향 점수 배지
    ═══════════════════════════════════════════════════════════ */
-function renderWishlistSection(wish, trailing = '') {
+function renderWishlistSection(wish, trailing = '', subLabel = '') {
   if (!wish.length) return '';
 
   const hasLikedBooks = BOOKS.some(b => b.status === 'done' && (b.rating || 0) >= 4);
@@ -31723,13 +31723,26 @@ function renderWishlistSection(wish, trailing = '') {
     </div>
   ` : '';
 
+  // v1.5.x — 다른 카테고리와 동일한 sub-label 형식: "30권 · 최근 30/155권"
+  //   subLabel이 "최근 N/M권"이면 앞에 "${visibleCount}권 · " prefix 붙임
+  //   subLabel이 비어있거나 "N권"이면 그대로
+  const visibleCount = _libEntriesRawCount(wish);
+  let displaySubLabel;
+  if (subLabel && subLabel.startsWith('최근')) {
+    displaySubLabel = `${visibleCount}권 · ${subLabel}`;
+  } else if (subLabel) {
+    displaySubLabel = subLabel;
+  } else {
+    displaySubLabel = `${visibleCount}권`;
+  }
+
   return `
     <div class="section">
       <div class="section-head">
         <div>
           <div class="section-title">위시리스트</div>
         </div>
-        <span class="section-sub">${_libEntriesRawCount(wish)}권</span>
+        <span class="section-sub">${esc(displaySubLabel)}</span>
       </div>
       ${sortToggle}
       <div class="book-row">
@@ -31837,6 +31850,19 @@ function renderLibraryCards() {
   const doneSubLabel = doneAll.length > _visibleDoneCount
     ? `최근 ${doneVisibleRaw}/${doneAllRaw.length}권`
     : '';
+  // v1.5.x — 위시/독서중/하차도 동일 패턴 sub-label
+  const wishVisibleRaw = _libEntriesRawCount(wish);
+  const wishSubLabel = wishAll.length > _visibleWishCount
+    ? `최근 ${wishVisibleRaw}/${wishRaw.length}권`
+    : `${wishVisibleRaw}권`;
+  const readingVisibleRaw = _libEntriesRawCount(readingVisible);
+  const readingSubLabel = reading.length > _visibleReadingCount
+    ? `최근 ${readingVisibleRaw}/${readingRaw.length}권`
+    : '';
+  const droppedVisibleRaw = _libEntriesRawCount(dropped);
+  const droppedSubLabel = droppedAll.length > _visibleDroppedCount
+    ? `최근 ${droppedVisibleRaw}/${droppedRaw.length}권 책갈피 중`
+    : `책갈피 중`;
 
   // ─── 카테고리 탭 [TEST 시안] ───
   // 활성 탭 복원 (localStorage). 기본 'reading'. 빈 카테고리면 첫 비어있지 않은 것으로 폴백.
@@ -31900,16 +31926,16 @@ function renderLibraryCards() {
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
-      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing) : emptyPane('위시리스트가 비어있어요')) : ''}
+      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', '', readingVisible, readingTrailing) : emptyPane('읽고 있는 책이 없어요')) : ''}
+      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing) : emptyPane('읽고 있는 책이 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
       ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing) : emptyPane('완독한 책이 아직 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', '책갈피', dropped, droppedTrailing) : emptyPane('하차한 책이 없어요')) : ''}
+      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing) : emptyPane('하차한 책이 없어요')) : ''}
     </div>
   `;
 
