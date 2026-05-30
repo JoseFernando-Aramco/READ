@@ -31681,6 +31681,18 @@ function renderHallOfFame() {
 /* 완독 섹션 "더보기" 상태 — 페이지 세션 내 유지 */
 let _visibleDoneCount = 12;
 const DONE_PAGE_SIZE = 20;
+// v1.5.x — 대량 데이터 사용자 (2,500권+) 대응: 위시/독서중/하차도 페이지네이션
+//   완독과 동일하게 첫 진입 시 일부만 그리고 "더보기" 버튼으로 추가 로드
+let _visibleWishCount = 30;
+let _visibleReadingCount = 30;
+let _visibleDroppedCount = 30;
+const LIB_PAGE_SIZE = 30;
+// v1.5.x — 로그 탭도 페이지네이션 (CSV 임포트로 단일 날짜에 수천 권 들어간 케이스 대응)
+let _visibleLogCount = 30;
+const LOG_PAGE_SIZE = 30;
+// v1.5.x — 노트 탭 페이지네이션 (선제적 — 노트 수천 개 사용자 폭탄 방지)
+let _visibleNoteCount = 30;
+const NOTE_PAGE_SIZE = 30;
 const DONE_FULL_VIEW_THRESHOLD = 100;
 
 /* 위시리스트 정렬 모드 — 'recent' | 'rec' (취향순) */
@@ -31689,7 +31701,7 @@ let _wishSortMode = 'recent';
 /* ═══════════════════════════════════════════════════════════
    위시리스트 전용 렌더 — 정렬 토글 + 취향 점수 배지
    ═══════════════════════════════════════════════════════════ */
-function renderWishlistSection(wish) {
+function renderWishlistSection(wish, trailing = '') {
   if (!wish.length) return '';
 
   const hasLikedBooks = BOOKS.some(b => b.status === 'done' && (b.rating || 0) >= 4);
@@ -31732,6 +31744,7 @@ function renderWishlistSection(wish) {
           return card;
         }).join('')}
       </div>
+      ${trailing}
     </div>`;
 }
 
@@ -31767,8 +31780,24 @@ function renderLibraryCards() {
   const reading = _libWrapByGroups(readingRaw, 'reading');
   const doneAll = _libWrapByGroups(doneAllRaw, 'done');
   const done = doneAll.slice(0, _visibleDoneCount);
-  const wish = _libWrapByGroups(wishRaw, 'wish');
-  const dropped = _libWrapByGroups(droppedRaw, 'dropped');
+  const wishAll = _libWrapByGroups(wishRaw, 'wish');
+  const droppedAll = _libWrapByGroups(droppedRaw, 'dropped');
+  // v1.5.x — 페이지네이션: 활성 탭만 보이지만 그 탭 안에서도 청크 단위로 그리기 (대량 사용자 대응)
+  //   wish/dropped 렌더용 슬라이스 (카운트는 wishAll/droppedAll로 유지)
+  const wish = wishAll.slice(0, _visibleWishCount);
+  const readingVisible = reading.slice(0, _visibleReadingCount);
+  const dropped = droppedAll.slice(0, _visibleDroppedCount);
+  // 더보기 버튼 HTML 생성 헬퍼
+  const _libMoreBtn = (catKey, allCount, visibleCount, pageSize) => {
+    if (allCount <= visibleCount) return '';
+    const nextBatch = Math.min(pageSize, allCount - visibleCount);
+    return `<div class="done-actions"><button type="button" class="done-more-btn" data-action="lib-more" data-lib-cat="${catKey}">
+      + 더보기 <span class="done-more-count">${nextBatch}권</span>
+    </button></div>`;
+  };
+  const wishTrailing = _libMoreBtn('wish', wishAll.length, _visibleWishCount, LIB_PAGE_SIZE);
+  const readingTrailing = _libMoreBtn('reading', reading.length, _visibleReadingCount, LIB_PAGE_SIZE);
+  const droppedTrailing = _libMoreBtn('dropped', droppedAll.length, _visibleDroppedCount, LIB_PAGE_SIZE);
 
   // 빈 상태 처리
   if (!BOOKS.length) {
@@ -31871,16 +31900,16 @@ function renderLibraryCards() {
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
-      ${wish.length ? renderWishlistSection(wish) : emptyPane('위시리스트가 비어있어요')}
+      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${reading.length ? renderBookSection('독서중', '', reading) : emptyPane('읽고 있는 책이 없어요')}
+      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', '', readingVisible, readingTrailing) : emptyPane('읽고 있는 책이 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
-      ${doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing) : emptyPane('완독한 책이 아직 없어요')}
+      ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing) : emptyPane('완독한 책이 아직 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${dropped.length ? renderBookSection('하차', '책갈피', dropped) : emptyPane('하차한 책이 없어요')}
+      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', '책갈피', dropped, droppedTrailing) : emptyPane('하차한 책이 없어요')) : ''}
     </div>
   `;
 
@@ -32855,6 +32884,15 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
         renderLibraryCards();
         return;
       }
+      // v1.5.x — 위시/독서중/하차 더보기
+      if (action === 'lib-more') {
+        const libCat = actionBtn.dataset.libCat;
+        if (libCat === 'wish')    _visibleWishCount    += LIB_PAGE_SIZE;
+        if (libCat === 'reading') _visibleReadingCount += LIB_PAGE_SIZE;
+        if (libCat === 'dropped') _visibleDroppedCount += LIB_PAGE_SIZE;
+        renderLibraryCards();
+        return;
+      }
       if (action === 'done-all') {
         const allDone = BOOKS.filter(b => b.status === 'done')
           .sort((a, b) => new Date(b.dateEnd || 0) - new Date(a.dateEnd || 0));
@@ -33586,9 +33624,14 @@ function renderLogList() {
   const sortKey = (b) => b.dateStart || b.dateEnd || '';
   books.sort((a, b) => new Date(sortKey(b)) - new Date(sortKey(a)));
 
+  // v1.5.x — 30권 cap (CSV 임포트로 단일 날짜에 수천 권 들어간 사용자 대응)
+  //   계절별 그룹화는 슬라이스된 30권 안에서만 (그룹 단위 페이지네이션은 무의미 — 한 그룹이 폭탄일 수 있음)
+  const totalCount = books.length;
+  const visibleBooks = books.slice(0, _visibleLogCount);
+
   // 계절별 그룹화 (시작일 없으면 완독일로 fallback)
   const groups = {};
-  books.forEach(b => {
+  visibleBooks.forEach(b => {
     const s = getSeason(b.dateStart || b.dateEnd);
     const k = seasonKey(s);
     if (!groups[k]) groups[k] = { season:s, books:[] };
@@ -33599,7 +33642,7 @@ function renderLogList() {
     return b.season.order - a.season.order;
   });
 
-  list.innerHTML = ordered.map(g => {
+  const groupsHtml = ordered.map(g => {
     const done    = g.books.filter(b => b.status === 'done').length;
     const reading = g.books.filter(b => b.status === 'reading').length;
     const pages   = g.books.reduce((s, b) => s + (b.status === 'done' ? b.pages : b.currentPage), 0);
@@ -33625,6 +33668,17 @@ function renderLogList() {
       </div>`;
   }).join('');
 
+  // 더보기 버튼
+  let moreHtml = '';
+  if (totalCount > _visibleLogCount) {
+    const nextBatch = Math.min(LOG_PAGE_SIZE, totalCount - _visibleLogCount);
+    moreHtml = `<div class="done-actions"><button type="button" class="done-more-btn" data-action="log-more">
+      + 더보기 <span class="done-more-count">${nextBatch}권</span>
+    </button></div>`;
+  }
+
+  list.innerHTML = groupsHtml + moreHtml;
+
   // 태그 칩 클릭 → 필터
   list.querySelectorAll('.log-tag').forEach(chip => {
     chip.addEventListener('click', e => {
@@ -33632,6 +33686,14 @@ function renderLogList() {
       setLogFilter(chip.dataset.tag);
     });
   });
+  // v1.5.x — 더보기 버튼 클릭 핸들러 (위임)
+  const moreBtn = list.querySelector('[data-action="log-more"]');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      _visibleLogCount += LOG_PAGE_SIZE;
+      renderLogList();
+    });
+  }
 }
 
 /* 필터 설정 */
@@ -41337,14 +41399,20 @@ function renderNotesTab() {
   const sort = NOTE_FILTER.sort || 'recent';
   let html = '';
 
+  // v1.5.x — 30개 cap (노트 많은 사용자 대비 — 메인 스레드 폭발 방지)
+  //   3개 정렬 분기 공통: 슬라이스된 visibleNotes만 렌더, 그룹화는 그 안에서
+  const totalNoteCount = filtered.length;
+  const visibleNotes = filtered.slice(0, _visibleNoteCount);
+
   if (sort === 'byBook') {
     // 책별 그룹 헤더
     let curBookId = null;
-    filtered.forEach(n => {
+    visibleNotes.forEach(n => {
       if (n.bookId !== curBookId) {
         curBookId = n.bookId;
         const book = BOOKS.find(b => b.id === n.bookId);
         if (book) {
+          // cnt는 전체 filtered 기준 (그룹 전체 노트 수 표시)
           const cnt = filtered.filter(x => x.bookId === n.bookId).length;
           const hasImg = _noteCoverHasImg(book);
           const style = _noteCoverStyle(book);
@@ -41363,7 +41431,7 @@ function renderNotesTab() {
     const now = new Date();
     const thisMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     let curKey = null;
-    filtered.forEach(n => {
+    visibleNotes.forEach(n => {
       const d = new Date(n.createdAt);
       const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
       if (key !== curKey) {
@@ -41376,7 +41444,15 @@ function renderNotesTab() {
     });
   } else {
     // page 정렬은 그룹 없이
-    html = filtered.map(renderNoteCard).join('');
+    html = visibleNotes.map(renderNoteCard).join('');
+  }
+
+  // 더보기 버튼
+  if (totalNoteCount > _visibleNoteCount) {
+    const nextBatch = Math.min(NOTE_PAGE_SIZE, totalNoteCount - _visibleNoteCount);
+    html += `<div class="done-actions"><button type="button" class="done-more-btn" data-action="note-more">
+      + 더보기 <span class="done-more-count">${nextBatch}개</span>
+    </button></div>`;
   }
 
   list.innerHTML = html;
@@ -41459,6 +41535,14 @@ document.getElementById('noteBookCarousel').addEventListener('click', (e) => {
 
 /* ─── 노트 카드 클릭 (편집·즐겨찾기·공유·더보기) ─── */
 function _noteCardClickHandler(e) {
+  // v1.5.x — 노트 탭 더보기
+  const noteMoreBtn = e.target.closest('[data-action="note-more"]');
+  if (noteMoreBtn) {
+    e.stopPropagation();
+    _visibleNoteCount += NOTE_PAGE_SIZE;
+    renderNotesTab();
+    return;
+  }
   // 책 상세 노트 뷰의 "추가" 버튼 (헤더)
   const addBtn = e.target.closest('#bdNotesAddBtn');
   if (addBtn) {
