@@ -17468,6 +17468,31 @@ body.cn-locked {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
   pointer-events: none;
 }
+/* v1.5.x — 독서중 진행률 표지 하단 채움 오버레이 (저자줄에서 분리 → 저자 길어도 안 짤림) */
+.bc-progress-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(55,138,221,0.30);
+  border-top: 1.5px solid rgba(55,138,221,0.95);
+  z-index: 8;
+  pointer-events: none;
+  transition: height .3s ease;
+}
+.bc-progress-fill .bc-progress-pct {
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
 .book-card-drop-reason {
   margin-top: 3px;
   font-size: 10.5px;
@@ -30633,8 +30658,8 @@ function renderBookCard(b, idx) {
         : (b.pages ? `${esc(b.author)} · ${b.currentPage || 0}p / ${b.pages}p` : esc(b.author)))
     : b.status === 'reading'
       ? (isWebnov && b.episodes
-          ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentEpisode || 0) / b.episodes * 100)}%`
-          : (b.pages ? `${esc(b.author)} · ${fmtMark}${Math.round((b.currentPage || 0) / b.pages * 100)}%` : esc(b.author)))
+          ? `${esc(b.author)} · ${fmtMark}`
+          : (b.pages ? `${esc(b.author)} · ${fmtMark}` : esc(b.author)))
       : b.status === 'done' && b.rating
       ? `<span class="book-card-star">★ ${b.rating.toFixed(1)}</span>`
       : esc(b.author);
@@ -30682,6 +30707,10 @@ function renderBookCard(b, idx) {
     <div class="book-card${timerCls}${droppedCls}" data-book-id="${b.id}">
       <div class="book-card-cover palette-${esc(b.palette || 'demian')}">
         ${renderBookCoverInner(b, idx + 1)}
+        ${b.status === 'reading' && (typeof getBookProgressPct === 'function') ? (() => {
+          const _pct = getBookProgressPct(b);
+          return _pct > 0 ? `<div class="bc-progress-fill" style="height:${_pct}%"><span class="bc-progress-pct">${_pct}%</span></div>` : '';
+        })() : ''}
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
         ${b.isLifeBook ? '<div class="hof-ribbon" aria-label="명예의 전당"></div>' : ''}
