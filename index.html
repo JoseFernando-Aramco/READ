@@ -20395,6 +20395,11 @@ body.cn-locked {
   height: 100%;
   object-fit: contain;
 }
+/* v1.5.x — 미드나잇(다크) 테마: 아바타가 검은 선 라인아트라 다크 배경에 묻힘 → 색 반전으로 밝게 */
+[data-theme="midnight"] .kbm-avatar-big img,
+[data-theme="midnight"] .av-cell-img img {
+  filter: invert(1);
+}
 .av-cell-name {
   font-size: 11px;
   font-weight: 600;
