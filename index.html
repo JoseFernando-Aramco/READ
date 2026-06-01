@@ -20395,10 +20395,19 @@ body.cn-locked {
   height: 100%;
   object-fit: contain;
 }
-/* v1.5.x — 미드나잇(다크) 테마: 아바타가 검은 선 라인아트라 다크 배경에 묻힘 → 색 반전으로 밝게 */
-[data-theme="midnight"] .kbm-avatar-big img,
-[data-theme="midnight"] .av-cell-img img {
-  filter: invert(1);
+/* v1.5.x — 미드나잇(다크) 테마: 아바타가 검은 선 라인아트라 다크 배경에 묻힘
+   → 색 반전(무서움) 대신 아바타 영역에만 밝은 배경(라벤더그레이)을 깔아 원래 모습 유지.
+   큰 아바타는 위아래를 패널색(#191D26)으로 페이드해 자연스럽게 띄움 */
+[data-theme="midnight"] .kbm-avatar-big {
+  background: linear-gradient(to bottom,
+    #191D26 0%,
+    #D5D9E2 22%,
+    #D5D9E2 78%,
+    #191D26 100%);
+  border-radius: 14px;
+}
+[data-theme="midnight"] .av-cell-img {
+  background: #D5D9E2;
 }
 .av-cell-name {
   font-size: 11px;
