@@ -11386,6 +11386,8 @@ body:has(.lib-edit-bar) .library-cards {
   letter-spacing: -0.01em;
   outline: none;
   resize: none;
+  /* v1.5.x — field-sizing 지원 브라우저는 JS 없이 콘텐츠 맞춰 자동 높이 조절 (height='auto' 리플로우 제거 → 타이핑 중 점멸 방지). 미지원 브라우저는 무시되고 JS autoGrow 폴백 */
+  field-sizing: content;
   /* v1.5.x — 30줄(14px × 1.5 × 30 ≈ 630px)에서 멈춤, 그 안에서 스크롤. iOS 점프 차단 */
   max-height: 630px;
   overflow-y: auto;
@@ -36405,7 +36407,10 @@ function wireBookDetailEvents() {
     const MAX_MEMO_H = 630;
     let composing = false;
     let growRAF = null;
+    // field-sizing:content 지원 브라우저는 CSS가 높이를 자동 관리 → JS autoGrow 불필요 (점멸 방지)
+    const _fieldSizingOK = (typeof CSS !== 'undefined') && CSS.supports && CSS.supports('field-sizing', 'content');
     function autoGrow() {
+      if (_fieldSizingOK) return;
       if (composing) return;
       if (growRAF) return;
       growRAF = requestAnimationFrame(() => {
