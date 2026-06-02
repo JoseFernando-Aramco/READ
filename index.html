@@ -32063,7 +32063,13 @@ function _markReviewCoachSeen(id) {
 function _maybeShowReviewCoach(activeCat, doneAllRaw) {
   if (activeCat !== 'done') return;
   if (!doneAllRaw || !doneAllRaw.length) return;
-  const recent = doneAllRaw[0];
+  // v1.5.x — 방금 완독한 책 우선 (정렬 순서와 무관). 없으면 가장 최근 완독책(doneAllRaw[0])
+  let recent = null;
+  const justId = (typeof window !== 'undefined') ? window._justCompletedBookId : null;
+  if (justId != null) {
+    recent = doneAllRaw.find(x => x && x.id === justId) || null;
+  }
+  if (!recent) recent = doneAllRaw[0];
   if (!recent || recent.id == null) return;
   // 이미 한줄평 있으면 안내 불필요
   if (typeof findReviewNote === 'function' && findReviewNote(recent.id)) return;
@@ -32085,6 +32091,7 @@ function _maybeShowReviewCoach(activeCat, doneAllRaw) {
     bubble.innerHTML = `<i class="ti ti-message-dots rc-ic" aria-hidden="true"></i>꾹 눌러 한줄평을 남겨보세요`;
     card.appendChild(bubble);
     requestAnimationFrame(() => bubble.classList.add('show'));
+    try { window._justCompletedBookId = null; } catch(e){}
     setTimeout(() => {
       bubble.classList.remove('show');
       setTimeout(() => { try { bubble.remove(); } catch(e){} }, 320);
@@ -35843,6 +35850,8 @@ function _applyStatusChange(b, newStatus) {
     if (!b.dateStart) update.dateStart = today;
     update.dateEnd = today;
     if (b.rating == null) update.rating = 0;  // 미평가 · 상세에서 매김
+    // v1.5.x — 방금 완독한 책 id 기록 → 완독탭에서 이 책에 한줄평 코칭 말풍선 (정렬 순서 무관)
+    try { window._justCompletedBookId = b.id; } catch(e){}
   } else if (newStatus === 'wish') {
     if (b.status === 'done' && b.dateEnd) {
       // 완독 기록을 rereads로 이동 후 위시로
