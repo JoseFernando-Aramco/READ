@@ -9255,17 +9255,17 @@ body:has(.lib-edit-bar) .library-cards {
 /* v1.5.x — 완독 코칭 말풍선 (가장 최근 완독책 1권 위, 몇 초 뒤 자동 사라짐) */
 .review-coach-bubble {
   position: absolute;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  top: -34px;
+  left: 0;
+  transform: translateY(4px);
   background: var(--c-surface);
   color: var(--c-text);
   border: 0.5px solid var(--c-border-2);
   box-shadow: 0 3px 12px rgba(0,0,0,0.16);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  padding: 7px 11px;
+  letter-spacing: -0.02em;
+  padding: 7px 10px;
   border-radius: 8px;
   white-space: nowrap;
   z-index: 30;
@@ -9275,7 +9275,7 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .review-coach-bubble.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 .review-coach-bubble .rc-ic {
   color: var(--primary, #185FA5);
@@ -9286,7 +9286,7 @@ body:has(.lib-edit-bar) .library-cards {
   content: '';
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: 18px;
   transform: translateX(-50%);
   border: 6px solid transparent;
   border-top-color: var(--c-surface);
@@ -32076,26 +32076,31 @@ function _maybeShowReviewCoach(activeCat, doneAllRaw) {
   // (책당 1회 제약 제거 — 완독 상태이고 한줄평 없으면 완독탭에서 항상 노출)
   // 카드가 DOM에 그려지고 paint된 다음 프레임에 부착 (innerHTML 직후 race 방지)
   requestAnimationFrame(() => {
-    // 해당 책 카드 표지 찾기 (id 타입 느슨 매칭: 숫자/문자 모두 대응)
-    let card = document.querySelector(`.lib-cat-pane.active .book-card[data-book-id="${recent.id}"] .book-card-cover`);
+    // 말풍선은 .book-card에 붙임 (.book-card-cover는 overflow:hidden이라 표지 위로 뜬 말풍선이 잘림)
+    // 1) 개별 책 카드 직접 매칭
+    let card = document.querySelector(`.lib-cat-pane.active .book-card[data-book-id="${recent.id}"]`);
+    // 2) 못 찾으면 그 책이 묶음에 흡수된 경우 → 묶음 카드(data-group-id)로 매칭
     if (!card) {
-      // 묶음 카드 등으로 못 찾으면, done 페인 첫 카드에라도 부착
-      card = document.querySelector('#libCat-done.active .book-card .book-card-cover')
-          || document.querySelector('.lib-cat-pane.active .book-card .book-card-cover');
+      const bookObj = (BOOKS || []).find(x => x && x.id === recent.id);
+      const gid = bookObj && bookObj.groupId;
+      if (gid) {
+        card = document.querySelector(`.lib-cat-pane.active .book-card[data-group-id="${gid}"]`);
+      }
     }
+    // 못 찾으면 안 띄움 (엉뚱한 책에 뜨는 것 방지)
     if (!card) return;
     const old = card.querySelector('.review-coach-bubble');
     if (old) old.remove();
     const bubble = document.createElement('div');
     bubble.className = 'review-coach-bubble';
-    bubble.innerHTML = `<i class="ti ti-message-dots rc-ic" aria-hidden="true"></i>꾹 눌러 한줄평을 남겨보세요`;
+    bubble.innerHTML = `<span class="rc-ic" aria-hidden="true">✍️</span>꾹 눌러 한줄평 남기기`;
     card.appendChild(bubble);
     requestAnimationFrame(() => bubble.classList.add('show'));
     try { window._justCompletedBookId = null; } catch(e){}
     setTimeout(() => {
       bubble.classList.remove('show');
       setTimeout(() => { try { bubble.remove(); } catch(e){} }, 320);
-    }, 4000);
+    }, 2500);
   });
 }
 
@@ -33368,8 +33373,16 @@ function _qnAutoResize() {
     if (typeof _libEdit !== 'undefined' && _libEdit && _libEdit.active) return;
     const card = e.target.closest('.book-card[data-book-id]');
     if (!card) return;
-    const bookId = parseInt(card.dataset.bookId, 10);
+    let bookId = parseInt(card.dataset.bookId, 10);
     if (!bookId) return;
+    // 묶음 카드면 그룹 안에서 가장 최근 완독한 책으로 (cover book 아니라 — 최근 완독책 한줄평 유도)
+    const gid = card.dataset.groupId;
+    if (gid) {
+      const doneInGroup = BOOKS
+        .filter(x => x && x.groupId === gid && x.status === 'done')
+        .sort((a, c) => new Date(c.dateEnd || 0) - new Date(a.dateEnd || 0));
+      if (doneInGroup.length) bookId = doneInGroup[0].id;
+    }
     const b = BOOKS.find(x => x.id === bookId);
     if (!b || b.status !== 'done') return;  // 완독 책만
     const coverEl = card.querySelector('.book-card-cover');
