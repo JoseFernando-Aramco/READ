@@ -32057,7 +32057,14 @@ function _reviewCoachSeen() {
 function _markReviewCoachSeen(id) {
   try {
     const seen = _reviewCoachSeen();
-    if (!seen.includes(id)) { seen.push(id); localStorage.setItem(REVIEW_COACH_SEEN_KEY, JSON.stringify(seen.slice(-50))); }
+    if (!seen.includes(id)) { seen.push(id); localStorage.setItem(REVIEW_COACH_SEEN_KEY, JSON.stringify(seen.slice(-1000))); }
+  } catch(e){}
+}
+// v1.5.x — 완독으로 새로 전환할 때 호출 → seen에서 제거하면 완독탭에서 다시 한 번 말풍선 노출 (그 후 다시 쌓여 안 뜸)
+function _unmarkReviewCoachSeen(id) {
+  try {
+    const seen = _reviewCoachSeen().filter(x => x !== id);
+    localStorage.setItem(REVIEW_COACH_SEEN_KEY, JSON.stringify(seen));
   } catch(e){}
 }
 function _maybeShowReviewCoach(activeCat, doneAllRaw) {
@@ -32073,7 +32080,8 @@ function _maybeShowReviewCoach(activeCat, doneAllRaw) {
   if (!recent || recent.id == null) return;
   // 이미 한줄평 있으면 안내 불필요
   if (typeof findReviewNote === 'function' && findReviewNote(recent.id)) return;
-  // (책당 1회 제약 제거 — 완독 상태이고 한줄평 없으면 완독탭에서 항상 노출)
+  // 이미 말풍선 본 책이면 스킵 (책당 1회만 — 한줄평 안 쓰는 사람 매번 폭탄 방지)
+  if (_reviewCoachSeen().includes(recent.id)) return;
   // 카드가 DOM에 그려지고 paint된 다음 프레임에 부착 (innerHTML 직후 race 방지)
   requestAnimationFrame(() => {
     // 말풍선은 .book-card에 붙임 (.book-card-cover는 overflow:hidden이라 표지 위로 뜬 말풍선이 잘림)
@@ -32096,6 +32104,7 @@ function _maybeShowReviewCoach(activeCat, doneAllRaw) {
     bubble.innerHTML = `<span class="rc-ic" aria-hidden="true">✍️</span>꾹 눌러 한줄평 남기기`;
     card.appendChild(bubble);
     requestAnimationFrame(() => bubble.classList.add('show'));
+    _markReviewCoachSeen(recent.id);
     try { window._justCompletedBookId = null; } catch(e){}
     setTimeout(() => {
       bubble.classList.remove('show');
@@ -32237,29 +32246,31 @@ function _grpRemoveBook(bookId) {
 }
 
 function _libWrapByGroups(booksInCategory, category) {
-  // 카테고리 안 책 리스트를 묶음 단위로 압축.
-  // - 묶음 dominant === category: 묶음 wrap 객체 1개만 표시 (cover book 기반)
-  // - 묶음 dominant !== category: 단일 책 그대로 표시
-  // - 묶음 없는 책: 그대로
-  // - 1권 이하 묶음 / GROUPS 메타 누락 묶음: 단일 책으로 처리 (안전)
+  // v1.5.x — 묶음 기준 변경: 이 탭(category) 안에 같은 그룹 책이 2권 이상이면 묶음 표시.
+  //   (이전: 그룹 dominant === category 일 때만 → 과반 넘어야 묶여서 "C부터 묶임" 버그)
+  //   묶음에 담는 책도 이 카테고리 책들만 (완독탭이면 완독한 책끼리, 독서중탭이면 독서중 책끼리)
+  // - 묶음 없는 책 / 같은 그룹이 이 탭에 1권뿐: 단일 책 그대로
   const out = [];
   const handledGroups = new Set();
+  // 이 카테고리 안에서 그룹별 책 모으기 (순서 유지)
+  const groupBooksInCat = new Map();
+  booksInCategory.forEach(b => {
+    if (!b.groupId) return;
+    if (!groupBooksInCat.has(b.groupId)) groupBooksInCat.set(b.groupId, []);
+    groupBooksInCat.get(b.groupId).push(b);
+  });
   booksInCategory.forEach(b => {
     if (!b.groupId) { out.push(b); return; }
     if (handledGroups.has(b.groupId)) return;
-    const dominant = _grpDominantCategory(b.groupId);
-    if (dominant === category) {
-      const grp = _grpFindById(b.groupId);
-      if (!grp) { out.push(b); return; }
-      const allBooks = _grpBooksOf(b.groupId);
-      if (allBooks.length < 2) { out.push(b); return; }
-      handledGroups.add(b.groupId);
-      const coverId = _grpCoverBookId(b.groupId);
-      const coverBook = BOOKS.find(x => x.id === coverId) || allBooks[allBooks.length - 1];
-      out.push({ ...coverBook, _grp: grp, _grpBooks: allBooks, _isGroupCover: true, _grpCategory: category });
-    } else {
-      out.push(b);
-    }
+    const catBooks = groupBooksInCat.get(b.groupId) || [];
+    const grp = _grpFindById(b.groupId);
+    // 이 탭에 같은 그룹 책이 2권 미만이거나 그룹 메타 없으면 단일 책으로
+    if (catBooks.length < 2 || !grp) { out.push(b); return; }
+    handledGroups.add(b.groupId);
+    // cover: 그룹 지정 cover가 이 카테고리에 있으면 사용, 없으면 이 카테고리 마지막 책
+    const coverId = _grpCoverBookId(b.groupId);
+    const coverBook = catBooks.find(x => x.id === coverId) || catBooks[catBooks.length - 1];
+    out.push({ ...coverBook, _grp: grp, _grpBooks: catBooks, _isGroupCover: true, _grpCategory: category });
   });
   return out;
 }
@@ -32934,6 +32945,10 @@ function _libBuildStatusUpdate(b, newStatus, today) {
     if (!b.dateStart) update.dateStart = today;
     update.dateEnd = today;
     if (b.rating == null) update.rating = 0;
+    // v1.5.x — 완독 시각(ISO, ms 포함) 기록 → 같은 날 여러 권 완독해도 순서 구분 (말풍선/한줄평 대상 정확히)
+    update.completedAt = new Date().toISOString();
+    // v1.5.x — 새로 완독 → seen에서 빼서 완독탭에서 한줄평 말풍선 한 번 다시 노출
+    if (typeof _unmarkReviewCoachSeen === 'function') _unmarkReviewCoachSeen(b.id);
     // 하차였으면 dropped 제거
     if (b.status === 'dropped') update.dropped = null;
   } else if (newStatus === 'wish') {
@@ -33378,9 +33393,10 @@ function _qnAutoResize() {
     // 묶음 카드면 그룹 안에서 가장 최근 완독한 책으로 (cover book 아니라 — 최근 완독책 한줄평 유도)
     const gid = card.dataset.groupId;
     if (gid) {
+      const _doneKey = (x) => x.completedAt || (x.dateEnd ? x.dateEnd + 'T00:00:00.000Z' : '');
       const doneInGroup = BOOKS
         .filter(x => x && x.groupId === gid && x.status === 'done')
-        .sort((a, c) => new Date(c.dateEnd || 0) - new Date(a.dateEnd || 0));
+        .sort((a, c) => String(_doneKey(c)).localeCompare(String(_doneKey(a))));
       if (doneInGroup.length) bookId = doneInGroup[0].id;
     }
     const b = BOOKS.find(x => x.id === bookId);
@@ -35863,8 +35879,12 @@ function _applyStatusChange(b, newStatus) {
     if (!b.dateStart) update.dateStart = today;
     update.dateEnd = today;
     if (b.rating == null) update.rating = 0;  // 미평가 · 상세에서 매김
+    // v1.5.x — 완독 시각(ISO) 기록 → 같은 날 여러 권 완독해도 순서 구분
+    update.completedAt = new Date().toISOString();
     // v1.5.x — 방금 완독한 책 id 기록 → 완독탭에서 이 책에 한줄평 코칭 말풍선 (정렬 순서 무관)
     try { window._justCompletedBookId = b.id; } catch(e){}
+    // v1.5.x — 새로 완독 → seen에서 빼서 완독탭에서 한줄평 말풍선 한 번 다시 노출
+    if (typeof _unmarkReviewCoachSeen === 'function') _unmarkReviewCoachSeen(b.id);
   } else if (newStatus === 'wish') {
     if (b.status === 'done' && b.dateEnd) {
       // 완독 기록을 rereads로 이동 후 위시로
