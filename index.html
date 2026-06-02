@@ -35546,7 +35546,7 @@ function renderBookDetail() {
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                 </svg>
               </button>
-              ${!r.isCurrent ? `<button class="bd-read-del" data-reread-idx="${r.index}" aria-label="삭제">×</button>` : '<span style="width:24px"></span>'}
+              ${(!r.isCurrent || r.dateEnd) ? `<button class="bd-read-del" data-reread-idx="${r.index}" aria-label="삭제">×</button>` : '<span style="width:24px"></span>'}
             </div>`;
         }).join('')}
       </div>
@@ -36292,10 +36292,32 @@ function wireBookDetailEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const idx = parseInt(btn.dataset.rereadIdx, 10);
-      const newRereads = (b.rereads || []).filter((_, i) => i !== idx);
-      updateBook(b.id, { rereads: newRereads });
+      if (idx >= 0) {
+        // 일반 재독 기록 삭제 (rereads 배열에서 제거)
+        const newRereads = (b.rereads || []).filter((_, i) => i !== idx);
+        updateBook(b.id, { rereads: newRereads });
+        renderBookDetail();
+        showToast('독서 기록 삭제됨');
+        return;
+      }
+      // v1.5.x — 현재(본체) 완독 기록 삭제 → 남은 재독 중 가장 최근 걸 본체로 승격, 없으면 위시로
+      const rr = [...(b.rereads || [])];
+      if (rr.length === 0) {
+        updateBook(b.id, { dateStart: null, dateEnd: null, rating: null, currentPage: 0, status: 'wish', rereads: [] });
+      } else {
+        rr.sort((a, c) => new Date(c.dateStart) - new Date(a.dateStart));
+        const promoted = rr[0];
+        const rest = rr.slice(1);
+        updateBook(b.id, {
+          dateStart: promoted.dateStart,
+          dateEnd: promoted.dateEnd || null,
+          rating: promoted.rating || null,
+          rereads: rest,
+          status: promoted.dateEnd ? 'done' : 'reading',
+        });
+      }
       renderBookDetail();
-      showToast('재독 기록 삭제됨');
+      showToast('독서 기록 삭제됨');
     });
   });
 
