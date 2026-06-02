@@ -9252,6 +9252,45 @@ body:has(.lib-edit-bar) .library-cards {
 .ebook-pct-unit.audio { color: #0F766E; }
 
 
+/* v1.5.x — 완독 코칭 말풍선 (가장 최근 완독책 1권 위, 몇 초 뒤 자동 사라짐) */
+.review-coach-bubble {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 0.5px solid var(--c-border-2);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.16);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 7px 11px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .28s ease, transform .28s ease;
+}
+.review-coach-bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.review-coach-bubble .rc-ic {
+  color: var(--primary, #185FA5);
+  margin-right: 3px;
+  vertical-align: -1px;
+}
+.review-coach-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--c-surface);
+}
 /* ═══════════════════════════════════════════════════════════
    💬 v1.0.4 — 한줄평 빠른 입력 (완독 책 표지 long-press)
    ═══════════════════════════════════════════════════════════ */
@@ -17470,34 +17509,18 @@ body.cn-locked {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
   pointer-events: none;
 }
-/* v1.5.x — 독서중 진행률 물채움. 단일 SVG가 표지 전체를 덮고 path 좌표로 수면 위치 계산
-   (채움 레이어 겹침 없음 → 직선 안 생김). 애니메이션 없음 → 발열 0 */
-.bc-fill {
+/* v1.5.x — 독서중 진행률: 표지 우상단 흰 글씨 + 이중 그림자 (밝은/어두운 표지 모두 또렷, 표지색 안 죽임) */
+.bc-pct-corner {
   position: absolute;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-}
-.bc-fill svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.bc-fill-pct {
-  position: absolute;
-  bottom: 3px;
-  left: 0;
-  right: 0;
+  top: 6px;
+  right: 7px;
   z-index: 9;
-  text-align: center;
-  font-size: 10px;
-  font-weight: 700;
   color: #fff;
-  text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4);
-  letter-spacing: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 3px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,0.9);
   pointer-events: none;
 }
 .book-card-drop-reason {
@@ -30652,14 +30675,9 @@ function renderStackBookCard(coverBook, group, allBooks, idx) {
     </div>`;
 }
 
-// v1.5.x — 독서중 진행률 물채움 SVG. viewBox 100x100, 수면 y=(100-pct), 곡선 진폭 3.
-// 단일 SVG가 표지 전체를 덮고 path 좌표로 수면 위치를 그림 → 겹침 없음 → 직선 안 생김.
-function _bcFillSvg(pct) {
-  const surfaceY = 100 - pct;
-  const amp = 3;
-  const body = `M0 ${surfaceY} Q 25 ${surfaceY - amp} 50 ${surfaceY} T 100 ${surfaceY} L100 100 L0 100 Z`;
-  const line = `M0 ${surfaceY} Q 25 ${surfaceY - amp} 50 ${surfaceY} T 100 ${surfaceY}`;
-  return `<div class="bc-fill"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${body}" fill="rgba(55,138,221,0.32)" stroke="none"/><path d="${line}" fill="none" stroke="rgba(55,138,221,0.95)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><span class="bc-fill-pct">${pct}%</span></div>`;
+// v1.5.x — 독서중 진행률: 표지 우상단 흰 글씨 (이중 그림자로 밝은 표지에서도 또렷)
+function _bcProgressCorner(pct) {
+  return `<span class="bc-pct-corner">${pct}%</span>`;
 }
 
 function renderBookCard(b, idx) {
@@ -30724,7 +30742,7 @@ function renderBookCard(b, idx) {
     <div class="book-card${timerCls}${droppedCls}" data-book-id="${b.id}">
       <div class="book-card-cover palette-${esc(b.palette || 'demian')}">
         ${renderBookCoverInner(b, idx + 1)}
-        ${b.status === 'reading' && (typeof getBookProgressPct === 'function') && getBookProgressPct(b) > 0 ? _bcFillSvg(getBookProgressPct(b)) : ''}
+        ${b.status === 'reading' && (typeof getBookProgressPct === 'function') && getBookProgressPct(b) > 0 ? _bcProgressCorner(getBookProgressPct(b)) : ''}
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
         ${b.isLifeBook ? '<div class="hof-ribbon" aria-label="명예의 전당"></div>' : ''}
@@ -32026,6 +32044,48 @@ function renderLibraryCards() {
   }
   // v1.5.x — 새로 그려진 카드들의 표지 lazy 옵저버 부착
   try { _attachCoverLazyObserver(container); } catch(e){}
+
+  // v1.5.x — 완독탭: 가장 최근 완독책 1권에 한줄평 코칭 말풍선 (안 본 책만, 몇 초 뒤 자동 사라짐)
+  try { _maybeShowReviewCoach(activeCat, doneAllRaw); } catch(e){}
+}
+
+// v1.5.x — 완독 코칭 말풍선. 가장 최근 완독책(doneAllRaw[0])이 아직 한줄평 없고 말풍선도 안 봤으면 1회 노출.
+const REVIEW_COACH_SEEN_KEY = 'read.reviewCoachSeen.v1';
+function _reviewCoachSeen() {
+  try { return JSON.parse(localStorage.getItem(REVIEW_COACH_SEEN_KEY) || '[]'); } catch(e){ return []; }
+}
+function _markReviewCoachSeen(id) {
+  try {
+    const seen = _reviewCoachSeen();
+    if (!seen.includes(id)) { seen.push(id); localStorage.setItem(REVIEW_COACH_SEEN_KEY, JSON.stringify(seen.slice(-50))); }
+  } catch(e){}
+}
+function _maybeShowReviewCoach(activeCat, doneAllRaw) {
+  if (activeCat !== 'done') return;
+  if (!doneAllRaw || !doneAllRaw.length) return;
+  const recent = doneAllRaw[0];
+  if (!recent || recent.id == null) return;
+  // 이미 한줄평 있으면 안내 불필요
+  if (typeof findReviewNote === 'function' && findReviewNote(recent.id)) return;
+  // 이미 말풍선 본 책이면 스킵
+  if (_reviewCoachSeen().includes(recent.id)) return;
+  // 해당 책 카드 표지 찾기 (묶음이면 첫 책 기준)
+  const card = document.querySelector(`.lib-cat-pane.active .book-card[data-book-id="${recent.id}"] .book-card-cover`);
+  if (!card) return;
+  // 기존 말풍선 제거 (중복 방지)
+  const old = card.querySelector('.review-coach-bubble');
+  if (old) old.remove();
+  const bubble = document.createElement('div');
+  bubble.className = 'review-coach-bubble';
+  bubble.innerHTML = `<i class="ti ti-message-dots rc-ic" aria-hidden="true"></i>꾹 눌러 한줄평을 남겨보세요`;
+  card.appendChild(bubble);
+  // 페이드 인 → 4초 유지 → 페이드 아웃 → 제거
+  requestAnimationFrame(() => bubble.classList.add('show'));
+  _markReviewCoachSeen(recent.id);
+  setTimeout(() => {
+    bubble.classList.remove('show');
+    setTimeout(() => { try { bubble.remove(); } catch(e){} }, 320);
+  }, 4000);
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
