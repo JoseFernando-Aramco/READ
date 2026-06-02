@@ -32067,25 +32067,29 @@ function _maybeShowReviewCoach(activeCat, doneAllRaw) {
   if (!recent || recent.id == null) return;
   // 이미 한줄평 있으면 안내 불필요
   if (typeof findReviewNote === 'function' && findReviewNote(recent.id)) return;
-  // 이미 말풍선 본 책이면 스킵
-  if (_reviewCoachSeen().includes(recent.id)) return;
-  // 해당 책 카드 표지 찾기 (묶음이면 첫 책 기준)
-  const card = document.querySelector(`.lib-cat-pane.active .book-card[data-book-id="${recent.id}"] .book-card-cover`);
-  if (!card) return;
-  // 기존 말풍선 제거 (중복 방지)
-  const old = card.querySelector('.review-coach-bubble');
-  if (old) old.remove();
-  const bubble = document.createElement('div');
-  bubble.className = 'review-coach-bubble';
-  bubble.innerHTML = `<i class="ti ti-message-dots rc-ic" aria-hidden="true"></i>꾹 눌러 한줄평을 남겨보세요`;
-  card.appendChild(bubble);
-  // 페이드 인 → 4초 유지 → 페이드 아웃 → 제거
-  requestAnimationFrame(() => bubble.classList.add('show'));
-  _markReviewCoachSeen(recent.id);
-  setTimeout(() => {
-    bubble.classList.remove('show');
-    setTimeout(() => { try { bubble.remove(); } catch(e){} }, 320);
-  }, 4000);
+  // (책당 1회 제약 제거 — 완독 상태이고 한줄평 없으면 완독탭에서 항상 노출)
+  // 카드가 DOM에 그려지고 paint된 다음 프레임에 부착 (innerHTML 직후 race 방지)
+  requestAnimationFrame(() => {
+    // 해당 책 카드 표지 찾기 (id 타입 느슨 매칭: 숫자/문자 모두 대응)
+    let card = document.querySelector(`.lib-cat-pane.active .book-card[data-book-id="${recent.id}"] .book-card-cover`);
+    if (!card) {
+      // 묶음 카드 등으로 못 찾으면, done 페인 첫 카드에라도 부착
+      card = document.querySelector('#libCat-done.active .book-card .book-card-cover')
+          || document.querySelector('.lib-cat-pane.active .book-card .book-card-cover');
+    }
+    if (!card) return;
+    const old = card.querySelector('.review-coach-bubble');
+    if (old) old.remove();
+    const bubble = document.createElement('div');
+    bubble.className = 'review-coach-bubble';
+    bubble.innerHTML = `<i class="ti ti-message-dots rc-ic" aria-hidden="true"></i>꾹 눌러 한줄평을 남겨보세요`;
+    card.appendChild(bubble);
+    requestAnimationFrame(() => bubble.classList.add('show'));
+    setTimeout(() => {
+      bubble.classList.remove('show');
+      setTimeout(() => { try { bubble.remove(); } catch(e){} }, 320);
+    }, 4000);
+  });
 }
 
 /* ─── [TEST 시안] 서재 카테고리 탭 — 활성 탭 저장/복원 ─── */
