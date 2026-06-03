@@ -42328,7 +42328,8 @@ function resetNA(defaults = {}) {
 }
 
 /* v1.8.0 — 노트 책 선택 picker (검색형 + 그룹 리스트) */
-const BOOK_PICKER_RECENT_DONE = 2;  // 검색어 없을 때 최근 완독 노출 개수
+const BOOK_PICKER_RECENT_DONE = 1;     // 검색어 없을 때 최근 완독 노출 개수
+const BOOK_PICKER_RECENT_READING = 2;  // 검색어 없을 때 읽는 중 노출 개수 (최근 활동순)
 
 function _bpItemHtml(b) {
   const isSel = String(NA.bookId) === String(b.id);
@@ -42387,8 +42388,20 @@ function renderBookPicker(query) {
     list.innerHTML = html;
     foot.style.display = 'none';
   } else {
-    // 기본 모드 — 읽는중 (전부) + 최근 완독 N권
-    const reading = eligible.filter(b => b.status === 'reading');
+    // 기본 모드 — 읽는 중 (최근 활동순 N권) + 최근 완독 M권
+    // 읽는 중 "가장 최근 읽은" = readingSessions 최신 날짜(없으면 dateStart), 서재 정렬과 동일
+    const _bpLastActivityISO = (b) => {
+      const sessions = b.readingSessions || [];
+      let maxDate = '';
+      for (const s of sessions) {
+        if (s && s.date && s.date > maxDate) maxDate = s.date;
+      }
+      return maxDate || b.dateStart || '';
+    };
+    const reading = eligible
+      .filter(b => b.status === 'reading')
+      .sort((a, b) => _bpLastActivityISO(b).localeCompare(_bpLastActivityISO(a)))
+      .slice(0, BOOK_PICKER_RECENT_READING);
     const doneBooks = eligible
       .filter(b => b.status === 'done')
       .sort((a, b) => {
@@ -42399,13 +42412,13 @@ function renderBookPicker(query) {
       .slice(0, BOOK_PICKER_RECENT_DONE);
 
     let html = '';
-    if (doneBooks.length > 0) {
-      html += `<div class="bp-group-head">✅ 최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
-      html += doneBooks.map(b => _bpItemHtml(b)).join('');
-    }
     if (reading.length > 0) {
       html += `<div class="bp-group-head">📖 읽는 중 <span class="badge">${reading.length}</span></div>`;
       html += reading.map(b => _bpItemHtml(b)).join('');
+    }
+    if (doneBooks.length > 0) {
+      html += `<div class="bp-group-head">✅ 최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
+      html += doneBooks.map(b => _bpItemHtml(b)).join('');
     }
 
     if (html === '') {
