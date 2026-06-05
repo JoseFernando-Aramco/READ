@@ -23882,17 +23882,24 @@ function _blobToDataUrl(blob) {
   return new Promise((res, rej) => { const r = new FileReader(); r.onloadend = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
 }
 
-/* BOOKS → localStorage 직렬화용 변환: data: 표지 → 'idb:<id>', blob은 IDB에 백그라운드 저장 */
+/* BOOKS → localStorage 직렬화용 변환: data: 표지 → 'idb:<id>', blob은 IDB에 백그라운드 저장.
+   복원 전(coverUrl='') 책은 _coverRef를 되살려 idb 참조 유실 방지. _coverRef는 저장본에서 제거. */
 function _booksForStore(books) {
   if (!Array.isArray(books)) return books;
   const pending = [];
   const out = books.map(b => {
-    if (b && typeof b.coverUrl === 'string' && b.coverUrl.startsWith('data:') && b.id != null) {
-      const id = String(b.id);
-      try { pending.push([id, _dataUrlToBlob(b.coverUrl)]); } catch (e) { return b; }
-      return { ...b, coverUrl: 'idb:' + id };
+    if (!b) return b;
+    const { _coverRef, ...rest } = b; // 런타임 전용 필드 제거
+    if (typeof rest.coverUrl === 'string' && rest.coverUrl.startsWith('data:') && rest.id != null) {
+      const id = String(rest.id);
+      try { pending.push([id, _dataUrlToBlob(rest.coverUrl)]); } catch (e) { return rest; }
+      return { ...rest, coverUrl: 'idb:' + id };
     }
-    return b;
+    // 아직 IDB에서 복원 안 된 첨부 표지 → ref 되살려 유실 방지
+    if ((!rest.coverUrl || rest.coverUrl === '') && typeof _coverRef === 'string' && _coverRef.startsWith('idb:')) {
+      return { ...rest, coverUrl: _coverRef };
+    }
+    return rest;
   });
   if (pending.length && COVER_DB.available()) {
     Promise.all(pending.map(([id, blob]) => COVER_DB.put(id, blob).catch(() => {}))).catch(() => {});
@@ -23900,18 +23907,29 @@ function _booksForStore(books) {
   return out;
 }
 
-/* idb: 참조 → data: 복원 (앱 로드 후 1회). 실패 시 표지만 비움(데이터 유실 아님) */
+/* 불러온 직후(렌더 전, 동기) idb: 참조를 메모리에서 치움 → coverUrl='' (모든 렌더 자리 안전),
+   참조는 _coverRef에 보관. 이후 _hydrateCoversFromIDB가 실제 data:로 복원. */
+function _demoteIdbCovers() {
+  if (!Array.isArray(BOOKS)) return;
+  BOOKS.forEach(b => {
+    if (b && typeof b.coverUrl === 'string' && b.coverUrl.startsWith('idb:')) {
+      b._coverRef = b.coverUrl;
+      b.coverUrl = '';
+    }
+  });
+}
+
+/* _coverRef(idb:) → data: 복원 (앱 로드 후 1회). 실패 시 coverUrl 빈값 유지(폴백), ref 보존 */
 async function _hydrateCoversFromIDB() {
   if (!COVER_DB.available() || !Array.isArray(BOOKS)) return 0;
   let n = 0;
   await Promise.all(BOOKS.map(async b => {
-    if (b && typeof b.coverUrl === 'string' && b.coverUrl.startsWith('idb:')) {
-      const id = b.coverUrl.slice(4);
+    if (b && typeof b._coverRef === 'string' && b._coverRef.startsWith('idb:')) {
+      const id = b._coverRef.slice(4);
       try {
         const blob = await COVER_DB.get(id);
         if (blob) { b.coverUrl = await _blobToDataUrl(blob); n++; }
-        else { b.coverUrl = ''; }
-      } catch (e) { b.coverUrl = ''; }
+      } catch (e) { /* coverUrl 빈값 유지, ref 보존 */ }
     }
   }));
   return n;
@@ -30194,6 +30212,9 @@ const NA = {
     if (!('priceSource' in b)) b.priceSource = null;
   });
 })();
+
+/* vTEST — hydrate 직후(첫 렌더 전, 동기) idb: 표지 참조를 메모리에서 치움 → 렌더 자리 idb: 누출 방지 */
+try { _demoteIdbCovers(); } catch (e) {}
 
 /* v1.5.x — 데이터 크기/손상 안내 (hydrateData 종료 직후, DOM 준비되면 알림) */
 (function _showDataHealthAlerts() {
