@@ -23822,7 +23822,9 @@ const STORE = {
   get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
   set(key, v)  {
     try {
-      localStorage.setItem('read.' + key, JSON.stringify(v));
+      // 'books' 저장 시 첨부 표지(data:)를 idb: 참조로 치환해 용량 절감 (blob은 IDB로)
+      const toStore = (key === 'books' && typeof _booksForStore === 'function') ? _booksForStore(v) : v;
+      localStorage.setItem('read.' + key, JSON.stringify(toStore));
       return true;
     } catch (e) {
       // v1.5.x — quota 초과 등 실패 감지. 사용자에게 알릴 수 있게 false 반환
@@ -23834,6 +23836,128 @@ const STORE = {
     }
   },
 };
+
+/* ═══════════════════════════════════════════════════════════
+   🖼️ 첨부 표지 IndexedDB 저장
+   - 메모리(BOOKS)의 coverUrl은 data:... 그대로 유지 → 렌더 코드 무수정
+   - localStorage 'read.books'에는 data: 대신 'idb:<책id>'만 저장 (용량 절감)
+   - 실제 이미지 blob은 IndexedDB('keepbook'/'covers')에 책 id 키로 보관
+   ═══════════════════════════════════════════════════════════ */
+const COVER_DB = (() => {
+  const DBN = 'keepbook', STN = 'covers', VER = 1;
+  let _p = null;
+  function open() {
+    if (_p) return _p;
+    _p = new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open(DBN, VER);
+        r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains(STN)) db.createObjectStore(STN); };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      } catch (e) { rej(e); }
+    });
+    return _p;
+  }
+  function store(mode) { return open().then(db => db.transaction(STN, mode).objectStore(STN)); }
+  return {
+    available() { try { return typeof indexedDB !== 'undefined' && !!indexedDB; } catch (e) { return false; } },
+    put(id, blob) { return store('readwrite').then(s => new Promise((res, rej) => { const r = s.put(blob, id); r.onsuccess = () => res(true); r.onerror = () => rej(r.error); })); },
+    get(id) { return store('readonly').then(s => new Promise((res, rej) => { const r = s.get(id); r.onsuccess = () => res(r.result || null); r.onerror = () => rej(r.error); })); },
+    del(id) { return store('readwrite').then(s => new Promise((res, rej) => { const r = s.delete(id); r.onsuccess = () => res(true); r.onerror = () => rej(r.error); })); },
+    keys() { return store('readonly').then(s => new Promise((res, rej) => { const r = s.getAllKeys(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); })); },
+  };
+})();
+
+function _dataUrlToBlob(dataUrl) {
+  const comma = dataUrl.indexOf(',');
+  const head = dataUrl.slice(0, comma);
+  const b64 = dataUrl.slice(comma + 1);
+  const mime = (head.match(/data:([^;]+)/) || [])[1] || 'image/webp';
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+function _blobToDataUrl(blob) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onloadend = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+}
+
+/* BOOKS → localStorage 직렬화용 변환: data: 표지 → 'idb:<id>', blob은 IDB에 백그라운드 저장.
+   복원 전(coverUrl='') 책은 _coverRef를 되살려 idb 참조 유실 방지. _coverRef는 저장본에서 제거. */
+function _booksForStore(books) {
+  if (!Array.isArray(books)) return books;
+  const pending = [];
+  const out = books.map(b => {
+    if (!b) return b;
+    const { _coverRef, ...rest } = b; // 런타임 전용 필드 제거
+    if (typeof rest.coverUrl === 'string' && rest.coverUrl.startsWith('data:') && rest.id != null) {
+      const id = String(rest.id);
+      try { pending.push([id, _dataUrlToBlob(rest.coverUrl)]); } catch (e) { return rest; }
+      return { ...rest, coverUrl: 'idb:' + id };
+    }
+    // 아직 IDB에서 복원 안 된 첨부 표지 → ref 되살려 유실 방지
+    if ((!rest.coverUrl || rest.coverUrl === '') && typeof _coverRef === 'string' && _coverRef.startsWith('idb:')) {
+      return { ...rest, coverUrl: _coverRef };
+    }
+    return rest;
+  });
+  if (pending.length && COVER_DB.available()) {
+    Promise.all(pending.map(([id, blob]) => COVER_DB.put(id, blob).catch(() => {}))).catch(() => {});
+  }
+  return out;
+}
+
+/* 불러온 직후(렌더 전, 동기) idb: 참조를 메모리에서 치움 → coverUrl='' (모든 렌더 자리 안전),
+   참조는 _coverRef에 보관. 이후 _hydrateCoversFromIDB가 실제 data:로 복원. */
+function _demoteIdbCovers() {
+  if (!Array.isArray(BOOKS)) return;
+  BOOKS.forEach(b => {
+    if (b && typeof b.coverUrl === 'string' && b.coverUrl.startsWith('idb:')) {
+      b._coverRef = b.coverUrl;
+      b.coverUrl = '';
+    }
+  });
+}
+
+/* _coverRef(idb:) → data: 복원 (앱 로드 후 1회). 실패 시 coverUrl 빈값 유지(폴백), ref 보존 */
+async function _hydrateCoversFromIDB() {
+  if (!COVER_DB.available() || !Array.isArray(BOOKS)) return 0;
+  let n = 0;
+  await Promise.all(BOOKS.map(async b => {
+    if (b && typeof b._coverRef === 'string' && b._coverRef.startsWith('idb:')) {
+      const id = b._coverRef.slice(4);
+      try {
+        const blob = await COVER_DB.get(id);
+        if (blob) { b.coverUrl = await _blobToDataUrl(blob); n++; }
+      } catch (e) { /* coverUrl 빈값 유지, ref 보존 */ }
+    }
+  }));
+  return n;
+}
+
+/* 기존 base64 표지를 IDB로 1회 이전 (localStorage에 아직 data:가 인라인된 경우) */
+function _migrateInlineCoversIfNeeded() {
+  if (!COVER_DB.available() || !Array.isArray(BOOKS)) return false;
+  const has = BOOKS.some(b => b && typeof b.coverUrl === 'string' && b.coverUrl.startsWith('data:'));
+  if (has) { try { STORE.set('books', BOOKS); } catch (e) {} return true; }
+  return false;
+}
+
+/* 앱 로드 후: 이전(1회) + idb 참조 복원 → 표지 다시 그리기 */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    try {
+      _migrateInlineCoversIfNeeded();
+      _hydrateCoversFromIDB().then(n => {
+        if (n > 0) {
+          try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
+          try { renderNotesTab && renderNotesTab(); } catch (e) {}
+          try { renderLogList && renderLogList(); } catch (e) {}
+        }
+      });
+    } catch (e) { console.warn('[cover-idb] init', e); }
+  }, 0);
+});
 
 /* ═══════════════════════════════════════════════════════════
    ☁️ 클라우드 인증 (v1.7.0)
@@ -30089,6 +30213,9 @@ const NA = {
   });
 })();
 
+/* hydrate 직후(첫 렌더 전, 동기) idb: 표지 참조를 메모리에서 치움 → 렌더 자리 idb: 누출 방지 */
+try { _demoteIdbCovers(); } catch (e) {}
+
 /* v1.5.x — 데이터 크기/손상 안내 (hydrateData 종료 직후, DOM 준비되면 알림) */
 (function _showDataHealthAlerts() {
   const _openDataAlert = (opts) => {
@@ -30575,19 +30702,21 @@ function bookCoverMeta(b) {
 /* Variation C 커버 내부 HTML (.bc 부분만) */
 function renderBookCoverInner(b, number) {
   // 표지 이미지가 있으면 실제 이미지로 렌더
-  if (b.coverUrl) {
+  // idb: 참조(복원 전 일시 상태)는 표지 없음으로 처리 → 폴백 디자인
+  const _cu = (b.coverUrl && !b.coverUrl.startsWith('idb:')) ? b.coverUrl : '';
+  if (_cu) {
     // v1.5.x — IntersectionObserver 기반 지연 로딩
     //   초기 src는 1x1 투명 placeholder, 실제 URL은 data-src에 보관
     //   카드가 viewport 근처에 들어올 때만 src 채움 (Safari 캐시 폭발 방지)
     //   data: URL(직접 첨부 표지)은 외부 fetch 없으니 즉시 로드
-    if (b.coverUrl.startsWith('data:')) {
+    if (_cu.startsWith('data:')) {
       return `
-        <img class="bc-img" src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy"
+        <img class="bc-img" src="${esc(_cu)}" alt="${esc(b.title)}" loading="lazy"
              referrerpolicy="no-referrer" draggable="false"
              onerror="this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
     }
     return `
-      <img class="bc-img bc-img-lazy" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${esc(b.coverUrl)}" alt="${esc(b.title)}"
+      <img class="bc-img bc-img-lazy" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${esc(_cu)}" alt="${esc(b.title)}"
            referrerpolicy="no-referrer" draggable="false"
            onerror="if(this.dataset.src){return;} this.outerHTML='<div class=&quot;bc-fallback&quot;>📖</div>'">`;
   }
@@ -33981,6 +34110,7 @@ function deleteBookById(id) {
   if (idx < 0) return;
   BOOKS.splice(idx, 1);
   STORE.set('books', BOOKS);
+  try { if (typeof COVER_DB !== 'undefined' && COVER_DB.available()) COVER_DB.del(String(id)).catch(() => {}); } catch (e) {}
   try { renderTagRadar(); } catch(e){}
   try { renderLogList(); } catch(e){}
   try { renderAllStats(); } catch(e){}
@@ -41363,10 +41493,10 @@ function _noteCoverStyle(b) {
   return '';
 }
 function _noteCoverHasImg(b) {
-  return !!(b && b.coverUrl);
+  return !!(b && b.coverUrl && !b.coverUrl.startsWith('idb:'));
 }
 function _noteCoverImgHtml(b) {
-  if (!b || !b.coverUrl) return '';
+  if (!b || !b.coverUrl || b.coverUrl.startsWith('idb:')) return '';
   return `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" loading="lazy" onerror="this.style.display='none'">`;
 }
 
