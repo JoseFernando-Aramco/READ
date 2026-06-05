@@ -19408,6 +19408,33 @@ body.cn-locked {
 }
 
 .bp-info { flex: 1; min-width: 0; }
+
+/* 책에서 바로 노트 추가 시 선택된 책 표시 (책 선택 picker 대체) */
+.na-locked-book {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+}
+.na-locked-meta { flex: 1; min-width: 0; }
+.na-locked-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.na-locked-author {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .bp-title {
   font-size: 13.5px;
   font-weight: 700;
@@ -22429,7 +22456,7 @@ body.cn-locked {
     <button class="na-save-btn" id="naSave" disabled>저장</button>
   </div>
   <div class="na-body">
-    <div class="na-field">
+    <div class="na-field" id="naBookField">
       <label class="na-lbl">책</label>
       <div class="book-picker" id="naBookPicker">
         <div class="bp-search-wrap">
@@ -22440,6 +22467,12 @@ body.cn-locked {
         <div class="bp-list" id="bpList"></div>
         <div class="bp-list-foot" id="bpFoot"></div>
       </div>
+    </div>
+
+    <!-- 책에서 바로 노트 추가 시: 책 선택 대신 선택된 책만 표시 -->
+    <div class="na-field" id="naLockedBookField" style="display:none">
+      <label class="na-lbl">책</label>
+      <div class="na-locked-book" id="naLockedBook"></div>
     </div>
 
     <div class="na-field">
@@ -30038,6 +30071,7 @@ const NA = {
   page: null,
   body: '',
   favorite: false,
+  bookLocked: false,
 };
 
 /* ─── 저장된 BOOKS / TAGS / NOTES 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
@@ -42455,6 +42489,7 @@ function resetNA(defaults = {}) {
   NA.page = defaults.page || null;
   NA.body = defaults.body || '';
   NA.favorite = !!defaults.favorite;
+  NA.bookLocked = !!defaults.bookLocked;
 }
 
 /* v1.8.0 — 노트 책 선택 picker (검색형 + 그룹 리스트) */
@@ -42571,11 +42606,40 @@ function renderBookPicker(query) {
   }
 }
 
+/* 책에서 바로 노트 추가 시 표시할 선택된 책 (picker 항목과 동일한 표지 스타일) */
+function _naLockedBookHtml(b) {
+  if (!b) return '';
+  const cover = b.coverUrl
+    ? `<img class="bp-cover-img" src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<div class=\\'bp-cover-fallback\\'>'+(${JSON.stringify(esc((b.title || '?').slice(0, 4)))})+'</div>'">`
+    : `<div class="bp-cover-fallback">${esc((b.title || '?').slice(0, 4))}</div>`;
+  return `<div class="bp-cover">${cover}</div>
+    <div class="na-locked-meta">
+      <div class="na-locked-ttl">${esc(b.title || '')}</div>
+      ${b.author ? `<div class="na-locked-author">${esc(b.author)}</div>` : ''}
+    </div>`;
+}
+
 function renderNA() {
-  // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
-  const searchInput = document.getElementById('bpSearch');
-  const currentQuery = searchInput ? searchInput.value : '';
-  renderBookPicker(currentQuery);
+  // 책에서 바로 진입(bookLocked)하면 책 선택 picker 대신 선택된 책만 표시
+  const bookField = document.getElementById('naBookField');
+  const lockedField = document.getElementById('naLockedBookField');
+  const locked = NA.bookLocked && NA.bookId;
+  if (locked) {
+    if (bookField) bookField.style.display = 'none';
+    if (lockedField) {
+      lockedField.style.display = '';
+      const b = BOOKS.find(x => String(x.id) === String(NA.bookId));
+      const el = document.getElementById('naLockedBook');
+      if (el) el.innerHTML = _naLockedBookHtml(b);
+    }
+  } else {
+    if (bookField) bookField.style.display = '';
+    if (lockedField) lockedField.style.display = 'none';
+    // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
+    const searchInput = document.getElementById('bpSearch');
+    const currentQuery = searchInput ? searchInput.value : '';
+    renderBookPicker(currentQuery);
+  }
 
   document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
 
@@ -42618,7 +42682,7 @@ function openNoteAdd(prefillBookId = null) {
     const reading = BOOKS.find(b => b.status === 'reading');
     if (reading) defaultBookId = reading.id;
   }
-  resetNA({ bookId: defaultBookId, type: 'quote' });
+  resetNA({ bookId: defaultBookId, type: 'quote', bookLocked: !!prefillBookId });
   renderNA();
   document.getElementById('naBackdrop').classList.add('open');
   const sheet = document.getElementById('naSheet');
