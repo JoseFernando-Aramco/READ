@@ -15263,6 +15263,287 @@ body:has(.lib-edit-bar) .library-cards {
   .mig-body { padding: 16px 18px; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   keepbook 환영 모달 (v1.11.0) — 새 도메인 이전 완료 + 복원 안내
+   ─────────────────────────────────────────────────────────
+   .mig-backdrop / .mig-modal / .mig-card 베이스는 위 v1.10.3 블록에서 상속
+   여기는 환영 모달 전용 콘텐츠 스타일만
+   ═══════════════════════════════════════════════════════════ */
+
+/* 이전 완료 박스 (sage 톤) */
+.complete-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: #E8ECE6;
+  color: #455045;
+  border: 1px solid #5F6B5F;
+}
+
+/* 환영 헤더 (sage 그라데이션) */
+.wel-header {
+  padding: 22px 22px 18px;
+  background: linear-gradient(180deg, #EEF3EC 0%, var(--c-surface) 100%);
+  border-bottom: 1px solid var(--c-border);
+  position: relative;
+}
+.wel-icon-wrap {
+  width: 46px;
+  height: 46px;
+  background: #E8ECE6;
+  border: 1px solid #5F6B5F;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 11px;
+  font-size: 22px;
+}
+.wel-title {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+  color: var(--c-text);
+}
+.wel-sub {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--c-text-2);
+  margin: 0;
+}
+.wel-sub strong {
+  color: #455045;
+  font-weight: 700;
+}
+
+/* 본문 영역 */
+.wel-body {
+  padding: 18px 22px 18px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 도메인 이전 완료 박스 */
+.wel-domain-done {
+  background: #E8ECE6;
+  border: 1px solid #5F6B5F;
+  border-radius: 11px;
+  padding: 13px;
+  margin-bottom: 14px;
+}
+.wel-domain-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: #455045;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.wel-domain-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 0;
+  font-size: 11px;
+}
+.wel-domain-row + .wel-domain-row {
+  border-top: 1px dashed var(--c-border);
+}
+.wel-domain-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  width: 34px;
+  font-size: 10px;
+}
+.wel-domain-label.old { color: var(--c-muted); }
+.wel-domain-label.new { color: #455045; }
+.wel-domain-value {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 10.5px;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.wel-domain-value.old {
+  text-decoration: line-through;
+  color: var(--c-muted);
+}
+.wel-domain-value.new {
+  font-weight: 700;
+  color: #455045;
+}
+.wel-domain-note {
+  font-size: 10.5px;
+  color: var(--c-text-2);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border);
+  line-height: 1.5;
+}
+.wel-domain-note strong { color: var(--c-text); font-weight: 700; }
+
+/* 복원하기 카드 */
+.restore-card {
+  border: 1px solid #5F6B5F;
+  border-radius: 11px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.restore-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  background: #E8ECE6;
+  border-bottom: 1px solid #5F6B5F;
+}
+.restore-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #5F6B5F;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.restore-ttl {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--c-text);
+}
+.restore-body {
+  padding: 11px 13px 13px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* 복원 방법 (단계별 안내) */
+.restore-method { padding: 4px 0; }
+.restore-method-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.method-badge {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.method-badge.sage { background: #5F6B5F; }
+.method-badge.gray { background: var(--c-label); }
+.restore-method-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--c-text);
+}
+.restore-method-name .badge-rec {
+  display: inline-block;
+  background: #5F6B5F;
+  color: white;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  letter-spacing: 0.3px;
+  vertical-align: 1px;
+}
+.restore-method-desc {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+  padding-left: 25px;
+  line-height: 1.4;
+}
+.restore-steps {
+  margin: 0;
+  padding-left: 25px;
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  line-height: 1.7;
+}
+.restore-steps li { padding: 1px 0; }
+.restore-steps b { color: var(--c-text); font-weight: 700; }
+.restore-divider {
+  height: 1px;
+  background: var(--c-border);
+  margin: 11px 0;
+}
+
+/* 신규 사용자 안내 (파랑 박스) */
+.wel-note {
+  background: #E8EEF5;
+  border: 1px solid #4A6B8A;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--c-text-2);
+}
+.wel-note strong { color: #4A6B8A; font-weight: 700; }
+.wel-note b { color: var(--c-text); font-weight: 700; }
+
+/* 환영 모달 풋터 — 하이브리드 (설정 열기 + 둘러보기 시작) */
+.wel-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+  flex-shrink: 0;
+}
+.wel-foot button {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.wel-foot-primary {
+  background: #5F6B5F;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 11px 22px;
+  border-radius: 8px;
+}
+.wel-foot-primary:active { background: #455045; }
+.wel-foot-ghost {
+  background: transparent;
+  color: var(--c-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+}
+.wel-foot-ghost:active { color: var(--c-text-2); }
+
+/* 모바일 */
+@media (max-width: 480px) {
+  .wel-header { padding: 20px 18px 16px; }
+  .wel-body { padding: 16px 18px; }
+}
+
 .bd-danger-zone { padding: 20px 18px 12px; }
 .bd-danger-btn {
   width: 100%;
@@ -23642,140 +23923,103 @@ body.cn-locked {
 </div>
 
 
-<!-- ═══════════ keepbook 마이그레이션 모달 (v1.10.3 — D-day 시스템) ═══════════ -->
+
+<!-- ═══════════ keepbook 환영 모달 (v1.11.0 — 새 도메인 이전 완료) ═══════════ -->
 <div class="mig-backdrop" id="migBackdrop"></div>
-<div class="mig-modal" id="migModal" aria-hidden="true" role="dialog" aria-labelledby="migTitle">
-  <div class="mig-card" id="migCard">
+<div class="mig-modal" id="migModal" aria-hidden="true" role="dialog" aria-labelledby="welTitle">
+  <div class="mig-card" id="welCard">
 
     <!-- 헤더 -->
-    <div class="mig-header">
-      <div class="dday-box p1" id="migDdayBox">⏰ D-14 · 6/7 이전 예정</div>
-      <div class="mig-icon-wrap" id="migIconWrap">⚠️</div>
-      <h2 class="mig-title" id="migTitle">
-        keepbook 새 도메인 이전 안내
-        <span class="state-tag" id="migStateTag"></span>
-      </h2>
-      <p class="mig-warning" id="migWarning">
-        도메인이 바뀌면 <strong>책·노트·태그가 자동으로 옮겨가지 않아요.</strong>
-        지금 백업해두셔야 새 도메인에서 그대로 이어 쓸 수 있어요.
+    <div class="wel-header">
+      <div class="complete-box">✓ 새 도메인 이전 완료</div>
+      <div class="wel-icon-wrap">🎉</div>
+      <h2 class="wel-title" id="welTitle">환영합니다!</h2>
+      <p class="wel-sub">
+        keepbook이 정식 도메인 <strong>keepbook.co.kr</strong>로 이사했어요.<br>
+        기존에 백업해두신 데이터가 있다면 아래 안내대로 복원하세요.
       </p>
     </div>
 
     <!-- 본문 -->
-    <div class="mig-body">
+    <div class="wel-body">
 
-      <!-- 도메인 변경 안내 -->
-      <div class="mig-domain-change">
-        <div class="mig-domain-change-ttl">🔄 어디서 어디로 바뀌나요?</div>
-        <div class="mig-domain-row">
-          <span class="mig-domain-label before">기존</span>
-          <span class="mig-domain-value before">josefernando-aramco.github.io/READ</span>
+      <!-- 이전 완료 안내 -->
+      <div class="wel-domain-done">
+        <div class="wel-domain-ttl">📍 새 주소 안내</div>
+        <div class="wel-domain-row">
+          <span class="wel-domain-label old">기존</span>
+          <span class="wel-domain-value old">josefernando-aramco.github.io/READ</span>
         </div>
-        <div class="mig-domain-row">
-          <span class="mig-domain-label after">신규</span>
-          <span class="mig-domain-value after">keepbook.co.kr</span>
+        <div class="wel-domain-row">
+          <span class="wel-domain-label new">현재</span>
+          <span class="wel-domain-value new">keepbook.co.kr ✓</span>
         </div>
-        <div class="mig-domain-note">
-          <strong>같은 keepbook이에요.</strong> 도메인 이름만 바뀝니다.<br>
-          정식 명칭(keepbook)에 맞춘 공식 주소예요.
+        <div class="wel-domain-note">
+          <strong>같은 keepbook이에요.</strong> 도메인만 정식 주소로 옮겨왔습니다.<br>
+          즐겨찾기·홈 단축은 이 주소로 다시 등록해주세요.
         </div>
       </div>
 
-      <!-- 1단계: 지금 백업 -->
-      <div class="step-card step-1">
-        <div class="step-head">
-          <div class="step-num">1</div>
-          <div class="step-ttl">지금 백업하기 <span class="step-where">(여기서)</span></div>
+      <!-- 복원하기 카드 -->
+      <div class="restore-card">
+        <div class="restore-head">
+          <div class="restore-icon">📥</div>
+          <div class="restore-ttl">데이터 복원 방법</div>
         </div>
-        <div class="step-body">
+        <div class="restore-body">
 
-          <!-- 로그인 사용자 영역 -->
-          <div class="mig-state-loggedin" id="migStateLoggedin" style="display:none;">
-            <div class="mig-status">
-              <div class="mig-status-row">
-                <span class="mig-status-dot" id="migBackupDot"></span>
-                <span id="migBackupLabel">마지막 백업: 확인 중…</span>
-              </div>
-              <div class="mig-status-sub" id="migBackupSub">한 번 더 백업해두면 안심이에요.</div>
+          <!-- 방법 A: 카카오 클라우드 복원 -->
+          <div class="restore-method">
+            <div class="restore-method-head">
+              <span class="method-badge sage">A</span>
+              <span class="restore-method-name">카카오 클라우드에서 복원<span class="badge-rec">자동</span></span>
             </div>
-            <div class="mig-actions">
-              <button class="mig-btn primary" id="migCloudBackupBtn" type="button">지금 클라우드에 백업하기</button>
-              <button class="mig-btn ghost" id="migJsonBackupBtn1" type="button">JSON 파일로도 받아두기</button>
-            </div>
+            <div class="restore-method-desc">옛 사이트에서 카카오 로그인 + 백업하셨던 분</div>
+            <ol class="restore-steps">
+              <li>좌측 상단 <b>≡ 햄버거 메뉴</b> 열기</li>
+              <li><b>설정</b> 진입</li>
+              <li><b>카카오로 시작하기</b> 클릭 → 같은 계정으로 로그인</li>
+              <li>설정 페이지에서 <b>"클라우드에서 복원"</b> 클릭</li>
+              <li>"가져올까요?" 다이얼로그에서 <b>확인</b></li>
+            </ol>
           </div>
 
-          <!-- 비로그인 사용자 영역 -->
-          <div class="mig-state-anon" id="migStateAnon" style="display:none;">
-            <ul class="method-list">
-              <li class="method-item">
-                <div class="method-num">A</div>
-                <div class="method-content">
-                  <div class="method-name">카카오 로그인<span class="badge-rec">추천</span></div>
-                  <div class="method-desc">로그인 한 번이면 자동 클라우드 백업. 새 도메인에서 같은 카카오로 로그인하면 자동 복원!</div>
-                </div>
-              </li>
-              <li class="method-item">
-                <div class="method-num">B</div>
-                <div class="method-content">
-                  <div class="method-name">JSON 파일 다운로드</div>
-                  <div class="method-desc">파일 하나로 받아두고 새 도메인에서 가져오기.</div>
-                </div>
-              </li>
-            </ul>
+          <div class="restore-divider"></div>
 
-            <div class="json-tip">
-              <div class="json-tip-ttl">💡 JSON 파일 잘 보관하는 법</div>
-              <ul>
-                <li>카톡 <strong>'나에게 보내기'</strong>에 첨부</li>
-                <li>본인 이메일로 보내두기</li>
-                <li>구글 드라이브 등에 업로드</li>
-              </ul>
+          <!-- 방법 B: JSON 파일 가져오기 -->
+          <div class="restore-method">
+            <div class="restore-method-head">
+              <span class="method-badge gray">B</span>
+              <span class="restore-method-name">JSON 파일 가져오기</span>
             </div>
-
-            <div class="mig-actions">
-              <button class="mig-btn kakao" id="migKakaoBtn" type="button">💬 카카오로 로그인 + 백업</button>
-              <button class="mig-btn ghost" id="migJsonBackupBtn2" type="button">📥 JSON 파일로 백업</button>
-            </div>
+            <div class="restore-method-desc">옛 사이트에서 JSON 파일로 백업하셨던 분</div>
+            <ol class="restore-steps">
+              <li>좌측 상단 <b>≡ 햄버거 메뉴</b> 열기</li>
+              <li><b>설정</b> 진입</li>
+              <li><b>데이터 가져오기</b> 클릭</li>
+              <li>저장해두신 JSON 파일 선택</li>
+            </ol>
           </div>
 
         </div>
       </div>
 
-      <!-- 2단계: 새 도메인에서 복원 -->
-      <div class="step-card step-2">
-        <div class="step-head">
-          <div class="step-num">2</div>
-          <div class="step-ttl">새 도메인에서 복원 <span class="step-where">(이전 후)</span></div>
-        </div>
-        <div class="step-body">
-          <ul class="method-list">
-            <li class="method-item">
-              <div class="method-num">A</div>
-              <div class="method-content">
-                <div class="method-name">카카오 로그인하면 자동 복원</div>
-                <div class="method-desc">새 도메인에서 같은 계정으로 로그인 → 책·노트 그대로 돌아와요.</div>
-              </div>
-            </li>
-            <li class="method-item">
-              <div class="method-num">B</div>
-              <div class="method-content">
-                <div class="method-name">JSON 파일 가져오기</div>
-                <div class="method-desc">설정 → 데이터 가져오기에서 백업 파일 업로드.</div>
-              </div>
-            </li>
-          </ul>
-        </div>
+      <!-- 신규 사용자 안내 -->
+      <div class="wel-note">
+        <strong>처음 오셨다면?</strong> 환영해요! 아래 <b>둘러보기 시작</b> 누르고 자유롭게 둘러보시면 됩니다. 책 등록부터 시작해보세요.
       </div>
 
     </div>
 
     <!-- 풋터 -->
-    <div class="mig-foot" id="migFoot">
-      <button id="migDismissBtn" type="button">나중에 할게요</button>
+    <div class="wel-foot">
+      <button class="wel-foot-primary" id="welOpenSettingsBtn" type="button">⚙️ 설정 열기</button>
+      <button class="wel-foot-ghost" id="welDismissBtn" type="button">둘러보기 시작</button>
     </div>
 
   </div>
 </div>
+
 
 
 <!-- ═══════════ 데이터 헬스 알림 모달 (v1.5.x · 크기 경고 / 손상 안내) ═══════════ -->
@@ -47703,204 +47947,52 @@ function _versionLower(a, b) {
 })();
 
 /* v1.9.0 — 설정 페이지 버전 표시 자동 갱신 (APP_VERSION + APP_VERSION_NICKNAME 기반) */
-/* v1.10.2 — keepbook 마이그레이션 모달 (도메인 이사 안내 + 백업 권유)
+/* v1.11.0 — keepbook 환영 모달 (새 도메인 이전 완료 + 복원 안내)
    ──────────────────────────────────────────────────────────
-   - 24h 가드(read.migration.dismissedAt) + 완료 가드(read.migration.completed)
-   - 로그인 사용자: 마지막 백업 시점 표시 + 클라우드 백업 권유
-   - 비로그인 사용자: 카카오 로그인 + JSON 백업 권유
-   - wnModal 떠있으면 다음 기회로 (충돌 방지)
-
-   ⚠️ MIGRATION_LIVE = true — 도메인 이전 안내 모달 활성화 상태 (Phase 1, 2026-05).
+   - 새 도메인 첫 방문 시 자동 노출 (한 번만)
+   - 'read.welcome.shown' 키로 노출 마킹 → 두 번째 방문부터는 노출 X
+   - 풋터 [⚙️ 설정 열기] → kbmOpenSettings() 호출 (복원 가이드)
+   - 풋터 [둘러보기 시작] → 모달 닫기만 (신규 사용자 또는 일단 둘러보기)
+   
+   ⚠️ WELCOME_LIVE = true — 환영 모달 활성화 상태.
       비활성화하려면 이 상수만 false로 바꾸면 자동 트리거/진입점 모두 차단됨.
    ─────────────────────────────────────────────────────────── */
-const MIGRATION_LIVE = true;
+const WELCOME_LIVE = true;
 
-/* D-day 시스템 (v1.10.3)
-   2026-06-07 00:00:00 KST 기준 (한국시간)
-   - Phase 1 (D-14 ~ D-8): 안내 단계 — 회색 톤, 24h 재노출
-   - Phase 2 (D-7 ~ D-4):  권장 단계 — 앰버 톤, 24h 재노출
-   - Phase 3 (D-3 ~ D-1):  긴급 단계 — 로즈 톤, 12h 재노출
-   - Phase 4 (D-day):      최후 알림 — 빨강 + 펄스, 한 번만 노출 */
-const MIGRATION_DDAY = new Date('2026-06-07T00:00:00+09:00');
-
-const MIG_KEYS = {
-  dismissed: 'read.migration.dismissedAt',
-  completed: 'read.migration.completed',
-  lastSync:  'read.auth.baseUpdatedAt',  // 기존 백업 시각 키 재사용
-  p4shown:   'read.migration.p4Shown',   // D-day 한 번 노출 후 마킹
+const WEL_KEYS = {
+  shown: 'read.welcome.shown',  // 환영 모달 노출 마킹 (한 번만 노출)
 };
 
-/* D-day 단계 계산
-   반환: { phase: 1~4, daysLeft, label, reopenMs, foot }
-   - label: D-day 박스에 표시할 텍스트
-   - reopenMs: dismiss 후 재노출 대기 시간 (P4는 무한대)
-   - foot: 닫기 버튼 텍스트 */
-function getMigrationPhase() {
-  const now = Date.now();
-  const dday = MIGRATION_DDAY.getTime();
-  const diffDays = Math.ceil((dday - now) / (24 * 60 * 60 * 1000));
-
-  if (diffDays <= 0) {
-    return {
-      phase: 4, daysLeft: 0,
-      label: '🔥 D-DAY · 오늘 이전합니다',
-      reopenMs: Number.MAX_SAFE_INTEGER,  // 사실상 한 번만
-      foot: '✓ 이미 백업했어요',
-      recurNote: '',
-    };
-  }
-  if (diffDays <= 3) {
-    return {
-      phase: 3, daysLeft: diffDays,
-      label: `⏰ D-${diffDays} · ${diffDays}일 남았어요!`,
-      reopenMs: 12 * 60 * 60 * 1000,
-      foot: '나중에 할게요',
-      recurNote: '12시간 후 다시 안내',
-    };
-  }
-  if (diffDays <= 7) {
-    return {
-      phase: 2, daysLeft: diffDays,
-      label: `⏰ D-${diffDays} · 6/7 이전 예정`,
-      reopenMs: 24 * 60 * 60 * 1000,
-      foot: '나중에 할게요',
-      recurNote: '',
-    };
-  }
-  return {
-    phase: 1, daysLeft: diffDays,
-    label: `⏰ D-${diffDays} · 6/7 이전 예정`,
-    reopenMs: 24 * 60 * 60 * 1000,
-    foot: '나중에 할게요',
-    recurNote: '',
-  };
-}
-
-/* 호환용 — 외부에서 참조할 수 있으니 보존 */
-const MIG_REOPEN_INTERVAL_MS = 24 * 60 * 60 * 1000;
-
-function _migFormatSince(timestamp, now) {
-  if (!timestamp) return null;
-  const diffMs = (now || Date.now()) - timestamp;
-  if (diffMs < 0) return '방금 전';
-  const minutes = Math.floor(diffMs / (60 * 1000));
-  const hours = Math.floor(diffMs / (60 * 60 * 1000));
-  const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (minutes < 1) return '방금 전';
-  if (minutes < 60) return `${minutes}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  if (days < 30) return `${days}일 전`;
-  return `${Math.floor(days / 30)}개월 전`;
-}
-
-function _migBackupDotClass(timestamp, now) {
-  if (!timestamp) return 'danger';
-  const days = Math.floor(((now || Date.now()) - timestamp) / (24 * 60 * 60 * 1000));
-  if (days < 1) return 'ok';
-  if (days < 7) return 'warn';
-  return 'danger';
-}
-
-function migShouldShow() {
-  if (!MIGRATION_LIVE) return false;  // 살리기 전까지 어떤 경우에도 노출 X
+function welcomeShouldShow() {
+  if (!WELCOME_LIVE) return false;
   try {
-    if (localStorage.getItem(MIG_KEYS.completed) === 'true') return false;
+    // 이미 한 번 봤으면 스킵
+    if (localStorage.getItem(WEL_KEYS.shown) === 'true') return false;
+    // 온보딩 안 끝낸 신규 사용자는 스킵 (온보딩 모달이 먼저)
     if (!localStorage.getItem(ONBOARDING_KEY)) return false;
+    // wnModal(업데이트 노트) 떠 있으면 다음 기회로
     const wnOpen = document.getElementById('wnModal')?.classList.contains('open');
     if (wnOpen) return false;
-
-    const ph = getMigrationPhase();
-    // P4 (D-day)는 한 번만 노출
-    if (ph.phase === 4 && localStorage.getItem(MIG_KEYS.p4shown) === 'true') return false;
-
-    const dismissedAt = parseInt(localStorage.getItem(MIG_KEYS.dismissed) || '0', 10);
-    if (dismissedAt && Date.now() - dismissedAt < ph.reopenMs) return false;
     return true;
   } catch (e) { return false; }
 }
 
-function openMigrationModal() {
-  if (!MIGRATION_LIVE) return;  // 살리기 전까지 직접 호출도 차단
+function openWelcomeModal() {
+  if (!WELCOME_LIVE) return;
   const modal = document.getElementById('migModal');
   const backdrop = document.getElementById('migBackdrop');
   if (!modal || !backdrop) return;
-
-  // D-day 단계 계산 + 적용
-  const ph = getMigrationPhase();
-
-  // D-day 박스: 클래스 + 텍스트
-  const ddayBox = document.getElementById('migDdayBox');
-  if (ddayBox) {
-    ddayBox.classList.remove('p1', 'p2', 'p3', 'p4');
-    ddayBox.classList.add('p' + ph.phase);
-    ddayBox.textContent = ph.label;
-  }
-
-  // 풋터: 텍스트 + 단계별 클래스 (P4는 sage 버튼)
-  const foot = document.getElementById('migFoot');
-  const dismissBtn = document.getElementById('migDismissBtn');
-  if (foot) {
-    foot.classList.remove('p1', 'p2', 'p3', 'p4');
-    if (ph.phase === 4) foot.classList.add('p4');
-  }
-  if (dismissBtn) {
-    if (ph.recurNote) {
-      dismissBtn.innerHTML = `${ph.foot}<span class="recur-note">${ph.recurNote}</span>`;
-    } else {
-      dismissBtn.textContent = ph.foot;
-    }
-  }
-
-  // 상태 분기 — 로그인/비로그인
-  const isLoggedIn = (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.isLoggedIn === 'function')
-    ? READ_AUTH.isLoggedIn() : false;
-
-  const loggedinBox = document.getElementById('migStateLoggedin');
-  const anonBox = document.getElementById('migStateAnon');
-  if (loggedinBox) loggedinBox.style.display = isLoggedIn ? 'block' : 'none';
-  if (anonBox) anonBox.style.display = isLoggedIn ? 'none' : 'block';
-
-  // 상태 태그 (비로그인 사용자만 "백업 없음" 노출)
-  const stateTag = document.getElementById('migStateTag');
-  if (stateTag) {
-    stateTag.textContent = isLoggedIn ? '' : '백업 없음';
-  }
-
-  // 로그인 사용자: 마지막 백업 시점 표시
-  if (isLoggedIn) {
-    const lastSync = parseInt(localStorage.getItem(MIG_KEYS.lastSync) || '0', 10);
-    const dot = document.getElementById('migBackupDot');
-    const label = document.getElementById('migBackupLabel');
-    const sub = document.getElementById('migBackupSub');
-    if (dot) {
-      dot.classList.remove('ok', 'warn', 'danger');
-      dot.classList.add(_migBackupDotClass(lastSync || null, Date.now()));
-    }
-    if (label) {
-      const since = _migFormatSince(lastSync || null, Date.now());
-      label.textContent = since ? `마지막 백업: ${since}` : '아직 클라우드 백업 안 함';
-    }
-    if (sub) {
-      if (!lastSync) sub.textContent = '도메인 이사 전 한 번 백업해두세요.';
-      else {
-        const days = Math.floor((Date.now() - lastSync) / (24 * 60 * 60 * 1000));
-        sub.textContent = days < 1 ? '백업 완료 상태예요. 안심하셔도 돼요.' : '한 번 더 백업해두면 안심이에요.';
-      }
-    }
-  }
-
-  // P4 노출 기록 (한 번만 보장)
-  if (ph.phase === 4) {
-    try { localStorage.setItem(MIG_KEYS.p4shown, 'true'); } catch(e){}
-  }
 
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   backdrop.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // 노출 즉시 마킹 (한 번만 노출 보장)
+  try { localStorage.setItem(WEL_KEYS.shown, 'true'); } catch(e){}
 }
 
-function closeMigrationModal() {
+function closeWelcomeModal() {
   const modal = document.getElementById('migModal');
   const backdrop = document.getElementById('migBackdrop');
   if (modal) {
@@ -47909,77 +48001,45 @@ function closeMigrationModal() {
   }
   if (backdrop) backdrop.classList.remove('open');
   document.body.style.overflow = '';
-  // 닫을 때마다 dismissedAt 갱신 — 24h 가드 작동
-  try { localStorage.setItem(MIG_KEYS.dismissed, String(Date.now())); } catch(e){}
 }
 
-function migMarkCompleted() {
-  try { localStorage.setItem(MIG_KEYS.completed, 'true'); } catch(e){}
-}
-
-// 햄버거 메뉴에서 호출용 (수동 진입)
-function kbmOpenMigration() {
-  if (!MIGRATION_LIVE) return;  // 살리기 전까지 메뉴 진입 차단
+// 햄버거 메뉴에서 호출용 (수동 재진입 — 한 번 본 후에도 다시 보고 싶을 때)
+function kbmOpenWelcome() {
+  if (!WELCOME_LIVE) return;
   if (typeof closeKbMenu === 'function') closeKbMenu();
-  setTimeout(() => openMigrationModal(), 220);
+  setTimeout(() => openWelcomeModal(), 220);
 }
-// window 노출 (onclick에서 호출 가능하게)
-window.openMigrationModal = openMigrationModal;
-window.kbmOpenMigration = kbmOpenMigration;
+// window 노출
+window.openWelcomeModal = openWelcomeModal;
+window.kbmOpenWelcome = kbmOpenWelcome;
 
 // 버튼 핸들러 바인딩
-(function wireMigrationButtons() {
-  const skip = document.getElementById('migSkip');
+(function wireWelcomeButtons() {
   const backdrop = document.getElementById('migBackdrop');
-  const dismiss = document.getElementById('migDismissBtn');
-  const cloudBackup = document.getElementById('migCloudBackupBtn');
-  const jsonBackup1 = document.getElementById('migJsonBackupBtn1');
-  const jsonBackup2 = document.getElementById('migJsonBackupBtn2');
-  const kakao = document.getElementById('migKakaoBtn');
+  const dismiss = document.getElementById('welDismissBtn');
+  const openSettings = document.getElementById('welOpenSettingsBtn');
 
-  if (skip) skip.addEventListener('click', closeMigrationModal);
-  if (dismiss) dismiss.addEventListener('click', closeMigrationModal);
-  if (backdrop) backdrop.addEventListener('click', closeMigrationModal);
+  // 둘러보기 시작 / 백드롭 클릭 → 모달만 닫기
+  if (dismiss) dismiss.addEventListener('click', closeWelcomeModal);
+  if (backdrop) backdrop.addEventListener('click', closeWelcomeModal);
 
-  // 클라우드 백업 → READ_AUTH.onBackupClick 호출 (백업 완료 시 lastSyncAt 자동 저장)
-  if (cloudBackup) cloudBackup.addEventListener('click', () => {
-    if (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.onBackupClick === 'function') {
-      // 모달 일단 닫고 백업 호출 (백업 토스트 보이게)
-      closeMigrationModal();
-      setTimeout(() => READ_AUTH.onBackupClick(), 250);
-      migMarkCompleted();
-    } else if (typeof showToast === 'function') {
-      showToast('로그인이 필요해요');
-    }
-  });
-
-  // JSON 백업 → exportDataAsJson 호출
-  const jsonHandler = () => {
-    if (typeof exportDataAsJson === 'function') {
-      closeMigrationModal();
-      setTimeout(() => exportDataAsJson(), 250);
-      migMarkCompleted();
-    } else if (typeof showToast === 'function') {
-      showToast('내보내기 기능을 찾을 수 없어요');
-    }
-  };
-  if (jsonBackup1) jsonBackup1.addEventListener('click', jsonHandler);
-  if (jsonBackup2) jsonBackup2.addEventListener('click', jsonHandler);
-
-  // 카카오 로그인 (비로그인 사용자) → READ_AUTH.startKakaoLogin
-  if (kakao) kakao.addEventListener('click', () => {
-    if (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') {
-      READ_AUTH.startKakaoLogin();
-    } else if (typeof showToast === 'function') {
-      showToast('로그인 준비 중');
-    }
+  // 설정 열기 → 모달 닫고 설정 모달 열기
+  if (openSettings) openSettings.addEventListener('click', () => {
+    closeWelcomeModal();
+    setTimeout(() => {
+      if (typeof kbmOpenSettings === 'function') {
+        kbmOpenSettings();
+      } else if (typeof showToast === 'function') {
+        showToast('설정을 열 수 없어요');
+      }
+    }, 250);
   });
 })();
 
 // 자동 트리거 — 앱 로드 후 1500ms (wnModal 600ms보다 늦게)
-(function autoOpenMigration() {
+(function autoOpenWelcome() {
   setTimeout(() => {
-    if (migShouldShow()) openMigrationModal();
+    if (welcomeShouldShow()) openWelcomeModal();
   }, 1500);
 })();
 
