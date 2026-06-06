@@ -13413,6 +13413,14 @@ body:has(.lib-edit-bar) .library-cards {
   padding: 12px 14px;
   font-size: 12px;
 }
+.ex-btn.secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1.5px solid var(--c-text);
+  flex: 0 0 auto;
+  padding: 12px 18px;
+}
+.ex-btn.secondary:active { background: var(--c-surface-2); }
 .ex-btn.primary {
   background: var(--primary);
   color: #fff;
@@ -21921,8 +21929,8 @@ body.cn-locked {
         <button class="settings-row">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-upload"/></svg></div>
           <div class="settings-row-main">
-            <div class="settings-row-ttl">데이터 내보내기</div>
-            <div class="settings-row-sub">PDF · JSON 백업</div>
+            <div class="settings-row-ttl">데이터 관리</div>
+            <div class="settings-row-sub">내보내기 · 가져오기 · 백업</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
@@ -23098,7 +23106,7 @@ body.cn-locked {
       <div class="ab-sec-body ab-muted">
         본 앱은 개인 프로젝트로 무상 제공됩니다.
         기록 손실이나 서비스 장애에 대해 제작자는 책임지지 않습니다.
-        정기적으로 <strong>데이터 내보내기</strong>로 백업해두세요.
+        정기적으로 <strong>데이터 관리</strong>에서 백업해두세요.
       </div>
     </div>
 
@@ -23262,7 +23270,7 @@ body.cn-locked {
         <!-- 동적 채움 -->
       </ul>
       <div class="rs-warn-advice">
-        💾 정말 떠나실 거면 <strong>데이터 내보내기</strong>로 백업 먼저 해두시길 권해요.
+        💾 정말 떠나실 거면 <strong>데이터 관리</strong>에서 백업 먼저 해두시길 권해요.
       </div>
     </div>
 
@@ -23675,8 +23683,8 @@ body.cn-locked {
 
     <div class="ex-actions">
       <button class="ex-btn ghost small" id="exCancelBtn">취소</button>
-      <button class="ex-btn ghost small" id="exImportBtn" title="JSON 백업 파일 복원">
-        가져오기
+      <button class="ex-btn secondary" id="exImportBtn" title="JSON 백업 파일 복원">
+        <svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> <span>JSON 가져오기</span>
       </button>
       <button class="ex-btn primary" id="exExportBtn">
         <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> <span id="exExportLbl">JSON 내보내기</span>
@@ -23996,7 +24004,8 @@ body.cn-locked {
             <ol class="restore-steps">
               <li>좌측 상단 <b>≡ 햄버거 메뉴</b> 열기</li>
               <li><b>설정</b> 진입</li>
-              <li><b>데이터 가져오기</b> 클릭</li>
+              <li><b>데이터 관리</b> 행 클릭</li>
+              <li>모달 하단 <b>[JSON 가져오기]</b> 버튼 클릭</li>
               <li>저장해두신 JSON 파일 선택</li>
             </ol>
           </div>
@@ -24036,7 +24045,7 @@ body.cn-locked {
       </div>
       <div class="da-tip" id="daTip">
         <div class="da-tip-ttl">💡 미리 백업해두세요</div>
-        <div class="da-tip-body">설정 → 데이터 내보내기에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
+        <div class="da-tip-body">설정 → 데이터 관리에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
       </div>
     </div>
     <div class="da-actions">
@@ -47617,12 +47626,12 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* 설정에서 "데이터 내보내기" 행 클릭 → 모달 */
+/* 설정에서 "데이터 관리" 행 클릭 → 모달 */
 (function wireExportInSettings() {
   const rows = document.querySelectorAll('.settings-row');
   for (const row of rows) {
     const ttl = row.querySelector('.settings-row-ttl');
-    if (!ttl || ttl.textContent !== '데이터 내보내기') continue;
+    if (!ttl || ttl.textContent !== '데이터 관리') continue;
     if (row.dataset.exportWired) continue;
     row.dataset.exportWired = '1';
     row.addEventListener('click', () => {
