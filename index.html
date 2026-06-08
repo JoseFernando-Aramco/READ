@@ -2,6 +2,47 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script>
+/* v1.11.1 — HTTPS 강제 (카메라/지오 등 보안 컨텍스트 API 보호)
+   keepbook.co.kr Custom Domain의 Enforce HTTPS가 꺼져있을 때의 안전망.
+   HTTP로 들어와도 즉시 HTTPS로 redirect → 바코드 스캔, 사진 첨부 등 정상 동작. */
+(function forceHttps() {
+  try {
+    if (location.protocol === 'http:' &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1' &&
+        !location.hostname.startsWith('192.168.') &&
+        !location.hostname.startsWith('10.')) {
+      location.replace(location.href.replace(/^http:/, 'https:'));
+    }
+  } catch(e){}
+})();
+
+/* v1.11.2 — 안드로이드 키보드 감지 + html.kbd-open 클래스 토글
+   소프트 키보드 올라오면 visualViewport.height가 줄어듦 → 임계 150px 이상이면 키보드로 판단
+   html.kbd-open 상태일 때 CSS에서 backdrop-filter 비활성 (검은 깜빡임 방지) */
+(function detectKeyboardFlicker() {
+  if (typeof window === 'undefined' || !window.visualViewport) return;
+  const vp = window.visualViewport;
+  const docEl = document.documentElement;
+  let kbdShown = false;
+  let raf = 0;
+
+  function check() {
+    raf = 0;
+    const heightDiff = window.innerHeight - vp.height;
+    const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
+    if (isKeyboard === kbdShown) return;
+    kbdShown = isKeyboard;
+    docEl.classList.toggle('kbd-open', isKeyboard);
+  }
+  function onResize() {
+    if (raf) return;
+    raf = requestAnimationFrame(check);
+  }
+  vp.addEventListener('resize', onResize, { passive: true });
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>keepbook — 독서기록</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15269,6 +15310,20 @@ body:has(.lib-edit-bar) .library-cards {
   .mig-modal { padding: 14px 12px; }
   .mig-header { padding: 20px 18px 16px; }
   .mig-body { padding: 16px 18px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   v1.11.2 — 안드로이드 키보드 깜빡임 방지
+   ─────────────────────────────────────────────────────
+   키보드 올라오면 backdrop-filter가 GPU 재합성되며 검은 플래시 발생.
+   html.kbd-open 상태에서 모든 *-backdrop 의 blur 효과 임시 제거.
+   디자인 손실은 미세 (배경 어둠 살짝 덜), 깜빡임 해소가 우선.
+   ═══════════════════════════════════════════════════════════ */
+html.kbd-open [class$="-backdrop"],
+html.kbd-open [class*="-backdrop "] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 
