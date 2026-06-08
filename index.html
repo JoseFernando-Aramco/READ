@@ -3923,10 +3923,52 @@ body:has(.lib-edit-bar) .library-cards {
 
 /* ═══════════════════════════════════════════════════════════
    v1.x — iOS 캘린더 스타일 DatePicker (인라인 그리드, 컴팩트)
+   v1.11.3 — input[type=date] 네이티브 피커로 단순화 (.dp-native)
    ═══════════════════════════════════════════════════════════ */
 .dp-wrap {
   position: relative;
 }
+
+/* v1.11.3 — 네이티브 input[type=date] 모드 */
+.dp-wrap.dp-native { padding: 0; }
+.dp-native-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--c-text);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  min-height: 40px;
+  line-height: 1.4;
+}
+.dp-native-input:focus {
+  outline: none;
+  border-color: var(--primary, #5A7A3C);
+  background: var(--c-surface);
+}
+.dp-native-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+.dp-native-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  filter: invert(0);
+}
+.dp-native-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.85;
+}
+/* 다크/미드나잇 테마에서 indicator 색 보정 */
+[data-theme="midnight"] .dp-native-input::-webkit-calendar-picker-indicator,
+[data-theme="dark"] .dp-native-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 /* 트리거 버튼 (날짜 표시) */
 .dp-trigger {
   width: 100%;
@@ -38909,11 +38951,7 @@ function openAcqSheet(bookId) {
   if (retWrap) retWrap.addEventListener('dp:change', updateDur);
   updateDur();
   
-  // 시트 바깥 클릭으로 dp 닫기 (시트 내부 다른 곳 클릭 시)
-  sheet.addEventListener('click', (e) => {
-    if (e.target.closest('.dp-wrap')) return;
-    sheet.querySelectorAll('.dp-wrap').forEach(w => _dpClose(w));
-  });
+  // v1.11.3 — input[type=date] 네이티브 피커는 자동으로 닫히므로 별도 dp 닫기 불필요
   
   // 쓸어내려 닫기
   if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
@@ -38932,146 +38970,7 @@ function closeAcqSheet() {
   }, 280);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   v1.x — DatePicker (iOS 그리드 캘린더 스타일, 인라인 펼쳐짐)
-   사용:
-     <div class="dp-wrap" data-dp-id="acqDate" data-dp-value="2026-05-22" data-dp-max="2026-05-22"></div>
-   초기화:
-     initDatePickers(rootEl)   // root 안의 모든 .dp-wrap 초기화
-   값 읽기:
-     wrap.dataset.dpValue      // 'YYYY-MM-DD' or ''
-   ═══════════════════════════════════════════════════════════ */
-
-const _DP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const _DP_MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-
-function _dpFormatDisplay(yyyy_mm_dd) {
-  if (!yyyy_mm_dd) return '';
-  const d = new Date(yyyy_mm_dd + 'T00:00:00');
-  if (isNaN(d.getTime())) return '';
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const dd = d.getDate();
-  const w = _DP_WEEKDAYS[d.getDay()];
-  return `${y}년 ${m}월 ${dd}일 (${w})`;
-}
-
-function _dpPad(n) { return String(n).padStart(2, '0'); }
-
-function _dpRenderCalendar(wrap) {
-  // 현재 표시 중인 연/월 (없으면 선택값 or 오늘)
-  let viewY = parseInt(wrap.dataset.dpViewY, 10);
-  let viewM = parseInt(wrap.dataset.dpViewM, 10);
-  if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) {
-    const selVal = wrap.dataset.dpValue;
-    const base = selVal ? new Date(selVal + 'T00:00:00') : new Date();
-    viewY = base.getFullYear();
-    viewM = base.getMonth();
-    wrap.dataset.dpViewY = String(viewY);
-    wrap.dataset.dpViewM = String(viewM);
-  }
-  
-  // 제약: min/max (YYYY-MM-DD)
-  const minStr = wrap.dataset.dpMin || '';
-  const maxStr = wrap.dataset.dpMax || '';
-  
-  // 1일의 요일 + 일수
-  const firstDay = new Date(viewY, viewM, 1);
-  const firstDow = firstDay.getDay();  // 0=일
-  const lastDate = new Date(viewY, viewM + 1, 0).getDate();
-  const prevLastDate = new Date(viewY, viewM, 0).getDate();
-  
-  // 오늘 + 선택값
-  const today = new Date();
-  const todayY = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
-  const selVal = wrap.dataset.dpValue;
-  let selY = null, selM = null, selD = null;
-  if (selVal) {
-    const sd = new Date(selVal + 'T00:00:00');
-    if (!isNaN(sd.getTime())) {
-      selY = sd.getFullYear(); selM = sd.getMonth(); selD = sd.getDate();
-    }
-  }
-  
-  // 6주 그리드 = 42칸
-  let html = '';
-  // 이전 달 마지막 날들
-  for (let i = firstDow - 1; i >= 0; i--) {
-    html += `<button type="button" class="dp-cell is-other" data-d="-">${prevLastDate - i}</button>`;
-  }
-  // 이번 달
-  for (let d = 1; d <= lastDate; d++) {
-    const dow = (firstDow + d - 1) % 7;
-    const dateStr = `${viewY}-${_dpPad(viewM+1)}-${_dpPad(d)}`;
-    const isToday = (viewY === todayY && viewM === todayM && d === todayD);
-    const isSelected = (selY === viewY && selM === viewM && selD === d);
-    const isSun = (dow === 0);
-    const isDisabled = (minStr && dateStr < minStr) || (maxStr && dateStr > maxStr);
-    let cls = 'dp-cell';
-    if (isSun) cls += ' is-sun';
-    if (isToday) cls += ' is-today';
-    if (isSelected) cls += ' is-selected';
-    if (isDisabled) cls += ' is-disabled';
-    html += `<button type="button" class="${cls}" data-d="${dateStr}"${isDisabled ? ' disabled' : ''}>${d}</button>`;
-  }
-  // 다음 달 시작 (42칸 채우기)
-  const used = firstDow + lastDate;
-  const nextCount = (used <= 35) ? (35 - used) : (42 - used);
-  for (let d = 1; d <= nextCount; d++) {
-    html += `<button type="button" class="dp-cell is-other" data-d="-">${d}</button>`;
-  }
-  
-  const grid = wrap.querySelector('.dp-cal-grid');
-  if (grid) grid.innerHTML = html;
-  
-  const monthLbl = wrap.querySelector('.dp-cal-month-lbl');
-  if (monthLbl) monthLbl.textContent = `${viewY}년 ${_DP_MONTHS_KO[viewM]}`;
-}
-
-function _dpUpdateTrigger(wrap) {
-  const trigger = wrap.querySelector('.dp-trigger');
-  const label = wrap.querySelector('.dp-trigger-label');
-  if (!trigger || !label) return;
-  const val = wrap.dataset.dpValue;
-  if (val) {
-    label.textContent = _dpFormatDisplay(val);
-    trigger.classList.remove('is-empty');
-  } else {
-    label.textContent = wrap.dataset.dpPlaceholder || '날짜 선택';
-    trigger.classList.add('is-empty');
-  }
-}
-
-function _dpOpen(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  const trigger = wrap.querySelector('.dp-trigger');
-  if (!cal || !trigger) return;
-  // 같은 시트의 다른 dp 닫기
-  const sheet = wrap.closest('.acq-sheet');
-  if (sheet) {
-    sheet.querySelectorAll('.dp-wrap').forEach(w => {
-      if (w !== wrap) _dpClose(w);
-    });
-  }
-  cal.classList.add('is-open');
-  trigger.classList.add('is-open');
-  _dpRenderCalendar(wrap);
-}
-
-function _dpClose(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  const trigger = wrap.querySelector('.dp-trigger');
-  if (cal) cal.classList.remove('is-open');
-  if (trigger) trigger.classList.remove('is-open');
-}
-
-function _dpToggle(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  if (!cal) return;
-  if (cal.classList.contains('is-open')) _dpClose(wrap);
-  else _dpOpen(wrap);
-}
-
+/* v1.11.3 — DatePicker: input[type=date] 네이티브 피커 (옛 _dp* 커스텀 캘린더 제거됨) */
 /* DatePicker HTML 생성 — _acqSheetHtml에서 사용 */
 function renderDatePicker(opts) {
   const id = opts.id || '';
@@ -39079,116 +38978,42 @@ function renderDatePicker(opts) {
   const max = opts.max || '';
   const min = opts.min || '';
   const placeholder = opts.placeholder || '날짜 선택';
-  const showTodayShortcut = opts.todayShortcut !== false;
-  
+
+  // v1.11.3 — input[type=date] 네이티브 피커로 단순화
+  // 사용자 요청: "아이폰처럼 년도 한번에 바꾸기"
+  // iOS: 휠 피커 / 안드로이드: 그리드 캘린더 (년도 클릭 빠른 점프) — 둘 다 년도 변경 즉시 가능
   return `
-    <div class="dp-wrap" 
-         data-dp-id="${esc(id)}" 
-         data-dp-value="${esc(value)}" 
-         data-dp-min="${esc(min)}" 
-         data-dp-max="${esc(max)}"
+    <div class="dp-wrap dp-native"
+         data-dp-id="${esc(id)}"
+         data-dp-value="${esc(value)}"
          data-dp-placeholder="${esc(placeholder)}">
-      <button type="button" class="dp-trigger ${value ? '' : 'is-empty'}">
-        <span class="dp-trigger-label">${value ? _dpFormatDisplay(value) : esc(placeholder)}</span>
-        <span class="dp-trigger-chevron">▼</span>
-      </button>
-      <div class="dp-cal">
-        <div class="dp-cal-head">
-          <div class="dp-cal-month-lbl">—</div>
-          <div class="dp-cal-nav">
-            <button type="button" class="dp-cal-nav-btn" data-dp-nav="-1" aria-label="이전 달">‹</button>
-            <button type="button" class="dp-cal-nav-btn" data-dp-nav="1" aria-label="다음 달">›</button>
-          </div>
-        </div>
-        <div class="dp-cal-wdays">
-          <div class="dp-cal-wday is-sun">일</div>
-          <div class="dp-cal-wday">월</div>
-          <div class="dp-cal-wday">화</div>
-          <div class="dp-cal-wday">수</div>
-          <div class="dp-cal-wday">목</div>
-          <div class="dp-cal-wday">금</div>
-          <div class="dp-cal-wday is-sat">토</div>
-        </div>
-        <div class="dp-cal-grid"></div>
-        ${showTodayShortcut ? `
-        <div class="dp-cal-shortcut">
-          <button type="button" class="dp-cal-shortcut-btn" data-dp-today>오늘로</button>
-        </div>` : ''}
-      </div>
+      <input type="date"
+             class="dp-native-input acq-input"
+             data-dp-input="1"
+             value="${esc(value)}"
+             ${max ? `max="${esc(max)}"` : ''}
+             ${min ? `min="${esc(min)}"` : ''}
+             aria-label="${esc(placeholder)}">
     </div>`;
 }
 
-/* DatePicker 이벤트 바인딩 — root 안의 모든 .dp-wrap 초기화 */
+/* DatePicker 이벤트 바인딩 — root 안의 모든 .dp-wrap 초기화
+   v1.11.3 — input[type=date] change 시 dataset.dpValue 동기화만 */
 function initDatePickers(root) {
   if (!root) return;
-  root.querySelectorAll('.dp-wrap').forEach(wrap => {
-    // 트리거 클릭 → 토글
-    const trigger = wrap.querySelector('.dp-trigger');
-    if (trigger) {
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        _dpToggle(wrap);
-      });
-    }
-    
-    // 월 이동
-    wrap.querySelectorAll('[data-dp-nav]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const delta = parseInt(btn.dataset.dpNav, 10) || 0;
-        let viewY = parseInt(wrap.dataset.dpViewY, 10);
-        let viewM = parseInt(wrap.dataset.dpViewM, 10);
-        if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) return;
-        viewM += delta;
-        while (viewM < 0) { viewM += 12; viewY--; }
-        while (viewM > 11) { viewM -= 12; viewY++; }
-        wrap.dataset.dpViewY = String(viewY);
-        wrap.dataset.dpViewM = String(viewM);
-        _dpRenderCalendar(wrap);
-      });
+  root.querySelectorAll('.dp-wrap.dp-native').forEach(wrap => {
+    const input = wrap.querySelector('input[type="date"]');
+    if (!input || input.dataset.dpWired) return;
+    input.dataset.dpWired = '1';
+    input.addEventListener('change', () => {
+      wrap.dataset.dpValue = input.value || '';
     });
-    
-    // 날짜 셀 클릭 (이벤트 위임)
-    const grid = wrap.querySelector('.dp-cal-grid');
-    if (grid) {
-      grid.addEventListener('click', (e) => {
-        const cell = e.target.closest('.dp-cell');
-        if (!cell) return;
-        if (cell.disabled || cell.classList.contains('is-disabled')) return;
-        const dateStr = cell.dataset.d;
-        if (!dateStr || dateStr === '-') return;
-        wrap.dataset.dpValue = dateStr;
-        _dpUpdateTrigger(wrap);
-        _dpRenderCalendar(wrap);
-        // 약간 딜레이 후 닫기 (선택 피드백 보여줌)
-        setTimeout(() => _dpClose(wrap), 180);
-        // 변경 이벤트 발생 — 대여 기간 자동 계산 등 listener 트리거
-        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
-      });
-    }
-    
-    // "오늘로"
-    const todayBtn = wrap.querySelector('[data-dp-today]');
-    if (todayBtn) {
-      todayBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}-${_dpPad(today.getMonth()+1)}-${_dpPad(today.getDate())}`;
-        // min/max 검증
-        const minStr = wrap.dataset.dpMin || '';
-        const maxStr = wrap.dataset.dpMax || '';
-        if ((minStr && dateStr < minStr) || (maxStr && dateStr > maxStr)) return;
-        wrap.dataset.dpValue = dateStr;
-        wrap.dataset.dpViewY = String(today.getFullYear());
-        wrap.dataset.dpViewM = String(today.getMonth());
-        _dpUpdateTrigger(wrap);
-        _dpRenderCalendar(wrap);
-        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
-        setTimeout(() => _dpClose(wrap), 180);
-      });
-    }
+    // 초기값 동기화 (이미 attribute로 들어가 있지만 안전 차원)
+    wrap.dataset.dpValue = input.value || '';
   });
 }
+
+
 
 /* DatePicker 값 읽기 (편의 함수) */
 function getDatePickerValue(root, dpId) {
