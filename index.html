@@ -25291,6 +25291,10 @@ function _ltSetStage(stage) {
   document.getElementById('ltStageGuide')?.classList.toggle('active', stage === 'guide');
 }
 
+// v1.11.4 — 모달 열기 직전 클립보드 텍스트 백업
+// 사용자가 사진에서 텍스트 복사를 빠뜨리고 붙여넣기 시도 시 검증용
+let _ltClipBefore = '';
+
 // ─────────────────────────────────────────────────────────────
 // Live Text OCR 버튼 노출 가드
 // iOS Live Text는 iOS Safari/PWA에서만 작동.
@@ -25318,6 +25322,16 @@ function openLtModal() {
   // 모달은 사진 선택 완료 시 _ltShowPhoto에서 열림.
   const fi = document.getElementById('ltFileInput');
   if (fi) fi.click();
+
+  // v1.11.4 — 클립보드 백업: 사진 텍스트 복사를 빠뜨린 경우 검증용
+  // (fi.click() 먼저 호출해 iOS user gesture 컨텍스트 보존, 백업은 별도 비동기)
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText()
+      .then(t => { _ltClipBefore = t || ''; })
+      .catch(() => { _ltClipBefore = ''; });
+  } else {
+    _ltClipBefore = '';
+  }
 }
 
 function closeLtModal() {
@@ -25360,6 +25374,14 @@ async function _ltPasteFromClipboard() {
       if (typeof showToast === 'function') showToast('복사된 텍스트가 없어요. 사진에서 텍스트를 선택 → 복사 후 다시 시도해주세요.');
       return;
     }
+
+    // v1.11.4 — 클립보드 변화 검증
+    // 모달 열기 전 텍스트와 동일하면 = 사용자가 사진에서 복사 안 함 = 옛 텍스트가 그대로
+    if (_ltClipBefore && text === _ltClipBefore) {
+      if (typeof showToast === 'function') showToast('사진에서 텍스트를 선택해서 "복사" 메뉴를 눌러주세요. 이전에 다른 곳에서 복사한 텍스트가 그대로예요.');
+      return;
+    }
+
     const ta = document.getElementById('naBody');
     if (ta) {
       const existing = ta.value || '';
