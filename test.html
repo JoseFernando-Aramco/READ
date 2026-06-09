@@ -25467,7 +25467,7 @@ function bnRenderGroup() {
 
     ${threadsHtml}
 
-    <div class="bn-note-input-area ${!isMyTurn ? 'disabled' : ''}" onclick="${isMyTurn ? 'bnOpenNoteModal()' : 'bnShowToast(\\'아직 내 차례가 아니에요\\')'}">
+    <div class="bn-note-input-area ${!isMyTurn ? 'disabled' : ''}" onclick="${isMyTurn ? 'bnOpenNoteModal()' : 'bnNotMyTurnAlert()'}">
       ${isMyTurn ? '✍️ 노트 남기기 (내 차례)' : '⏳ ' + bnEscape(turnMember.nickname) + ' 차례'}
     </div>
   `;
@@ -25625,6 +25625,10 @@ function bnShowToast(msg) {
   t.classList.add('show');
   clearTimeout(t._tt);
   t._tt = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function bnNotMyTurnAlert() {
+  bnShowToast('아직 내 차례가 아니에요');
 }
 
 /* 필터 chip 이벤트 */
