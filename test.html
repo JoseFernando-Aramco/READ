@@ -2,6 +2,47 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script>
+/* v1.11.1 — HTTPS 강제 (카메라/지오 등 보안 컨텍스트 API 보호)
+   keepbook.co.kr Custom Domain의 Enforce HTTPS가 꺼져있을 때의 안전망.
+   HTTP로 들어와도 즉시 HTTPS로 redirect → 바코드 스캔, 사진 첨부 등 정상 동작. */
+(function forceHttps() {
+  try {
+    if (location.protocol === 'http:' &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1' &&
+        !location.hostname.startsWith('192.168.') &&
+        !location.hostname.startsWith('10.')) {
+      location.replace(location.href.replace(/^http:/, 'https:'));
+    }
+  } catch(e){}
+})();
+
+/* v1.11.2 — 안드로이드 키보드 감지 + html.kbd-open 클래스 토글
+   소프트 키보드 올라오면 visualViewport.height가 줄어듦 → 임계 150px 이상이면 키보드로 판단
+   html.kbd-open 상태일 때 CSS에서 backdrop-filter 비활성 (검은 깜빡임 방지) */
+(function detectKeyboardFlicker() {
+  if (typeof window === 'undefined' || !window.visualViewport) return;
+  const vp = window.visualViewport;
+  const docEl = document.documentElement;
+  let kbdShown = false;
+  let raf = 0;
+
+  function check() {
+    raf = 0;
+    const heightDiff = window.innerHeight - vp.height;
+    const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
+    if (isKeyboard === kbdShown) return;
+    kbdShown = isKeyboard;
+    docEl.classList.toggle('kbd-open', isKeyboard);
+  }
+  function onResize() {
+    if (raf) return;
+    raf = requestAnimationFrame(check);
+  }
+  vp.addEventListener('resize', onResize, { passive: true });
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>keepbook — 독서기록</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3882,10 +3923,52 @@ body:has(.lib-edit-bar) .library-cards {
 
 /* ═══════════════════════════════════════════════════════════
    v1.x — iOS 캘린더 스타일 DatePicker (인라인 그리드, 컴팩트)
+   v1.11.3 — input[type=date] 네이티브 피커로 단순화 (.dp-native)
    ═══════════════════════════════════════════════════════════ */
 .dp-wrap {
   position: relative;
 }
+
+/* v1.11.3 — 네이티브 input[type=date] 모드 */
+.dp-wrap.dp-native { padding: 0; }
+.dp-native-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--c-canvas);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--c-text);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  min-height: 40px;
+  line-height: 1.4;
+}
+.dp-native-input:focus {
+  outline: none;
+  border-color: var(--primary, #5A7A3C);
+  background: var(--c-surface);
+}
+.dp-native-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+.dp-native-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  filter: invert(0);
+}
+.dp-native-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.85;
+}
+/* 다크/미드나잇 테마에서 indicator 색 보정 */
+[data-theme="midnight"] .dp-native-input::-webkit-calendar-picker-indicator,
+[data-theme="dark"] .dp-native-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 /* 트리거 버튼 (날짜 표시) */
 .dp-trigger {
   width: 100%;
@@ -13413,6 +13496,14 @@ body:has(.lib-edit-bar) .library-cards {
   padding: 12px 14px;
   font-size: 12px;
 }
+.ex-btn.secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1.5px solid var(--c-text);
+  flex: 0 0 auto;
+  padding: 12px 18px;
+}
+.ex-btn.secondary:active { background: var(--c-surface-2); }
 .ex-btn.primary {
   background: var(--primary);
   color: #fff;
@@ -15261,6 +15352,301 @@ body:has(.lib-edit-bar) .library-cards {
   .mig-modal { padding: 14px 12px; }
   .mig-header { padding: 20px 18px 16px; }
   .mig-body { padding: 16px 18px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   v1.11.2 — 안드로이드 키보드 깜빡임 방지
+   ─────────────────────────────────────────────────────
+   키보드 올라오면 backdrop-filter가 GPU 재합성되며 검은 플래시 발생.
+   html.kbd-open 상태에서 모든 *-backdrop 의 blur 효과 임시 제거.
+   디자인 손실은 미세 (배경 어둠 살짝 덜), 깜빡임 해소가 우선.
+   ═══════════════════════════════════════════════════════════ */
+html.kbd-open [class$="-backdrop"],
+html.kbd-open [class*="-backdrop "] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   keepbook 환영 모달 (v1.11.0) — 새 도메인 이전 완료 + 복원 안내
+   ─────────────────────────────────────────────────────────
+   .mig-backdrop / .mig-modal / .mig-card 베이스는 위 v1.10.3 블록에서 상속
+   여기는 환영 모달 전용 콘텐츠 스타일만
+   ═══════════════════════════════════════════════════════════ */
+
+/* 이전 완료 박스 (sage 톤) */
+.complete-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: #E8ECE6;
+  color: #455045;
+  border: 1px solid #5F6B5F;
+}
+
+/* 환영 헤더 (sage 그라데이션) */
+.wel-header {
+  padding: 22px 22px 18px;
+  background: linear-gradient(180deg, #EEF3EC 0%, var(--c-surface) 100%);
+  border-bottom: 1px solid var(--c-border);
+  position: relative;
+}
+.wel-icon-wrap {
+  width: 46px;
+  height: 46px;
+  background: #E8ECE6;
+  border: 1px solid #5F6B5F;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 11px;
+  font-size: 22px;
+}
+.wel-title {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+  color: var(--c-text);
+}
+.wel-sub {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--c-text-2);
+  margin: 0;
+}
+.wel-sub strong {
+  color: #455045;
+  font-weight: 700;
+}
+
+/* 본문 영역 */
+.wel-body {
+  padding: 18px 22px 18px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 도메인 이전 완료 박스 */
+.wel-domain-done {
+  background: #E8ECE6;
+  border: 1px solid #5F6B5F;
+  border-radius: 11px;
+  padding: 13px;
+  margin-bottom: 14px;
+}
+.wel-domain-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: #455045;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.wel-domain-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 0;
+  font-size: 11px;
+}
+.wel-domain-row + .wel-domain-row {
+  border-top: 1px dashed var(--c-border);
+}
+.wel-domain-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  width: 34px;
+  font-size: 10px;
+}
+.wel-domain-label.old { color: var(--c-muted); }
+.wel-domain-label.new { color: #455045; }
+.wel-domain-value {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 10.5px;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.wel-domain-value.old {
+  text-decoration: line-through;
+  color: var(--c-muted);
+}
+.wel-domain-value.new {
+  font-weight: 700;
+  color: #455045;
+}
+.wel-domain-note {
+  font-size: 10.5px;
+  color: var(--c-text-2);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border);
+  line-height: 1.5;
+}
+.wel-domain-note strong { color: var(--c-text); font-weight: 700; }
+
+/* 복원하기 카드 */
+.restore-card {
+  border: 1px solid #5F6B5F;
+  border-radius: 11px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.restore-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  background: #E8ECE6;
+  border-bottom: 1px solid #5F6B5F;
+}
+.restore-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #5F6B5F;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.restore-ttl {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--c-text);
+}
+.restore-body {
+  padding: 11px 13px 13px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* 복원 방법 (단계별 안내) */
+.restore-method { padding: 4px 0; }
+.restore-method-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.method-badge {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.method-badge.sage { background: #5F6B5F; }
+.method-badge.gray { background: var(--c-label); }
+.restore-method-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--c-text);
+}
+.restore-method-name .badge-rec {
+  display: inline-block;
+  background: #5F6B5F;
+  color: white;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  letter-spacing: 0.3px;
+  vertical-align: 1px;
+}
+.restore-method-desc {
+  font-size: 11px;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+  padding-left: 25px;
+  line-height: 1.4;
+}
+.restore-steps {
+  margin: 0;
+  padding-left: 25px;
+  font-size: 11.5px;
+  color: var(--c-text-2);
+  line-height: 1.7;
+}
+.restore-steps li { padding: 1px 0; }
+.restore-steps b { color: var(--c-text); font-weight: 700; }
+.restore-divider {
+  height: 1px;
+  background: var(--c-border);
+  margin: 11px 0;
+}
+
+/* 신규 사용자 안내 (파랑 박스) */
+.wel-note {
+  background: #E8EEF5;
+  border: 1px solid #4A6B8A;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--c-text-2);
+}
+.wel-note strong { color: #4A6B8A; font-weight: 700; }
+.wel-note b { color: var(--c-text); font-weight: 700; }
+
+/* 환영 모달 풋터 — 하이브리드 (설정 열기 + 둘러보기 시작) */
+.wel-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+  flex-shrink: 0;
+}
+.wel-foot button {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.wel-foot-primary {
+  background: #5F6B5F;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 11px 22px;
+  border-radius: 8px;
+}
+.wel-foot-primary:active { background: #455045; }
+.wel-foot-ghost {
+  background: transparent;
+  color: var(--c-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+}
+.wel-foot-ghost:active { color: var(--c-text-2); }
+
+/* 모바일 */
+@media (max-width: 480px) {
+  .wel-header { padding: 20px 18px 16px; }
+  .wel-body { padding: 16px 18px; }
 }
 
 .bd-danger-zone { padding: 20px 18px 12px; }
@@ -19408,6 +19794,33 @@ body.cn-locked {
 }
 
 .bp-info { flex: 1; min-width: 0; }
+
+/* 책에서 바로 노트 추가 시 선택된 책 표시 (책 선택 picker 대체) */
+.na-locked-book {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+}
+.na-locked-meta { flex: 1; min-width: 0; }
+.na-locked-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.na-locked-author {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .bp-title {
   font-size: 13.5px;
   font-weight: 700;
@@ -21518,6 +21931,15 @@ body.cn-locked {
       <span class="kbm-item-arrow">›</span>
     </button>
 
+    <button class="kbm-item" id="kbmBooknookItem" onclick="bnOpenMain()" style="display:none">
+      <div class="kbm-item-icon" style="background:var(--c-sage-50, #E8ECE6); display:flex; align-items:center; justify-content:center; font-size:22px;">🛋️</div>
+      <div class="kbm-item-main">
+        <div class="kbm-item-ttl">Booknook</div>
+        <div class="kbm-item-sub">같이 읽기 · 책으로 만나는 코너</div>
+      </div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
+
     <div class="kbm-section-lbl">Settings</div>
     <button class="kbm-item" onclick="kbmOpenSettings()">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 004.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
@@ -21613,11 +22035,19 @@ body.cn-locked {
         <button class="settings-row">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-upload"/></svg></div>
           <div class="settings-row-main">
-            <div class="settings-row-ttl">데이터 내보내기</div>
-            <div class="settings-row-sub">PDF · JSON 백업</div>
+            <div class="settings-row-ttl">데이터 관리</div>
+            <div class="settings-row-sub">내보내기 · 가져오기 · 백업</div>
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <div class="settings-row" id="booknookSettingsRow" onclick="bnToggle(event)">
+          <div class="settings-row-icon" style="background:#E8ECE6;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:7px;">🛋️</div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">Booknook</div>
+            <div class="settings-row-sub">같이 읽기 · 책으로 만나는 코너</div>
+          </div>
+          <div class="bn-toggle" id="bnToggleSwitch"></div>
+        </div>
         <button class="settings-row" id="importRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-download"/></svg></div>
           <div class="settings-row-main">
@@ -22429,7 +22859,7 @@ body.cn-locked {
     <button class="na-save-btn" id="naSave" disabled>저장</button>
   </div>
   <div class="na-body">
-    <div class="na-field">
+    <div class="na-field" id="naBookField">
       <label class="na-lbl">책</label>
       <div class="book-picker" id="naBookPicker">
         <div class="bp-search-wrap">
@@ -22440,6 +22870,12 @@ body.cn-locked {
         <div class="bp-list" id="bpList"></div>
         <div class="bp-list-foot" id="bpFoot"></div>
       </div>
+    </div>
+
+    <!-- 책에서 바로 노트 추가 시: 책 선택 대신 선택된 책만 표시 -->
+    <div class="na-field" id="naLockedBookField" style="display:none">
+      <label class="na-lbl">책</label>
+      <div class="na-locked-book" id="naLockedBook"></div>
     </div>
 
     <div class="na-field">
@@ -22784,7 +23220,7 @@ body.cn-locked {
       <div class="ab-sec-body ab-muted">
         본 앱은 개인 프로젝트로 무상 제공됩니다.
         기록 손실이나 서비스 장애에 대해 제작자는 책임지지 않습니다.
-        정기적으로 <strong>데이터 내보내기</strong>로 백업해두세요.
+        정기적으로 <strong>데이터 관리</strong>에서 백업해두세요.
       </div>
     </div>
 
@@ -22948,7 +23384,7 @@ body.cn-locked {
         <!-- 동적 채움 -->
       </ul>
       <div class="rs-warn-advice">
-        💾 정말 떠나실 거면 <strong>데이터 내보내기</strong>로 백업 먼저 해두시길 권해요.
+        💾 정말 떠나실 거면 <strong>데이터 관리</strong>에서 백업 먼저 해두시길 권해요.
       </div>
     </div>
 
@@ -23361,8 +23797,8 @@ body.cn-locked {
 
     <div class="ex-actions">
       <button class="ex-btn ghost small" id="exCancelBtn">취소</button>
-      <button class="ex-btn ghost small" id="exImportBtn" title="JSON 백업 파일 복원">
-        가져오기
+      <button class="ex-btn secondary" id="exImportBtn" title="JSON 백업 파일 복원">
+        <svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> <span>JSON 가져오기</span>
       </button>
       <button class="ex-btn primary" id="exExportBtn">
         <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> <span id="exExportLbl">JSON 내보내기</span>
@@ -23609,140 +24045,1599 @@ body.cn-locked {
 </div>
 
 
-<!-- ═══════════ keepbook 마이그레이션 모달 (v1.10.3 — D-day 시스템) ═══════════ -->
+
+<!-- ═══════════ keepbook 환영 모달 (v1.11.0 — 새 도메인 이전 완료) ═══════════ -->
 <div class="mig-backdrop" id="migBackdrop"></div>
-<div class="mig-modal" id="migModal" aria-hidden="true" role="dialog" aria-labelledby="migTitle">
-  <div class="mig-card" id="migCard">
+<div class="mig-modal" id="migModal" aria-hidden="true" role="dialog" aria-labelledby="welTitle">
+  <div class="mig-card" id="welCard">
 
     <!-- 헤더 -->
-    <div class="mig-header">
-      <div class="dday-box p1" id="migDdayBox">⏰ D-14 · 6/7 이전 예정</div>
-      <div class="mig-icon-wrap" id="migIconWrap">⚠️</div>
-      <h2 class="mig-title" id="migTitle">
-        keepbook 새 도메인 이전 안내
-        <span class="state-tag" id="migStateTag"></span>
-      </h2>
-      <p class="mig-warning" id="migWarning">
-        도메인이 바뀌면 <strong>책·노트·태그가 자동으로 옮겨가지 않아요.</strong>
-        지금 백업해두셔야 새 도메인에서 그대로 이어 쓸 수 있어요.
+    <div class="wel-header">
+      <div class="complete-box">✓ 새 도메인 이전 완료</div>
+      <div class="wel-icon-wrap">🎉</div>
+      <h2 class="wel-title" id="welTitle">환영합니다!</h2>
+      <p class="wel-sub">
+        keepbook이 정식 도메인 <strong>keepbook.co.kr</strong>로 이사했어요.<br>
+        기존에 백업해두신 데이터가 있다면 아래 안내대로 복원하세요.
       </p>
     </div>
 
     <!-- 본문 -->
-    <div class="mig-body">
+    <div class="wel-body">
 
-      <!-- 도메인 변경 안내 -->
-      <div class="mig-domain-change">
-        <div class="mig-domain-change-ttl">🔄 어디서 어디로 바뀌나요?</div>
-        <div class="mig-domain-row">
-          <span class="mig-domain-label before">기존</span>
-          <span class="mig-domain-value before">josefernando-aramco.github.io/READ</span>
+      <!-- 이전 완료 안내 -->
+      <div class="wel-domain-done">
+        <div class="wel-domain-ttl">📍 새 주소 안내</div>
+        <div class="wel-domain-row">
+          <span class="wel-domain-label old">기존</span>
+          <span class="wel-domain-value old">josefernando-aramco.github.io/READ</span>
         </div>
-        <div class="mig-domain-row">
-          <span class="mig-domain-label after">신규</span>
-          <span class="mig-domain-value after">keepbook.co.kr</span>
+        <div class="wel-domain-row">
+          <span class="wel-domain-label new">현재</span>
+          <span class="wel-domain-value new">keepbook.co.kr ✓</span>
         </div>
-        <div class="mig-domain-note">
-          <strong>같은 keepbook이에요.</strong> 도메인 이름만 바뀝니다.<br>
-          정식 명칭(keepbook)에 맞춘 공식 주소예요.
+        <div class="wel-domain-note">
+          <strong>같은 keepbook이에요.</strong> 도메인만 정식 주소로 옮겨왔습니다.<br>
+          즐겨찾기·홈 단축은 이 주소로 다시 등록해주세요.
         </div>
       </div>
 
-      <!-- 1단계: 지금 백업 -->
-      <div class="step-card step-1">
-        <div class="step-head">
-          <div class="step-num">1</div>
-          <div class="step-ttl">지금 백업하기 <span class="step-where">(여기서)</span></div>
+      <!-- 복원하기 카드 -->
+      <div class="restore-card">
+        <div class="restore-head">
+          <div class="restore-icon">📥</div>
+          <div class="restore-ttl">데이터 복원 방법</div>
         </div>
-        <div class="step-body">
+        <div class="restore-body">
 
-          <!-- 로그인 사용자 영역 -->
-          <div class="mig-state-loggedin" id="migStateLoggedin" style="display:none;">
-            <div class="mig-status">
-              <div class="mig-status-row">
-                <span class="mig-status-dot" id="migBackupDot"></span>
-                <span id="migBackupLabel">마지막 백업: 확인 중…</span>
-              </div>
-              <div class="mig-status-sub" id="migBackupSub">한 번 더 백업해두면 안심이에요.</div>
+          <!-- 방법 A: 카카오 클라우드 복원 -->
+          <div class="restore-method">
+            <div class="restore-method-head">
+              <span class="method-badge sage">A</span>
+              <span class="restore-method-name">카카오 클라우드에서 복원<span class="badge-rec">자동</span></span>
             </div>
-            <div class="mig-actions">
-              <button class="mig-btn primary" id="migCloudBackupBtn" type="button">지금 클라우드에 백업하기</button>
-              <button class="mig-btn ghost" id="migJsonBackupBtn1" type="button">JSON 파일로도 받아두기</button>
-            </div>
+            <div class="restore-method-desc">옛 사이트에서 카카오 로그인 + 백업하셨던 분</div>
+            <ol class="restore-steps">
+              <li>좌측 상단 <b>≡ 햄버거 메뉴</b> 열기</li>
+              <li><b>설정</b> 진입</li>
+              <li><b>카카오로 시작하기</b> 클릭 → 같은 계정으로 로그인</li>
+              <li>설정 페이지에서 <b>"클라우드에서 복원"</b> 클릭</li>
+              <li>"가져올까요?" 다이얼로그에서 <b>확인</b></li>
+            </ol>
           </div>
 
-          <!-- 비로그인 사용자 영역 -->
-          <div class="mig-state-anon" id="migStateAnon" style="display:none;">
-            <ul class="method-list">
-              <li class="method-item">
-                <div class="method-num">A</div>
-                <div class="method-content">
-                  <div class="method-name">카카오 로그인<span class="badge-rec">추천</span></div>
-                  <div class="method-desc">로그인 한 번이면 자동 클라우드 백업. 새 도메인에서 같은 카카오로 로그인하면 자동 복원!</div>
-                </div>
-              </li>
-              <li class="method-item">
-                <div class="method-num">B</div>
-                <div class="method-content">
-                  <div class="method-name">JSON 파일 다운로드</div>
-                  <div class="method-desc">파일 하나로 받아두고 새 도메인에서 가져오기.</div>
-                </div>
-              </li>
-            </ul>
+          <div class="restore-divider"></div>
 
-            <div class="json-tip">
-              <div class="json-tip-ttl">💡 JSON 파일 잘 보관하는 법</div>
-              <ul>
-                <li>카톡 <strong>'나에게 보내기'</strong>에 첨부</li>
-                <li>본인 이메일로 보내두기</li>
-                <li>구글 드라이브 등에 업로드</li>
-              </ul>
+          <!-- 방법 B: JSON 파일 가져오기 -->
+          <div class="restore-method">
+            <div class="restore-method-head">
+              <span class="method-badge gray">B</span>
+              <span class="restore-method-name">JSON 파일 가져오기</span>
             </div>
-
-            <div class="mig-actions">
-              <button class="mig-btn kakao" id="migKakaoBtn" type="button">💬 카카오로 로그인 + 백업</button>
-              <button class="mig-btn ghost" id="migJsonBackupBtn2" type="button">📥 JSON 파일로 백업</button>
-            </div>
+            <div class="restore-method-desc">옛 사이트에서 JSON 파일로 백업하셨던 분</div>
+            <ol class="restore-steps">
+              <li>좌측 상단 <b>≡ 햄버거 메뉴</b> 열기</li>
+              <li><b>설정</b> 진입</li>
+              <li><b>데이터 관리</b> 행 클릭</li>
+              <li>모달 하단 <b>[JSON 가져오기]</b> 버튼 클릭</li>
+              <li>저장해두신 JSON 파일 선택</li>
+            </ol>
           </div>
 
         </div>
       </div>
 
-      <!-- 2단계: 새 도메인에서 복원 -->
-      <div class="step-card step-2">
-        <div class="step-head">
-          <div class="step-num">2</div>
-          <div class="step-ttl">새 도메인에서 복원 <span class="step-where">(이전 후)</span></div>
-        </div>
-        <div class="step-body">
-          <ul class="method-list">
-            <li class="method-item">
-              <div class="method-num">A</div>
-              <div class="method-content">
-                <div class="method-name">카카오 로그인하면 자동 복원</div>
-                <div class="method-desc">새 도메인에서 같은 계정으로 로그인 → 책·노트 그대로 돌아와요.</div>
-              </div>
-            </li>
-            <li class="method-item">
-              <div class="method-num">B</div>
-              <div class="method-content">
-                <div class="method-name">JSON 파일 가져오기</div>
-                <div class="method-desc">설정 → 데이터 가져오기에서 백업 파일 업로드.</div>
-              </div>
-            </li>
-          </ul>
-        </div>
+      <!-- 신규 사용자 안내 -->
+      <div class="wel-note">
+        <strong>처음 오셨다면?</strong> 환영해요! 아래 <b>둘러보기 시작</b> 누르고 자유롭게 둘러보시면 됩니다. 책 등록부터 시작해보세요.
       </div>
 
     </div>
 
     <!-- 풋터 -->
-    <div class="mig-foot" id="migFoot">
-      <button id="migDismissBtn" type="button">나중에 할게요</button>
+    <div class="wel-foot">
+      <button class="wel-foot-primary" id="welOpenSettingsBtn" type="button">⚙️ 설정 열기</button>
+      <button class="wel-foot-ghost" id="welDismissBtn" type="button">둘러보기 시작</button>
     </div>
 
   </div>
 </div>
+
+
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     Booknook (v1.12.0 — test.html 전용)
+     ─────────────────────────────────────────────────────────
+     같이 읽기 · 책으로 만나는 코너
+     인트로버트 친화 · 닉네임 lazy 수집 · 옵트인 디폴트 OFF
+     localStorage 기반 시뮬레이션 (Cloudflare KV는 다음 단계)
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+/* Booknook 전용 CSS — .bn-* 네임스페이스 */
+
+/* 설정 토글 스위치 */
+.bn-toggle {
+  width: 42px; height: 24px;
+  border-radius: 12px;
+  background: var(--c-surface-2, #E8E8E4);
+  position: relative;
+  transition: background 200ms;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.bn-toggle.on { background: #5F6B5F; }
+.bn-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.bn-toggle.on::after { transform: translateX(18px); }
+
+/* Booknook 메인 오버레이 (전체 화면 스택) */
+.bn-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--c-canvas, #F3F3F0);
+  z-index: 900;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.bn-overlay.open { display: flex; }
+
+/* Booknook 헤더 */
+.bn-hdr {
+  background: var(--c-surface, #FCFCFA);
+  border-bottom: 1px solid var(--c-border, #DCDCD8);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: calc(14px + env(safe-area-inset-top, 0));
+}
+.bn-hdr-back {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--c-text, #15110D);
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: -8px;
+}
+.bn-hdr-ttl {
+  font-weight: 800;
+  font-size: 16px;
+  flex: 1;
+  color: var(--c-text, #15110D);
+  letter-spacing: -0.01em;
+}
+.bn-hdr-action {
+  background: none;
+  border: none;
+  color: var(--c-muted, #7A7A75);
+  font-size: 20px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+/* Booknook 본문 */
+.bn-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
+}
+
+/* === 빈 상태 === */
+.bn-empty {
+  padding: 40px 20px;
+  text-align: center;
+}
+.bn-empty-icon {
+  font-size: 48px;
+  margin-bottom: 14px;
+  opacity: 0.7;
+}
+.bn-empty-ttl {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--c-text, #15110D);
+}
+.bn-empty-sub {
+  font-size: 12.5px;
+  color: var(--c-muted, #7A7A75);
+  line-height: 1.55;
+  margin-bottom: 22px;
+}
+.bn-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.bn-action-row {
+  background: #E8ECE6;
+  border: 1px solid #C8D2C8;
+  padding: 13px 15px;
+  border-radius: 11px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.bn-action-row:active { background: #D8E0D6; }
+.bn-action-emoji { font-size: 22px; flex-shrink: 0; }
+.bn-action-main { flex: 1; min-width: 0; }
+.bn-action-ttl { font-weight: 700; font-size: 13px; color: #455045; margin-bottom: 1px; }
+.bn-action-sub { font-size: 11px; color: var(--c-text-2, #3A3A35); }
+.bn-action-arrow { color: #5F6B5F; font-size: 16px; }
+
+/* === 내 그룹 카드 (활성 그룹 리스트) === */
+.bn-my-section { margin-bottom: 20px; }
+.bn-my-ttl {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--c-muted, #7A7A75);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.bn-my-card {
+  background: var(--c-surface, #FCFCFA);
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 11px;
+  padding: 12px;
+  margin-bottom: 9px;
+  display: flex;
+  gap: 11px;
+  cursor: pointer;
+  transition: transform 120ms;
+}
+.bn-my-card:active { transform: scale(0.98); }
+.bn-cover {
+  width: 42px; height: 60px;
+  background: #C8A368;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  color: white;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding-bottom: 4px;
+  line-height: 1.15;
+  text-align: center;
+  padding-left: 3px;
+  padding-right: 3px;
+  word-break: keep-all;
+}
+.bn-cover.c-sage { background: #5F6B5F; }
+.bn-cover.c-blue { background: #4A6B8A; }
+.bn-cover.c-mauve { background: #A06B8E; }
+.bn-cover.c-red { background: #B85A4A; }
+.bn-my-info { flex: 1; min-width: 0; }
+.bn-my-bttl { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.bn-my-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); margin-bottom: 5px; }
+.bn-my-turn {
+  display: inline-block;
+  background: #F5EFE3;
+  color: #6E5B45;
+  padding: 2px 8px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.bn-my-turn.mine {
+  background: #E8ECE6;
+  color: #455045;
+}
+
+/* === 게시판 필터 === */
+.bn-filter-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+.bn-filter-chip {
+  padding: 5px 12px;
+  background: var(--c-surface-2, #E8E8E4);
+  color: var(--c-text-2, #3A3A35);
+  border-radius: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.bn-filter-chip.active {
+  background: #5F6B5F;
+  color: white;
+}
+
+/* === 모집 카드 === */
+.bn-recruit-card {
+  background: var(--c-surface, #FCFCFA);
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 11px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 11px;
+  cursor: pointer;
+  transition: transform 120ms;
+}
+.bn-recruit-card:active { transform: scale(0.98); }
+.bn-recruit-card.closed { opacity: 0.55; }
+.bn-recruit-card.closed .bn-recruit-capacity {
+  background: var(--c-surface-2, #E8E8E4);
+  color: var(--c-muted, #7A7A75);
+}
+.bn-recruit-main { flex: 1; min-width: 0; }
+.bn-recruit-ttl { font-weight: 700; font-size: 12.5px; margin-bottom: 2px; }
+.bn-recruit-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); margin-bottom: 5px; }
+.bn-recruit-intro {
+  font-size: 11.5px;
+  color: var(--c-text-2, #3A3A35);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.bn-recruit-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+}
+.bn-recruit-capacity {
+  background: #E8ECE6;
+  color: #455045;
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-weight: 700;
+}
+.bn-recruit-deadline { color: var(--c-muted, #7A7A75); }
+
+/* === 폼 === */
+.bn-form-group { margin-bottom: 14px; }
+.bn-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text, #15110D);
+  margin-bottom: 6px;
+}
+.bn-form-input,
+.bn-form-textarea,
+.bn-form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 8px;
+  background: var(--c-surface, #FCFCFA);
+  font-size: 13px;
+  color: var(--c-text, #15110D);
+  font-family: inherit;
+}
+.bn-form-textarea { min-height: 70px; resize: none; }
+.bn-form-row { display: flex; gap: 10px; }
+.bn-form-row > * { flex: 1; }
+.bn-form-counter {
+  font-size: 10px;
+  color: var(--c-muted, #7A7A75);
+  text-align: right;
+  margin-top: 3px;
+}
+.bn-selected-book {
+  background: #E8ECE6;
+  border: 1px solid #C8D2C8;
+  border-radius: 9px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+}
+.bn-selected-book .bn-cover { width: 32px; height: 46px; font-size: 7.5px; }
+.bn-sb-info { flex: 1; min-width: 0; }
+.bn-sb-ttl { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
+.bn-sb-author { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
+
+/* === 버튼 === */
+.bn-btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: #5F6B5F;
+  color: white;
+  font-weight: 800;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+}
+.bn-btn-primary:active { background: #455045; }
+.bn-btn-primary:disabled {
+  background: var(--c-surface-2, #E8E8E4);
+  color: var(--c-muted, #7A7A75);
+  cursor: not-allowed;
+}
+.bn-btn-ghost {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  color: var(--c-muted, #7A7A75);
+  font-weight: 600;
+  text-align: center;
+  font-size: 12.5px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+/* === 모집 상세 화면 === */
+.bn-detail-hero {
+  background: #E8ECE6;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.bn-detail-hero .bn-cover {
+  width: 75px; height: 108px;
+  font-size: 10.5px;
+  margin: 0 auto 11px;
+}
+.bn-detail-bttl { font-weight: 800; font-size: 14.5px; margin-bottom: 3px; }
+.bn-detail-bauthor { font-size: 11.5px; color: var(--c-muted, #7A7A75); }
+
+.bn-host-area {
+  background: var(--c-surface, #FCFCFA);
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 13px;
+}
+.bn-host-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.bn-avatar {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.bn-avatar.c-sage { background: #5F6B5F; }
+.bn-avatar.c-amber { background: #C8A368; }
+.bn-avatar.c-blue { background: #4A6B8A; }
+.bn-avatar.c-mauve { background: #A06B8E; }
+.bn-avatar.c-red { background: #B85A4A; }
+.bn-host-nick { font-size: 12px; font-weight: 700; }
+.bn-host-tag { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
+.bn-host-msg { font-size: 12px; color: var(--c-text-2, #3A3A35); line-height: 1.5; }
+
+.bn-members-area {
+  background: var(--c-surface-2, #E8E8E4);
+  border-radius: 9px;
+  padding: 11px;
+  margin-bottom: 16px;
+}
+.bn-members-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2, #3A3A35);
+  margin-bottom: 8px;
+}
+.bn-members-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bn-member-chip {
+  background: var(--c-surface, #FCFCFA);
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 11px;
+  padding: 4px 10px 4px 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.bn-member-chip .bn-avatar { width: 17px; height: 17px; font-size: 8.5px; }
+.bn-member-empty {
+  background: transparent;
+  border: 1px dashed var(--c-border, #DCDCD8);
+  color: var(--c-muted, #7A7A75);
+  border-radius: 11px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+}
+
+/* === 그룹 화면 (핵심) === */
+.bn-group-book-bar {
+  background: #E8ECE6;
+  border: 1px solid #C8D2C8;
+  border-radius: 9px;
+  padding: 11px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+.bn-group-book-bar .bn-cover { width: 32px; height: 46px; font-size: 7.5px; }
+.bn-group-book-info { flex: 1; min-width: 0; }
+.bn-group-book-ttl { font-size: 12.5px; font-weight: 700; margin-bottom: 2px; }
+.bn-group-book-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
+
+.bn-turn-bar {
+  border-radius: 9px;
+  padding: 9px 12px;
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F5EFE3;
+  border: 1px solid #C8A368;
+}
+.bn-turn-bar.mine {
+  background: #E8ECE6;
+  border-color: #5F6B5F;
+}
+.bn-turn-label { font-size: 10.5px; color: #6E5B45; font-weight: 700; }
+.bn-turn-name { font-size: 12px; font-weight: 800; color: #6E5B45; }
+.bn-turn-bar.mine .bn-turn-label,
+.bn-turn-bar.mine .bn-turn-name { color: #455045; }
+
+.bn-members-bar {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border, #DCDCD8);
+  align-items: center;
+}
+.bn-member-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.bn-member-dot.c-sage { background: #5F6B5F; }
+.bn-member-dot.c-amber { background: #C8A368; }
+.bn-member-dot.c-blue { background: #4A6B8A; }
+.bn-member-dot.c-mauve { background: #A06B8E; }
+.bn-member-dot.c-red { background: #B85A4A; }
+.bn-member-dot.current::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  background: #6E5B45;
+  border-radius: 50%;
+}
+.bn-member-order {
+  font-size: 9.5px;
+  color: var(--c-muted, #7A7A75);
+  margin-left: 4px;
+}
+
+/* 페이지별 노트 thread */
+.bn-page-thread {
+  margin-bottom: 14px;
+}
+.bn-page-label {
+  display: inline-block;
+  background: var(--c-surface-2, #E8E8E4);
+  color: var(--c-text-2, #3A3A35);
+  padding: 2px 10px;
+  border-radius: 11px;
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.bn-thread-note {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+}
+.bn-thread-note .bn-member-dot {
+  width: 20px; height: 20px;
+  font-size: 9px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.bn-thread-content { flex: 1; min-width: 0; }
+.bn-thread-name {
+  font-size: 9.5px;
+  color: var(--c-muted, #7A7A75);
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.bn-thread-bubble {
+  background: var(--c-surface-2, #E8E8E4);
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--c-text, #15110D);
+  display: inline-block;
+  max-width: 100%;
+}
+.bn-thread-note.mine .bn-thread-bubble {
+  background: #E8ECE6;
+}
+
+/* 노트 입력 바 */
+.bn-note-input-area {
+  background: var(--c-surface, #FCFCFA);
+  border: 1.5px dashed #5F6B5F;
+  border-radius: 9px;
+  padding: 11px;
+  margin-top: 13px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #455045;
+  transition: background 150ms;
+}
+.bn-note-input-area:active { background: #E8ECE6; }
+.bn-note-input-area.disabled {
+  border-color: var(--c-border, #DCDCD8);
+  color: var(--c-muted, #7A7A75);
+  cursor: not-allowed;
+}
+
+/* 노트 작성 모달 */
+.bn-note-modal-bd {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.5);
+  z-index: 1010;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.bn-note-modal-bd.open { display: flex; }
+.bn-note-modal {
+  background: var(--c-surface, #FCFCFA);
+  border-radius: 16px 16px 0 0;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0));
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.bn-note-modal-ttl {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+/* 다이얼로그 */
+.bn-dialog-bd {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.5);
+  z-index: 1020;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.bn-dialog-bd.open { display: flex; }
+.bn-dialog {
+  background: white;
+  border-radius: 14px;
+  padding: 22px 20px 16px;
+  max-width: 320px;
+  width: 100%;
+}
+.bn-dialog-icon { font-size: 26px; margin-bottom: 11px; text-align: center; }
+.bn-dialog-ttl { font-size: 14.5px; font-weight: 800; margin-bottom: 7px; text-align: center; }
+.bn-dialog-msg { font-size: 12px; color: var(--c-text-2, #3A3A35); line-height: 1.55; text-align: center; margin-bottom: 13px; }
+.bn-dialog-groups {
+  background: var(--c-surface-2, #E8E8E4);
+  border-radius: 7px;
+  padding: 9px 11px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--c-text-2, #3A3A35);
+}
+.bn-dialog-group-row { padding: 3px 0; }
+.bn-dialog-btns { display: flex; gap: 8px; }
+.bn-dialog-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.bn-dialog-btn.cancel { background: var(--c-surface-2, #E8E8E4); color: var(--c-text-2, #3A3A35); }
+.bn-dialog-btn.confirm { background: #B85A4A; color: white; }
+.bn-dialog-btn.confirm-sage { background: #5F6B5F; color: white; }
+
+/* Toast */
+.bn-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--c-text, #15110D);
+  color: var(--c-surface, #FCFCFA);
+  padding: 11px 18px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 1030;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+  max-width: 84%;
+  text-align: center;
+}
+.bn-toast.show { opacity: 1; }
+</style>
+
+
+<!-- ════════════ Booknook 메인 페이지 (오버레이) ════════════ -->
+<div class="bn-overlay" id="bnMain">
+  <div class="bn-hdr">
+    <button class="bn-hdr-back" onclick="bnCloseAll()">‹</button>
+    <div class="bn-hdr-ttl">🛋️ Booknook</div>
+    <button class="bn-hdr-action" onclick="bnOpenBoard()" title="게시판">📋</button>
+  </div>
+  <div class="bn-body" id="bnMainBody">
+    <!-- JS로 채움 -->
+  </div>
+</div>
+
+<!-- ════════════ Booknook 게시판 ════════════ -->
+<div class="bn-overlay" id="bnBoard">
+  <div class="bn-hdr">
+    <button class="bn-hdr-back" onclick="bnOpenMain()">‹</button>
+    <div class="bn-hdr-ttl">📋 같이 읽을 사람</div>
+    <button class="bn-hdr-action" onclick="bnOpenCreate()" title="모집글 작성">＋</button>
+  </div>
+  <div class="bn-body">
+    <div class="bn-filter-bar">
+      <button class="bn-filter-chip active" data-filter="active">진행중</button>
+      <button class="bn-filter-chip" data-filter="closed">마감</button>
+      <button class="bn-filter-chip" data-filter="mine">내 모집</button>
+    </div>
+    <div id="bnBoardList"></div>
+  </div>
+</div>
+
+<!-- ════════════ Booknook 모집글 작성 ════════════ -->
+<div class="bn-overlay" id="bnCreate">
+  <div class="bn-hdr">
+    <button class="bn-hdr-back" onclick="bnOpenBoard()">‹</button>
+    <div class="bn-hdr-ttl">모집글 작성</div>
+    <button class="bn-hdr-action" onclick="bnOpenBoard()">×</button>
+  </div>
+  <div class="bn-body">
+    <div class="bn-form-group">
+      <label class="bn-form-label">📕 책 선택</label>
+      <div class="bn-selected-book" id="bnCreateBookArea" onclick="bnPickBook()">
+        <div class="bn-cover" id="bnCreateBookCover" style="background:var(--c-surface-2,#E8E8E4);color:var(--c-muted,#7A7A75);">📚</div>
+        <div class="bn-sb-info">
+          <div class="bn-sb-ttl" id="bnCreateBookTtl">탭해서 책 고르기</div>
+          <div class="bn-sb-author" id="bnCreateBookAuthor">내 서재에서 선택</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bn-form-row">
+      <div class="bn-form-group">
+        <label class="bn-form-label">👥 정원</label>
+        <select class="bn-form-select" id="bnCreateCapacity">
+          <option value="2">2명</option>
+          <option value="3" selected>3명</option>
+          <option value="4">4명</option>
+          <option value="5">5명</option>
+        </select>
+      </div>
+      <div class="bn-form-group">
+        <label class="bn-form-label">⏰ 마감</label>
+        <select class="bn-form-select" id="bnCreateDeadline">
+          <option value="3">3일</option>
+          <option value="7" selected>1주</option>
+          <option value="14">2주</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bn-form-group">
+      <label class="bn-form-label">💬 짧은 소개 (선택)</label>
+      <textarea class="bn-form-textarea" id="bnCreateIntro" placeholder="어떤 분과 읽고 싶나요?" maxlength="200" oninput="bnUpdateCounter()"></textarea>
+      <div class="bn-form-counter"><span id="bnCreateCounter">0</span> / 200</div>
+    </div>
+
+    <button class="bn-btn-primary" id="bnCreateSubmit" onclick="bnSubmitRecruit()" disabled>모집글 올리기</button>
+    <button class="bn-btn-ghost" onclick="bnOpenBoard()">취소</button>
+  </div>
+</div>
+
+<!-- ════════════ Booknook 모집 상세 ════════════ -->
+<div class="bn-overlay" id="bnDetail">
+  <div class="bn-hdr">
+    <button class="bn-hdr-back" onclick="bnOpenBoard()">‹</button>
+    <div class="bn-hdr-ttl">모집 상세</div>
+  </div>
+  <div class="bn-body" id="bnDetailBody"></div>
+</div>
+
+<!-- ════════════ Booknook 그룹 화면 (핵심) ════════════ -->
+<div class="bn-overlay" id="bnGroup">
+  <div class="bn-hdr">
+    <button class="bn-hdr-back" onclick="bnOpenMain()">‹</button>
+    <div class="bn-hdr-ttl">우리 코너</div>
+    <button class="bn-hdr-action" onclick="bnGroupNextTurn()" title="차례 넘기기 (시뮬레이션)">⋯</button>
+  </div>
+  <div class="bn-body" id="bnGroupBody"></div>
+</div>
+
+<!-- ════════════ 비활성화 확인 다이얼로그 ════════════ -->
+<div class="bn-dialog-bd" id="bnDisableDialog">
+  <div class="bn-dialog">
+    <div class="bn-dialog-icon">🚪</div>
+    <div class="bn-dialog-ttl">Booknook 비활성화</div>
+    <div class="bn-dialog-msg">참여 중인 다음 그룹에서 빠지게 돼요. 작성하신 노트는 그대로 남습니다.</div>
+    <div class="bn-dialog-groups" id="bnDisableGroupList"></div>
+    <div class="bn-dialog-btns">
+      <button class="bn-dialog-btn cancel" onclick="bnCloseDisableDialog()">취소</button>
+      <button class="bn-dialog-btn confirm" onclick="bnConfirmDisable()">비활성화</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 닉네임 입력 다이얼로그 (lazy 수집) ════════════ -->
+<div class="bn-dialog-bd" id="bnNicknameDialog">
+  <div class="bn-dialog">
+    <div class="bn-dialog-icon">✨</div>
+    <div class="bn-dialog-ttl">닉네임 설정</div>
+    <div class="bn-dialog-msg">다른 분들에게 보일 이름을 정해주세요. 본명 아닌 닉네임 추천 🍃</div>
+    <input type="text" class="bn-form-input" id="bnNicknameInput" placeholder="예: 달밤독자, 책읽는다람쥐" maxlength="14" style="margin-bottom:13px;">
+    <div class="bn-dialog-btns">
+      <button class="bn-dialog-btn cancel" onclick="bnCloseNicknameDialog()">취소</button>
+      <button class="bn-dialog-btn confirm-sage" onclick="bnConfirmNickname()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 노트 작성 모달 ════════════ -->
+<div class="bn-note-modal-bd" id="bnNoteModal">
+  <div class="bn-note-modal">
+    <div class="bn-note-modal-ttl">노트 남기기</div>
+    <div class="bn-form-row">
+      <div class="bn-form-group" style="flex:0 0 90px;">
+        <label class="bn-form-label">📄 페이지</label>
+        <input type="number" class="bn-form-input" id="bnNotePage" min="1" placeholder="42">
+      </div>
+      <div class="bn-form-group">
+        <label class="bn-form-label">💬 내용</label>
+        <textarea class="bn-form-textarea" id="bnNoteText" placeholder="이 페이지에서 느낀 점을 다음 분께 전해보세요" maxlength="300"></textarea>
+      </div>
+    </div>
+    <button class="bn-btn-primary" onclick="bnSubmitNote()">노트 추가하기</button>
+    <button class="bn-btn-ghost" onclick="bnCloseNoteModal()">취소</button>
+  </div>
+</div>
+
+<!-- ════════════ Toast ════════════ -->
+<div class="bn-toast" id="bnToast"></div>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Booknook v1.12.0 — 상태 + 동작
+   ─────────────────────────────────────────────────────────
+   localStorage 기반 시뮬레이션. Cloudflare KV는 다음 단계.
+   다른 멤버는 더미 데이터 (시드).
+   ═══════════════════════════════════════════════════════════ */
+
+const BN_KEY = 'read.booknook.v1';
+const BN_COLORS = ['c-sage', 'c-amber', 'c-blue', 'c-mauve', 'c-red'];
+const BN_DUMMY_BOOKS = [
+  { title: '불편한 편의점', author: '김호연', pages: 268, cover: 'c-amber' },
+  { title: '아침의 피아노', author: '김진영', pages: 224, cover: 'c-sage' },
+  { title: '모순', author: '양귀자', pages: 408, cover: 'c-blue' },
+  { title: '달밤의 도서관', author: '정세랑', pages: 192, cover: 'c-mauve' },
+];
+
+let BN_DATA = {
+  enabled: false,
+  myToken: '',
+  myNickname: '',
+  recruits: [],
+  groups: [],
+};
+let BN_CURRENT = { recruitId: null, groupId: null, filter: 'active', pendingAction: null };
+
+function bnHydrate() {
+  try {
+    const raw = localStorage.getItem(BN_KEY);
+    if (raw) {
+      BN_DATA = JSON.parse(raw);
+    } else {
+      bnSeedDummy();
+    }
+    if (!BN_DATA.myToken) BN_DATA.myToken = 'tk_' + Math.random().toString(36).slice(2, 11);
+  } catch (e) {
+    bnSeedDummy();
+  }
+  bnApplyEnabledState();
+}
+
+function bnSeedDummy() {
+  BN_DATA = {
+    enabled: false,
+    myToken: 'tk_' + Math.random().toString(36).slice(2, 11),
+    myNickname: '',
+    recruits: [
+      {
+        id: 'r1', book: BN_DUMMY_BOOKS[0], capacity: 5, deadlineDays: 3,
+        intro: '같이 읽으면서 인생 얘기 하실 분 찾아요. 부담 없이 한 챕터씩 ;)',
+        hostToken: 'tk_dummy_dal', hostNickname: '달밤독자', hostColor: 'c-amber',
+        members: [
+          { token: 'tk_dummy_dal', nickname: '달밤독자', color: 'c-amber' },
+          { token: 'tk_dummy_chu', nickname: '청춘독자', color: 'c-sage' },
+          { token: 'tk_dummy_go',  nickname: '고요한밤', color: 'c-blue' },
+        ],
+        status: 'active',
+        createdAt: Date.now() - 86400000 * 2,
+      },
+      {
+        id: 'r2', book: BN_DUMMY_BOOKS[1], capacity: 3, deadlineDays: 5,
+        intro: '천천히 한 페이지씩 곱씹으며 읽어요. 인트로버트만 환영',
+        hostToken: 'tk_dummy_yeo', hostNickname: '여름밤꿈', hostColor: 'c-mauve',
+        members: [
+          { token: 'tk_dummy_yeo', nickname: '여름밤꿈', color: 'c-mauve' },
+          { token: 'tk_dummy_pa',  nickname: '파란새벽', color: 'c-blue' },
+        ],
+        status: 'active',
+        createdAt: Date.now() - 86400000 * 1,
+      },
+      {
+        id: 'r3', book: BN_DUMMY_BOOKS[2], capacity: 4, deadlineDays: 0,
+        intro: '모순 다시 읽기 모임',
+        hostToken: 'tk_dummy_mo', hostNickname: '모순독자', hostColor: 'c-red',
+        members: [
+          { token: 'tk_dummy_mo', nickname: '모순독자', color: 'c-red' },
+          { token: 'tk_dummy_a',  nickname: '느린읽기', color: 'c-sage' },
+          { token: 'tk_dummy_b',  nickname: '깊은밤', color: 'c-blue' },
+          { token: 'tk_dummy_c',  nickname: '책장넘김', color: 'c-amber' },
+        ],
+        status: 'closed',
+        createdAt: Date.now() - 86400000 * 5,
+      },
+    ],
+    groups: [],
+  };
+  bnPersist();
+}
+
+function bnPersist() {
+  try { localStorage.setItem(BN_KEY, JSON.stringify(BN_DATA)); } catch(e) {}
+}
+
+function bnApplyEnabledState() {
+  const item = document.getElementById('kbmBooknookItem');
+  if (item) item.style.display = BN_DATA.enabled ? '' : 'none';
+  const toggle = document.getElementById('bnToggleSwitch');
+  if (toggle) toggle.classList.toggle('on', BN_DATA.enabled);
+}
+
+function bnToggle(e) {
+  if (e && e.target.closest('.bn-toggle')) {
+    // 토글 자체 클릭은 그대로
+  }
+  if (BN_DATA.enabled) {
+    // 비활성화 시 참여 그룹 확인
+    if (BN_DATA.groups && BN_DATA.groups.length > 0) {
+      bnOpenDisableDialog();
+      return;
+    }
+    BN_DATA.enabled = false;
+    bnPersist();
+    bnApplyEnabledState();
+    bnShowToast('Booknook을 비활성화했어요');
+  } else {
+    BN_DATA.enabled = true;
+    bnPersist();
+    bnApplyEnabledState();
+    bnShowToast('🛋️ Booknook 활성화! 햄버거에서 만나요');
+  }
+}
+
+function bnOpenMain() {
+  if (!BN_DATA.enabled) {
+    bnShowToast('먼저 설정에서 Booknook을 활성화해주세요');
+    return;
+  }
+  bnCloseAllOverlays();
+  if (typeof closeKbMenu === 'function') closeKbMenu();
+  bnRenderMain();
+  document.getElementById('bnMain').classList.add('open');
+}
+
+function bnRenderMain() {
+  const body = document.getElementById('bnMainBody');
+  const myGroups = BN_DATA.groups || [];
+
+  if (myGroups.length === 0) {
+    body.innerHTML = `
+      <div class="bn-empty">
+        <div class="bn-empty-icon">🛋️</div>
+        <div class="bn-empty-ttl">아직 참여한 코너가 없어요</div>
+        <div class="bn-empty-sub">친구 그룹을 만들거나<br>게시판에서 같이 읽을 사람을 찾아보세요.</div>
+        <div class="bn-action-list">
+          <div class="bn-action-row" onclick="bnShowToast('친구 그룹 기능은 다음 단계에서 구현 예정')">
+            <div class="bn-action-emoji">👥</div>
+            <div class="bn-action-main">
+              <div class="bn-action-ttl">친구랑 시작하기</div>
+              <div class="bn-action-sub">초대 코드를 만들어 카톡으로 보내기</div>
+            </div>
+            <span class="bn-action-arrow">›</span>
+          </div>
+          <div class="bn-action-row" onclick="bnOpenBoard()">
+            <div class="bn-action-emoji">📋</div>
+            <div class="bn-action-main">
+              <div class="bn-action-ttl">게시판 둘러보기</div>
+              <div class="bn-action-sub">모르는 분과 책으로 만나기</div>
+            </div>
+            <span class="bn-action-arrow">›</span>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 참여 그룹 있음
+  let html = `<div class="bn-my-section"><div class="bn-my-ttl">참여 중 그룹 (${myGroups.length})</div>`;
+  myGroups.forEach(g => {
+    const turn = g.members[g.turnIndex];
+    const isMyTurn = turn.token === BN_DATA.myToken;
+    html += `
+      <div class="bn-my-card" onclick="bnOpenGroup('${g.id}')">
+        <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
+        <div class="bn-my-info">
+          <div class="bn-my-bttl">${bnEscape(g.book.title)}</div>
+          <div class="bn-my-meta">${bnEscape(g.book.author)} · ${g.members.length}명 · 노트 ${g.notes ? g.notes.length : 0}개</div>
+          <span class="bn-my-turn ${isMyTurn ? 'mine' : ''}">${isMyTurn ? '🌟 내 차례' : turn.nickname + ' 차례'}</span>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+
+  html += `
+    <div class="bn-my-section">
+      <div class="bn-my-ttl">더 만나보기</div>
+      <div class="bn-action-list">
+        <div class="bn-action-row" onclick="bnOpenBoard()">
+          <div class="bn-action-emoji">📋</div>
+          <div class="bn-action-main">
+            <div class="bn-action-ttl">게시판 둘러보기</div>
+            <div class="bn-action-sub">새 모집글 보기 / 내 모집 올리기</div>
+          </div>
+          <span class="bn-action-arrow">›</span>
+        </div>
+      </div>
+    </div>
+  `;
+  body.innerHTML = html;
+}
+
+function bnOpenBoard() {
+  if (!BN_DATA.enabled) return;
+  bnCloseAllOverlays();
+  bnRenderBoard();
+  document.getElementById('bnBoard').classList.add('open');
+}
+
+function bnRenderBoard() {
+  const list = document.getElementById('bnBoardList');
+  const filter = BN_CURRENT.filter || 'active';
+  document.querySelectorAll('.bn-filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === filter);
+  });
+
+  let filtered = BN_DATA.recruits || [];
+  if (filter === 'active') filtered = filtered.filter(r => r.status === 'active');
+  else if (filter === 'closed') filtered = filtered.filter(r => r.status === 'closed');
+  else if (filter === 'mine') filtered = filtered.filter(r => r.hostToken === BN_DATA.myToken);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="bn-empty" style="padding:30px 20px;">
+        <div class="bn-empty-icon">📭</div>
+        <div class="bn-empty-ttl">아직 모집글이 없어요</div>
+        <div class="bn-empty-sub">우측 상단 ＋를 눌러 처음 모집글을 올려보세요</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => `
+    <div class="bn-recruit-card ${r.status === 'closed' ? 'closed' : ''}" onclick="bnOpenDetail('${r.id}')">
+      <div class="bn-cover ${r.book.cover}">${bnEscape(r.book.title)}</div>
+      <div class="bn-recruit-main">
+        <div class="bn-recruit-ttl">${bnEscape(r.book.title)}</div>
+        <div class="bn-recruit-meta">${bnEscape(r.book.author)} · ${r.book.pages}쪽</div>
+        <div class="bn-recruit-intro">"${bnEscape(r.intro)}"</div>
+        <div class="bn-recruit-foot">
+          <span class="bn-recruit-capacity">${r.members.length}/${r.capacity}명</span>
+          <span class="bn-recruit-deadline">${r.status === 'closed' ? '마감됨' : '⏰ ' + r.deadlineDays + '일 남음'}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function bnOpenCreate() {
+  bnCloseAllOverlays();
+  document.getElementById('bnCreate').classList.add('open');
+  // 폼 리셋
+  document.getElementById('bnCreateBookTtl').textContent = '탭해서 책 고르기';
+  document.getElementById('bnCreateBookAuthor').textContent = '내 서재에서 선택';
+  document.getElementById('bnCreateBookCover').textContent = '📚';
+  document.getElementById('bnCreateBookCover').className = 'bn-cover';
+  document.getElementById('bnCreateBookCover').style.background = 'var(--c-surface-2,#E8E8E4)';
+  document.getElementById('bnCreateBookCover').style.color = 'var(--c-muted,#7A7A75)';
+  document.getElementById('bnCreateCapacity').value = '3';
+  document.getElementById('bnCreateDeadline').value = '7';
+  document.getElementById('bnCreateIntro').value = '';
+  document.getElementById('bnCreateCounter').textContent = '0';
+  document.getElementById('bnCreateSubmit').disabled = true;
+  BN_CURRENT.pickedBook = null;
+}
+
+function bnPickBook() {
+  // 더미: 서재 책 중 하나 랜덤 (실제론 책 선택 시트 열기)
+  const pick = BN_DUMMY_BOOKS[Math.floor(Math.random() * BN_DUMMY_BOOKS.length)];
+  BN_CURRENT.pickedBook = pick;
+  document.getElementById('bnCreateBookTtl').textContent = pick.title;
+  document.getElementById('bnCreateBookAuthor').textContent = pick.author + ' · ' + pick.pages + '쪽';
+  const cover = document.getElementById('bnCreateBookCover');
+  cover.textContent = pick.title;
+  cover.className = 'bn-cover ' + pick.cover;
+  cover.style.background = '';
+  cover.style.color = '';
+  document.getElementById('bnCreateSubmit').disabled = false;
+}
+
+function bnUpdateCounter() {
+  const v = document.getElementById('bnCreateIntro').value;
+  document.getElementById('bnCreateCounter').textContent = v.length;
+}
+
+function bnSubmitRecruit() {
+  if (!BN_CURRENT.pickedBook) {
+    bnShowToast('책을 먼저 골라주세요');
+    return;
+  }
+  // 닉네임 lazy 수집
+  if (!BN_DATA.myNickname) {
+    BN_CURRENT.pendingAction = 'submitRecruit';
+    bnOpenNicknameDialog();
+    return;
+  }
+  _bnDoSubmitRecruit();
+}
+
+function _bnDoSubmitRecruit() {
+  const capacity = parseInt(document.getElementById('bnCreateCapacity').value);
+  const deadline = parseInt(document.getElementById('bnCreateDeadline').value);
+  const intro = document.getElementById('bnCreateIntro').value.trim() || '같이 읽어요';
+  const myColor = bnPickColor();
+  const r = {
+    id: 'r_' + Date.now(),
+    book: BN_CURRENT.pickedBook,
+    capacity: capacity,
+    deadlineDays: deadline,
+    intro: intro,
+    hostToken: BN_DATA.myToken,
+    hostNickname: BN_DATA.myNickname,
+    hostColor: myColor,
+    members: [{ token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: myColor }],
+    status: 'active',
+    createdAt: Date.now(),
+  };
+  BN_DATA.recruits.unshift(r);
+  bnPersist();
+  bnShowToast('모집글을 올렸어요!');
+  setTimeout(() => bnOpenBoard(), 600);
+}
+
+function bnOpenDetail(recruitId) {
+  BN_CURRENT.recruitId = recruitId;
+  bnCloseAllOverlays();
+  bnRenderDetail();
+  document.getElementById('bnDetail').classList.add('open');
+}
+
+function bnRenderDetail() {
+  const r = BN_DATA.recruits.find(x => x.id === BN_CURRENT.recruitId);
+  if (!r) return;
+  const body = document.getElementById('bnDetailBody');
+  const isMember = r.members.some(m => m.token === BN_DATA.myToken);
+  const isFull = r.members.length >= r.capacity;
+  const isClosed = r.status === 'closed';
+  const isHost = r.hostToken === BN_DATA.myToken;
+
+  let btnHtml = '';
+  if (isClosed) {
+    btnHtml = '<button class="bn-btn-primary" disabled>마감되었어요</button>';
+  } else if (isMember) {
+    btnHtml = '<button class="bn-btn-primary" disabled>✓ 이미 참여 중이에요</button>';
+  } else if (isFull) {
+    btnHtml = '<button class="bn-btn-primary" disabled>정원 마감</button>';
+  } else {
+    btnHtml = `<button class="bn-btn-primary" onclick="bnJoinRecruit('${r.id}')">참여하기</button>`;
+  }
+
+  body.innerHTML = `
+    <div class="bn-detail-hero">
+      <div class="bn-cover ${r.book.cover}">${bnEscape(r.book.title)}</div>
+      <div class="bn-detail-bttl">${bnEscape(r.book.title)}</div>
+      <div class="bn-detail-bauthor">${bnEscape(r.book.author)} · ${r.book.pages}쪽</div>
+    </div>
+
+    <div class="bn-host-area">
+      <div class="bn-host-row">
+        <div class="bn-avatar ${r.hostColor}">${bnEscape(r.hostNickname.charAt(0))}</div>
+        <span class="bn-host-nick">${bnEscape(r.hostNickname)}</span>
+        <span class="bn-host-tag">· 모집장</span>
+      </div>
+      <div class="bn-host-msg">"${bnEscape(r.intro)}"</div>
+    </div>
+
+    <div class="bn-members-area">
+      <div class="bn-members-ttl">참여 중 (${r.members.length}/${r.capacity})</div>
+      <div class="bn-members-list">
+        ${r.members.map(m => `
+          <div class="bn-member-chip">
+            <div class="bn-avatar ${m.color}">${bnEscape(m.nickname.charAt(0))}</div>
+            ${bnEscape(m.nickname)}${m.token === BN_DATA.myToken ? ' (나)' : ''}
+          </div>
+        `).join('')}
+        ${r.members.length < r.capacity && !isClosed ? `<div class="bn-member-empty">자리 ${r.capacity - r.members.length}개 남음</div>` : ''}
+      </div>
+    </div>
+
+    ${btnHtml}
+  `;
+}
+
+function bnJoinRecruit(recruitId) {
+  if (!BN_DATA.myNickname) {
+    BN_CURRENT.pendingAction = 'join:' + recruitId;
+    bnOpenNicknameDialog();
+    return;
+  }
+  _bnDoJoinRecruit(recruitId);
+}
+
+function _bnDoJoinRecruit(recruitId) {
+  const r = BN_DATA.recruits.find(x => x.id === recruitId);
+  if (!r) return;
+  if (r.members.some(m => m.token === BN_DATA.myToken)) return;
+
+  // 사용 가능한 색상 찾기
+  const usedColors = r.members.map(m => m.color);
+  const availColor = BN_COLORS.find(c => !usedColors.includes(c)) || BN_COLORS[r.members.length % BN_COLORS.length];
+
+  r.members.push({ token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: availColor });
+
+  // 정원 차면 자동 그룹 생성
+  if (r.members.length >= r.capacity) {
+    r.status = 'closed';
+    const g = {
+      id: 'g_' + Date.now(),
+      recruitId: r.id,
+      book: r.book,
+      members: r.members.map((m, i) => ({ ...m, order: i + 1 })),
+      notes: [],
+      turnIndex: 0,
+      startedAt: Date.now(),
+    };
+    if (!BN_DATA.groups) BN_DATA.groups = [];
+    BN_DATA.groups.push(g);
+    bnPersist();
+    bnShowToast('정원이 찼어요! 코너가 시작됩니다 🎉');
+    setTimeout(() => bnOpenGroup(g.id), 800);
+    return;
+  }
+  bnPersist();
+  bnShowToast('참여 완료! ' + r.members.length + '/' + r.capacity);
+  setTimeout(() => bnRenderDetail(), 400);
+}
+
+function bnOpenGroup(groupId) {
+  const g = (BN_DATA.groups || []).find(x => x.id === groupId);
+  if (!g) {
+    bnShowToast('그룹을 찾을 수 없어요');
+    return;
+  }
+  BN_CURRENT.groupId = groupId;
+  bnCloseAllOverlays();
+  bnRenderGroup();
+  document.getElementById('bnGroup').classList.add('open');
+}
+
+function bnRenderGroup() {
+  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
+  if (!g) return;
+  const body = document.getElementById('bnGroupBody');
+  const turnMember = g.members[g.turnIndex];
+  const isMyTurn = turnMember.token === BN_DATA.myToken;
+
+  // 페이지별 정렬
+  const sortedNotes = [...(g.notes || [])].sort((a, b) => a.page - b.page);
+
+  let threadsHtml = '';
+  if (sortedNotes.length === 0) {
+    threadsHtml = `
+      <div class="bn-empty" style="padding:30px 20px;">
+        <div class="bn-empty-icon">📝</div>
+        <div class="bn-empty-ttl">아직 노트가 없어요</div>
+        <div class="bn-empty-sub">${isMyTurn ? '내 차례예요. 첫 노트를 남겨보세요' : turnMember.nickname + '님이 첫 노트를 남기는 중이에요'}</div>
+      </div>
+    `;
+  } else {
+    threadsHtml = sortedNotes.map(note => {
+      const comments = note.comments || [];
+      return `
+        <div class="bn-page-thread">
+          <span class="bn-page-label">p. ${note.page}</span>
+          ${comments.map(c => {
+            const m = g.members.find(mm => mm.token === c.token) || {color:'c-sage',nickname:'?'};
+            const isMine = c.token === BN_DATA.myToken;
+            return `
+              <div class="bn-thread-note ${isMine ? 'mine' : ''}">
+                <div class="bn-member-dot ${m.color}">${bnEscape(m.nickname.charAt(0))}</div>
+                <div class="bn-thread-content">
+                  <div class="bn-thread-name">${bnEscape(m.nickname)}${isMine ? ' (나)' : ''}</div>
+                  <div class="bn-thread-bubble">${bnEscape(c.text)}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }).join('');
+  }
+
+  body.innerHTML = `
+    <div class="bn-group-book-bar">
+      <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
+      <div class="bn-group-book-info">
+        <div class="bn-group-book-ttl">${bnEscape(g.book.title)}</div>
+        <div class="bn-group-book-meta">${bnEscape(g.book.author)} · ${g.members.length}명 그룹</div>
+      </div>
+    </div>
+
+    <div class="bn-turn-bar ${isMyTurn ? 'mine' : ''}">
+      <span class="bn-turn-label">지금 차례 →</span>
+      <span class="bn-turn-name">${isMyTurn ? '나 (' + bnEscape(turnMember.nickname) + ')' : bnEscape(turnMember.nickname)}</span>
+    </div>
+
+    <div class="bn-members-bar">
+      ${g.members.map((m, i) => `
+        <div class="bn-member-dot ${m.color} ${i === g.turnIndex ? 'current' : ''}">${bnEscape(m.nickname.charAt(0))}</div>
+      `).join('')}
+      <span class="bn-member-order">${g.members.map((m,i)=>(i+1)).join('→')}</span>
+    </div>
+
+    ${threadsHtml}
+
+    <div class="bn-note-input-area ${!isMyTurn ? 'disabled' : ''}" onclick="${isMyTurn ? 'bnOpenNoteModal()' : 'bnShowToast(\\'아직 내 차례가 아니에요\\')'}">
+      ${isMyTurn ? '✍️ 노트 남기기 (내 차례)' : '⏳ ' + bnEscape(turnMember.nickname) + ' 차례'}
+    </div>
+  `;
+}
+
+function bnOpenNoteModal() {
+  document.getElementById('bnNotePage').value = '';
+  document.getElementById('bnNoteText').value = '';
+  document.getElementById('bnNoteModal').classList.add('open');
+}
+function bnCloseNoteModal() {
+  document.getElementById('bnNoteModal').classList.remove('open');
+}
+
+function bnSubmitNote() {
+  const page = parseInt(document.getElementById('bnNotePage').value);
+  const text = document.getElementById('bnNoteText').value.trim();
+  if (!page || page < 1) {
+    bnShowToast('페이지를 입력해주세요');
+    return;
+  }
+  if (!text) {
+    bnShowToast('내용을 입력해주세요');
+    return;
+  }
+  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
+  if (!g) return;
+
+  if (!g.notes) g.notes = [];
+  let pageNote = g.notes.find(n => n.page === page);
+  if (!pageNote) {
+    pageNote = { page: page, comments: [] };
+    g.notes.push(pageNote);
+  }
+  pageNote.comments.push({ token: BN_DATA.myToken, text: text, ts: Date.now() });
+
+  // 차례 자동 넘기기
+  g.turnIndex = (g.turnIndex + 1) % g.members.length;
+  bnPersist();
+  bnCloseNoteModal();
+  bnShowToast('노트 추가 완료! 다음은 ' + g.members[g.turnIndex].nickname + ' 차례');
+  bnRenderGroup();
+}
+
+function bnGroupNextTurn() {
+  // 시뮬레이션: 차례 강제 넘기기 + 다른 멤버 노트 자동 생성
+  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
+  if (!g) return;
+  const turn = g.members[g.turnIndex];
+  if (turn.token === BN_DATA.myToken) {
+    bnShowToast('내 차례에선 노트를 작성해서 넘겨주세요');
+    return;
+  }
+  // 더미 노트 자동 추가
+  const dummyTexts = [
+    '이 부분 좋네요. 다음 분도 잘 봐주세요',
+    '여기서 좀 멈칫했어요. 어떻게 읽으셨나요?',
+    '한 줄 한 줄 곱씹게 되네요',
+    '이 페이지가 가장 인상 깊었어요',
+  ];
+  if (!g.notes) g.notes = [];
+  const randPage = 10 + Math.floor(Math.random() * 100);
+  let pageNote = g.notes.find(n => n.page === randPage);
+  if (!pageNote) {
+    pageNote = { page: randPage, comments: [] };
+    g.notes.push(pageNote);
+  }
+  pageNote.comments.push({
+    token: turn.token,
+    text: dummyTexts[Math.floor(Math.random() * dummyTexts.length)],
+    ts: Date.now(),
+  });
+  g.turnIndex = (g.turnIndex + 1) % g.members.length;
+  bnPersist();
+  bnShowToast(turn.nickname + '님이 노트 남김. 다음은 ' + g.members[g.turnIndex].nickname);
+  bnRenderGroup();
+}
+
+/* 닉네임 lazy 다이얼로그 */
+function bnOpenNicknameDialog() {
+  document.getElementById('bnNicknameInput').value = '';
+  document.getElementById('bnNicknameDialog').classList.add('open');
+  setTimeout(() => document.getElementById('bnNicknameInput').focus(), 100);
+}
+function bnCloseNicknameDialog() {
+  document.getElementById('bnNicknameDialog').classList.remove('open');
+  BN_CURRENT.pendingAction = null;
+}
+function bnConfirmNickname() {
+  const v = document.getElementById('bnNicknameInput').value.trim();
+  if (!v) { bnShowToast('닉네임을 입력해주세요'); return; }
+  if (v.length < 2) { bnShowToast('2자 이상 입력해주세요'); return; }
+  BN_DATA.myNickname = v;
+  bnPersist();
+  document.getElementById('bnNicknameDialog').classList.remove('open');
+
+  const action = BN_CURRENT.pendingAction;
+  BN_CURRENT.pendingAction = null;
+  if (action === 'submitRecruit') {
+    _bnDoSubmitRecruit();
+  } else if (action && action.startsWith('join:')) {
+    _bnDoJoinRecruit(action.slice(5));
+  }
+}
+
+/* 비활성화 다이얼로그 */
+function bnOpenDisableDialog() {
+  const groups = BN_DATA.groups || [];
+  const list = document.getElementById('bnDisableGroupList');
+  if (groups.length === 0) {
+    list.innerHTML = '<div class="bn-dialog-group-row" style="color:#7A7A75;">참여 그룹 없음</div>';
+  } else {
+    list.innerHTML = groups.map(g => `
+      <div class="bn-dialog-group-row">· ${bnEscape(g.book.title)} (${g.turnIndex + 1}/${g.members.length} 차례)</div>
+    `).join('');
+  }
+  document.getElementById('bnDisableDialog').classList.add('open');
+}
+function bnCloseDisableDialog() {
+  document.getElementById('bnDisableDialog').classList.remove('open');
+}
+function bnConfirmDisable() {
+  // 모든 그룹에서 빠지기 (자기 token 제거)
+  (BN_DATA.recruits || []).forEach(r => {
+    r.members = r.members.filter(m => m.token !== BN_DATA.myToken);
+  });
+  BN_DATA.groups = [];
+  BN_DATA.enabled = false;
+  bnPersist();
+  bnApplyEnabledState();
+  document.getElementById('bnDisableDialog').classList.remove('open');
+  bnCloseAllOverlays();
+  bnShowToast('Booknook을 비활성화했어요');
+}
+
+/* 유틸 */
+function bnPickColor() {
+  // 사용 가능한 색상 중 랜덤 (내 색상은 모집글 만들 때 정해짐)
+  return BN_COLORS[Math.floor(Math.random() * BN_COLORS.length)];
+}
+function bnEscape(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function bnCloseAllOverlays() {
+  document.querySelectorAll('.bn-overlay').forEach(o => o.classList.remove('open'));
+}
+function bnCloseAll() {
+  bnCloseAllOverlays();
+}
+function bnShowToast(msg) {
+  const t = document.getElementById('bnToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tt);
+  t._tt = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* 필터 chip 이벤트 */
+document.querySelectorAll('.bn-filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    BN_CURRENT.filter = chip.dataset.filter;
+    bnRenderBoard();
+  });
+});
+
+/* 초기화 */
+bnHydrate();
+</script>
 
 
 <!-- ═══════════ 데이터 헬스 알림 모달 (v1.5.x · 크기 경고 / 손상 안내) ═══════════ -->
@@ -23759,7 +25654,7 @@ body.cn-locked {
       </div>
       <div class="da-tip" id="daTip">
         <div class="da-tip-ttl">💡 미리 백업해두세요</div>
-        <div class="da-tip-body">설정 → 데이터 내보내기에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
+        <div class="da-tip-body">설정 → 데이터 관리에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
       </div>
     </div>
     <div class="da-actions">
@@ -23822,7 +25717,7 @@ const STORE = {
   get(key, fb) { try { return JSON.parse(localStorage.getItem('read.' + key)) ?? fb; } catch { return fb; } },
   set(key, v)  {
     try {
-      // vTEST — 'books' 저장 시 첨부 표지(data:)를 idb: 참조로 치환해 용량 절감 (blob은 IDB로)
+      // 'books' 저장 시 첨부 표지(data:)를 idb: 참조로 치환해 용량 절감 (blob은 IDB로)
       const toStore = (key === 'books' && typeof _booksForStore === 'function') ? _booksForStore(v) : v;
       localStorage.setItem('read.' + key, JSON.stringify(toStore));
       return true;
@@ -23838,7 +25733,7 @@ const STORE = {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   🖼️ 첨부 표지 IndexedDB 저장 (vTEST)
+   🖼️ 첨부 표지 IndexedDB 저장
    - 메모리(BOOKS)의 coverUrl은 data:... 그대로 유지 → 렌더 코드 무수정
    - localStorage 'read.books'에는 data: 대신 'idb:<책id>'만 저장 (용량 절감)
    - 실제 이미지 blob은 IndexedDB('keepbook'/'covers')에 책 id 키로 보관
@@ -24908,6 +26803,10 @@ function _ltSetStage(stage) {
   document.getElementById('ltStageGuide')?.classList.toggle('active', stage === 'guide');
 }
 
+// v1.11.4 — 모달 열기 직전 클립보드 텍스트 백업
+// 사용자가 사진에서 텍스트 복사를 빠뜨리고 붙여넣기 시도 시 검증용
+let _ltClipBefore = '';
+
 // ─────────────────────────────────────────────────────────────
 // Live Text OCR 버튼 노출 가드
 // iOS Live Text는 iOS Safari/PWA에서만 작동.
@@ -24935,6 +26834,16 @@ function openLtModal() {
   // 모달은 사진 선택 완료 시 _ltShowPhoto에서 열림.
   const fi = document.getElementById('ltFileInput');
   if (fi) fi.click();
+
+  // v1.11.4 — 클립보드 백업: 사진 텍스트 복사를 빠뜨린 경우 검증용
+  // (fi.click() 먼저 호출해 iOS user gesture 컨텍스트 보존, 백업은 별도 비동기)
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText()
+      .then(t => { _ltClipBefore = t || ''; })
+      .catch(() => { _ltClipBefore = ''; });
+  } else {
+    _ltClipBefore = '';
+  }
 }
 
 function closeLtModal() {
@@ -24977,6 +26886,14 @@ async function _ltPasteFromClipboard() {
       if (typeof showToast === 'function') showToast('복사된 텍스트가 없어요. 사진에서 텍스트를 선택 → 복사 후 다시 시도해주세요.');
       return;
     }
+
+    // v1.11.4 — 클립보드 변화 검증
+    // 모달 열기 전 텍스트와 동일하면 = 사용자가 사진에서 복사 안 함 = 옛 텍스트가 그대로
+    if (_ltClipBefore && text === _ltClipBefore) {
+      if (typeof showToast === 'function') showToast('사진에서 텍스트를 선택해서 "복사" 메뉴를 눌러주세요. 이전에 다른 곳에서 복사한 텍스트가 그대로예요.');
+      return;
+    }
+
     const ta = document.getElementById('naBody');
     if (ta) {
       const existing = ta.value || '';
@@ -30038,6 +31955,7 @@ const NA = {
   page: null,
   body: '',
   favorite: false,
+  bookLocked: false,
 };
 
 /* ─── 저장된 BOOKS / TAGS / NOTES 복원 (BOOKS·TAGS 선언 직후에 실행) ─── */
@@ -30062,6 +31980,26 @@ const NA = {
   if (Array.isArray(savedBooks)) {
     BOOKS.length = 0;
     BOOKS.push(...savedBooks);
+  } else {
+    // v1.11.5 — 데이터 손실 감지
+    // savedBooks가 null = localStorage에 'read.books' 없음
+    // 다른 read.* 키가 살아있으면 = 기존 사용자였는데 books만 사라짐 (또는 통째 손실)
+    // → 샘플 데이터(데미안 등) 노출 차단 + 손실 마킹
+    let isExistingUser = false;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('read.')) {
+          isExistingUser = true;
+          break;
+        }
+      }
+    } catch(e){}
+    if (isExistingUser) {
+      BOOKS.length = 0;  // 샘플 제거
+      window._dataLossDetected = true;
+    }
+    // 진짜 신규 사용자(read.* 키 전무): BOOKS 샘플 유지 → 온보딩에서 처리
   }
   
   // v1.x — acquisition 'library' → 'rent' 자동 마이그레이션 (도서관 = 대여의 한 케이스)
@@ -30213,7 +32151,7 @@ const NA = {
   });
 })();
 
-/* vTEST — hydrate 직후(첫 렌더 전, 동기) idb: 표지 참조를 메모리에서 치움 → 렌더 자리 idb: 누출 방지 */
+/* hydrate 직후(첫 렌더 전, 동기) idb: 표지 참조를 메모리에서 치움 → 렌더 자리 idb: 누출 방지 */
 try { _demoteIdbCovers(); } catch (e) {}
 
 /* v1.5.x — 데이터 크기/손상 안내 (hydrateData 종료 직후, DOM 준비되면 알림) */
@@ -30702,7 +32640,7 @@ function bookCoverMeta(b) {
 /* Variation C 커버 내부 HTML (.bc 부분만) */
 function renderBookCoverInner(b, number) {
   // 표지 이미지가 있으면 실제 이미지로 렌더
-  // vTEST — idb: 참조(복원 전 일시 상태)는 표지 없음으로 처리 → 폴백 디자인
+  // idb: 참조(복원 전 일시 상태)는 표지 없음으로 처리 → 폴백 디자인
   const _cu = (b.coverUrl && !b.coverUrl.startsWith('idb:')) ? b.coverUrl : '';
   if (_cu) {
     // v1.5.x — IntersectionObserver 기반 지연 로딩
@@ -38567,11 +40505,7 @@ function openAcqSheet(bookId) {
   if (retWrap) retWrap.addEventListener('dp:change', updateDur);
   updateDur();
   
-  // 시트 바깥 클릭으로 dp 닫기 (시트 내부 다른 곳 클릭 시)
-  sheet.addEventListener('click', (e) => {
-    if (e.target.closest('.dp-wrap')) return;
-    sheet.querySelectorAll('.dp-wrap').forEach(w => _dpClose(w));
-  });
+  // v1.11.3 — input[type=date] 네이티브 피커는 자동으로 닫히므로 별도 dp 닫기 불필요
   
   // 쓸어내려 닫기
   if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
@@ -38590,146 +40524,7 @@ function closeAcqSheet() {
   }, 280);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   v1.x — DatePicker (iOS 그리드 캘린더 스타일, 인라인 펼쳐짐)
-   사용:
-     <div class="dp-wrap" data-dp-id="acqDate" data-dp-value="2026-05-22" data-dp-max="2026-05-22"></div>
-   초기화:
-     initDatePickers(rootEl)   // root 안의 모든 .dp-wrap 초기화
-   값 읽기:
-     wrap.dataset.dpValue      // 'YYYY-MM-DD' or ''
-   ═══════════════════════════════════════════════════════════ */
-
-const _DP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const _DP_MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-
-function _dpFormatDisplay(yyyy_mm_dd) {
-  if (!yyyy_mm_dd) return '';
-  const d = new Date(yyyy_mm_dd + 'T00:00:00');
-  if (isNaN(d.getTime())) return '';
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const dd = d.getDate();
-  const w = _DP_WEEKDAYS[d.getDay()];
-  return `${y}년 ${m}월 ${dd}일 (${w})`;
-}
-
-function _dpPad(n) { return String(n).padStart(2, '0'); }
-
-function _dpRenderCalendar(wrap) {
-  // 현재 표시 중인 연/월 (없으면 선택값 or 오늘)
-  let viewY = parseInt(wrap.dataset.dpViewY, 10);
-  let viewM = parseInt(wrap.dataset.dpViewM, 10);
-  if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) {
-    const selVal = wrap.dataset.dpValue;
-    const base = selVal ? new Date(selVal + 'T00:00:00') : new Date();
-    viewY = base.getFullYear();
-    viewM = base.getMonth();
-    wrap.dataset.dpViewY = String(viewY);
-    wrap.dataset.dpViewM = String(viewM);
-  }
-  
-  // 제약: min/max (YYYY-MM-DD)
-  const minStr = wrap.dataset.dpMin || '';
-  const maxStr = wrap.dataset.dpMax || '';
-  
-  // 1일의 요일 + 일수
-  const firstDay = new Date(viewY, viewM, 1);
-  const firstDow = firstDay.getDay();  // 0=일
-  const lastDate = new Date(viewY, viewM + 1, 0).getDate();
-  const prevLastDate = new Date(viewY, viewM, 0).getDate();
-  
-  // 오늘 + 선택값
-  const today = new Date();
-  const todayY = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
-  const selVal = wrap.dataset.dpValue;
-  let selY = null, selM = null, selD = null;
-  if (selVal) {
-    const sd = new Date(selVal + 'T00:00:00');
-    if (!isNaN(sd.getTime())) {
-      selY = sd.getFullYear(); selM = sd.getMonth(); selD = sd.getDate();
-    }
-  }
-  
-  // 6주 그리드 = 42칸
-  let html = '';
-  // 이전 달 마지막 날들
-  for (let i = firstDow - 1; i >= 0; i--) {
-    html += `<button type="button" class="dp-cell is-other" data-d="-">${prevLastDate - i}</button>`;
-  }
-  // 이번 달
-  for (let d = 1; d <= lastDate; d++) {
-    const dow = (firstDow + d - 1) % 7;
-    const dateStr = `${viewY}-${_dpPad(viewM+1)}-${_dpPad(d)}`;
-    const isToday = (viewY === todayY && viewM === todayM && d === todayD);
-    const isSelected = (selY === viewY && selM === viewM && selD === d);
-    const isSun = (dow === 0);
-    const isDisabled = (minStr && dateStr < minStr) || (maxStr && dateStr > maxStr);
-    let cls = 'dp-cell';
-    if (isSun) cls += ' is-sun';
-    if (isToday) cls += ' is-today';
-    if (isSelected) cls += ' is-selected';
-    if (isDisabled) cls += ' is-disabled';
-    html += `<button type="button" class="${cls}" data-d="${dateStr}"${isDisabled ? ' disabled' : ''}>${d}</button>`;
-  }
-  // 다음 달 시작 (42칸 채우기)
-  const used = firstDow + lastDate;
-  const nextCount = (used <= 35) ? (35 - used) : (42 - used);
-  for (let d = 1; d <= nextCount; d++) {
-    html += `<button type="button" class="dp-cell is-other" data-d="-">${d}</button>`;
-  }
-  
-  const grid = wrap.querySelector('.dp-cal-grid');
-  if (grid) grid.innerHTML = html;
-  
-  const monthLbl = wrap.querySelector('.dp-cal-month-lbl');
-  if (monthLbl) monthLbl.textContent = `${viewY}년 ${_DP_MONTHS_KO[viewM]}`;
-}
-
-function _dpUpdateTrigger(wrap) {
-  const trigger = wrap.querySelector('.dp-trigger');
-  const label = wrap.querySelector('.dp-trigger-label');
-  if (!trigger || !label) return;
-  const val = wrap.dataset.dpValue;
-  if (val) {
-    label.textContent = _dpFormatDisplay(val);
-    trigger.classList.remove('is-empty');
-  } else {
-    label.textContent = wrap.dataset.dpPlaceholder || '날짜 선택';
-    trigger.classList.add('is-empty');
-  }
-}
-
-function _dpOpen(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  const trigger = wrap.querySelector('.dp-trigger');
-  if (!cal || !trigger) return;
-  // 같은 시트의 다른 dp 닫기
-  const sheet = wrap.closest('.acq-sheet');
-  if (sheet) {
-    sheet.querySelectorAll('.dp-wrap').forEach(w => {
-      if (w !== wrap) _dpClose(w);
-    });
-  }
-  cal.classList.add('is-open');
-  trigger.classList.add('is-open');
-  _dpRenderCalendar(wrap);
-}
-
-function _dpClose(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  const trigger = wrap.querySelector('.dp-trigger');
-  if (cal) cal.classList.remove('is-open');
-  if (trigger) trigger.classList.remove('is-open');
-}
-
-function _dpToggle(wrap) {
-  const cal = wrap.querySelector('.dp-cal');
-  if (!cal) return;
-  if (cal.classList.contains('is-open')) _dpClose(wrap);
-  else _dpOpen(wrap);
-}
-
+/* v1.11.3 — DatePicker: input[type=date] 네이티브 피커 (옛 _dp* 커스텀 캘린더 제거됨) */
 /* DatePicker HTML 생성 — _acqSheetHtml에서 사용 */
 function renderDatePicker(opts) {
   const id = opts.id || '';
@@ -38737,116 +40532,42 @@ function renderDatePicker(opts) {
   const max = opts.max || '';
   const min = opts.min || '';
   const placeholder = opts.placeholder || '날짜 선택';
-  const showTodayShortcut = opts.todayShortcut !== false;
-  
+
+  // v1.11.3 — input[type=date] 네이티브 피커로 단순화
+  // 사용자 요청: "아이폰처럼 년도 한번에 바꾸기"
+  // iOS: 휠 피커 / 안드로이드: 그리드 캘린더 (년도 클릭 빠른 점프) — 둘 다 년도 변경 즉시 가능
   return `
-    <div class="dp-wrap" 
-         data-dp-id="${esc(id)}" 
-         data-dp-value="${esc(value)}" 
-         data-dp-min="${esc(min)}" 
-         data-dp-max="${esc(max)}"
+    <div class="dp-wrap dp-native"
+         data-dp-id="${esc(id)}"
+         data-dp-value="${esc(value)}"
          data-dp-placeholder="${esc(placeholder)}">
-      <button type="button" class="dp-trigger ${value ? '' : 'is-empty'}">
-        <span class="dp-trigger-label">${value ? _dpFormatDisplay(value) : esc(placeholder)}</span>
-        <span class="dp-trigger-chevron">▼</span>
-      </button>
-      <div class="dp-cal">
-        <div class="dp-cal-head">
-          <div class="dp-cal-month-lbl">—</div>
-          <div class="dp-cal-nav">
-            <button type="button" class="dp-cal-nav-btn" data-dp-nav="-1" aria-label="이전 달">‹</button>
-            <button type="button" class="dp-cal-nav-btn" data-dp-nav="1" aria-label="다음 달">›</button>
-          </div>
-        </div>
-        <div class="dp-cal-wdays">
-          <div class="dp-cal-wday is-sun">일</div>
-          <div class="dp-cal-wday">월</div>
-          <div class="dp-cal-wday">화</div>
-          <div class="dp-cal-wday">수</div>
-          <div class="dp-cal-wday">목</div>
-          <div class="dp-cal-wday">금</div>
-          <div class="dp-cal-wday is-sat">토</div>
-        </div>
-        <div class="dp-cal-grid"></div>
-        ${showTodayShortcut ? `
-        <div class="dp-cal-shortcut">
-          <button type="button" class="dp-cal-shortcut-btn" data-dp-today>오늘로</button>
-        </div>` : ''}
-      </div>
+      <input type="date"
+             class="dp-native-input acq-input"
+             data-dp-input="1"
+             value="${esc(value)}"
+             ${max ? `max="${esc(max)}"` : ''}
+             ${min ? `min="${esc(min)}"` : ''}
+             aria-label="${esc(placeholder)}">
     </div>`;
 }
 
-/* DatePicker 이벤트 바인딩 — root 안의 모든 .dp-wrap 초기화 */
+/* DatePicker 이벤트 바인딩 — root 안의 모든 .dp-wrap 초기화
+   v1.11.3 — input[type=date] change 시 dataset.dpValue 동기화만 */
 function initDatePickers(root) {
   if (!root) return;
-  root.querySelectorAll('.dp-wrap').forEach(wrap => {
-    // 트리거 클릭 → 토글
-    const trigger = wrap.querySelector('.dp-trigger');
-    if (trigger) {
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        _dpToggle(wrap);
-      });
-    }
-    
-    // 월 이동
-    wrap.querySelectorAll('[data-dp-nav]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const delta = parseInt(btn.dataset.dpNav, 10) || 0;
-        let viewY = parseInt(wrap.dataset.dpViewY, 10);
-        let viewM = parseInt(wrap.dataset.dpViewM, 10);
-        if (!Number.isFinite(viewY) || !Number.isFinite(viewM)) return;
-        viewM += delta;
-        while (viewM < 0) { viewM += 12; viewY--; }
-        while (viewM > 11) { viewM -= 12; viewY++; }
-        wrap.dataset.dpViewY = String(viewY);
-        wrap.dataset.dpViewM = String(viewM);
-        _dpRenderCalendar(wrap);
-      });
+  root.querySelectorAll('.dp-wrap.dp-native').forEach(wrap => {
+    const input = wrap.querySelector('input[type="date"]');
+    if (!input || input.dataset.dpWired) return;
+    input.dataset.dpWired = '1';
+    input.addEventListener('change', () => {
+      wrap.dataset.dpValue = input.value || '';
     });
-    
-    // 날짜 셀 클릭 (이벤트 위임)
-    const grid = wrap.querySelector('.dp-cal-grid');
-    if (grid) {
-      grid.addEventListener('click', (e) => {
-        const cell = e.target.closest('.dp-cell');
-        if (!cell) return;
-        if (cell.disabled || cell.classList.contains('is-disabled')) return;
-        const dateStr = cell.dataset.d;
-        if (!dateStr || dateStr === '-') return;
-        wrap.dataset.dpValue = dateStr;
-        _dpUpdateTrigger(wrap);
-        _dpRenderCalendar(wrap);
-        // 약간 딜레이 후 닫기 (선택 피드백 보여줌)
-        setTimeout(() => _dpClose(wrap), 180);
-        // 변경 이벤트 발생 — 대여 기간 자동 계산 등 listener 트리거
-        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
-      });
-    }
-    
-    // "오늘로"
-    const todayBtn = wrap.querySelector('[data-dp-today]');
-    if (todayBtn) {
-      todayBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}-${_dpPad(today.getMonth()+1)}-${_dpPad(today.getDate())}`;
-        // min/max 검증
-        const minStr = wrap.dataset.dpMin || '';
-        const maxStr = wrap.dataset.dpMax || '';
-        if ((minStr && dateStr < minStr) || (maxStr && dateStr > maxStr)) return;
-        wrap.dataset.dpValue = dateStr;
-        wrap.dataset.dpViewY = String(today.getFullYear());
-        wrap.dataset.dpViewM = String(today.getMonth());
-        _dpUpdateTrigger(wrap);
-        _dpRenderCalendar(wrap);
-        wrap.dispatchEvent(new CustomEvent('dp:change', { detail: { value: dateStr } }));
-        setTimeout(() => _dpClose(wrap), 180);
-      });
-    }
+    // 초기값 동기화 (이미 attribute로 들어가 있지만 안전 차원)
+    wrap.dataset.dpValue = input.value || '';
   });
 }
+
+
 
 /* DatePicker 값 읽기 (편의 함수) */
 function getDatePickerValue(root, dpId) {
@@ -42455,6 +44176,7 @@ function resetNA(defaults = {}) {
   NA.page = defaults.page || null;
   NA.body = defaults.body || '';
   NA.favorite = !!defaults.favorite;
+  NA.bookLocked = !!defaults.bookLocked;
 }
 
 /* v1.8.0 — 노트 책 선택 picker (검색형 + 그룹 리스트) */
@@ -42571,11 +44293,40 @@ function renderBookPicker(query) {
   }
 }
 
+/* 책에서 바로 노트 추가 시 표시할 선택된 책 (picker 항목과 동일한 표지 스타일) */
+function _naLockedBookHtml(b) {
+  if (!b) return '';
+  const cover = b.coverUrl
+    ? `<img class="bp-cover-img" src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<div class=\\'bp-cover-fallback\\'>'+(${JSON.stringify(esc((b.title || '?').slice(0, 4)))})+'</div>'">`
+    : `<div class="bp-cover-fallback">${esc((b.title || '?').slice(0, 4))}</div>`;
+  return `<div class="bp-cover">${cover}</div>
+    <div class="na-locked-meta">
+      <div class="na-locked-ttl">${esc(b.title || '')}</div>
+      ${b.author ? `<div class="na-locked-author">${esc(b.author)}</div>` : ''}
+    </div>`;
+}
+
 function renderNA() {
-  // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
-  const searchInput = document.getElementById('bpSearch');
-  const currentQuery = searchInput ? searchInput.value : '';
-  renderBookPicker(currentQuery);
+  // 책에서 바로 진입(bookLocked)하면 책 선택 picker 대신 선택된 책만 표시
+  const bookField = document.getElementById('naBookField');
+  const lockedField = document.getElementById('naLockedBookField');
+  const locked = NA.bookLocked && NA.bookId;
+  if (locked) {
+    if (bookField) bookField.style.display = 'none';
+    if (lockedField) {
+      lockedField.style.display = '';
+      const b = BOOKS.find(x => String(x.id) === String(NA.bookId));
+      const el = document.getElementById('naLockedBook');
+      if (el) el.innerHTML = _naLockedBookHtml(b);
+    }
+  } else {
+    if (bookField) bookField.style.display = '';
+    if (lockedField) lockedField.style.display = 'none';
+    // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
+    const searchInput = document.getElementById('bpSearch');
+    const currentQuery = searchInput ? searchInput.value : '';
+    renderBookPicker(currentQuery);
+  }
 
   document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
 
@@ -42618,7 +44369,7 @@ function openNoteAdd(prefillBookId = null) {
     const reading = BOOKS.find(b => b.status === 'reading');
     if (reading) defaultBookId = reading.id;
   }
-  resetNA({ bookId: defaultBookId, type: 'quote' });
+  resetNA({ bookId: defaultBookId, type: 'quote', bookLocked: !!prefillBookId });
   renderNA();
   document.getElementById('naBackdrop').classList.add('open');
   const sheet = document.getElementById('naSheet');
@@ -47309,12 +49060,12 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* 설정에서 "데이터 내보내기" 행 클릭 → 모달 */
+/* 설정에서 "데이터 관리" 행 클릭 → 모달 */
 (function wireExportInSettings() {
   const rows = document.querySelectorAll('.settings-row');
   for (const row of rows) {
     const ttl = row.querySelector('.settings-row-ttl');
-    if (!ttl || ttl.textContent !== '데이터 내보내기') continue;
+    if (!ttl || ttl.textContent !== '데이터 관리') continue;
     if (row.dataset.exportWired) continue;
     row.dataset.exportWired = '1';
     row.addEventListener('click', () => {
@@ -47639,204 +49390,57 @@ function _versionLower(a, b) {
 })();
 
 /* v1.9.0 — 설정 페이지 버전 표시 자동 갱신 (APP_VERSION + APP_VERSION_NICKNAME 기반) */
-/* v1.10.2 — keepbook 마이그레이션 모달 (도메인 이사 안내 + 백업 권유)
+/* v1.11.0 — keepbook 환영 모달 (새 도메인 이전 완료 + 복원 안내)
    ──────────────────────────────────────────────────────────
-   - 24h 가드(read.migration.dismissedAt) + 완료 가드(read.migration.completed)
-   - 로그인 사용자: 마지막 백업 시점 표시 + 클라우드 백업 권유
-   - 비로그인 사용자: 카카오 로그인 + JSON 백업 권유
-   - wnModal 떠있으면 다음 기회로 (충돌 방지)
-
-   ⚠️ MIGRATION_LIVE = true — 도메인 이전 안내 모달 활성화 상태 (Phase 1, 2026-05).
+   - 새 도메인 첫 방문 시 자동 노출 (한 번만)
+   - 'read.welcome.shown' 키로 노출 마킹 → 두 번째 방문부터는 노출 X
+   - 풋터 [⚙️ 설정 열기] → kbmOpenSettings() 호출 (복원 가이드)
+   - 풋터 [둘러보기 시작] → 모달 닫기만 (신규 사용자 또는 일단 둘러보기)
+   
+   ⚠️ WELCOME_LIVE = true — 환영 모달 활성화 상태.
       비활성화하려면 이 상수만 false로 바꾸면 자동 트리거/진입점 모두 차단됨.
    ─────────────────────────────────────────────────────────── */
-const MIGRATION_LIVE = true;
+const WELCOME_LIVE = true;
 
-/* D-day 시스템 (v1.10.3)
-   2026-06-07 00:00:00 KST 기준 (한국시간)
-   - Phase 1 (D-14 ~ D-8): 안내 단계 — 회색 톤, 24h 재노출
-   - Phase 2 (D-7 ~ D-4):  권장 단계 — 앰버 톤, 24h 재노출
-   - Phase 3 (D-3 ~ D-1):  긴급 단계 — 로즈 톤, 12h 재노출
-   - Phase 4 (D-day):      최후 알림 — 빨강 + 펄스, 한 번만 노출 */
-const MIGRATION_DDAY = new Date('2026-06-07T00:00:00+09:00');
-
-const MIG_KEYS = {
-  dismissed: 'read.migration.dismissedAt',
-  completed: 'read.migration.completed',
-  lastSync:  'read.auth.baseUpdatedAt',  // 기존 백업 시각 키 재사용
-  p4shown:   'read.migration.p4Shown',   // D-day 한 번 노출 후 마킹
+const WEL_KEYS = {
+  shown: 'read.welcome.shown',  // 환영 모달 노출 마킹 (한 번만 노출)
 };
 
-/* D-day 단계 계산
-   반환: { phase: 1~4, daysLeft, label, reopenMs, foot }
-   - label: D-day 박스에 표시할 텍스트
-   - reopenMs: dismiss 후 재노출 대기 시간 (P4는 무한대)
-   - foot: 닫기 버튼 텍스트 */
-function getMigrationPhase() {
-  const now = Date.now();
-  const dday = MIGRATION_DDAY.getTime();
-  const diffDays = Math.ceil((dday - now) / (24 * 60 * 60 * 1000));
-
-  if (diffDays <= 0) {
-    return {
-      phase: 4, daysLeft: 0,
-      label: '🔥 D-DAY · 오늘 이전합니다',
-      reopenMs: Number.MAX_SAFE_INTEGER,  // 사실상 한 번만
-      foot: '✓ 이미 백업했어요',
-      recurNote: '',
-    };
-  }
-  if (diffDays <= 3) {
-    return {
-      phase: 3, daysLeft: diffDays,
-      label: `⏰ D-${diffDays} · ${diffDays}일 남았어요!`,
-      reopenMs: 12 * 60 * 60 * 1000,
-      foot: '나중에 할게요',
-      recurNote: '12시간 후 다시 안내',
-    };
-  }
-  if (diffDays <= 7) {
-    return {
-      phase: 2, daysLeft: diffDays,
-      label: `⏰ D-${diffDays} · 6/7 이전 예정`,
-      reopenMs: 24 * 60 * 60 * 1000,
-      foot: '나중에 할게요',
-      recurNote: '',
-    };
-  }
-  return {
-    phase: 1, daysLeft: diffDays,
-    label: `⏰ D-${diffDays} · 6/7 이전 예정`,
-    reopenMs: 24 * 60 * 60 * 1000,
-    foot: '나중에 할게요',
-    recurNote: '',
-  };
-}
-
-/* 호환용 — 외부에서 참조할 수 있으니 보존 */
-const MIG_REOPEN_INTERVAL_MS = 24 * 60 * 60 * 1000;
-
-function _migFormatSince(timestamp, now) {
-  if (!timestamp) return null;
-  const diffMs = (now || Date.now()) - timestamp;
-  if (diffMs < 0) return '방금 전';
-  const minutes = Math.floor(diffMs / (60 * 1000));
-  const hours = Math.floor(diffMs / (60 * 60 * 1000));
-  const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (minutes < 1) return '방금 전';
-  if (minutes < 60) return `${minutes}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  if (days < 30) return `${days}일 전`;
-  return `${Math.floor(days / 30)}개월 전`;
-}
-
-function _migBackupDotClass(timestamp, now) {
-  if (!timestamp) return 'danger';
-  const days = Math.floor(((now || Date.now()) - timestamp) / (24 * 60 * 60 * 1000));
-  if (days < 1) return 'ok';
-  if (days < 7) return 'warn';
-  return 'danger';
-}
-
-function migShouldShow() {
-  if (!MIGRATION_LIVE) return false;  // 살리기 전까지 어떤 경우에도 노출 X
+function welcomeShouldShow() {
+  if (!WELCOME_LIVE) return false;
   try {
-    if (localStorage.getItem(MIG_KEYS.completed) === 'true') return false;
+    // v1.11.5 — 데이터 손실 감지 시: 한 번 본 사용자에게도 강제 노출 (복원 가이드 필요)
+    if (window._dataLossDetected) {
+      const wnOpen = document.getElementById('wnModal')?.classList.contains('open');
+      return !wnOpen;
+    }
+    // 이미 한 번 봤으면 스킵
+    if (localStorage.getItem(WEL_KEYS.shown) === 'true') return false;
+    // 온보딩 안 끝낸 신규 사용자는 스킵 (온보딩 모달이 먼저)
     if (!localStorage.getItem(ONBOARDING_KEY)) return false;
+    // wnModal(업데이트 노트) 떠 있으면 다음 기회로
     const wnOpen = document.getElementById('wnModal')?.classList.contains('open');
     if (wnOpen) return false;
-
-    const ph = getMigrationPhase();
-    // P4 (D-day)는 한 번만 노출
-    if (ph.phase === 4 && localStorage.getItem(MIG_KEYS.p4shown) === 'true') return false;
-
-    const dismissedAt = parseInt(localStorage.getItem(MIG_KEYS.dismissed) || '0', 10);
-    if (dismissedAt && Date.now() - dismissedAt < ph.reopenMs) return false;
     return true;
   } catch (e) { return false; }
 }
 
-function openMigrationModal() {
-  if (!MIGRATION_LIVE) return;  // 살리기 전까지 직접 호출도 차단
+function openWelcomeModal() {
+  if (!WELCOME_LIVE) return;
   const modal = document.getElementById('migModal');
   const backdrop = document.getElementById('migBackdrop');
   if (!modal || !backdrop) return;
-
-  // D-day 단계 계산 + 적용
-  const ph = getMigrationPhase();
-
-  // D-day 박스: 클래스 + 텍스트
-  const ddayBox = document.getElementById('migDdayBox');
-  if (ddayBox) {
-    ddayBox.classList.remove('p1', 'p2', 'p3', 'p4');
-    ddayBox.classList.add('p' + ph.phase);
-    ddayBox.textContent = ph.label;
-  }
-
-  // 풋터: 텍스트 + 단계별 클래스 (P4는 sage 버튼)
-  const foot = document.getElementById('migFoot');
-  const dismissBtn = document.getElementById('migDismissBtn');
-  if (foot) {
-    foot.classList.remove('p1', 'p2', 'p3', 'p4');
-    if (ph.phase === 4) foot.classList.add('p4');
-  }
-  if (dismissBtn) {
-    if (ph.recurNote) {
-      dismissBtn.innerHTML = `${ph.foot}<span class="recur-note">${ph.recurNote}</span>`;
-    } else {
-      dismissBtn.textContent = ph.foot;
-    }
-  }
-
-  // 상태 분기 — 로그인/비로그인
-  const isLoggedIn = (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.isLoggedIn === 'function')
-    ? READ_AUTH.isLoggedIn() : false;
-
-  const loggedinBox = document.getElementById('migStateLoggedin');
-  const anonBox = document.getElementById('migStateAnon');
-  if (loggedinBox) loggedinBox.style.display = isLoggedIn ? 'block' : 'none';
-  if (anonBox) anonBox.style.display = isLoggedIn ? 'none' : 'block';
-
-  // 상태 태그 (비로그인 사용자만 "백업 없음" 노출)
-  const stateTag = document.getElementById('migStateTag');
-  if (stateTag) {
-    stateTag.textContent = isLoggedIn ? '' : '백업 없음';
-  }
-
-  // 로그인 사용자: 마지막 백업 시점 표시
-  if (isLoggedIn) {
-    const lastSync = parseInt(localStorage.getItem(MIG_KEYS.lastSync) || '0', 10);
-    const dot = document.getElementById('migBackupDot');
-    const label = document.getElementById('migBackupLabel');
-    const sub = document.getElementById('migBackupSub');
-    if (dot) {
-      dot.classList.remove('ok', 'warn', 'danger');
-      dot.classList.add(_migBackupDotClass(lastSync || null, Date.now()));
-    }
-    if (label) {
-      const since = _migFormatSince(lastSync || null, Date.now());
-      label.textContent = since ? `마지막 백업: ${since}` : '아직 클라우드 백업 안 함';
-    }
-    if (sub) {
-      if (!lastSync) sub.textContent = '도메인 이사 전 한 번 백업해두세요.';
-      else {
-        const days = Math.floor((Date.now() - lastSync) / (24 * 60 * 60 * 1000));
-        sub.textContent = days < 1 ? '백업 완료 상태예요. 안심하셔도 돼요.' : '한 번 더 백업해두면 안심이에요.';
-      }
-    }
-  }
-
-  // P4 노출 기록 (한 번만 보장)
-  if (ph.phase === 4) {
-    try { localStorage.setItem(MIG_KEYS.p4shown, 'true'); } catch(e){}
-  }
 
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   backdrop.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // 노출 즉시 마킹 (한 번만 노출 보장)
+  try { localStorage.setItem(WEL_KEYS.shown, 'true'); } catch(e){}
 }
 
-function closeMigrationModal() {
+function closeWelcomeModal() {
   const modal = document.getElementById('migModal');
   const backdrop = document.getElementById('migBackdrop');
   if (modal) {
@@ -47845,77 +49449,45 @@ function closeMigrationModal() {
   }
   if (backdrop) backdrop.classList.remove('open');
   document.body.style.overflow = '';
-  // 닫을 때마다 dismissedAt 갱신 — 24h 가드 작동
-  try { localStorage.setItem(MIG_KEYS.dismissed, String(Date.now())); } catch(e){}
 }
 
-function migMarkCompleted() {
-  try { localStorage.setItem(MIG_KEYS.completed, 'true'); } catch(e){}
-}
-
-// 햄버거 메뉴에서 호출용 (수동 진입)
-function kbmOpenMigration() {
-  if (!MIGRATION_LIVE) return;  // 살리기 전까지 메뉴 진입 차단
+// 햄버거 메뉴에서 호출용 (수동 재진입 — 한 번 본 후에도 다시 보고 싶을 때)
+function kbmOpenWelcome() {
+  if (!WELCOME_LIVE) return;
   if (typeof closeKbMenu === 'function') closeKbMenu();
-  setTimeout(() => openMigrationModal(), 220);
+  setTimeout(() => openWelcomeModal(), 220);
 }
-// window 노출 (onclick에서 호출 가능하게)
-window.openMigrationModal = openMigrationModal;
-window.kbmOpenMigration = kbmOpenMigration;
+// window 노출
+window.openWelcomeModal = openWelcomeModal;
+window.kbmOpenWelcome = kbmOpenWelcome;
 
 // 버튼 핸들러 바인딩
-(function wireMigrationButtons() {
-  const skip = document.getElementById('migSkip');
+(function wireWelcomeButtons() {
   const backdrop = document.getElementById('migBackdrop');
-  const dismiss = document.getElementById('migDismissBtn');
-  const cloudBackup = document.getElementById('migCloudBackupBtn');
-  const jsonBackup1 = document.getElementById('migJsonBackupBtn1');
-  const jsonBackup2 = document.getElementById('migJsonBackupBtn2');
-  const kakao = document.getElementById('migKakaoBtn');
+  const dismiss = document.getElementById('welDismissBtn');
+  const openSettings = document.getElementById('welOpenSettingsBtn');
 
-  if (skip) skip.addEventListener('click', closeMigrationModal);
-  if (dismiss) dismiss.addEventListener('click', closeMigrationModal);
-  if (backdrop) backdrop.addEventListener('click', closeMigrationModal);
+  // 둘러보기 시작 / 백드롭 클릭 → 모달만 닫기
+  if (dismiss) dismiss.addEventListener('click', closeWelcomeModal);
+  if (backdrop) backdrop.addEventListener('click', closeWelcomeModal);
 
-  // 클라우드 백업 → READ_AUTH.onBackupClick 호출 (백업 완료 시 lastSyncAt 자동 저장)
-  if (cloudBackup) cloudBackup.addEventListener('click', () => {
-    if (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.onBackupClick === 'function') {
-      // 모달 일단 닫고 백업 호출 (백업 토스트 보이게)
-      closeMigrationModal();
-      setTimeout(() => READ_AUTH.onBackupClick(), 250);
-      migMarkCompleted();
-    } else if (typeof showToast === 'function') {
-      showToast('로그인이 필요해요');
-    }
-  });
-
-  // JSON 백업 → exportDataAsJson 호출
-  const jsonHandler = () => {
-    if (typeof exportDataAsJson === 'function') {
-      closeMigrationModal();
-      setTimeout(() => exportDataAsJson(), 250);
-      migMarkCompleted();
-    } else if (typeof showToast === 'function') {
-      showToast('내보내기 기능을 찾을 수 없어요');
-    }
-  };
-  if (jsonBackup1) jsonBackup1.addEventListener('click', jsonHandler);
-  if (jsonBackup2) jsonBackup2.addEventListener('click', jsonHandler);
-
-  // 카카오 로그인 (비로그인 사용자) → READ_AUTH.startKakaoLogin
-  if (kakao) kakao.addEventListener('click', () => {
-    if (typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') {
-      READ_AUTH.startKakaoLogin();
-    } else if (typeof showToast === 'function') {
-      showToast('로그인 준비 중');
-    }
+  // 설정 열기 → 모달 닫고 설정 모달 열기
+  if (openSettings) openSettings.addEventListener('click', () => {
+    closeWelcomeModal();
+    setTimeout(() => {
+      if (typeof kbmOpenSettings === 'function') {
+        kbmOpenSettings();
+      } else if (typeof showToast === 'function') {
+        showToast('설정을 열 수 없어요');
+      }
+    }, 250);
   });
 })();
 
 // 자동 트리거 — 앱 로드 후 1500ms (wnModal 600ms보다 늦게)
-(function autoOpenMigration() {
+(function autoOpenWelcome() {
   setTimeout(() => {
-    if (migShouldShow()) openMigrationModal();
+    if (welcomeShouldShow()) openWelcomeModal();
   }, 1500);
 })();
 
