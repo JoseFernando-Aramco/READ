@@ -21394,6 +21394,9 @@ body.cn-locked {
     <button class="tab-btn" data-tab="notes">
       <span class="tab-icon">✍️</span><span>노트</span>
     </button>
+    <button class="tab-btn" data-tab="booknook" id="bnTabBtn">
+      <span class="tab-icon">🛋️</span><span>Booknook</span>
+    </button>
   </nav>
 
   <!-- ═══════════ Pane 뷰포트 · 캐러셀 트랙 ═══════════ -->
@@ -21762,6 +21765,9 @@ body.cn-locked {
   </div><!-- /.pane-track -->
   </div><!-- /.pane-viewport -->
 
+  <!-- v1.12.0 — Booknook 탭 콘텐츠 영역 (5번째 탭) -->
+  <div class="bn-tab-content" id="bnTabContent"></div>
+
   <footer class="app-footer">
     <div class="app-footer-brand">
       <svg class="app-footer-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -21931,20 +21937,19 @@ body.cn-locked {
       <span class="kbm-item-arrow">›</span>
     </button>
 
-    <button class="kbm-item" id="kbmBooknookItem" onclick="bnOpenMain()" style="display:none">
-      <div class="kbm-item-icon" style="background:var(--c-sage-50, #E8ECE6); display:flex; align-items:center; justify-content:center; font-size:22px;">🛋️</div>
-      <div class="kbm-item-main">
-        <div class="kbm-item-ttl">Booknook</div>
-        <div class="kbm-item-sub">같이 읽기 · 책으로 만나는 코너</div>
-      </div>
-      <span class="kbm-item-arrow">›</span>
-    </button>
-
     <div class="kbm-section-lbl">Settings</div>
     <button class="kbm-item" onclick="kbmOpenSettings()">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 004.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
       <div class="kbm-item-main"><div class="kbm-item-ttl">설정</div><div class="kbm-item-sub">테마 · 알림 · 동기화</div></div>
       <span class="kbm-item-arrow">›</span>
+    </button>
+    <button class="kbm-item" id="kbmBooknookItem" onclick="bnToggle(event)" type="button">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5c0-2.5 2.5-4 6.5-4s6.5 1.5 6.5 4V20"/><circle cx="17" cy="9" r="2.8"/><path d="M15 14.2c.65-.13 1.32-.2 2-.2 2.8 0 4.5 1.1 4.5 3V20"/></svg></div>
+      <div class="kbm-item-main">
+        <div class="kbm-item-ttl">Booknook</div>
+        <div class="kbm-item-sub">같이 읽기 · 책으로 만나는 코너</div>
+      </div>
+      <div class="bn-toggle" id="bnToggleSwitch"></div>
     </button>
 
     <div class="kbm-section-lbl">More</div>
@@ -22039,14 +22044,6 @@ body.cn-locked {
             <div class="settings-row-sub">내보내기 · 가져오기 · 백업</div>
           </div>
           <div class="settings-row-right arrow">›</div>
-        </button>
-        <button class="settings-row" id="booknookSettingsRow" onclick="bnToggle(event)" type="button" style="cursor:pointer;">
-          <div class="settings-row-icon" style="background:#E8ECE6;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:7px;">🛋️</div>
-          <div class="settings-row-main">
-            <div class="settings-row-ttl">Booknook</div>
-            <div class="settings-row-sub">같이 읽기 · 책으로 만나는 코너</div>
-          </div>
-          <div class="bn-toggle" id="bnToggleSwitch"></div>
         </button>
         <button class="settings-row" id="importRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-download"/></svg></div>
@@ -24179,6 +24176,19 @@ body.cn-locked {
 }
 .bn-toggle.on::after { transform: translateX(18px); }
 
+/* v1.12.0 — 메인 탭바에 통합된 Booknook 탭 (5번째) */
+.tab-btn[data-tab="booknook"] { display: none; }
+body.bn-enabled .tab-btn[data-tab="booknook"] { display: flex; }
+
+.bn-tab-content {
+  display: none;
+  padding: 16px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
+  min-height: 60vh;
+}
+body.bn-active .pane-viewport { display: none; }
+body.bn-active .bn-tab-content { display: block; }
+
 /* Booknook 메인 오버레이 (전체 화면 스택) */
 .bn-overlay {
   position: fixed;
@@ -24813,18 +24823,6 @@ body.cn-locked {
 </style>
 
 
-<!-- ════════════ Booknook 메인 페이지 (오버레이) ════════════ -->
-<div class="bn-overlay" id="bnMain">
-  <div class="bn-hdr">
-    <button class="bn-hdr-back" onclick="bnCloseAll()">‹</button>
-    <div class="bn-hdr-ttl">🛋️ Booknook</div>
-    <button class="bn-hdr-action" onclick="bnOpenBoard()" title="게시판">📋</button>
-  </div>
-  <div class="bn-body" id="bnMainBody">
-    <!-- JS로 채움 -->
-  </div>
-</div>
-
 <!-- ════════════ Booknook 게시판 ════════════ -->
 <div class="bn-overlay" id="bnBoard">
   <div class="bn-hdr">
@@ -25056,51 +25054,62 @@ function bnPersist() {
 }
 
 function bnApplyEnabledState() {
-  const item = document.getElementById('kbmBooknookItem');
-  if (item) item.style.display = BN_DATA.enabled ? '' : 'none';
+  // v1.12.0 — 햄버거 토글 행은 항상 노출, 토글 스위치만 상태 반영
   const toggle = document.getElementById('bnToggleSwitch');
   if (toggle) toggle.classList.toggle('on', BN_DATA.enabled);
-}
 
-function bnToggle(e) {
-  if (e && e.target.closest('.bn-toggle')) {
-    // 토글 자체 클릭은 그대로
-  }
-  if (BN_DATA.enabled) {
-    // 비활성화 시 참여 그룹 확인
-    if (BN_DATA.groups && BN_DATA.groups.length > 0) {
-      bnOpenDisableDialog();
-      return;
-    }
-    BN_DATA.enabled = false;
-    bnPersist();
-    bnApplyEnabledState();
-    bnShowToast('Booknook을 비활성화했어요');
-  } else {
-    BN_DATA.enabled = true;
-    bnPersist();
-    bnApplyEnabledState();
-    bnShowToast('🛋️ Booknook 활성화! 햄버거에서 만나요');
+  // body 클래스로 탭 표시 토글
+  document.body.classList.toggle('bn-enabled', BN_DATA.enabled);
+  // 비활성화 시 Booknook 탭 활성 상태였으면 서재로 복귀
+  if (!BN_DATA.enabled && document.body.classList.contains('bn-active')) {
+    bnDeactivateTab();
+    if (typeof switchTab === 'function') switchTab(0);
   }
 }
 
-function bnOpenMain() {
+/* v1.12.0 — 메인 탭 5번째로 통합 */
+function bnActivateTab() {
   if (!BN_DATA.enabled) {
     bnShowToast('먼저 설정에서 Booknook을 활성화해주세요');
     return;
   }
-  bnCloseAllOverlays();
-  if (typeof closeKbMenu === 'function') closeKbMenu();
-  bnRenderMain();
-  document.getElementById('bnMain').classList.add('open');
+  // 다른 탭 active 제거
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const bnBtn = document.querySelector('.tab-btn[data-tab="booknook"]');
+  if (bnBtn) bnBtn.classList.add('active');
+
+  document.body.classList.add('bn-active');
+  // 모든 오버레이 닫기 (혹시 떠있다면)
+  document.querySelectorAll('.bn-overlay').forEach(o => o.classList.remove('open'));
+  bnRenderTab();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function bnRenderMain() {
-  const body = document.getElementById('bnMainBody');
+function bnDeactivateTab() {
+  if (!document.body.classList.contains('bn-active')) return;
+  document.body.classList.remove('bn-active');
+  const bnBtn = document.querySelector('.tab-btn[data-tab="booknook"]');
+  if (bnBtn) bnBtn.classList.remove('active');
+  // v1.12.0 — pane-viewport가 display:none → block 전환 직후 강제 reflow.
+  // 안 하면 snapToTab의 paneWidth() 계산이 어긋나서 옆 탭이 살짝 보이는 문제 발생
+  const vp = (typeof viewport !== 'undefined' && viewport) || document.querySelector('.pane-viewport');
+  if (vp) void vp.offsetWidth;
+}
+
+function bnRenderTab() {
+  const body = document.getElementById('bnTabContent');
+  if (!body) return;
   const myGroups = BN_DATA.groups || [];
 
+  let html = `
+    <div style="margin-bottom:18px;">
+      <h2 style="font-size:22px;font-weight:800;margin:0 0 4px;letter-spacing:-0.02em;color:var(--c-text,#15110D);">🛋️ Booknook</h2>
+      <div style="font-size:12.5px;color:var(--c-muted,#7A7A75);">같이 읽기 · 책으로 만나는 코너</div>
+    </div>
+  `;
+
   if (myGroups.length === 0) {
-    body.innerHTML = `
+    html += `
       <div class="bn-empty">
         <div class="bn-empty-icon">🛋️</div>
         <div class="bn-empty-ttl">아직 참여한 코너가 없어요</div>
@@ -25125,43 +25134,73 @@ function bnRenderMain() {
         </div>
       </div>
     `;
-    return;
-  }
-
-  // 참여 그룹 있음
-  let html = `<div class="bn-my-section"><div class="bn-my-ttl">참여 중 그룹 (${myGroups.length})</div>`;
-  myGroups.forEach(g => {
-    const turn = g.members[g.turnIndex];
-    const isMyTurn = turn.token === BN_DATA.myToken;
+  } else {
+    html += `<div class="bn-my-section"><div class="bn-my-ttl">참여 중 그룹 (${myGroups.length})</div>`;
+    myGroups.forEach(g => {
+      const turn = g.members[g.turnIndex];
+      const isMyTurn = turn.token === BN_DATA.myToken;
+      html += `
+        <div class="bn-my-card" onclick="bnOpenGroup('${g.id}')">
+          <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
+          <div class="bn-my-info">
+            <div class="bn-my-bttl">${bnEscape(g.book.title)}</div>
+            <div class="bn-my-meta">${bnEscape(g.book.author)} · ${g.members.length}명 · 노트 ${g.notes ? g.notes.length : 0}개</div>
+            <span class="bn-my-turn ${isMyTurn ? 'mine' : ''}">${isMyTurn ? '🌟 내 차례' : turn.nickname + ' 차례'}</span>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
     html += `
-      <div class="bn-my-card" onclick="bnOpenGroup('${g.id}')">
-        <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
-        <div class="bn-my-info">
-          <div class="bn-my-bttl">${bnEscape(g.book.title)}</div>
-          <div class="bn-my-meta">${bnEscape(g.book.author)} · ${g.members.length}명 · 노트 ${g.notes ? g.notes.length : 0}개</div>
-          <span class="bn-my-turn ${isMyTurn ? 'mine' : ''}">${isMyTurn ? '🌟 내 차례' : turn.nickname + ' 차례'}</span>
+      <div class="bn-my-section">
+        <div class="bn-my-ttl">더 만나보기</div>
+        <div class="bn-action-list">
+          <div class="bn-action-row" onclick="bnOpenBoard()">
+            <div class="bn-action-emoji">📋</div>
+            <div class="bn-action-main">
+              <div class="bn-action-ttl">게시판 둘러보기</div>
+              <div class="bn-action-sub">새 모집글 보기 / 내 모집 올리기</div>
+            </div>
+            <span class="bn-action-arrow">›</span>
+          </div>
         </div>
       </div>
     `;
-  });
-  html += '</div>';
-
-  html += `
-    <div class="bn-my-section">
-      <div class="bn-my-ttl">더 만나보기</div>
-      <div class="bn-action-list">
-        <div class="bn-action-row" onclick="bnOpenBoard()">
-          <div class="bn-action-emoji">📋</div>
-          <div class="bn-action-main">
-            <div class="bn-action-ttl">게시판 둘러보기</div>
-            <div class="bn-action-sub">새 모집글 보기 / 내 모집 올리기</div>
-          </div>
-          <span class="bn-action-arrow">›</span>
-        </div>
-      </div>
-    </div>
-  `;
+  }
   body.innerHTML = html;
+}
+
+function bnOpenMain() {
+  // v1.12.0 — 메인 탭으로 진입 (오버레이 X)
+  bnActivateTab();
+  if (typeof closeKbMenu === 'function') closeKbMenu();
+}
+
+function bnRenderMain() {
+  // v1.12.0 — 탭 콘텐츠 렌더로 위임
+  bnRenderTab();
+}
+
+function bnToggle(e) {
+  if (e && e.target.closest('.bn-toggle')) {
+    // 토글 자체 클릭은 그대로
+  }
+  if (BN_DATA.enabled) {
+    // 비활성화 시 참여 그룹 확인
+    if (BN_DATA.groups && BN_DATA.groups.length > 0) {
+      bnOpenDisableDialog();
+      return;
+    }
+    BN_DATA.enabled = false;
+    bnPersist();
+    bnApplyEnabledState();
+    bnShowToast('Booknook을 비활성화했어요');
+  } else {
+    BN_DATA.enabled = true;
+    bnPersist();
+    bnApplyEnabledState();
+    bnShowToast('🛋️ Booknook 활성화! 햄버거에서 만나요');
+  }
 }
 
 function bnOpenBoard() {
@@ -27262,6 +27301,13 @@ function updateFabLabel(tabId) {
 }
 
 function switchTab(nextIdx, opts = {}) {
+  // v1.12.0 — Booknook 탭 (인덱스 4) 분기 처리
+  if (nextIdx === 4) {
+    if (typeof bnActivateTab === 'function') bnActivateTab();
+    return;
+  }
+  if (typeof bnDeactivateTab === 'function') bnDeactivateTab();
+
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
   if (nextIdx === currentTabIdx) {
     // 드래그 후 제자리로 돌아가는 snap도 여기서 처리
