@@ -8394,11 +8394,12 @@ body:has(.lib-edit-bar) .library-cards {
   box-shadow: 0 2px 6px rgba(139, 109, 61, 0.25);
 }
 
-/* ═══════ v1.12.0 — 대분류 관리 ═══════ */
-.tag-cat-manage {
-  padding: 5px 11px;
+/* ═══════ v1.12.0 — 대분류 관리 (흔들림 + 드래그) ═══════ */
+.tag-cat-edit-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
   background: transparent;
-  border: 1px dashed var(--c-border-2);
+  border: 1px solid var(--c-border-2, #DCDCD8);
   border-radius: 99px;
   font-family: inherit;
   font-size: 11.5px;
@@ -8406,113 +8407,156 @@ body:has(.lib-edit-bar) .library-cards {
   color: var(--c-text-3, #9A958C);
   cursor: pointer;
   transition: all .15s;
-  margin-left: 4px;
+  white-space: nowrap;
 }
-.tag-cat-manage:hover { background: var(--c-surface); color: var(--c-coin-deep); border-color: var(--c-coin-2); }
-.tag-cat-manage.is-active {
+.tag-cat-edit-btn:hover { background: var(--c-surface); color: var(--c-coin-deep); border-color: var(--c-coin-2); }
+.tag-cat-edit-btn.is-editing {
   background: var(--c-coin-deep, #5F6B5F);
   color: white;
-  border-style: solid;
   border-color: transparent;
 }
 
-.tag-cat-edit-panel {
-  display: none;
-  background: var(--c-surface, #F3F3F0);
-  border: 1px solid var(--c-border-2, #DCDCD8);
-  border-radius: 12px;
-  padding: 13px;
-  margin: 10px 0 14px;
+/* 흔들림 */
+@keyframes catShake {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
 }
-.tag-cat-edit-panel.open { display: block; }
-.tcep-title { font-size: 12px; font-weight: 800; color: var(--c-coin-deep, #5F6B5F); margin-bottom: 10px; }
-.tcep-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
-.tcep-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: white;
-  border: 1px solid var(--c-border-2, #DCDCD8);
-  border-radius: 9px;
-  padding: 6px 9px;
+.tag-cat-tab.is-cat-editing {
+  cursor: default;
+  position: relative;
+  padding-left: 26px;
+  padding-right: 26px;
+  animation: catShake 0.32s ease-in-out infinite;
+  touch-action: none;
 }
-.tcep-order { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
-.tcep-ord-btn {
-  background: transparent;
+.tag-cat-tab.is-cat-editing:nth-child(even) { animation-duration: 0.36s; animation-direction: reverse; }
+.tag-cat-tab.is-cat-editing:nth-child(3n) { animation-duration: 0.30s; }
+.tag-cat-tab.is-cat-editing.is-cat-locked { padding-left: 13px; }
+
+/* 액션 배지 */
+.tag-cat-tab .cat-action {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  color: white;
   border: none;
-  color: var(--c-text-3, #9A958C);
+  font-size: 10px;
+  font-weight: 900;
   cursor: pointer;
-  font-size: 9px;
+  display: grid;
+  place-items: center;
   line-height: 1;
-  padding: 1px 3px;
-  border-radius: 3px;
+  padding: 0;
+  z-index: 2;
 }
-.tcep-ord-btn:hover:not(:disabled) { background: var(--c-surface); color: var(--c-coin-deep); }
-.tcep-ord-btn:disabled { opacity: 0.25; cursor: default; }
-.tcep-name {
-  flex: 1;
+.tag-cat-tab .cat-action.ca-edit { left: 4px; background: var(--c-coin-1, #C8A368); font-size: 9px; }
+.tag-cat-tab .cat-action.ca-del { right: 4px; background: #B85A4A; }
+.tag-cat-tab .cat-action.ca-del.is-disabled { background: #C0BCB4; cursor: not-allowed; }
+
+/* 인라인 이름 수정 */
+.tag-cat-tab.is-cat-renaming {
+  animation: none;
+  padding: 3px 8px;
+  background: var(--c-surface, #FCFCFA);
+  border: 1px solid var(--c-coin-deep, #5F6B5F);
+}
+.cat-rename-input {
   border: none;
   background: transparent;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-text, #15110D);
+  font-size: 12px;
+  font-weight: 700;
   font-family: inherit;
-  padding: 4px 7px;
-  border-radius: 6px;
-  min-width: 0;
+  color: var(--c-text, #15110D);
+  width: 62px;
+  padding: 2px;
+  text-align: center;
 }
-.tcep-name:focus { outline: none; background: var(--c-surface, #F3F3F0); }
-.tcep-count { font-size: 10.5px; color: var(--c-text-3, #9A958C); flex-shrink: 0; font-weight: 600; }
-.tcep-del {
+.cat-rename-input:focus { outline: none; }
+
+/* + 새 분류 칩 */
+.tag-cat-add-chip {
+  padding: 5px 13px;
   background: transparent;
-  border: none;
-  color: var(--c-text-3, #9A958C);
+  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-coin-deep, #5F6B5F);
   cursor: pointer;
-  font-size: 14px;
-  flex-shrink: 0;
-  padding: 2px 4px;
-  border-radius: 5px;
+  font-family: inherit;
+  animation: catShake 0.34s ease-in-out infinite;
 }
-.tcep-del:hover:not(.locked) { color: #B85A4A; background: #F5E8E5; }
-.tcep-del.locked { opacity: 0.3; cursor: not-allowed; }
-.tcep-add-row { display: flex; gap: 7px; }
-.tcep-add-input {
+.tag-cat-add-chip:hover { background: var(--c-sage-50, #E8ECE6); }
+
+/* 새 분류 입력 */
+.tag-cat-add-wrap { display: none; gap: 6px; margin: 8px 0 4px; align-items: center; }
+.tag-cat-add-wrap.open { display: flex; }
+.tcaw-input {
   flex: 1;
-  padding: 8px 11px;
-  border: 1px solid var(--c-border-2, #DCDCD8);
+  padding: 7px 11px;
+  border: 1px solid var(--c-coin-deep, #5F6B5F);
   border-radius: 8px;
   font-size: 12.5px;
   font-family: inherit;
-  background: white;
+  background: var(--c-surface, #FCFCFA);
   min-width: 0;
 }
-.tcep-add-input:focus { outline: none; border-color: var(--c-coin-2); }
-.tcep-add-btn {
-  padding: 8px 14px;
+.tcaw-input:focus { outline: none; }
+.tcaw-confirm {
+  padding: 7px 13px;
   background: var(--c-coin-deep, #5F6B5F);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   flex-shrink: 0;
 }
-.tcep-done {
-  width: 100%;
-  padding: 9px;
+.tcaw-cancel {
+  padding: 7px 8px;
   background: transparent;
-  color: var(--c-coin-deep, #5F6B5F);
-  border: 1px solid var(--c-coin-deep, #5F6B5F);
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 700;
+  color: var(--c-text-3, #9A958C);
+  border: none;
+  font-size: 12px;
   cursor: pointer;
   font-family: inherit;
-  margin-top: 10px;
+  flex-shrink: 0;
 }
-.tcep-done:hover { background: var(--c-coin-deep, #5F6B5F); color: white; }
+
+/* 드래그 */
+.tag-cat-tab.is-dragging {
+  animation: none;
+  opacity: 0.92;
+  z-index: 50;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  cursor: grabbing;
+  transform: scale(1.06);
+}
+.tag-cat-tab.is-drag-ph {
+  animation: none;
+  opacity: 0.35;
+  background: var(--c-sage-50, #E8ECE6);
+  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
+  color: transparent;
+}
+.tag-cat-tab.is-drag-ph .tcc, .tag-cat-tab.is-drag-ph .cat-action { visibility: hidden; }
+
+/* 편집 모드 안내 */
+.tag-cat-edit-hint {
+  font-size: 11px;
+  color: var(--c-coin-deep, #5F6B5F);
+  background: var(--c-sage-50, #E8ECE6);
+  border-radius: 8px;
+  padding: 7px 11px;
+  margin: 8px 0;
+  display: none;
+}
+.tag-cat-edit-hint.show { display: block; }
 
 /* 태그 칩 (책 상세·북 추가·필터 공통) */
 .tag-chip {
@@ -22586,8 +22630,13 @@ body.cn-locked {
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
-        <!-- v1.12.0 대분류 편집 패널 -->
-        <div class="tag-cat-edit-panel" id="tagCatEditPanel"></div>
+        <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
+        <div class="tag-cat-edit-hint" id="tagCatEditHint">✏️ 이름 수정 · × 삭제(빈 분류만) · 드래그로 순서 변경 · 기본 분류는 이름만 변경</div>
+        <div class="tag-cat-add-wrap" id="tagCatAddWrap">
+          <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
+          <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BA')">추가</button>
+          <button type="button" class="tcaw-cancel" onclick="document.getElementById('tagCatAddWrap').classList.remove('open')">취소</button>
+        </div>
         <!-- 편집 헬프 박스 -->
         <div class="tag-edit-help" id="tagEditHelp" data-mode="hide" aria-hidden="true">
           <!-- JS 렌더 -->
@@ -31163,42 +31212,286 @@ function _getTagsByCategory(cat) {
     .map(([name, tag]) => ({ name, ...tag }));
 }
 
-/* v1.9.0 — 카테고리 탭 렌더 */
+/* v1.9.0 — 카테고리 탭 렌더 / v1.12.0 — 흔들림 편집 + 드래그 */
 function renderTagCategoryTabs() {
   const tabsEl = document.getElementById('tagCatTabs');
   if (!tabsEl) return;
-  // v1.12.0 — 동적 카테고리 + 숨김 탭
-  const cats = getTagCategoriesSorted().map(c => ({ id: c.id, label: c.label }));
-  cats.push({ id: 'hidden', label: '숨김', hidden: true });
-  let html = cats.map(c => {
-    const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
-    if (c.hidden && count === 0) return ''; // 숨김 0개면 탭 자체 노출 X
-    let cls = 'tag-cat-tab';
-    if (c.hidden) cls += ' is-hidden-tab';
-    if (BA.tagsActiveCat === c.id) cls += ' is-active';
-    const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
-    return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
-  }).join('');
-  // v1.12.0 — 대분류 관리 버튼
-  html += `<button type="button" class="tag-cat-manage${BA.tagCatEditMode ? ' is-active' : ''}" id="tagCatManageBtnBA">⚙️ 분류</button>`;
-  tabsEl.innerHTML = html;
-  tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      BA.tagsActiveCat = btn.dataset.cat;
-      BA.tagEditMode = false;
-      renderTagChips();
-    });
-  });
-  const manageBtn = document.getElementById('tagCatManageBtnBA');
-  if (manageBtn) {
-    manageBtn.addEventListener('click', () => {
-      BA.tagCatEditMode = !BA.tagCatEditMode;
-      renderTagCatEditPanel('BA');
-      renderTagCategoryTabs();
-    });
-  }
-  // v1.12.0 — 새 태그 카테고리 칩 동적 렌더
+  _renderCatTabs(tabsEl, 'BA');
+  // 편집 모드 안내 + 새 분류 입력창 토글
+  const hint = document.getElementById('tagCatEditHint');
+  if (hint) hint.classList.toggle('show', BA.tagCatEditMode);
+  const addWrap = document.getElementById('tagCatAddWrap');
+  if (addWrap && !BA.tagCatEditMode) addWrap.classList.remove('open');
+  // 새 태그 카테고리 칩 동적 렌더
   renderTagNewCatRow('BA');
+}
+
+/* v1.12.0 — 카테고리 탭 렌더 공용 (BA/BD). 일반/편집(흔들림+배지) 모두 처리 */
+function _renderCatTabs(tabsEl, scope) {
+  const state = scope === 'BA' ? BA : BD;
+  const editing = !!state.tagCatEditMode;
+  const sorted = getTagCategoriesSorted();
+
+  let html = sorted.map(c => {
+    const count = _getTagsByCategory(c.id).length;
+    const cntBadge = count > 0 ? `<span class="tcc">${count}</span>` : '';
+
+    // 이름 수정 중인 탭
+    if (editing && state._catRenamingId === c.id) {
+      return `<span class="tag-cat-tab is-cat-editing is-cat-renaming" data-cat="${c.id}">
+        <input class="cat-rename-input" id="catRenameInput-${scope}" value="${esc(c.label)}" maxlength="8">
+      </span>`;
+    }
+
+    let cls = 'tag-cat-tab';
+    if (editing) {
+      cls += ' is-cat-editing';
+      if (c.locked) cls += ' is-cat-locked';
+    } else if (state.tagsActiveCat === c.id) {
+      cls += ' is-active';
+    }
+
+    let actions = '';
+    if (editing) {
+      actions += `<button type="button" class="cat-action ca-edit" data-catact="rename" data-cat="${c.id}">✏️</button>`;
+      if (!c.locked) {
+        const canDel = count === 0;
+        actions += `<button type="button" class="cat-action ca-del${canDel ? '' : ' is-disabled'}" data-catact="del" data-cat="${c.id}">×</button>`;
+      }
+    }
+    return `<button type="button" class="${cls}" data-cat="${c.id}" data-catact="select">${actions}${esc(c.label)}${cntBadge}</button>`;
+  }).join('');
+
+  // 숨김 탭 (편집 모드 아닐 때만)
+  if (!editing && HIDDEN_TAGS.size > 0) {
+    const hcls = 'tag-cat-tab is-hidden-tab' + (state.tagsActiveCat === 'hidden' ? ' is-active' : '');
+    html += `<button type="button" class="${hcls}" data-cat="hidden" data-catact="select">숨김<span class="tcc">${HIDDEN_TAGS.size}</span></button>`;
+  }
+
+  // 편집 모드: + 새 분류 칩 / 일반 모드: 편집 진입 버튼
+  if (editing) {
+    html += `<button type="button" class="tag-cat-add-chip" data-catact="addchip" data-scope="${scope}">+ 새 분류</button>`;
+  }
+  html += `<button type="button" class="tag-cat-edit-btn${editing ? ' is-editing' : ''}" data-catact="edittoggle" data-scope="${scope}">${editing ? '✓ 완료' : '편집'}</button>`;
+
+  tabsEl.innerHTML = html;
+  _wireCatTabs(tabsEl, scope);
+}
+
+/* v1.12.0 — 카테고리 탭 핸들러 배선 (선택/편집토글/이름수정/삭제/추가 + 드래그) */
+function _wireCatTabs(tabsEl, scope) {
+  const state = scope === 'BA' ? BA : BD;
+  const rerender = () => {
+    if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); }
+    else { renderBookDetailTags(); }
+  };
+
+  tabsEl.querySelectorAll('[data-catact]').forEach(elBtn => {
+    const act = elBtn.dataset.catact;
+
+    if (act === 'edittoggle') {
+      elBtn.addEventListener('click', () => {
+        state.tagCatEditMode = !state.tagCatEditMode;
+        state._catRenamingId = null;
+        rerender();
+      });
+    } else if (act === 'addchip') {
+      elBtn.addEventListener('click', () => {
+        const wrap = document.getElementById(scope === 'BA' ? 'tagCatAddWrap' : 'bdTagCatAddWrap');
+        if (wrap) {
+          wrap.classList.add('open');
+          setTimeout(() => wrap.querySelector('.tcaw-input')?.focus(), 50);
+        }
+      });
+    }
+  });
+
+  // 탭 자체 (선택 / 배지 / 드래그)
+  tabsEl.querySelectorAll('.tag-cat-tab').forEach(tab => {
+    if (tab.classList.contains('is-cat-renaming')) return;
+    const id = tab.dataset.cat;
+
+    tab.addEventListener('click', e => {
+      const actBtn = e.target.closest('[data-catact]');
+      const act = actBtn ? actBtn.dataset.catact : null;
+      if (act === 'rename') {
+        e.stopPropagation();
+        state._catRenamingId = id;
+        rerender();
+        // 포커스
+        setTimeout(() => {
+          const inp = document.getElementById('catRenameInput-' + scope);
+          if (inp) {
+            inp.focus(); inp.select();
+            inp.addEventListener('blur', () => _commitCatRename(scope));
+            inp.addEventListener('keydown', ev => {
+              if (ev.key === 'Enter') { ev.preventDefault(); _commitCatRename(scope); }
+              if (ev.key === 'Escape') { state._catRenamingId = null; rerender(); }
+            });
+          }
+        }, 30);
+        return;
+      }
+      if (act === 'del') {
+        e.stopPropagation();
+        _deleteCatCategory(id, scope);
+        return;
+      }
+      // 일반 선택 (편집 모드 아닐 때)
+      if (!state.tagCatEditMode && act === 'select') {
+        state.tagsActiveCat = id;
+        state.tagEditMode = false;
+        if (scope === 'BA') renderTagChips(); else renderBookDetailTags();
+      }
+    });
+
+    // 드래그 (편집 모드)
+    if (state.tagCatEditMode) {
+      tab.addEventListener('pointerdown', e => _onCatDragStart(e, scope));
+    }
+  });
+}
+
+/* v1.12.0 — 이름 수정 커밋 */
+function _commitCatRename(scope) {
+  const state = scope === 'BA' ? BA : BD;
+  if (!state._catRenamingId) return;
+  const inp = document.getElementById('catRenameInput-' + scope);
+  const rerender = () => { if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); } };
+  if (!inp) { state._catRenamingId = null; rerender(); return; }
+  const cat = TAG_CAT_LIST.find(c => c.id === state._catRenamingId);
+  const newLabel = inp.value.trim();
+  if (cat && newLabel && newLabel !== cat.label) {
+    if (TAG_CAT_LIST.some(c => c.id !== cat.id && c.label === newLabel)) {
+      showToast('이미 같은 이름의 대분류가 있어요');
+    } else {
+      cat.label = newLabel;
+      saveTagCategories();
+      showToast(`"${newLabel}"(으)로 변경`);
+    }
+  }
+  state._catRenamingId = null;
+  rerender();
+}
+
+/* v1.12.0 — 삭제 */
+function _deleteCatCategory(id, scope) {
+  const state = scope === 'BA' ? BA : BD;
+  const cat = TAG_CAT_LIST.find(c => c.id === id);
+  if (!cat) return;
+  if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return; }
+  if (_getTagsByCategory(id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return; }
+  TAG_CAT_LIST = TAG_CAT_LIST.filter(c => c.id !== id);
+  if (state.tagsActiveCat === id) state.tagsActiveCat = getTagCategoriesSorted()[0]?.id || 'genre';
+  saveTagCategories();
+  showToast(`"${cat.label}" 삭제됨`);
+  if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
+}
+
+/* v1.12.0 — 새 대분류 추가 */
+function _addCatCategory(scope) {
+  const wrap = document.getElementById(scope === 'BA' ? 'tagCatAddWrap' : 'bdTagCatAddWrap');
+  if (!wrap) return;
+  const inp = wrap.querySelector('.tcaw-input');
+  const label = (inp?.value || '').trim();
+  if (!label) { showToast('대분류 이름을 입력해주세요'); return; }
+  if (TAG_CAT_LIST.some(c => c.label === label)) { showToast('이미 같은 이름이 있어요'); return; }
+  const id = 'custom_' + Date.now().toString(36);
+  const maxOrder = Math.max(0, ...TAG_CAT_LIST.map(c => c.order || 0));
+  TAG_CAT_LIST.push({ id, label, locked: false, order: maxOrder + 1 });
+  saveTagCategories();
+  if (inp) inp.value = '';
+  wrap.classList.remove('open');
+  showToast(`"${label}" 추가됨`);
+  if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
+}
+
+/* v1.12.0 — 드래그 순서 변경 (pointer, 터치+마우스 통합) */
+let _catDrag = null;
+function _onCatDragStart(e, scope) {
+  if (e.target.closest('.cat-action')) return;  // 배지 클릭은 드래그 X
+  const state = scope === 'BA' ? BA : BD;
+  if (!state.tagCatEditMode || state._catRenamingId) return;
+  const tab = e.currentTarget;
+  const rect = tab.getBoundingClientRect();
+  _catDrag = {
+    scope, id: tab.dataset.cat, el: tab,
+    startX: e.clientX, startY: e.clientY,
+    offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top,
+    width: rect.width, height: rect.height, moved: false,
+  };
+  tab.setPointerCapture(e.pointerId);
+  tab.addEventListener('pointermove', _onCatDragMove);
+  tab.addEventListener('pointerup', _onCatDragEnd);
+  tab.addEventListener('pointercancel', _onCatDragEnd);
+}
+function _onCatDragMove(e) {
+  if (!_catDrag) return;
+  const dx = e.clientX - _catDrag.startX;
+  const dy = e.clientY - _catDrag.startY;
+  if (!_catDrag.moved) {
+    if (Math.abs(dx) + Math.abs(dy) < 6) return;
+    _catDrag.moved = true;
+    const ph = document.createElement('span');
+    ph.className = 'tag-cat-tab is-drag-ph';
+    ph.style.width = _catDrag.width + 'px';
+    ph.style.height = _catDrag.height + 'px';
+    _catDrag.placeholder = ph;
+    _catDrag.el.parentNode.insertBefore(ph, _catDrag.el);
+    _catDrag.el.classList.add('is-dragging');
+    _catDrag.el.style.position = 'fixed';
+    _catDrag.el.style.width = _catDrag.width + 'px';
+    _catDrag.el.style.margin = '0';
+  }
+  if (_catDrag.moved) {
+    _catDrag.el.style.left = (e.clientX - _catDrag.offsetX) + 'px';
+    _catDrag.el.style.top = (e.clientY - _catDrag.offsetY) + 'px';
+    const tabs = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')].filter(t =>
+      t !== _catDrag.el && t !== _catDrag.placeholder && t.dataset.cat && t.dataset.cat !== 'hidden'
+    );
+    let inserted = false;
+    for (const t of tabs) {
+      const r = t.getBoundingClientRect();
+      const midX = r.left + r.width / 2;
+      if (e.clientY >= r.top && e.clientY <= r.bottom && e.clientX < midX) {
+        t.parentNode.insertBefore(_catDrag.placeholder, t);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      const addChip = _catDrag.el.parentNode.querySelector('.tag-cat-add-chip');
+      if (addChip) _catDrag.el.parentNode.insertBefore(_catDrag.placeholder, addChip);
+    }
+  }
+}
+function _onCatDragEnd(e) {
+  if (!_catDrag) return;
+  const tab = _catDrag.el;
+  const scope = _catDrag.scope;
+  tab.removeEventListener('pointermove', _onCatDragMove);
+  tab.removeEventListener('pointerup', _onCatDragEnd);
+  tab.removeEventListener('pointercancel', _onCatDragEnd);
+
+  if (_catDrag.moved && _catDrag.placeholder) {
+    const orderedIds = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')]
+      .map(t => t === _catDrag.el ? _catDrag.placeholder : t)
+      .filter(t => (t === _catDrag.placeholder) || (t.dataset.cat && t.dataset.cat !== 'hidden'))
+      .map(t => t === _catDrag.placeholder ? _catDrag.id : t.dataset.cat)
+      .filter(Boolean);
+    orderedIds.forEach((id, idx) => {
+      const cat = TAG_CAT_LIST.find(c => c.id === id);
+      if (cat) cat.order = idx;
+    });
+    saveTagCategories();
+    showToast('순서 변경됨');
+  }
+  if (_catDrag.placeholder) _catDrag.placeholder.remove();
+  tab.classList.remove('is-dragging');
+  tab.style.position = ''; tab.style.left = ''; tab.style.top = '';
+  tab.style.width = ''; tab.style.margin = '';
+  _catDrag = null;
+  if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
 }
 
 /* v1.12.0 — 새 태그 카테고리 선택 칩 동적 렌더 (BA/BD 공용) */
@@ -31208,7 +31501,6 @@ function renderTagNewCatRow(scope) {
   const state = isBA ? BA : BD;
   const row = document.getElementById(rowId);
   if (!row) return;
-  // 현재 선택된 카테고리가 삭제됐으면 첫 카테고리로
   if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory)) {
     state.newTagCategory = getTagCategoriesSorted()[0]?.id || 'genre';
   }
@@ -31217,134 +31509,6 @@ function renderTagNewCatRow(scope) {
     `<button type="button" class="tnc-chip${state.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`
   ).join('');
   row.innerHTML = html;
-}
-
-/* v1.12.0 — 대분류 관리 편집 패널 렌더 (BA/BD 공용) */
-function renderTagCatEditPanel(scope) {
-  const isBA = scope === 'BA';
-  const panelId = isBA ? 'tagCatEditPanel' : 'bdTagCatEditPanel';
-  const state = isBA ? BA : BD;
-  const panel = document.getElementById(panelId);
-  if (!panel) return;
-
-  if (!state.tagCatEditMode) {
-    panel.classList.remove('open');
-    panel.innerHTML = '';
-    return;
-  }
-  panel.classList.add('open');
-
-  const sorted = getTagCategoriesSorted();
-  const rerender = isBA ? 'BA' : 'BD';
-  let html = `<div class="tcep-title">📂 대분류 관리</div><div class="tcep-list">`;
-  sorted.forEach((c, idx) => {
-    const count = _getTagsByCategory(c.id).length;
-    const canDelete = !c.locked && count === 0;
-    const delTitle = c.locked ? '기본 분류는 삭제 불가' : (count > 0 ? '태그를 먼저 비워주세요' : '삭제');
-    const upDisabled = idx === 0 ? ' disabled' : '';
-    const downDisabled = idx === sorted.length - 1 ? ' disabled' : '';
-    html += `
-      <div class="tcep-row" data-id="${c.id}">
-        <div class="tcep-order">
-          <button class="tcep-ord-btn" data-act="up" data-id="${c.id}"${upDisabled}>▲</button>
-          <button class="tcep-ord-btn" data-act="down" data-id="${c.id}"${downDisabled}>▼</button>
-        </div>
-        <input class="tcep-name" value="${esc(c.label)}" data-id="${c.id}" maxlength="8">
-        <span class="tcep-count">${count}개${c.locked ? ' · 기본' : ''}</span>
-        <button class="tcep-del${canDelete ? '' : ' locked'}" data-id="${c.id}" title="${delTitle}">🗑️</button>
-      </div>`;
-  });
-  html += `</div>`;
-  html += `
-    <div class="tcep-add-row">
-      <input class="tcep-add-input" id="tcepAddInput-${rerender}" type="text" placeholder="새 대분류 (예: 에세이)" maxlength="8">
-      <button class="tcep-add-btn" data-act="add" data-scope="${rerender}">+ 추가</button>
-    </div>
-    <button class="tcep-done" data-act="done" data-scope="${rerender}">완료</button>`;
-  panel.innerHTML = html;
-
-  _wireTagCatEditPanel(panel, rerender);
-}
-
-/* 대분류 편집 패널 핸들러 배선 */
-function _wireTagCatEditPanel(panel, scope) {
-  const refresh = () => {
-    saveTagCategories();
-    renderTagCatEditPanel(scope);
-    if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); }
-    else { renderBookDetailTags(); }
-  };
-
-  // 이름 수정
-  panel.querySelectorAll('.tcep-name').forEach(inp => {
-    inp.addEventListener('change', () => {
-      const cat = TAG_CAT_LIST.find(c => c.id === inp.dataset.id);
-      if (!cat) return;
-      const newLabel = inp.value.trim();
-      if (!newLabel) { inp.value = cat.label; return; }
-      if (TAG_CAT_LIST.some(c => c.id !== cat.id && c.label === newLabel)) {
-        showToast('이미 같은 이름의 대분류가 있어요');
-        inp.value = cat.label;
-        return;
-      }
-      cat.label = newLabel;
-      showToast(`"${newLabel}"(으)로 변경`);
-      refresh();
-    });
-  });
-
-  // 순서 변경
-  panel.querySelectorAll('.tcep-ord-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      const sorted = getTagCategoriesSorted();
-      const idx = sorted.findIndex(c => c.id === btn.dataset.id);
-      const swapIdx = btn.dataset.act === 'up' ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= sorted.length) return;
-      const a = sorted[idx], b = sorted[swapIdx];
-      const tmp = a.order; a.order = b.order; b.order = tmp;
-      refresh();
-    });
-  });
-
-  // 삭제
-  panel.querySelectorAll('.tcep-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cat = TAG_CAT_LIST.find(c => c.id === btn.dataset.id);
-      if (!cat) return;
-      if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return; }
-      if (_getTagsByCategory(cat.id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return; }
-      TAG_CAT_LIST = TAG_CAT_LIST.filter(c => c.id !== cat.id);
-      const state = scope === 'BA' ? BA : BD;
-      if (state.tagsActiveCat === cat.id) state.tagsActiveCat = getTagCategoriesSorted()[0]?.id || 'genre';
-      showToast(`"${cat.label}" 삭제됨`);
-      refresh();
-    });
-  });
-
-  // 추가
-  const addBtn = panel.querySelector('.tcep-add-btn');
-  const addInput = panel.querySelector('.tcep-add-input');
-  const doAdd = () => {
-    const label = (addInput?.value || '').trim();
-    if (!label) { showToast('대분류 이름을 입력해주세요'); return; }
-    if (TAG_CAT_LIST.some(c => c.label === label)) { showToast('이미 같은 이름이 있어요'); return; }
-    const id = 'custom_' + Date.now().toString(36);
-    const maxOrder = Math.max(0, ...TAG_CAT_LIST.map(c => c.order || 0));
-    TAG_CAT_LIST.push({ id, label, locked: false, order: maxOrder + 1 });
-    showToast(`"${label}" 추가됨`);
-    refresh();
-  };
-  if (addBtn) addBtn.addEventListener('click', doAdd);
-  if (addInput) addInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
-
-  // 완료
-  const doneBtn = panel.querySelector('.tcep-done');
-  if (doneBtn) doneBtn.addEventListener('click', () => {
-    const state = scope === 'BA' ? BA : BD;
-    state.tagCatEditMode = false;
-    refresh();
-  });
 }
 
 /* ─── 태그 칩 렌더 (v1.9.0 카테고리 탭 + 편집/숨김/복구) ─── */
@@ -31522,39 +31686,15 @@ function renderBookDetailTags() {
   // 카테고리 탭
   const tabsEl = document.getElementById('bdTagCatTabs');
   if (tabsEl) {
-    // v1.12.0 — 동적 카테고리 + 숨김 탭
-    const cats = getTagCategoriesSorted().map(c => ({ id: c.id, label: c.label }));
-    cats.push({ id: 'hidden', label: '숨김', hidden: true });
-    let html = cats.map(c => {
-      const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
-      if (c.hidden && count === 0) return '';
-      let cls = 'tag-cat-tab';
-      if (c.hidden) cls += ' is-hidden-tab';
-      if (BD.tagsActiveCat === c.id) cls += ' is-active';
-      const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
-      return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
-    }).join('');
-    html += `<button type="button" class="tag-cat-manage${BD.tagCatEditMode ? ' is-active' : ''}" id="tagCatManageBtnBD">⚙️ 분류</button>`;
-    tabsEl.innerHTML = html;
-    tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        BD.tagsActiveCat = btn.dataset.cat;
-        BD.tagEditMode = false;
-        renderBookDetailTags();
-      });
-    });
-    const manageBtn = document.getElementById('tagCatManageBtnBD');
-    if (manageBtn) {
-      manageBtn.addEventListener('click', () => {
-        BD.tagCatEditMode = !BD.tagCatEditMode;
-        renderTagCatEditPanel('BD');
-        renderBookDetailTags();
-      });
-    }
+    // v1.12.0 — 흔들림 편집 + 드래그 (BA와 공용 _renderCatTabs)
+    _renderCatTabs(tabsEl, 'BD');
+    const hint = document.getElementById('bdTagCatEditHint');
+    if (hint) hint.classList.toggle('show', BD.tagCatEditMode);
+    const addWrap = document.getElementById('bdTagCatAddWrap');
+    if (addWrap && !BD.tagCatEditMode) addWrap.classList.remove('open');
   }
-  // v1.12.0 — BD 새 태그 카테고리 칩 + 편집 패널 렌더
+  // v1.12.0 — BD 새 태그 카테고리 칩 렌더
   if (document.getElementById('bdTagNewCatRow')) renderTagNewCatRow('BD');
-  if (document.getElementById('bdTagCatEditPanel')) renderTagCatEditPanel('BD');
 
   const editing = !!BD.tagEditMode;
   const activeCat = BD.tagsActiveCat;
@@ -38616,8 +38756,13 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
-      <!-- v1.12.0 대분류 편집 패널 -->
-      <div class="tag-cat-edit-panel" id="bdTagCatEditPanel"></div>
+      <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
+      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">✏️ 이름 수정 · × 삭제(빈 분류만) · 드래그로 순서 변경 · 기본 분류는 이름만 변경</div>
+      <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
+        <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
+        <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BD')">추가</button>
+        <button type="button" class="tcaw-cancel" onclick="document.getElementById('bdTagCatAddWrap').classList.remove('open')">취소</button>
+      </div>
       <!-- 편집 헬프 박스 -->
       <div class="tag-edit-help" id="bdTagEditHelp" data-mode="hide" aria-hidden="true">
         <!-- JS 렌더 -->
