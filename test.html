@@ -8144,6 +8144,12 @@ body:has(.lib-edit-bar) .library-cards {
   padding-bottom: 2px;
 }
 .tag-cat-tabs::-webkit-scrollbar { display: none; }
+/* v1.12.0 — 편집 모드: 좌상단 ✎ 배지가 잘리지 않도록 여백 + overflow 허용 */
+.tag-cat-tabs.is-editing-mode {
+  overflow: visible;
+  padding-top: 8px;
+  padding-left: 8px;
+}
 .tag-cat-tab {
   padding: 7px 11px;
   border-radius: 4px;
@@ -8395,26 +8401,6 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* ═══════ v1.12.0 — 대분류 관리 (흔들림 + 드래그) ═══════ */
-.tag-cat-edit-btn {
-  flex-shrink: 0;
-  padding: 5px 12px;
-  background: transparent;
-  border: 1px solid var(--c-border-2, #DCDCD8);
-  border-radius: 99px;
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--c-text-3, #9A958C);
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.tag-cat-edit-btn:hover { background: var(--c-surface); color: var(--c-coin-deep); border-color: var(--c-coin-2); }
-.tag-cat-edit-btn.is-editing {
-  background: var(--c-coin-deep, #5F6B5F);
-  color: white;
-  border-color: transparent;
-}
 
 /* 흔들림 */
 @keyframes catShake {
@@ -8422,59 +8408,71 @@ body:has(.lib-edit-bar) .library-cards {
   50% { transform: rotate(1.2deg); }
 }
 .tag-cat-tab.is-cat-editing {
-  cursor: default;
+  cursor: pointer;
   position: relative;
-  padding-left: 26px;
-  padding-right: 26px;
+  /* 패딩 안 건드림 → 박스 크기 그대로 유지 */
   animation: catShake 0.32s ease-in-out infinite;
   touch-action: none;
+  overflow: visible;  /* 배지가 칩 밖으로 살짝 나가도 안 잘리게 */
 }
 .tag-cat-tab.is-cat-editing:nth-child(even) { animation-duration: 0.36s; animation-direction: reverse; }
 .tag-cat-tab.is-cat-editing:nth-child(3n) { animation-duration: 0.30s; }
-.tag-cat-tab.is-cat-editing.is-cat-locked { padding-left: 13px; }
 
-/* 액션 배지 */
+/* ✎ 배지 — 칩 좌상단 모서리에 겹쳐 띄움 (iOS 홈 아이콘 스타일). 칩 크기 영향 X */
 .tag-cat-tab .cat-action {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 17px;
-  height: 17px;
+  left: -6px;
+  top: -6px;
+  transform: none;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  background: var(--primary, #6D4C41);
   color: white;
-  border: none;
-  font-size: 10px;
+  border: 1.5px solid var(--c-surface, #FCFCFA);
+  font-size: 9px;
   font-weight: 900;
   cursor: pointer;
   display: grid;
   place-items: center;
   line-height: 1;
   padding: 0;
-  z-index: 2;
+  z-index: 3;
+  transition: transform .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.tag-cat-tab .cat-action.ca-edit { left: 4px; background: var(--c-coin-1, #C8A368); font-size: 9px; }
-.tag-cat-tab .cat-action.ca-del { right: 4px; background: #B85A4A; }
-.tag-cat-tab .cat-action.ca-del.is-disabled { background: #C0BCB4; cursor: not-allowed; }
+.tag-cat-tab .cat-action:hover { transform: scale(1.15); }
+.tag-cat-tab .cat-action:active { transform: scale(0.92); }
 
-/* 인라인 이름 수정 */
-.tag-cat-tab.is-cat-renaming {
-  animation: none;
-  padding: 3px 8px;
-  background: var(--c-surface, #FCFCFA);
-  border: 1px solid var(--c-coin-deep, #5F6B5F);
+/* 대분류 편집 하단 시트 */
+.cat-edit-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 1199;
 }
-.cat-rename-input {
-  border: none;
+.cat-edit-backdrop.is-open { opacity: 1; pointer-events: auto; }
+.cat-edit-sheet { z-index: 1200; }
+.cat-sheet-del-row { margin: 14px 0 4px; }
+.cat-sheet-del-btn {
+  width: 100%;
+  padding: 10px;
   background: transparent;
-  font-size: 12px;
+  color: #B85A4A;
+  border: 1px solid #E5C5BE;
+  border-radius: 9px;
+  font-size: 13px;
   font-weight: 700;
+  cursor: pointer;
   font-family: inherit;
-  color: var(--c-text, #15110D);
-  width: 62px;
-  padding: 2px;
-  text-align: center;
+  transition: all .15s;
 }
-.cat-rename-input:focus { outline: none; }
+.cat-sheet-del-btn:hover:not(:disabled) { background: #F5E8E5; }
+.cat-sheet-del-btn:disabled { color: #C0BCB4; border-color: #E5E2DC; cursor: not-allowed; }
+.cat-sheet-del-hint { font-size: 11px; color: var(--c-text-3, #9A958C); text-align: center; margin-top: 6px; }
 
 /* + 새 분류 칩 */
 .tag-cat-add-chip {
@@ -22631,7 +22629,7 @@ body.cn-locked {
           <!-- JS 렌더 -->
         </div>
         <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
-        <div class="tag-cat-edit-hint" id="tagCatEditHint">✏️ 이름 수정 · × 삭제(빈 분류만) · 드래그로 순서 변경 · 기본 분류는 이름만 변경</div>
+        <div class="tag-cat-edit-hint" id="tagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
         <div class="tag-cat-add-wrap" id="tagCatAddWrap">
           <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
           <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BA')">추가</button>
@@ -23348,6 +23346,28 @@ body.cn-locked {
   <div class="qn-actions">
     <button class="qn-btn secondary" id="tagEditCancel">취소</button>
     <button class="qn-btn primary" id="tagEditSave">저장</button>
+  </div>
+</aside>
+
+<!-- v1.12.0 — 대분류 편집 하단 시트 -->
+<div class="cat-edit-backdrop" id="catEditBackdrop" onclick="closeCatEditSheet()"></div>
+<aside class="qn-sheet cat-edit-sheet" id="catEditSheet" aria-hidden="true">
+  <div class="qn-grip"></div>
+  <div class="tes-head">
+    <div class="tes-title">📂 대분류 수정</div>
+    <div class="tes-count" id="catSheetCount"></div>
+  </div>
+  <div class="tes-row">
+    <input type="text" class="tes-name-input" id="catSheetName" maxlength="8" placeholder="대분류 이름"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();saveCatEditSheet();}" />
+  </div>
+  <div class="cat-sheet-del-row">
+    <button type="button" class="cat-sheet-del-btn" id="catSheetDelete" onclick="deleteCatFromSheet()">🗑️ 이 대분류 삭제</button>
+    <div class="cat-sheet-del-hint" id="catSheetDelHint"></div>
+  </div>
+  <div class="qn-actions">
+    <button class="qn-btn secondary" onclick="closeCatEditSheet()">취소</button>
+    <button class="qn-btn primary" onclick="saveCatEditSheet()">저장</button>
   </div>
 </aside>
 
@@ -28371,7 +28391,6 @@ const BA = {
   tagEditMode: false,   // 태그 편집(삭제) 모드
   tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭 ('genre'|'nonfiction'|'growth'|'format'|'hidden')
   newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 선택된 카테고리
-  tagCatEditMode: false, // v1.12.0 - 대분류 관리 모드
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
   manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio' | 'webnovel')
   manualNovelStatus: 'serial', // v1.11.0 — 웹소설 연재 상태 ('serial' | 'completed')
@@ -31212,67 +31231,58 @@ function _getTagsByCategory(cat) {
     .map(([name, tag]) => ({ name, ...tag }));
 }
 
-/* v1.9.0 — 카테고리 탭 렌더 / v1.12.0 — 흔들림 편집 + 드래그 */
+/* v1.9.0 — 카테고리 탭 렌더 / v1.12.0 — 흔들림 편집 + 드래그 (소분류 편집과 통합) */
 function renderTagCategoryTabs() {
   const tabsEl = document.getElementById('tagCatTabs');
   if (!tabsEl) return;
   _renderCatTabs(tabsEl, 'BA');
-  // 편집 모드 안내 + 새 분류 입력창 토글
+  // 편집 모드 안내 + 새 분류 입력창 토글 (소분류와 동일 tagEditMode, 숨김 탭 제외)
+  const catEditing = !!BA.tagEditMode && BA.tagsActiveCat !== 'hidden';
   const hint = document.getElementById('tagCatEditHint');
-  if (hint) hint.classList.toggle('show', BA.tagCatEditMode);
+  if (hint) hint.classList.toggle('show', catEditing);
   const addWrap = document.getElementById('tagCatAddWrap');
-  if (addWrap && !BA.tagCatEditMode) addWrap.classList.remove('open');
+  if (addWrap && !catEditing) addWrap.classList.remove('open');
   // 새 태그 카테고리 칩 동적 렌더
   renderTagNewCatRow('BA');
 }
 
-/* v1.12.0 — 카테고리 탭 렌더 공용 (BA/BD). 일반/편집(흔들림+배지) 모두 처리 */
+/* v1.12.0 — 카테고리 탭 렌더 공용 (BA/BD). 소분류 편집 모드(tagEditMode)와 통합 */
 function _renderCatTabs(tabsEl, scope) {
   const state = scope === 'BA' ? BA : BD;
-  const editing = !!state.tagCatEditMode;
+  // 편집 = 소분류와 동일한 tagEditMode. 단 '숨김' 탭에선 대분류 편집 액션 숨김(복구 전용 화면)
+  const editing = !!state.tagEditMode && state.tagsActiveCat !== 'hidden';
+  // 편집 모드면 컨테이너에 여백 클래스 (좌상단 ✎ 배지가 잘리지 않게)
+  tabsEl.classList.toggle('is-editing-mode', editing);
   const sorted = getTagCategoriesSorted();
 
   let html = sorted.map(c => {
     const count = _getTagsByCategory(c.id).length;
     const cntBadge = count > 0 ? `<span class="tcc">${count}</span>` : '';
 
-    // 이름 수정 중인 탭
-    if (editing && state._catRenamingId === c.id) {
-      return `<span class="tag-cat-tab is-cat-editing is-cat-renaming" data-cat="${c.id}">
-        <input class="cat-rename-input" id="catRenameInput-${scope}" value="${esc(c.label)}" maxlength="8">
-      </span>`;
-    }
-
     let cls = 'tag-cat-tab';
     if (editing) {
       cls += ' is-cat-editing';
-      if (c.locked) cls += ' is-cat-locked';
-    } else if (state.tagsActiveCat === c.id) {
-      cls += ' is-active';
     }
+    if (state.tagsActiveCat === c.id) cls += ' is-active';  // 편집 중에도 현재 탭 표시 유지
 
+    // 편집 모드: 소분류와 동일하게 ✏️ 배지 하나만 (삭제는 모달에서)
     let actions = '';
     if (editing) {
-      actions += `<button type="button" class="cat-action ca-edit" data-catact="rename" data-cat="${c.id}">✏️</button>`;
-      if (!c.locked) {
-        const canDel = count === 0;
-        actions += `<button type="button" class="cat-action ca-del${canDel ? '' : ' is-disabled'}" data-catact="del" data-cat="${c.id}">×</button>`;
-      }
+      actions += `<button type="button" class="cat-action ca-edit" data-catact="edit" data-cat="${c.id}">✎</button>`;
     }
     return `<button type="button" class="${cls}" data-cat="${c.id}" data-catact="select">${actions}${esc(c.label)}${cntBadge}</button>`;
   }).join('');
 
-  // 숨김 탭 (편집 모드 아닐 때만)
-  if (!editing && HIDDEN_TAGS.size > 0) {
+  // 숨김 탭 (항상 노출 — 숨긴 태그 있을 때)
+  if (HIDDEN_TAGS.size > 0) {
     const hcls = 'tag-cat-tab is-hidden-tab' + (state.tagsActiveCat === 'hidden' ? ' is-active' : '');
     html += `<button type="button" class="${hcls}" data-cat="hidden" data-catact="select">숨김<span class="tcc">${HIDDEN_TAGS.size}</span></button>`;
   }
 
-  // 편집 모드: + 새 분류 칩 / 일반 모드: 편집 진입 버튼
+  // 편집 모드: + 새 분류 칩
   if (editing) {
     html += `<button type="button" class="tag-cat-add-chip" data-catact="addchip" data-scope="${scope}">+ 새 분류</button>`;
   }
-  html += `<button type="button" class="tag-cat-edit-btn${editing ? ' is-editing' : ''}" data-catact="edittoggle" data-scope="${scope}">${editing ? '✓ 완료' : '편집'}</button>`;
 
   tabsEl.innerHTML = html;
   _wireCatTabs(tabsEl, scope);
@@ -31281,6 +31291,7 @@ function _renderCatTabs(tabsEl, scope) {
 /* v1.12.0 — 카테고리 탭 핸들러 배선 (선택/편집토글/이름수정/삭제/추가 + 드래그) */
 function _wireCatTabs(tabsEl, scope) {
   const state = scope === 'BA' ? BA : BD;
+  const editing = !!state.tagEditMode && state.tagsActiveCat !== 'hidden';
   const rerender = () => {
     if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); }
     else { renderBookDetailTags(); }
@@ -31288,14 +31299,7 @@ function _wireCatTabs(tabsEl, scope) {
 
   tabsEl.querySelectorAll('[data-catact]').forEach(elBtn => {
     const act = elBtn.dataset.catact;
-
-    if (act === 'edittoggle') {
-      elBtn.addEventListener('click', () => {
-        state.tagCatEditMode = !state.tagCatEditMode;
-        state._catRenamingId = null;
-        rerender();
-      });
-    } else if (act === 'addchip') {
+    if (act === 'addchip') {
       elBtn.addEventListener('click', () => {
         const wrap = document.getElementById(scope === 'BA' ? 'tagCatAddWrap' : 'bdTagCatAddWrap');
         if (wrap) {
@@ -31306,86 +31310,54 @@ function _wireCatTabs(tabsEl, scope) {
     }
   });
 
-  // 탭 자체 (선택 / 배지 / 드래그)
+  // 탭 자체 (선택 / ✎ 배지 / 드래그)
   tabsEl.querySelectorAll('.tag-cat-tab').forEach(tab => {
-    if (tab.classList.contains('is-cat-renaming')) return;
     const id = tab.dataset.cat;
 
     tab.addEventListener('click', e => {
       const actBtn = e.target.closest('[data-catact]');
       const act = actBtn ? actBtn.dataset.catact : null;
-      if (act === 'rename') {
+
+      // 편집 모드에서 ✎ 배지 클릭 → 대분류 편집 모달
+      if (act === 'edit') {
         e.stopPropagation();
-        state._catRenamingId = id;
-        rerender();
-        // 포커스
-        setTimeout(() => {
-          const inp = document.getElementById('catRenameInput-' + scope);
-          if (inp) {
-            inp.focus(); inp.select();
-            inp.addEventListener('blur', () => _commitCatRename(scope));
-            inp.addEventListener('keydown', ev => {
-              if (ev.key === 'Enter') { ev.preventDefault(); _commitCatRename(scope); }
-              if (ev.key === 'Escape') { state._catRenamingId = null; rerender(); }
-            });
-          }
-        }, 30);
+        if (id !== 'hidden') openCatEditSheet(id, scope);
         return;
       }
-      if (act === 'del') {
-        e.stopPropagation();
-        _deleteCatCategory(id, scope);
-        return;
-      }
-      // 일반 선택 (편집 모드 아닐 때)
-      if (!state.tagCatEditMode && act === 'select') {
+      // select
+      if (act === 'select') {
+        if (_catDragMoved) { _catDragMoved = false; return; }  // 드래그 직후 클릭 무시
+        // 편집 모드 + 일반 탭이면 → 탭 본체 눌러도 편집 모달 (소분류처럼 칩 자체가 편집 진입)
+        if (editing && id !== 'hidden') {
+          openCatEditSheet(id, scope);
+          return;
+        }
+        // 일반: 탭 전환
         state.tagsActiveCat = id;
-        state.tagEditMode = false;
         if (scope === 'BA') renderTagChips(); else renderBookDetailTags();
       }
     });
 
-    // 드래그 (편집 모드)
-    if (state.tagCatEditMode) {
+    // 드래그 (편집 모드 + 일반 탭만)
+    if (editing && id !== 'hidden') {
       tab.addEventListener('pointerdown', e => _onCatDragStart(e, scope));
     }
   });
-}
-
-/* v1.12.0 — 이름 수정 커밋 */
-function _commitCatRename(scope) {
-  const state = scope === 'BA' ? BA : BD;
-  if (!state._catRenamingId) return;
-  const inp = document.getElementById('catRenameInput-' + scope);
-  const rerender = () => { if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); } };
-  if (!inp) { state._catRenamingId = null; rerender(); return; }
-  const cat = TAG_CAT_LIST.find(c => c.id === state._catRenamingId);
-  const newLabel = inp.value.trim();
-  if (cat && newLabel && newLabel !== cat.label) {
-    if (TAG_CAT_LIST.some(c => c.id !== cat.id && c.label === newLabel)) {
-      showToast('이미 같은 이름의 대분류가 있어요');
-    } else {
-      cat.label = newLabel;
-      saveTagCategories();
-      showToast(`"${newLabel}"(으)로 변경`);
-    }
-  }
-  state._catRenamingId = null;
-  rerender();
 }
 
 /* v1.12.0 — 삭제 */
 function _deleteCatCategory(id, scope) {
   const state = scope === 'BA' ? BA : BD;
   const cat = TAG_CAT_LIST.find(c => c.id === id);
-  if (!cat) return;
-  if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return; }
-  if (_getTagsByCategory(id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return; }
+  if (!cat) return false;
+  if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return false; }
+  if (_getTagsByCategory(id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return false; }
   TAG_CAT_LIST = TAG_CAT_LIST.filter(c => c.id !== id);
   if (state.tagsActiveCat === id) state.tagsActiveCat = getTagCategoriesSorted()[0]?.id || 'genre';
   saveTagCategories();
   showToast(`"${cat.label}" 삭제됨`);
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
+  return true;
 }
 
 /* v1.12.0 — 새 대분류 추가 */
@@ -31406,12 +31378,88 @@ function _addCatCategory(scope) {
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
 }
 
+/* v1.12.0 — 대분류 편집 하단 시트 */
+let _catSheetCtx = null;  // { id, scope }
+function openCatEditSheet(id, scope) {
+  const cat = TAG_CAT_LIST.find(c => c.id === id);
+  if (!cat) return;
+  _catSheetCtx = { id, scope };
+  const count = _getTagsByCategory(id).length;
+
+  const nameInput = document.getElementById('catSheetName');
+  const countEl = document.getElementById('catSheetCount');
+  const delBtn = document.getElementById('catSheetDelete');
+  const delHint = document.getElementById('catSheetDelHint');
+  if (nameInput) nameInput.value = cat.label;
+  if (countEl) countEl.textContent = count > 0 ? `태그 ${count}개` : '태그 없음';
+
+  // 삭제 버튼 가드: 기본 분류 불가 / 태그 있으면 불가
+  if (delBtn && delHint) {
+    if (cat.locked) {
+      delBtn.disabled = true;
+      delHint.textContent = '기본 대분류는 삭제할 수 없어요';
+    } else if (count > 0) {
+      delBtn.disabled = true;
+      delHint.textContent = '태그를 먼저 비우거나 옮긴 뒤 삭제할 수 있어요';
+    } else {
+      delBtn.disabled = false;
+      delHint.textContent = '';
+    }
+  }
+
+  const sheet = document.getElementById('catEditSheet');
+  const backdrop = document.getElementById('catEditBackdrop');
+  if (backdrop) backdrop.classList.add('is-open');
+  if (sheet) {
+    sheet.classList.add('is-open');
+    sheet.setAttribute('aria-hidden', 'false');
+  }
+  setTimeout(() => { if (nameInput) { nameInput.focus(); nameInput.select(); } }, 120);
+}
+
+function closeCatEditSheet() {
+  const sheet = document.getElementById('catEditSheet');
+  const backdrop = document.getElementById('catEditBackdrop');
+  if (sheet) { sheet.classList.remove('is-open'); sheet.setAttribute('aria-hidden', 'true'); }
+  if (backdrop) backdrop.classList.remove('is-open');
+  _catSheetCtx = null;
+}
+
+function saveCatEditSheet() {
+  if (!_catSheetCtx) return;
+  const { id, scope } = _catSheetCtx;
+  const cat = TAG_CAT_LIST.find(c => c.id === id);
+  if (!cat) { closeCatEditSheet(); return; }
+  const nameInput = document.getElementById('catSheetName');
+  const newLabel = (nameInput?.value || '').trim();
+  if (!newLabel) { showToast('대분류 이름을 입력해주세요'); return; }
+  if (newLabel !== cat.label) {
+    if (TAG_CAT_LIST.some(c => c.id !== cat.id && c.label === newLabel)) {
+      showToast('이미 같은 이름의 대분류가 있어요');
+      return;
+    }
+    cat.label = newLabel;
+    saveTagCategories();
+    showToast(`"${newLabel}"(으)로 변경`);
+  }
+  closeCatEditSheet();
+  if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
+}
+
+function deleteCatFromSheet() {
+  if (!_catSheetCtx) return;
+  const { id, scope } = _catSheetCtx;
+  const ok = _deleteCatCategory(id, scope);
+  if (ok) closeCatEditSheet();
+}
+
 /* v1.12.0 — 드래그 순서 변경 (pointer, 터치+마우스 통합) */
 let _catDrag = null;
+let _catDragMoved = false;  // 드래그 직후 발생하는 click 무시용
 function _onCatDragStart(e, scope) {
   if (e.target.closest('.cat-action')) return;  // 배지 클릭은 드래그 X
   const state = scope === 'BA' ? BA : BD;
-  if (!state.tagCatEditMode || state._catRenamingId) return;
+  if (!state.tagEditMode || state.tagsActiveCat === 'hidden') return;
   const tab = e.currentTarget;
   const rect = tab.getBoundingClientRect();
   _catDrag = {
@@ -31490,6 +31538,7 @@ function _onCatDragEnd(e) {
   tab.classList.remove('is-dragging');
   tab.style.position = ''; tab.style.left = ''; tab.style.top = '';
   tab.style.width = ''; tab.style.margin = '';
+  _catDragMoved = _catDrag.moved;  // 드래그였으면 직후 click 무시
   _catDrag = null;
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
 }
@@ -31688,10 +31737,11 @@ function renderBookDetailTags() {
   if (tabsEl) {
     // v1.12.0 — 흔들림 편집 + 드래그 (BA와 공용 _renderCatTabs)
     _renderCatTabs(tabsEl, 'BD');
+    const catEditing = !!BD.tagEditMode && BD.tagsActiveCat !== 'hidden';
     const hint = document.getElementById('bdTagCatEditHint');
-    if (hint) hint.classList.toggle('show', BD.tagCatEditMode);
+    if (hint) hint.classList.toggle('show', catEditing);
     const addWrap = document.getElementById('bdTagCatAddWrap');
-    if (addWrap && !BD.tagCatEditMode) addWrap.classList.remove('open');
+    if (addWrap && !catEditing) addWrap.classList.remove('open');
   }
   // v1.12.0 — BD 새 태그 카테고리 칩 렌더
   if (document.getElementById('bdTagNewCatRow')) renderTagNewCatRow('BD');
@@ -37016,7 +37066,6 @@ const BD = {
   tagEditMode: false,    // 태그 편집(삭제) 모드
   tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭
   newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 카테고리
-  tagCatEditMode: false, // v1.12.0 - 대분류 관리 모드
   tmSessOpen: false,     // v1.10.4 — 타이머 세션 펼침 상태 (책상세 안)
   tmSessEditKey: null,   // v1.10.4 — 편집 중인 세션 키
 };
@@ -38757,7 +38806,7 @@ function renderBookDetail() {
         <!-- JS 렌더 -->
       </div>
       <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
-      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">✏️ 이름 수정 · × 삭제(빈 분류만) · 드래그로 순서 변경 · 기본 분류는 이름만 변경</div>
+      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
       <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
         <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
         <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BD')">추가</button>
