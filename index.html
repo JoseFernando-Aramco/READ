@@ -29436,6 +29436,7 @@ function _onCatDragStart(e, scope) {
   const rect = tab.getBoundingClientRect();
   _catDrag = {
     scope, id: tab.dataset.cat, el: tab,
+    parent: tab.parentNode,
     startX: e.clientX, startY: e.clientY,
     offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top,
     width: rect.width, height: rect.height, moved: false,
@@ -29457,17 +29458,20 @@ function _onCatDragMove(e) {
     ph.style.width = _catDrag.width + 'px';
     ph.style.height = _catDrag.height + 'px';
     _catDrag.placeholder = ph;
-    _catDrag.el.parentNode.insertBefore(ph, _catDrag.el);
-    _catDrag.el.parentNode.classList.add('is-cat-dragging');  // 흔들림 정지
+    _catDrag.parent.insertBefore(ph, _catDrag.el);
+    _catDrag.parent.classList.add('is-cat-dragging');  // 흔들림 정지
+    // v1.12.1 — fixed 요소를 body로 이동: transform/backdrop-filter 조상이 containing block을 가로채는 것 방지
+    document.body.appendChild(_catDrag.el);
     _catDrag.el.classList.add('is-dragging');
     _catDrag.el.style.position = 'fixed';
+    _catDrag.el.style.zIndex = '99999';
     _catDrag.el.style.width = _catDrag.width + 'px';
     _catDrag.el.style.margin = '0';
   }
   if (_catDrag.moved) {
     _catDrag.el.style.left = (e.clientX - _catDrag.offsetX) + 'px';
     _catDrag.el.style.top = (e.clientY - _catDrag.offsetY) + 'px';
-    const tabs = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')].filter(t =>
+    const tabs = [..._catDrag.parent.querySelectorAll('.tag-cat-tab')].filter(t =>
       t !== _catDrag.el && t !== _catDrag.placeholder && t.dataset.cat && t.dataset.cat !== 'hidden'
     );
     // 한 줄 가로 정렬 — 세로 제약 없이 X 중앙 기준으로 삽입 위치 결정
@@ -29476,7 +29480,7 @@ function _onCatDragMove(e) {
       const r = t.getBoundingClientRect();
       if (e.clientX < r.left + r.width / 2) { target = t; break; }
     }
-    if (!target) target = _catDrag.el.parentNode.querySelector('.tag-cat-add-chip');
+    if (!target) target = _catDrag.parent.querySelector('.tag-cat-add-chip');
     _catFlipMove(target);
   }
 }
@@ -29506,13 +29510,13 @@ function _onCatDragEnd(e) {
   if (!_catDrag) return;
   const tab = _catDrag.el;
   const scope = _catDrag.scope;
-  if (tab.parentNode) tab.parentNode.classList.remove('is-cat-dragging');
+  if (_catDrag.parent) _catDrag.parent.classList.remove('is-cat-dragging');
   tab.removeEventListener('pointermove', _onCatDragMove);
   tab.removeEventListener('pointerup', _onCatDragEnd);
   tab.removeEventListener('pointercancel', _onCatDragEnd);
 
   if (_catDrag.moved && _catDrag.placeholder) {
-    const orderedIds = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')]
+    const orderedIds = [..._catDrag.parent.querySelectorAll('.tag-cat-tab')]
       .filter(t => t !== _catDrag.el)   // 떠다니는 원본 제외 — placeholder가 드롭 위치를 대표 (중복 방지)
       .filter(t => (t === _catDrag.placeholder) || (t.dataset.cat && t.dataset.cat !== 'hidden'))
       .map(t => t === _catDrag.placeholder ? _catDrag.id : t.dataset.cat)
@@ -29525,9 +29529,7 @@ function _onCatDragEnd(e) {
     showToast('순서 변경됨');
   }
   if (_catDrag.placeholder) _catDrag.placeholder.remove();
-  tab.classList.remove('is-dragging');
-  tab.style.position = ''; tab.style.left = ''; tab.style.top = '';
-  tab.style.width = ''; tab.style.margin = '';
+  tab.remove();  // v1.12.1 — body로 빼둔 원본 제거 (재렌더가 strip을 새로 그림)
   _catDragMoved = _catDrag.moved;  // 드래그였으면 직후 click 무시
   _catDrag = null;
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
