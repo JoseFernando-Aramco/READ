@@ -27,9 +27,14 @@
   const docEl = document.documentElement;
   let kbdShown = false;
   let raf = 0;
+  let composing = false;  // v1.11.6 — IME(한글 등) 조합 중 추적
 
   function check() {
     raf = 0;
+    // v1.11.6 — IME 조합 중에는 backdrop-filter 토글 보류.
+    //   iOS Safari에서 조합 중 backdrop-filter 재합성이 IME를 깨서
+    //   "먹먹하기도"가 "하하하기도"처럼 글자가 뭉개지는 버그 방지.
+    if (composing) return;
     const heightDiff = window.innerHeight - vp.height;
     const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
     if (isKeyboard === kbdShown) return;
@@ -41,6 +46,10 @@
     raf = requestAnimationFrame(check);
   }
   vp.addEventListener('resize', onResize, { passive: true });
+
+  // v1.11.6 — IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
+  document.addEventListener('compositionstart', () => { composing = true; }, true);
+  document.addEventListener('compositionend', () => { composing = false; onResize(); }, true);
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
@@ -28495,11 +28504,14 @@ function renderConfirm() {
   });
 
   // 날짜 기본값 세팅 (오늘)
+  // v1.11.6 — 메타데이터 백그라운드 조회 완료 시 renderConfirm이 재호출되면
+  //   사용자가 입력 중이던 날짜를 오늘로 덮어쓰는 버그 수정.
+  //   이미 사용자 입력이 있으면 보존, 빈값일 때만 오늘 default.
   const today = new Date().toISOString().slice(0, 10);
   const dateStartEl = document.getElementById('dateStart');
   const dateEndEl = document.getElementById('dateEnd');
-  if (dateStartEl) dateStartEl.value = today;
-  if (dateEndEl) dateEndEl.value = today;
+  if (dateStartEl && !dateStartEl.value) dateStartEl.value = today;
+  if (dateEndEl && !dateEndEl.value) dateEndEl.value = today;
   updateDatesSection();
 
   // 별점 초기화 (위시 기본값이므로 0)
@@ -30468,6 +30480,26 @@ const NA = {
   if (Array.isArray(savedBooks)) {
     BOOKS.length = 0;
     BOOKS.push(...savedBooks);
+  } else {
+    // v1.11.5 — 데이터 손실 감지
+    // savedBooks가 null = localStorage에 'read.books' 없음
+    // 다른 read.* 키가 살아있으면 = 기존 사용자였는데 books만 사라짐 (또는 통째 손실)
+    // → 샘플 데이터(데미안 등) 노출 차단 + 손실 마킹
+    let isExistingUser = false;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('read.')) {
+          isExistingUser = true;
+          break;
+        }
+      }
+    } catch(e){}
+    if (isExistingUser) {
+      BOOKS.length = 0;  // 샘플 제거
+      window._dataLossDetected = true;
+    }
+    // 진짜 신규 사용자(read.* 키 전무): BOOKS 샘플 유지 → 온보딩에서 처리
   }
   
   // v1.x — acquisition 'library' → 'rent' 자동 마이그레이션 (도서관 = 대여의 한 케이스)
@@ -47877,6 +47909,11 @@ const WEL_KEYS = {
 function welcomeShouldShow() {
   if (!WELCOME_LIVE) return false;
   try {
+    // v1.11.5 — 데이터 손실 감지 시: 한 번 본 사용자에게도 강제 노출 (복원 가이드 필요)
+    if (window._dataLossDetected) {
+      const wnOpen = document.getElementById('wnModal')?.classList.contains('open');
+      return !wnOpen;
+    }
     // 이미 한 번 봤으면 스킵
     if (localStorage.getItem(WEL_KEYS.shown) === 'true') return false;
     // 온보딩 안 끝낸 신규 사용자는 스킵 (온보딩 모달이 먼저)
