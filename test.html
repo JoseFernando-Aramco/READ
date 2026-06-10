@@ -27,9 +27,14 @@
   const docEl = document.documentElement;
   let kbdShown = false;
   let raf = 0;
+  let composing = false;  // v1.11.6 — IME(한글 등) 조합 중 추적
 
   function check() {
     raf = 0;
+    // v1.11.6 — IME 조합 중에는 backdrop-filter 토글 보류.
+    //   iOS Safari에서 조합 중 backdrop-filter 재합성이 IME를 깨서
+    //   "먹먹하기도"가 "하하하기도"처럼 글자가 뭉개지는 버그 방지.
+    if (composing) return;
     const heightDiff = window.innerHeight - vp.height;
     const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
     if (isKeyboard === kbdShown) return;
@@ -41,6 +46,10 @@
     raf = requestAnimationFrame(check);
   }
   vp.addEventListener('resize', onResize, { passive: true });
+
+  // v1.11.6 — IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
+  document.addEventListener('compositionstart', () => { composing = true; }, true);
+  document.addEventListener('compositionend', () => { composing = false; onResize(); }, true);
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
@@ -79,6 +88,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<!-- v1.12.0 — Booknook 노트 작성용 서체 7종 (Pretendard는 기본 포함) -->
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=East+Sea+Dokdo&family=Gaegu&family=Gowun+Dodum&family=Hi+Melody&family=Nanum+Pen+Script&family=Noto+Serif+KR:wght@500&display=swap" rel="stylesheet">
 
 <style>
 /* ───────── keepbook 로고 (PNG embed) ───────── */
@@ -8382,6 +8393,126 @@ body:has(.lib-edit-bar) .library-cards {
   border-color: transparent;
   box-shadow: 0 2px 6px rgba(139, 109, 61, 0.25);
 }
+
+/* ═══════ v1.12.0 — 대분류 관리 ═══════ */
+.tag-cat-manage {
+  padding: 5px 11px;
+  background: transparent;
+  border: 1px dashed var(--c-border-2);
+  border-radius: 99px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-text-3, #9A958C);
+  cursor: pointer;
+  transition: all .15s;
+  margin-left: 4px;
+}
+.tag-cat-manage:hover { background: var(--c-surface); color: var(--c-coin-deep); border-color: var(--c-coin-2); }
+.tag-cat-manage.is-active {
+  background: var(--c-coin-deep, #5F6B5F);
+  color: white;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.tag-cat-edit-panel {
+  display: none;
+  background: var(--c-surface, #F3F3F0);
+  border: 1px solid var(--c-border-2, #DCDCD8);
+  border-radius: 12px;
+  padding: 13px;
+  margin: 10px 0 14px;
+}
+.tag-cat-edit-panel.open { display: block; }
+.tcep-title { font-size: 12px; font-weight: 800; color: var(--c-coin-deep, #5F6B5F); margin-bottom: 10px; }
+.tcep-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+.tcep-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  border: 1px solid var(--c-border-2, #DCDCD8);
+  border-radius: 9px;
+  padding: 6px 9px;
+}
+.tcep-order { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
+.tcep-ord-btn {
+  background: transparent;
+  border: none;
+  color: var(--c-text-3, #9A958C);
+  cursor: pointer;
+  font-size: 9px;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.tcep-ord-btn:hover:not(:disabled) { background: var(--c-surface); color: var(--c-coin-deep); }
+.tcep-ord-btn:disabled { opacity: 0.25; cursor: default; }
+.tcep-name {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text, #15110D);
+  font-family: inherit;
+  padding: 4px 7px;
+  border-radius: 6px;
+  min-width: 0;
+}
+.tcep-name:focus { outline: none; background: var(--c-surface, #F3F3F0); }
+.tcep-count { font-size: 10.5px; color: var(--c-text-3, #9A958C); flex-shrink: 0; font-weight: 600; }
+.tcep-del {
+  background: transparent;
+  border: none;
+  color: var(--c-text-3, #9A958C);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+.tcep-del:hover:not(.locked) { color: #B85A4A; background: #F5E8E5; }
+.tcep-del.locked { opacity: 0.3; cursor: not-allowed; }
+.tcep-add-row { display: flex; gap: 7px; }
+.tcep-add-input {
+  flex: 1;
+  padding: 8px 11px;
+  border: 1px solid var(--c-border-2, #DCDCD8);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: inherit;
+  background: white;
+  min-width: 0;
+}
+.tcep-add-input:focus { outline: none; border-color: var(--c-coin-2); }
+.tcep-add-btn {
+  padding: 8px 14px;
+  background: var(--c-coin-deep, #5F6B5F);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.tcep-done {
+  width: 100%;
+  padding: 9px;
+  background: transparent;
+  color: var(--c-coin-deep, #5F6B5F);
+  border: 1px solid var(--c-coin-deep, #5F6B5F);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 10px;
+}
+.tcep-done:hover { background: var(--c-coin-deep, #5F6B5F); color: white; }
 
 /* 태그 칩 (책 상세·북 추가·필터 공통) */
 .tag-chip {
@@ -22455,6 +22586,8 @@ body.cn-locked {
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
+        <!-- v1.12.0 대분류 편집 패널 -->
+        <div class="tag-cat-edit-panel" id="tagCatEditPanel"></div>
         <!-- 편집 헬프 박스 -->
         <div class="tag-edit-help" id="tagEditHelp" data-mode="hide" aria-hidden="true">
           <!-- JS 렌더 -->
@@ -22470,11 +22603,7 @@ body.cn-locked {
         </div>
         <div class="tag-new-cat-row" id="tagNewCatRow">
           <span class="tnc-label">📂 어느 카테고리에?</span>
-          <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
-          <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
-          <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
-          <button type="button" class="tnc-chip" data-cat="format">형식</button>
-          <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
+          <!-- v1.12.0 JS 동적 렌더 -->
         </div>
       </div>
 
@@ -24176,6 +24305,191 @@ body.cn-locked {
 }
 .bn-toggle.on::after { transform: translateX(18px); }
 
+/* v1.12.0 — 노트 작성 서체 8종 */
+.bn-ft-default { font-family: 'Pretendard Variable', Pretendard, sans-serif !important; }
+.bn-ft-myeongjo { font-family: 'Noto Serif KR', serif !important; font-weight: 500; line-height: 1.7; }
+.bn-ft-blackhansans { font-family: 'Black Han Sans', sans-serif !important; letter-spacing: -0.02em; line-height: 1.55; }
+.bn-ft-gowun { font-family: 'Gowun Dodum', sans-serif !important; line-height: 1.65; }
+.bn-ft-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.5em; line-height: 1.3; }
+.bn-ft-himelody { font-family: 'Hi Melody', cursive !important; font-size: 1.15em; line-height: 1.5; }
+.bn-ft-gaegu { font-family: 'Gaegu', cursive !important; font-size: 1.1em; line-height: 1.45; }
+.bn-ft-eastsea { font-family: 'East Sea Dokdo', cursive !important; font-size: 1.3em; line-height: 1.4; }
+
+/* 노트 모달 — 서체 선택 칩 */
+.bn-font-picker { margin-bottom: 14px; }
+.bn-font-picker-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text, #15110D);
+  margin-bottom: 6px;
+}
+.bn-font-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.bn-font-chip {
+  padding: 5px 11px;
+  background: var(--c-surface-2, #E8E8E4);
+  color: var(--c-text-2, #3A3A35);
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.bn-font-chip.active {
+  background: #5F6B5F;
+  color: white;
+  border-color: #455045;
+}
+.bn-font-chip.ft-c-default { font-family: 'Pretendard Variable', Pretendard, sans-serif; }
+.bn-font-chip.ft-c-myeongjo { font-family: 'Noto Serif KR', serif; font-weight: 700; }
+.bn-font-chip.ft-c-blackhansans { font-family: 'Black Han Sans', sans-serif; }
+.bn-font-chip.ft-c-gowun { font-family: 'Gowun Dodum', sans-serif; }
+.bn-font-chip.ft-c-pen { font-family: 'Nanum Pen Script', cursive; font-size: 15px; }
+.bn-font-chip.ft-c-himelody { font-family: 'Hi Melody', cursive; font-size: 14px; }
+.bn-font-chip.ft-c-gaegu { font-family: 'Gaegu', cursive; }
+.bn-font-chip.ft-c-eastsea { font-family: 'East Sea Dokdo', cursive; font-size: 15px; }
+
+/* ═══════ v1.12.0 — 답글 시스템 ═══════ */
+.bn-replies {
+  margin-top: 6px;
+  margin-left: 30px;  /* 들여쓰기로 위계 표현 */
+  border-left: 2px solid #DCDCD8;
+  padding-left: 11px;
+}
+.bn-reply {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+}
+.bn-reply-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.bn-reply-content { flex: 1; min-width: 0; }
+.bn-reply-name {
+  font-size: 9.5px;
+  color: var(--c-muted, #7A7A75);
+  margin-bottom: 1px;
+  font-weight: 700;
+}
+.bn-reply-bubble {
+  background: #F0F0EC;
+  border-radius: 9px;
+  padding: 5px 9px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--c-text, #15110D);
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* "답글 달기" 버튼 */
+.bn-reply-trigger {
+  margin-left: 30px;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--c-muted, #7A7A75);
+  background: transparent;
+  border: none;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 6px;
+}
+.bn-reply-trigger:hover {
+  color: #5F6B5F;
+  background: #E8ECE6;
+}
+
+/* 답글 입력 영역 (인라인) */
+.bn-reply-input-wrap {
+  margin-left: 30px;
+  margin-top: 6px;
+  padding: 10px;
+  background: var(--c-surface-2, #E8E8E4);
+  border-radius: 9px;
+  display: none;
+}
+.bn-reply-input-wrap.open { display: block; }
+.bn-reply-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border, #DCDCD8);
+  border-radius: 7px;
+  background: var(--c-surface, #FCFCFA);
+  font-size: 12.5px;
+  color: var(--c-text, #15110D);
+  font-family: inherit;
+  resize: none;
+  min-height: 45px;
+}
+.bn-reply-input-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 7px;
+  align-items: center;
+}
+.bn-reply-fonts {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.bn-reply-fontchip {
+  padding: 3px 9px;
+  background: var(--c-surface, #FCFCFA);
+  color: var(--c-text-2, #3A3A35);
+  border-radius: 11px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bn-reply-fontchip.active {
+  background: #5F6B5F;
+  color: white;
+}
+.bn-reply-submit {
+  padding: 6px 13px;
+  background: #5F6B5F;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.bn-reply-cancel {
+  padding: 6px 9px;
+  background: transparent;
+  color: var(--c-muted, #7A7A75);
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
 /* v1.12.0 — 메인 탭바에 통합된 Booknook 탭 (5번째) */
 .tab-btn[data-tab="booknook"] { display: none; }
 body.bn-enabled .tab-btn[data-tab="booknook"] { display: flex; }
@@ -24186,8 +24500,16 @@ body.bn-enabled .tab-btn[data-tab="booknook"] { display: flex; }
   padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
   min-height: 60vh;
 }
-body.bn-active .pane-viewport { display: none; }
+/* v1.12.0 — display:none 대신 height:0 사용:
+   모바일에서 display 전환 시 layout 재계산 타이밍 불안정 → paneWidth() 부정확
+   → transform 위치 어긋남으로 옆 탭 살짝 보임. height:0이면 layout 항상 유지 */
+body.bn-active .pane-viewport {
+  height: 0 !important;
+  overflow: hidden !important;
+}
 body.bn-active .bn-tab-content { display: block; }
+body.bn-active .fab,
+body.bn-active .lib-edit-fab-wrap { display: none !important; }
 
 /* Booknook 메인 오버레이 (전체 화면 스택) */
 .bn-overlay {
@@ -24704,6 +25026,25 @@ body.bn-active .bn-tab-content { display: block; }
 .bn-thread-note.mine .bn-thread-bubble {
   background: #E8ECE6;
 }
+/* v1.12.0 — 코멘트의 인용구 표시 (코멘트와 같은 서체, 옅은 배경 + 좌측 사선) */
+.bn-thread-quote {
+  display: block;
+  padding: 6px 10px 6px 11px;
+  margin-bottom: 5px;
+  background: rgba(95, 107, 95, 0.07);
+  border-left: 2.5px solid #5F6B5F;
+  border-radius: 4px 7px 7px 4px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--c-text-2, #3A3A35);
+  opacity: 0.92;
+}
+.bn-thread-quote::before {
+  content: "❝ ";
+  font-weight: 700;
+  color: #5F6B5F;
+  opacity: 0.6;
+}
 
 /* 노트 입력 바 */
 .bn-note-input-area {
@@ -24947,8 +25288,25 @@ body.bn-active .bn-tab-content { display: block; }
         <input type="number" class="bn-form-input" id="bnNotePage" min="1" placeholder="42">
       </div>
       <div class="bn-form-group">
-        <label class="bn-form-label">💬 내용</label>
-        <textarea class="bn-form-textarea" id="bnNoteText" placeholder="이 페이지에서 느낀 점을 다음 분께 전해보세요" maxlength="300"></textarea>
+        <label class="bn-form-label">📖 인용 <span style="color:var(--c-muted);font-weight:500;font-size:10.5px">(선택)</span></label>
+        <textarea class="bn-form-textarea bn-ft-default" id="bnNoteQuote" placeholder="책에서 옮겨오고 싶은 문장이 있다면…" maxlength="200" style="min-height:48px;font-size:12.5px;"></textarea>
+      </div>
+    </div>
+    <div class="bn-form-group" style="margin-bottom:14px;">
+      <label class="bn-form-label">💬 내용</label>
+      <textarea class="bn-form-textarea bn-ft-default" id="bnNoteText" placeholder="이 페이지에서 느낀 점을 다음 분께 전해보세요" maxlength="300"></textarea>
+    </div>
+    <div class="bn-font-picker">
+      <label class="bn-font-picker-label">✏️ 서체</label>
+      <div class="bn-font-chips" id="bnFontChips">
+        <button class="bn-font-chip ft-c-default active" type="button" data-bnfont="default">기본</button>
+        <button class="bn-font-chip ft-c-myeongjo" type="button" data-bnfont="myeongjo">명조</button>
+        <button class="bn-font-chip ft-c-blackhansans" type="button" data-bnfont="blackhansans">굵은 고딕</button>
+        <button class="bn-font-chip ft-c-gowun" type="button" data-bnfont="gowun">둥근체</button>
+        <button class="bn-font-chip ft-c-pen" type="button" data-bnfont="pen">펜글씨</button>
+        <button class="bn-font-chip ft-c-himelody" type="button" data-bnfont="himelody">둥근 손글씨</button>
+        <button class="bn-font-chip ft-c-gaegu" type="button" data-bnfont="gaegu">어린이 글씨</button>
+        <button class="bn-font-chip ft-c-eastsea" type="button" data-bnfont="eastsea">옛글씨</button>
       </div>
     </div>
     <button class="bn-btn-primary" onclick="bnSubmitNote()">노트 추가하기</button>
@@ -25053,6 +25411,76 @@ function bnPersist() {
   try { localStorage.setItem(BN_KEY, JSON.stringify(BN_DATA)); } catch(e) {}
 }
 
+/* v1.12.0 — 개발용 테스트 그룹 시드. 4명 멤버 + 다양한 서체 노트 + 내 차례 */
+function bnSeedTestGroup() {
+  // 닉네임 없으면 자동 설정
+  if (!BN_DATA.myNickname) BN_DATA.myNickname = '나';
+
+  const book = BN_DUMMY_BOOKS[0] || { title: '데미안', author: '헤르만 헤세', pages: 250, cover: 'bn-cover-c1' };
+  const now = Date.now();
+
+  const testGroup = {
+    id: 'g_test_' + Math.random().toString(36).slice(2, 7),
+    recruitId: 'r_test',
+    book: book,
+    members: [
+      { token: 'tk_dummy_dal', nickname: '달밤독자', color: 'c-sage', order: 0 },
+      { token: 'tk_dummy_chu', nickname: '청춘독자', color: 'c-amber', order: 1 },
+      { token: 'tk_dummy_go',  nickname: '고요한밤', color: 'c-blue', order: 2 },
+      { token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: 'c-mauve', order: 3 },
+    ],
+    notes: [
+      {
+        page: 12,
+        comments: [
+          { id: 'c_seed_1', token: 'tk_dummy_dal', text: '첫 문장부터 묵직하네요. 이 표현이 책 전체를 관통하는 키워드 같아요.', quote: '나는 진실로 내 안에서 솟아 나오려는 것, 그것을 살아보려 했을 뿐.', font: 'myeongjo', ts: now - 86400000 * 3,
+            replies: [
+              { id: 'r_seed_1a', token: 'tk_dummy_chu', text: '저도 이 문장 사진 찍어둔 적 있어요 ㅎㅎ', font: 'default', ts: now - 86400000 * 3 + 7200000 },
+              { id: 'r_seed_1b', token: 'tk_dummy_go',  text: '명조체로 보니까 더 묵직해지네요', font: 'gowun', ts: now - 86400000 * 2 + 3600000 },
+            ]
+          },
+          { id: 'c_seed_2', token: 'tk_dummy_chu', text: '저도 그 부분 한참 곱씹었어요', font: 'default', ts: now - 86400000 * 3 + 3600000, replies: [] },
+          { id: 'c_seed_3', token: 'tk_dummy_go',  text: '명과 암의 대비가 책 전체를 관통하는 것 같아요', font: 'pen', ts: now - 86400000 * 2, replies: [] },
+        ]
+      },
+      {
+        page: 42,
+        comments: [
+          { id: 'c_seed_4', token: 'tk_dummy_dal', text: '독고 아저씨 등장하는 장면. 무뚝뚝한 듯 다정해서 묘하게 끌리네요.', quote: '그는 늘 한 발짝 뒤에서, 그러나 누구보다 가까이 있었다.', font: 'myeongjo', ts: now - 86400000 * 2 + 3600000,
+            replies: [
+              { id: 'r_seed_4a', token: 'tk_dummy_go', text: '이 캐릭터가 책의 정서를 다 잡아주는 듯해요', font: 'himelody', ts: now - 86400000 * 1 + 3600000 },
+            ]
+          },
+          { id: 'c_seed_5', token: 'tk_dummy_chu', text: '동의 ㅋㅋ 이름부터 좀 웃겼어요', font: 'gaegu', ts: now - 86400000 * 1, replies: [] },
+          { id: 'c_seed_6', token: 'tk_dummy_go',  text: '이 아저씨가 결국 싱클레어의 인생을 바꾸는 인물이죠', font: 'himelody', ts: now - 86400000 + 7200000, replies: [] },
+        ]
+      },
+      {
+        page: 87,
+        comments: [
+          { id: 'c_seed_7', token: 'tk_dummy_dal', text: '여기서 갑자기 분위기가 바뀝니다. 데미안 첫 등장.', font: 'blackhansans', ts: now - 86400000 + 10000000, replies: [] },
+          { id: 'c_seed_8', token: 'tk_dummy_chu', text: '카인의 표적 얘기 처음 들었을 때 머리가 띵', quote: '새는 알을 깨고 나온다. 알은 곧 세계이다.', font: 'eastsea', ts: now - 86400000 + 12000000,
+            replies: [
+              { id: 'r_seed_8a', token: 'tk_dummy_dal', text: '이 인용구 우리 그룹의 명문장으로 정해요 ㅋㅋ', font: 'pen', ts: now - 86400000 + 18000000 },
+              { id: 'r_seed_8b', token: 'tk_dummy_go',  text: 'ㄱㄱ 채택', font: 'default', ts: now - 86400000 + 19000000 },
+            ]
+          },
+        ]
+      },
+    ],
+    turnIndex: 3,  // 내 차례
+    startedAt: now - 86400000 * 5,
+  };
+
+  BN_DATA.groups = BN_DATA.groups || [];
+  BN_DATA.groups.push(testGroup);
+  bnPersist();
+
+  bnShowToast('테스트 그룹 생성 완료. 노트 작성을 체험해보세요');
+  // 바로 그룹 화면 진입
+  setTimeout(() => bnOpenGroup(testGroup.id), 400);
+}
+
 function bnApplyEnabledState() {
   // v1.12.0 — 햄버거 토글 행은 항상 노출, 토글 스위치만 상태 반영
   const toggle = document.getElementById('bnToggleSwitch');
@@ -25090,10 +25518,11 @@ function bnDeactivateTab() {
   document.body.classList.remove('bn-active');
   const bnBtn = document.querySelector('.tab-btn[data-tab="booknook"]');
   if (bnBtn) bnBtn.classList.remove('active');
-  // v1.12.0 — pane-viewport가 display:none → block 전환 직후 강제 reflow.
-  // 안 하면 snapToTab의 paneWidth() 계산이 어긋나서 옆 탭이 살짝 보이는 문제 발생
-  const vp = (typeof viewport !== 'undefined' && viewport) || document.querySelector('.pane-viewport');
-  if (vp) void vp.offsetWidth;
+  // v1.12.0 — 편집 FAB의 visible 클래스 즉시 제거.
+  // bn-active 해제로 display:flex 복귀 시 opacity 0.92 잔여 → 페이드아웃 깜빡임 발생.
+  // 새 탭에서 필요하면 _libEditFabRefresh가 다시 visible 부여하며 자연스럽게 페이드인.
+  const editFab = document.getElementById('libEditFab');
+  if (editFab) editFab.classList.remove('visible');
 }
 
 function bnRenderTab() {
@@ -25103,7 +25532,7 @@ function bnRenderTab() {
 
   let html = `
     <div style="margin-bottom:18px;">
-      <h2 style="font-size:22px;font-weight:800;margin:0 0 4px;letter-spacing:-0.02em;color:var(--c-text,#15110D);">🛋️ Booknook</h2>
+      <h2 style="font-size:22px;font-weight:800;margin:0 0 4px;letter-spacing:-0.02em;color:var(--c-text,#15110D);">Booknook</h2>
       <div style="font-size:12.5px;color:var(--c-muted,#7A7A75);">같이 읽기 · 책으로 만나는 코너</div>
     </div>
   `;
@@ -25111,9 +25540,8 @@ function bnRenderTab() {
   if (myGroups.length === 0) {
     html += `
       <div class="bn-empty">
-        <div class="bn-empty-icon">🛋️</div>
-        <div class="bn-empty-ttl">아직 참여한 코너가 없어요</div>
-        <div class="bn-empty-sub">친구 그룹을 만들거나<br>게시판에서 같이 읽을 사람을 찾아보세요.</div>
+        <div class="bn-empty-ttl">아직 참여한 독서그룹이 없어요</div>
+        <div class="bn-empty-sub">친구들과 그룹을 만들거나 게시판에서 같이 읽을 사람을 찾아보세요.</div>
         <div class="bn-action-list">
           <div class="bn-action-row" onclick="bnShowToast('친구 그룹 기능은 다음 단계에서 구현 예정')">
             <div class="bn-action-emoji">👥</div>
@@ -25128,6 +25556,14 @@ function bnRenderTab() {
             <div class="bn-action-main">
               <div class="bn-action-ttl">게시판 둘러보기</div>
               <div class="bn-action-sub">모르는 분과 책으로 만나기</div>
+            </div>
+            <span class="bn-action-arrow">›</span>
+          </div>
+          <div class="bn-action-row" onclick="bnSeedTestGroup()" style="background:#FAF5EA;border-color:#C8A368;">
+            <div class="bn-action-emoji">🧪</div>
+            <div class="bn-action-main">
+              <div class="bn-action-ttl" style="color:#6E5B45">🧪 테스트 그룹 만들기</div>
+              <div class="bn-action-sub" style="color:#9A7E5A">노트 작성을 바로 체험 (개발용)</div>
             </div>
             <span class="bn-action-arrow">›</span>
           </div>
@@ -25160,6 +25596,14 @@ function bnRenderTab() {
             <div class="bn-action-main">
               <div class="bn-action-ttl">게시판 둘러보기</div>
               <div class="bn-action-sub">새 모집글 보기 / 내 모집 올리기</div>
+            </div>
+            <span class="bn-action-arrow">›</span>
+          </div>
+          <div class="bn-action-row" onclick="bnSeedTestGroup()" style="background:#FAF5EA;border-color:#C8A368;">
+            <div class="bn-action-emoji">🧪</div>
+            <div class="bn-action-main">
+              <div class="bn-action-ttl" style="color:#6E5B45">🧪 테스트 그룹 만들기</div>
+              <div class="bn-action-sub" style="color:#9A7E5A">노트 작성을 바로 체험 (개발용)</div>
             </div>
             <span class="bn-action-arrow">›</span>
           </div>
@@ -25465,15 +25909,51 @@ function bnRenderGroup() {
       return `
         <div class="bn-page-thread">
           <span class="bn-page-label">p. ${note.page}</span>
-          ${comments.map(c => {
+          ${comments.map((c, ci) => {
             const m = g.members.find(mm => mm.token === c.token) || {color:'c-sage',nickname:'?'};
             const isMine = c.token === BN_DATA.myToken;
+            const cId = c.id || ('c_' + note.page + '_' + ci);
+            const replies = c.replies || [];
             return `
               <div class="bn-thread-note ${isMine ? 'mine' : ''}">
                 <div class="bn-member-dot ${m.color}">${bnEscape(m.nickname.charAt(0))}</div>
                 <div class="bn-thread-content">
                   <div class="bn-thread-name">${bnEscape(m.nickname)}${isMine ? ' (나)' : ''}</div>
-                  <div class="bn-thread-bubble">${bnEscape(c.text)}</div>
+                  <div class="bn-thread-bubble bn-ft-${c.font || 'default'}">
+                    ${c.quote ? `<span class="bn-thread-quote">${bnEscape(c.quote)}</span>` : ''}
+                    ${bnEscape(c.text)}
+                  </div>
+                </div>
+              </div>
+              ${replies.length > 0 ? `
+                <div class="bn-replies">
+                  ${replies.map(r => {
+                    const rm = g.members.find(mm => mm.token === r.token) || {color:'c-sage',nickname:'?'};
+                    return `
+                      <div class="bn-reply">
+                        <div class="bn-reply-dot ${rm.color}">${bnEscape(rm.nickname.charAt(0))}</div>
+                        <div class="bn-reply-content">
+                          <div class="bn-reply-name">${bnEscape(rm.nickname)}</div>
+                          <div class="bn-reply-bubble bn-ft-${r.font || 'default'}">${bnEscape(r.text)}</div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              ` : ''}
+              <button class="bn-reply-trigger" onclick="bnToggleReplyInput('${cId}')" type="button">↳ 답글</button>
+              <div class="bn-reply-input-wrap" id="bnReplyWrap-${cId}" data-page="${note.page}" data-cid="${cId}">
+                <textarea class="bn-reply-input bn-ft-default" id="bnReplyTxt-${cId}" placeholder="답글을 적어보세요" maxlength="200"></textarea>
+                <div class="bn-reply-input-actions">
+                  <div class="bn-reply-fonts" id="bnReplyFonts-${cId}">
+                    <button class="bn-reply-fontchip active" data-rfont="default" type="button">기본</button>
+                    <button class="bn-reply-fontchip" data-rfont="myeongjo" type="button" style="font-family:'Noto Serif KR',serif;font-weight:700">명조</button>
+                    <button class="bn-reply-fontchip" data-rfont="gowun" type="button" style="font-family:'Gowun Dodum',sans-serif">둥근</button>
+                    <button class="bn-reply-fontchip" data-rfont="pen" type="button" style="font-family:'Nanum Pen Script',cursive;font-size:13px">펜</button>
+                    <button class="bn-reply-fontchip" data-rfont="himelody" type="button" style="font-family:'Hi Melody',cursive">손글씨</button>
+                  </div>
+                  <button class="bn-reply-submit" onclick="bnSubmitReply('${cId}')" type="button">남기기</button>
+                  <button class="bn-reply-cancel" onclick="bnToggleReplyInput('${cId}')" type="button">취소</button>
                 </div>
               </div>
             `;
@@ -25501,20 +25981,56 @@ function bnRenderGroup() {
       ${g.members.map((m, i) => `
         <div class="bn-member-dot ${m.color} ${i === g.turnIndex ? 'current' : ''}">${bnEscape(m.nickname.charAt(0))}</div>
       `).join('')}
-      <span class="bn-member-order">${g.members.map((m,i)=>(i+1)).join('→')}</span>
+      <span class="bn-member-order">${isMyTurn ? '내 차례' : bnEscape(turnMember.nickname) + ' 차례'}</span>
     </div>
 
     ${threadsHtml}
 
-    <div class="bn-note-input-area ${!isMyTurn ? 'disabled' : ''}" onclick="${isMyTurn ? 'bnOpenNoteModal()' : 'bnNotMyTurnAlert()'}">
-      ${isMyTurn ? '✍️ 노트 남기기 (내 차례)' : '⏳ ' + bnEscape(turnMember.nickname) + ' 차례'}
+    <div class="bn-note-input-area" onclick="bnOpenNoteModal()">
+      ✍️ 노트 남기기${isMyTurn ? ' (내 차례)' : ''}
     </div>
   `;
 }
 
+
 function bnOpenNoteModal() {
   document.getElementById('bnNotePage').value = '';
-  document.getElementById('bnNoteText').value = '';
+  const ta = document.getElementById('bnNoteText');
+  const qa = document.getElementById('bnNoteQuote');
+  ta.value = '';
+  if (qa) qa.value = '';
+
+  // v1.12.0 — 마지막 선택 서체 복원 (없으면 default)
+  let lastFont = 'default';
+  try {
+    const saved = localStorage.getItem('read.booknook.lastFont');
+    if (saved) lastFont = saved;
+  } catch (e) {}
+  BN_CURRENT.noteFont = lastFont;
+
+  // textarea + quote + 칩 상태 동기화
+  ta.className = 'bn-form-textarea bn-ft-' + lastFont;
+  if (qa) qa.className = 'bn-form-textarea bn-ft-' + lastFont;
+  const chips = document.querySelectorAll('#bnFontChips .bn-font-chip');
+  chips.forEach(ch => ch.classList.toggle('active', ch.dataset.bnfont === lastFont));
+
+  // 칩 클릭 핸들러 (한 번만 attach — flag 사용)
+  const wrap = document.getElementById('bnFontChips');
+  if (wrap && !wrap.dataset.bound) {
+    wrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.bn-font-chip');
+      if (!btn) return;
+      const font = btn.dataset.bnfont || 'default';
+      BN_CURRENT.noteFont = font;
+      wrap.querySelectorAll('.bn-font-chip').forEach(c => c.classList.toggle('active', c === btn));
+      const tx = document.getElementById('bnNoteText');
+      const qx = document.getElementById('bnNoteQuote');
+      if (tx) tx.className = 'bn-form-textarea bn-ft-' + font;
+      if (qx) qx.className = 'bn-form-textarea bn-ft-' + font;
+    });
+    wrap.dataset.bound = '1';
+  }
+
   document.getElementById('bnNoteModal').classList.add('open');
 }
 function bnCloseNoteModal() {
@@ -25524,6 +26040,7 @@ function bnCloseNoteModal() {
 function bnSubmitNote() {
   const page = parseInt(document.getElementById('bnNotePage').value);
   const text = document.getElementById('bnNoteText').value.trim();
+  const quote = (document.getElementById('bnNoteQuote')?.value || '').trim();
   if (!page || page < 1) {
     bnShowToast('페이지를 입력해주세요');
     return;
@@ -25541,13 +26058,89 @@ function bnSubmitNote() {
     pageNote = { page: page, comments: [] };
     g.notes.push(pageNote);
   }
-  pageNote.comments.push({ token: BN_DATA.myToken, text: text, ts: Date.now() });
+  pageNote.comments.push({
+    id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    token: BN_DATA.myToken,
+    text: text,
+    quote: quote || undefined,  // 빈 문자열이면 저장 안 함
+    font: BN_CURRENT.noteFont || 'default',
+    ts: Date.now(),
+    replies: []
+  });
+
+  // v1.12.0 — 마지막 선택 서체 localStorage에 저장 (다음 노트 작성 시 복원)
+  try {
+    localStorage.setItem('read.booknook.lastFont', BN_CURRENT.noteFont || 'default');
+  } catch (e) {}
 
   // 차례 자동 넘기기
   g.turnIndex = (g.turnIndex + 1) % g.members.length;
   bnPersist();
   bnCloseNoteModal();
   bnShowToast('노트 추가 완료! 다음은 ' + g.members[g.turnIndex].nickname + ' 차례');
+  bnRenderGroup();
+}
+
+/* v1.12.0 — 답글 입력 토글 (인라인) */
+function bnToggleReplyInput(cId) {
+  const wrap = document.getElementById('bnReplyWrap-' + cId);
+  if (!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  // 다른 답글 입력창 모두 닫기
+  document.querySelectorAll('.bn-reply-input-wrap.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) {
+    wrap.classList.add('open');
+    // 답글 폰트 칩 핸들러 attach (1회만)
+    const fontWrap = document.getElementById('bnReplyFonts-' + cId);
+    if (fontWrap && !fontWrap.dataset.bound) {
+      fontWrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('.bn-reply-fontchip');
+        if (!btn) return;
+        const font = btn.dataset.rfont || 'default';
+        fontWrap.querySelectorAll('.bn-reply-fontchip').forEach(c => c.classList.toggle('active', c === btn));
+        const txt = document.getElementById('bnReplyTxt-' + cId);
+        if (txt) txt.className = 'bn-reply-input bn-ft-' + font;
+      });
+      fontWrap.dataset.bound = '1';
+    }
+    setTimeout(() => {
+      const txt = document.getElementById('bnReplyTxt-' + cId);
+      if (txt) txt.focus();
+    }, 100);
+  }
+}
+
+/* v1.12.0 — 답글 저장 */
+function bnSubmitReply(cId) {
+  const wrap = document.getElementById('bnReplyWrap-' + cId);
+  if (!wrap) return;
+  const page = parseInt(wrap.dataset.page);
+  const txt = document.getElementById('bnReplyTxt-' + cId);
+  const text = (txt?.value || '').trim();
+  if (!text) {
+    bnShowToast('답글 내용을 적어주세요');
+    return;
+  }
+  const activeChip = document.querySelector('#bnReplyFonts-' + cId + ' .bn-reply-fontchip.active');
+  const font = activeChip ? (activeChip.dataset.rfont || 'default') : 'default';
+
+  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
+  if (!g || !g.notes) return;
+  const pageNote = g.notes.find(n => n.page === page);
+  if (!pageNote) return;
+  const comment = pageNote.comments.find((c, ci) => (c.id || ('c_' + page + '_' + ci)) === cId);
+  if (!comment) return;
+
+  if (!comment.replies) comment.replies = [];
+  comment.replies.push({
+    id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+    token: BN_DATA.myToken,
+    text: text,
+    font: font,
+    ts: Date.now()
+  });
+  bnPersist();
+  bnShowToast('답글 남김');
   bnRenderGroup();
 }
 
@@ -27275,7 +27868,9 @@ const viewport = track?.parentElement;
 let currentTabIdx = 0;
 
 function paneWidth() {
-  return viewport ? viewport.clientWidth : window.innerWidth;
+  // v1.12.0 — viewport.clientWidth가 0이면 (display:none 등) window.innerWidth fallback
+  const w = viewport ? viewport.clientWidth : 0;
+  return w > 0 ? w : window.innerWidth;
 }
 
 function setTrackX(px, { instant = false } = {}) {
@@ -27285,8 +27880,8 @@ function setTrackX(px, { instant = false } = {}) {
   track.style.transform = `translate3d(${px}px, 0, 0)`;
 }
 
-function snapToTab(idx) {
-  setTrackX(-idx * paneWidth(), { instant: false });
+function snapToTab(idx, opts = {}) {
+  setTrackX(-idx * paneWidth(), { instant: opts.instant === true });
   tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
   // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
@@ -27306,9 +27901,25 @@ function switchTab(nextIdx, opts = {}) {
     if (typeof bnActivateTab === 'function') bnActivateTab();
     return;
   }
+  // v1.12.0 — Booknook → 일반 탭 전환 시 transition 없이 즉시 점프
+  // (옆 탭들이 슬라이드 중 보이는 어색함 방지)
+  const wasBnActive = document.body.classList.contains('bn-active');
   if (typeof bnDeactivateTab === 'function') bnDeactivateTab();
 
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
+
+  if (wasBnActive) {
+    currentTabIdx = nextIdx;
+    snapToTab(currentTabIdx, { instant: true });
+    if (opts.scrollTop !== false) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (typeof window._libEditFabRefresh === 'function') {
+      window._libEditFabRefresh();
+    }
+    return;
+  }
+
   if (nextIdx === currentTabIdx) {
     // 드래그 후 제자리로 돌아가는 snap도 여기서 처리
     snapToTab(currentTabIdx);
@@ -27711,6 +28322,7 @@ const BA = {
   tagEditMode: false,   // 태그 편집(삭제) 모드
   tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭 ('genre'|'nonfiction'|'growth'|'format'|'hidden')
   newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 선택된 카테고리
+  tagCatEditMode: false, // v1.12.0 - 대분류 관리 모드
   manualCover: '',      // 직접 입력 시 사용자가 첨부한 표지 base64 dataURL
   manualFormat: 'paper', // 직접 입력 시 사용자가 선택한 매체 ('paper' | 'ebook' | 'audio' | 'webnovel')
   manualNovelStatus: 'serial', // v1.11.0 — 웹소설 연재 상태 ('serial' | 'completed')
@@ -30057,11 +30669,14 @@ function renderConfirm() {
   });
 
   // 날짜 기본값 세팅 (오늘)
+  // v1.11.x — 메타데이터 백그라운드 조회 완료 시 renderConfirm이 재호출되면
+  //   사용자가 입력 중이던 날짜를 오늘로 덮어쓰는 버그 수정.
+  //   이미 사용자 입력이 있으면 보존, 빈값일 때만 오늘 default.
   const today = new Date().toISOString().slice(0, 10);
   const dateStartEl = document.getElementById('dateStart');
   const dateEndEl = document.getElementById('dateEnd');
-  if (dateStartEl) dateStartEl.value = today;
-  if (dateEndEl) dateEndEl.value = today;
+  if (dateStartEl && !dateStartEl.value) dateStartEl.value = today;
+  if (dateEndEl && !dateEndEl.value) dateEndEl.value = today;
   updateDatesSection();
 
   // 별점 초기화 (위시 기본값이므로 0)
@@ -30552,15 +31167,10 @@ function _getTagsByCategory(cat) {
 function renderTagCategoryTabs() {
   const tabsEl = document.getElementById('tagCatTabs');
   if (!tabsEl) return;
-  const cats = [
-    { id: 'genre', label: '장르' },
-    { id: 'nonfiction', label: '논픽션' },
-    { id: 'growth', label: '자기개발' },
-    { id: 'format', label: '형식' },
-    { id: 'webnovel', label: '웹소설' },
-    { id: 'hidden', label: '숨김', hidden: true },
-  ];
-  tabsEl.innerHTML = cats.map(c => {
+  // v1.12.0 — 동적 카테고리 + 숨김 탭
+  const cats = getTagCategoriesSorted().map(c => ({ id: c.id, label: c.label }));
+  cats.push({ id: 'hidden', label: '숨김', hidden: true });
+  let html = cats.map(c => {
     const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
     if (c.hidden && count === 0) return ''; // 숨김 0개면 탭 자체 노출 X
     let cls = 'tag-cat-tab';
@@ -30569,12 +31179,171 @@ function renderTagCategoryTabs() {
     const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
     return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
   }).join('');
+  // v1.12.0 — 대분류 관리 버튼
+  html += `<button type="button" class="tag-cat-manage${BA.tagCatEditMode ? ' is-active' : ''}" id="tagCatManageBtnBA">⚙️ 분류</button>`;
+  tabsEl.innerHTML = html;
   tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       BA.tagsActiveCat = btn.dataset.cat;
       BA.tagEditMode = false;
       renderTagChips();
     });
+  });
+  const manageBtn = document.getElementById('tagCatManageBtnBA');
+  if (manageBtn) {
+    manageBtn.addEventListener('click', () => {
+      BA.tagCatEditMode = !BA.tagCatEditMode;
+      renderTagCatEditPanel('BA');
+      renderTagCategoryTabs();
+    });
+  }
+  // v1.12.0 — 새 태그 카테고리 칩 동적 렌더
+  renderTagNewCatRow('BA');
+}
+
+/* v1.12.0 — 새 태그 카테고리 선택 칩 동적 렌더 (BA/BD 공용) */
+function renderTagNewCatRow(scope) {
+  const isBA = scope === 'BA';
+  const rowId = isBA ? 'tagNewCatRow' : 'bdTagNewCatRow';
+  const state = isBA ? BA : BD;
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  // 현재 선택된 카테고리가 삭제됐으면 첫 카테고리로
+  if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory)) {
+    state.newTagCategory = getTagCategoriesSorted()[0]?.id || 'genre';
+  }
+  let html = `<span class="tnc-label">📂 어느 카테고리에?</span>`;
+  html += getTagCategoriesSorted().map(c =>
+    `<button type="button" class="tnc-chip${state.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`
+  ).join('');
+  row.innerHTML = html;
+}
+
+/* v1.12.0 — 대분류 관리 편집 패널 렌더 (BA/BD 공용) */
+function renderTagCatEditPanel(scope) {
+  const isBA = scope === 'BA';
+  const panelId = isBA ? 'tagCatEditPanel' : 'bdTagCatEditPanel';
+  const state = isBA ? BA : BD;
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  if (!state.tagCatEditMode) {
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    return;
+  }
+  panel.classList.add('open');
+
+  const sorted = getTagCategoriesSorted();
+  const rerender = isBA ? 'BA' : 'BD';
+  let html = `<div class="tcep-title">📂 대분류 관리</div><div class="tcep-list">`;
+  sorted.forEach((c, idx) => {
+    const count = _getTagsByCategory(c.id).length;
+    const canDelete = !c.locked && count === 0;
+    const delTitle = c.locked ? '기본 분류는 삭제 불가' : (count > 0 ? '태그를 먼저 비워주세요' : '삭제');
+    const upDisabled = idx === 0 ? ' disabled' : '';
+    const downDisabled = idx === sorted.length - 1 ? ' disabled' : '';
+    html += `
+      <div class="tcep-row" data-id="${c.id}">
+        <div class="tcep-order">
+          <button class="tcep-ord-btn" data-act="up" data-id="${c.id}"${upDisabled}>▲</button>
+          <button class="tcep-ord-btn" data-act="down" data-id="${c.id}"${downDisabled}>▼</button>
+        </div>
+        <input class="tcep-name" value="${esc(c.label)}" data-id="${c.id}" maxlength="8">
+        <span class="tcep-count">${count}개${c.locked ? ' · 기본' : ''}</span>
+        <button class="tcep-del${canDelete ? '' : ' locked'}" data-id="${c.id}" title="${delTitle}">🗑️</button>
+      </div>`;
+  });
+  html += `</div>`;
+  html += `
+    <div class="tcep-add-row">
+      <input class="tcep-add-input" id="tcepAddInput-${rerender}" type="text" placeholder="새 대분류 (예: 에세이)" maxlength="8">
+      <button class="tcep-add-btn" data-act="add" data-scope="${rerender}">+ 추가</button>
+    </div>
+    <button class="tcep-done" data-act="done" data-scope="${rerender}">완료</button>`;
+  panel.innerHTML = html;
+
+  _wireTagCatEditPanel(panel, rerender);
+}
+
+/* 대분류 편집 패널 핸들러 배선 */
+function _wireTagCatEditPanel(panel, scope) {
+  const refresh = () => {
+    saveTagCategories();
+    renderTagCatEditPanel(scope);
+    if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); }
+    else { renderBookDetailTags(); }
+  };
+
+  // 이름 수정
+  panel.querySelectorAll('.tcep-name').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const cat = TAG_CAT_LIST.find(c => c.id === inp.dataset.id);
+      if (!cat) return;
+      const newLabel = inp.value.trim();
+      if (!newLabel) { inp.value = cat.label; return; }
+      if (TAG_CAT_LIST.some(c => c.id !== cat.id && c.label === newLabel)) {
+        showToast('이미 같은 이름의 대분류가 있어요');
+        inp.value = cat.label;
+        return;
+      }
+      cat.label = newLabel;
+      showToast(`"${newLabel}"(으)로 변경`);
+      refresh();
+    });
+  });
+
+  // 순서 변경
+  panel.querySelectorAll('.tcep-ord-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      const sorted = getTagCategoriesSorted();
+      const idx = sorted.findIndex(c => c.id === btn.dataset.id);
+      const swapIdx = btn.dataset.act === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= sorted.length) return;
+      const a = sorted[idx], b = sorted[swapIdx];
+      const tmp = a.order; a.order = b.order; b.order = tmp;
+      refresh();
+    });
+  });
+
+  // 삭제
+  panel.querySelectorAll('.tcep-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = TAG_CAT_LIST.find(c => c.id === btn.dataset.id);
+      if (!cat) return;
+      if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return; }
+      if (_getTagsByCategory(cat.id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return; }
+      TAG_CAT_LIST = TAG_CAT_LIST.filter(c => c.id !== cat.id);
+      const state = scope === 'BA' ? BA : BD;
+      if (state.tagsActiveCat === cat.id) state.tagsActiveCat = getTagCategoriesSorted()[0]?.id || 'genre';
+      showToast(`"${cat.label}" 삭제됨`);
+      refresh();
+    });
+  });
+
+  // 추가
+  const addBtn = panel.querySelector('.tcep-add-btn');
+  const addInput = panel.querySelector('.tcep-add-input');
+  const doAdd = () => {
+    const label = (addInput?.value || '').trim();
+    if (!label) { showToast('대분류 이름을 입력해주세요'); return; }
+    if (TAG_CAT_LIST.some(c => c.label === label)) { showToast('이미 같은 이름이 있어요'); return; }
+    const id = 'custom_' + Date.now().toString(36);
+    const maxOrder = Math.max(0, ...TAG_CAT_LIST.map(c => c.order || 0));
+    TAG_CAT_LIST.push({ id, label, locked: false, order: maxOrder + 1 });
+    showToast(`"${label}" 추가됨`);
+    refresh();
+  };
+  if (addBtn) addBtn.addEventListener('click', doAdd);
+  if (addInput) addInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+
+  // 완료
+  const doneBtn = panel.querySelector('.tcep-done');
+  if (doneBtn) doneBtn.addEventListener('click', () => {
+    const state = scope === 'BA' ? BA : BD;
+    state.tagCatEditMode = false;
+    refresh();
   });
 }
 
@@ -30753,15 +31522,10 @@ function renderBookDetailTags() {
   // 카테고리 탭
   const tabsEl = document.getElementById('bdTagCatTabs');
   if (tabsEl) {
-    const cats = [
-      { id: 'genre', label: '장르' },
-      { id: 'nonfiction', label: '논픽션' },
-      { id: 'growth', label: '자기개발' },
-      { id: 'format', label: '형식' },
-      { id: 'webnovel', label: '웹소설' },
-      { id: 'hidden', label: '숨김', hidden: true },
-    ];
-    tabsEl.innerHTML = cats.map(c => {
+    // v1.12.0 — 동적 카테고리 + 숨김 탭
+    const cats = getTagCategoriesSorted().map(c => ({ id: c.id, label: c.label }));
+    cats.push({ id: 'hidden', label: '숨김', hidden: true });
+    let html = cats.map(c => {
       const count = c.hidden ? HIDDEN_TAGS.size : _getTagsByCategory(c.id).length;
       if (c.hidden && count === 0) return '';
       let cls = 'tag-cat-tab';
@@ -30770,6 +31534,8 @@ function renderBookDetailTags() {
       const badge = count > 0 ? `<span class="tcc">${count}</span>` : '';
       return `<button type="button" class="${cls}" data-cat="${c.id}">${c.label}${badge}</button>`;
     }).join('');
+    html += `<button type="button" class="tag-cat-manage${BD.tagCatEditMode ? ' is-active' : ''}" id="tagCatManageBtnBD">⚙️ 분류</button>`;
+    tabsEl.innerHTML = html;
     tabsEl.querySelectorAll('.tag-cat-tab').forEach(btn => {
       btn.addEventListener('click', () => {
         BD.tagsActiveCat = btn.dataset.cat;
@@ -30777,7 +31543,18 @@ function renderBookDetailTags() {
         renderBookDetailTags();
       });
     });
+    const manageBtn = document.getElementById('tagCatManageBtnBD');
+    if (manageBtn) {
+      manageBtn.addEventListener('click', () => {
+        BD.tagCatEditMode = !BD.tagCatEditMode;
+        renderTagCatEditPanel('BD');
+        renderBookDetailTags();
+      });
+    }
   }
+  // v1.12.0 — BD 새 태그 카테고리 칩 + 편집 패널 렌더
+  if (document.getElementById('bdTagNewCatRow')) renderTagNewCatRow('BD');
+  if (document.getElementById('bdTagCatEditPanel')) renderTagCatEditPanel('BD');
 
   const editing = !!BD.tagEditMode;
   const activeCat = BD.tagsActiveCat;
@@ -31831,13 +32608,56 @@ function mapAladinCategoryToTags(categoryName) {
 }
 
 // v1.9.0 — 카테고리 라벨 매핑
-const TAG_CATEGORIES = {
-  genre: '장르',
-  nonfiction: '논픽션',
-  growth: '자기개발',
-  format: '형식',
-  webnovel: '웹소설',
-};
+// v1.12.0 — 동적 대분류 시스템. 사용자가 추가/수정/삭제/순서변경 가능.
+//   기본 5종은 locked=true (삭제 불가, 이름·순서 변경은 가능).
+//   기본 id(genre 등)는 자동 태그 부여/마이그레이션이 참조하므로 고정.
+//   localStorage 'read.tagCategories'에 저장. 없으면 기본값 시드.
+const TAG_CAT_DEFAULTS = [
+  { id: 'genre',      label: '장르',     locked: true, order: 0 },
+  { id: 'nonfiction', label: '논픽션',   locked: true, order: 1 },
+  { id: 'growth',     label: '자기개발', locked: true, order: 2 },
+  { id: 'format',     label: '형식',     locked: true, order: 3 },
+  { id: 'webnovel',   label: '웹소설',   locked: true, order: 4 },
+];
+const TAG_CAT_KEY = 'read.tagCategories';
+
+let TAG_CAT_LIST = loadTagCategories();
+
+// TAG_CATEGORIES (id→label 객체) — 기존 코드 호환용. TAG_CAT_LIST에서 동기화.
+let TAG_CATEGORIES = {};
+function _syncTagCategoriesObj() {
+  TAG_CATEGORIES = {};
+  TAG_CAT_LIST.forEach(c => { TAG_CATEGORIES[c.id] = c.label; });
+}
+
+function loadTagCategories() {
+  try {
+    const raw = localStorage.getItem(TAG_CAT_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // 기본 5종이 빠졌으면 보강 (locked 항목은 항상 존재해야)
+        TAG_CAT_DEFAULTS.forEach(def => {
+          if (!parsed.some(c => c.id === def.id)) parsed.push({ ...def });
+        });
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(TAG_CAT_DEFAULTS));
+}
+
+function saveTagCategories() {
+  try { localStorage.setItem(TAG_CAT_KEY, JSON.stringify(TAG_CAT_LIST)); } catch (e) {}
+  _syncTagCategoriesObj();
+}
+
+// 순서 정렬된 카테고리 리스트 반환
+function getTagCategoriesSorted() {
+  return [...TAG_CAT_LIST].sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+_syncTagCategoriesObj();  // 초기 동기화
 
 // v1.9.0 — 기존 시드 18개 → 새 카테고리 자동 마이그레이션 매핑
 // 정확 매칭 우선, 그 다음 의미상 가까운 카테고리로
@@ -36056,6 +36876,7 @@ const BD = {
   tagEditMode: false,    // 태그 편집(삭제) 모드
   tagsActiveCat: 'genre', // v1.9.0 - 활성 카테고리 탭
   newTagCategory: 'genre', // v1.9.0 - 새 태그 추가 시 카테고리
+  tagCatEditMode: false, // v1.12.0 - 대분류 관리 모드
   tmSessOpen: false,     // v1.10.4 — 타이머 세션 펼침 상태 (책상세 안)
   tmSessEditKey: null,   // v1.10.4 — 편집 중인 세션 키
 };
@@ -37795,6 +38616,8 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
+      <!-- v1.12.0 대분류 편집 패널 -->
+      <div class="tag-cat-edit-panel" id="bdTagCatEditPanel"></div>
       <!-- 편집 헬프 박스 -->
       <div class="tag-edit-help" id="bdTagEditHelp" data-mode="hide" aria-hidden="true">
         <!-- JS 렌더 -->
@@ -37810,11 +38633,7 @@ function renderBookDetail() {
       </div>
       <div class="tag-new-cat-row" id="bdTagNewCatRow">
         <span class="tnc-label">📂 어느 카테고리에?</span>
-        <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
-        <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
-        <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
-        <button type="button" class="tnc-chip" data-cat="format">형식</button>
-        <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
+        ${getTagCategoriesSorted().map(c => `<button type="button" class="tnc-chip${BD.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`).join('')}
       </div>
     </div>
     ` : ''}
