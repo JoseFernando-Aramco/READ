@@ -44173,16 +44173,33 @@ function hasEffectivePrice(b) {
   return getEffectivePrice(b) > 0;
 }
 
+/* v1.x — Bookflex 지출 귀속 연도: 구매일(acqDate) 있으면 완독 여부 무관 그 연도, 없으면 완독한 책만 완독일(dateEnd) 연도. 비대상이면 null */
+function _spendYearOf(b) {
+  if (b && b.acqDate) {
+    const y = new Date(b.acqDate).getFullYear();
+    return isNaN(y) ? null : y;
+  }
+  if (b && b.status === 'done' && b.dateEnd) {
+    const y = new Date(b.dateEnd).getFullYear();
+    return isNaN(y) ? null : y;
+  }
+  return null;
+}
+/* v1.x — 지출 귀속 시점(ts): 구매일 우선, 없으면 완독일 */
+function _spendTsOf(b) {
+  const d = (b && b.acqDate) ? b.acqDate : ((b && b.status === 'done') ? b.dateEnd : null);
+  if (!d) return null;
+  const t = new Date(d).getTime();
+  return isNaN(t) ? null : t;
+}
+
 function _calcSpend(year) {
   // v1.x — year 파라미터: null/undefined면 전체, 숫자면 그 연도에 dateEnd 있는 책만
-  const allDone = (BOOKS || []).filter(b => b.status === 'done');
+  // v1.x — 지출 귀속: 구매일 있으면 그 연도(완독 무관), 없으면 완독한 책만 완독일 연도
+  const eligibleAll = (BOOKS || []).filter(b => _spendYearOf(b) != null);
   const all = (year == null)
-    ? allDone
-    : allDone.filter(b => {
-        if (!b.dateEnd) return false;
-        const y = new Date(b.dateEnd).getFullYear();
-        return y === year;
-      });
+    ? eligibleAll
+    : eligibleAll.filter(b => _spendYearOf(b) === year);
   const byFormat = { paper: [], ebook: [], audio: [] };
   all.forEach(b => {
     const f = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
@@ -44211,11 +44228,10 @@ function _calcSpend(year) {
 
   // v1.10.0 — 권당 평균 + 월 평균 (Bookflex 4+ 시안 적용)
   const perBookAvg = grandRegistered > 0 ? Math.round(grandTotal / grandRegistered) : 0;
-  const allReadDates = all
-    .filter(b => b.dateEnd)
-    .map(b => new Date(b.dateEnd).getTime())
-    .filter(t => !isNaN(t));
-  const firstReadTs = allReadDates.length ? Math.min(...allReadDates) : null;
+  const allSpendTs = all
+    .map(b => _spendTsOf(b))
+    .filter(t => t != null);
+  const firstReadTs = allSpendTs.length ? Math.min(...allSpendTs) : null;
   let monthlyAvg = 0;
   if (year != null) {
     // 연도별 모드: 올해면 현재 월까지, 과거면 12개월
@@ -44234,10 +44250,8 @@ function _calcSpend(year) {
 function _getSpendYears() {
   const years = new Set();
   (BOOKS || []).forEach(b => {
-    if (b.status === 'done' && b.dateEnd) {
-      const y = new Date(b.dateEnd).getFullYear();
-      if (!isNaN(y)) years.add(y);
-    }
+    const y = _spendYearOf(b);
+    if (y != null) years.add(y);
   });
   return Array.from(years).sort((a, b) => b - a);  // 최신순
 }
@@ -44436,7 +44450,7 @@ function _renderSpendModal() {
   if (s.grandCount === 0) {
     body.innerHTML =
       '<div class="sp-empty">' +
-        '<b>' + (isYearMode ? viewYear + '년에 완독한 책이 없어요' : '아직 완독한 책이 없어요') + '</b>' +
+        '<b>' + (isYearMode ? viewYear + '년 지출 기록이 없어요' : '아직 지출 기록이 없어요') + '</b>' +
         '완독한 책의 종이값이 여기 쌓여요.' +
       '</div>';
     return;
@@ -44606,12 +44620,10 @@ function _renderSpendModal() {
     (function() {
       const fmt = _SPEND_SELECTED_FORMAT;
       const eligible = (BOOKS || []).filter(function(b) {
-        if (b.status !== 'done') return false;
-        // v1.x — 연도 필터링
-        if (_SPEND_VIEW_YEAR != null) {
-          if (!b.dateEnd) return false;
-          if (new Date(b.dateEnd).getFullYear() !== _SPEND_VIEW_YEAR) return false;
-        }
+        var _sy = _spendYearOf(b);
+        if (_sy == null) return false;
+        // v1.x — 연도 필터링 (구매일 우선, 없으면 완독일)
+        if (_SPEND_VIEW_YEAR != null && _sy !== _SPEND_VIEW_YEAR) return false;
         if (!fmt) return true;
         var bf = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
         return bf === fmt;
@@ -44631,7 +44643,7 @@ function _renderSpendModal() {
       if (allBooks.length === 0) {
         return '<div class="sp-books-section">' +
           '<div class="sp-sec-title">' + sectionTitle + '</div>' +
-          '<div class="sp-books-empty">완독한 ' + fmtName + '이 아직 없어요</div>' +
+          '<div class="sp-books-empty">' + fmtName + ' 기록이 아직 없어요</div>' +
         '</div>';
       }
 
