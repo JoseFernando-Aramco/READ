@@ -27608,7 +27608,7 @@ function _dedupeByIsbn(arr) {
 function _mergeByIsbn(arr) {
   const PRIORITY = {
     info:  ['naver', 'kakao', 'aladin', 'google'],
-    price: ['naver', 'aladin', 'kakao', 'google'],
+    price: ['aladin', 'naver', 'kakao', 'google'],
     cover: ['kakao', 'aladin', 'naver', 'google'],
     pages: ['aladin', 'google'],
   };
@@ -27658,13 +27658,15 @@ function _mergeByIsbn(arr) {
               || '';
 
     // 가격 — priceSource도 같이 추적 (가격 카드 출처 chip용)
-    const priceSales = pickByPriority(group, PRIORITY.price, 'priceSales', hasNum);
-    const priceList  = pickByPriority(group, PRIORITY.price, 'priceList',  hasNum);
-    let priceSource = null;
-    if (priceSales != null || priceList != null) {
-      for (const src of PRIORITY.price) {
-        const it = group.find(g => g.source === src);
-        if (it && (hasNum(it.priceSales) || hasNum(it.priceList))) { priceSource = src; break; }
+    // v1.x — 정가·판매가를 같은 소스에서 짝으로 뽑음 (서로 다른 소스 혼합 → 짝 어긋남 방지). 우선순위 = 알라딘 우선
+    let priceSales = null, priceList = null, priceSource = null;
+    for (const src of PRIORITY.price) {
+      const it = group.find(g => g.source === src);
+      if (it && (hasNum(it.priceSales) || hasNum(it.priceList))) {
+        priceSales = hasNum(it.priceSales) ? it.priceSales : null;
+        priceList  = hasNum(it.priceList)  ? it.priceList  : null;
+        priceSource = src;
+        break;
       }
     }
 
@@ -47103,7 +47105,7 @@ function _bfClose() {
 const ENRICH_PRIORITY = {
   cover: ['kakao', 'aladin', 'google'],
   pages: ['aladin', 'google'],
-  price: ['naver', 'aladin', 'google'],
+  price: ['aladin', 'naver', 'google'],
 };
 const ENRICH_SOURCE_FN = {
   kakao:  typeof _searchKakao  === 'function' ? _searchKakao  : null,
