@@ -681,53 +681,40 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tab-bar {
   position: sticky; top: calc(68px + env(safe-area-inset-top)); z-index: 45;
   background: var(--c-canvas);
-  padding: 6px 20px 0;
-  display: flex;
-  justify-content: flex-start;
-  gap: 22px;
+  padding: 8px 16px 10px;
+  display: flex; justify-content: center;
   margin: 0;
-  border-bottom: 1px solid var(--c-border);
-  /* v1.3.0 — 모바일 탭 영역 위아래 드래그 → 텍스트 선택/탭 따라오기 차단 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; touch-action: manipulation;
+}
+/* v1.13.0 — B2 플로팅 아일랜드 네비 */
+.tab-isl {
+  position: relative; display: inline-flex; gap: 2px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px; padding: 5px; max-width: 100%;
+  box-shadow: 0 6px 18px rgba(20,17,13,.08);
+}
+.tab-thumb {
+  position: absolute; top: 5px; bottom: 5px; left: 0; width: 0;
+  background: var(--c-text); border-radius: 11px; z-index: 0;
+  transition: left .32s cubic-bezier(.34,1.5,.5,1), width .32s cubic-bezier(.34,1.5,.5,1);
 }
 .tab-bar::after { display: none; }
 .tab-btn {
-  padding: 10px 0 14px 0;
-  border-radius: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 16px; font-weight: 500;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
+  position: relative; z-index: 1;
+  padding: 9px 16px; border-radius: 11px;
+  background: transparent; border: 0;
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  color: var(--c-label); letter-spacing: -0.01em;
   display: flex; flex-direction: row; align-items: center; gap: 4px;
-  transition: color .15s;
-  position: relative;
-  /* v1.3.0 — 텍스트 선택 차단 + 탭 핸들링 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  touch-action: manipulation;
+  transition: color .26s; white-space: nowrap; cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 .tab-btn .tab-icon { display: none; }
-.tab-btn.active {
-  color: var(--c-text);
-  font-weight: 700;
-}
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--c-text);
-  border-radius: 2px;
-  transform: none;
-  width: auto;
-}
+.tab-btn.active { color: var(--c-canvas); font-weight: 600; }
 
 /* ═══════════ 탭 콘텐츠 (캐러셀 트랙) ═══════════ */
 .pane-viewport {
@@ -5028,44 +5015,32 @@ body:has(.lib-edit-bar) .library-cards {
 
 /* 뷰 토글 세그먼트 */
 .view-toggle {
-  display: inline-flex;
-  background: var(--c-border);
-  border: none;
-  border-radius: 5px;
-  padding: 3px;
-  margin: 4px 0 16px;
+  display: inline-flex; background: transparent; border: none;
+  padding: 0; margin: 6px 0 16px;
 }
-/* 3개 세그먼트 버전 — 모바일 화면에 맞춰 full-width grid로 */
+/* v1.13.0 — B2 서브: 세이지 밑줄 */
 .view-toggle.view-toggle-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 100%;
-  gap: 0;
+  display: flex; width: 100%; gap: 4px;
+  border-bottom: 1px solid var(--c-border);
 }
 .view-toggle.view-toggle-3 .vt-btn {
-  padding: 8px 6px;
-  justify-content: center;
-  font-size: 13px;
+  flex: 1; padding: 9px 6px 11px; justify-content: center; font-size: 13px;
 }
 .vt-btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px; font-weight: 500;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
-  text-transform: none;
-  transition: all .15s;
-  display: flex; align-items: center; gap: 6px;
-  white-space: nowrap;
+  padding: 9px 12px 11px; border-radius: 0;
+  background: transparent; border: 0;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  color: var(--c-label); letter-spacing: -0.01em; text-transform: none;
+  transition: color .2s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  position: relative; margin-bottom: -1px;
+  border-bottom: 2px solid transparent; cursor: pointer;
 }
 .vt-btn.active {
-  background: var(--c-surface);
-  color: var(--c-text);
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(25,31,40,0.08);
+  background: transparent; color: var(--c-text); font-weight: 600;
+  box-shadow: none; border-bottom-color: var(--c-coin-deep, #5F6B5F);
 }
-.vt-btn-icon { font-size: 14px; }
+.vt-btn-icon { font-size: 14px; display: inline-flex; }
 
 /* ═══════════ 명예의 전당 ═══════════ */
 .library-hall {
@@ -8410,10 +8385,11 @@ body:has(.lib-edit-bar) .library-cards {
 .tag-cat-tab.is-cat-editing {
   cursor: pointer;
   position: relative;
-  /* 패딩 안 건드림 → 박스 크기 그대로 유지 */
+  /* 좌측에만 배지 자리 확보 → 가로로만 늘어나고 세로 높이는 불변 (상하 padding 그대로) */
+  padding-left: 24px;
   animation: catShake 0.32s ease-in-out infinite;
   touch-action: none;
-  overflow: visible;  /* 배지가 칩 밖으로 살짝 나가도 안 잘리게 */
+  overflow: visible;
 }
 .tag-cat-tab.is-cat-editing:nth-child(even) { animation-duration: 0.36s; animation-direction: reverse; }
 .tag-cat-tab.is-cat-editing:nth-child(3n) { animation-duration: 0.30s; }
@@ -8443,6 +8419,14 @@ body:has(.lib-edit-bar) .library-cards {
 }
 .tag-cat-tab .cat-action:hover { transform: scale(1.15); }
 .tag-cat-tab .cat-action:active { transform: scale(0.92); }
+/* 편집 모드: 배지를 탭 안쪽 왼쪽 세로 중앙에 (위로 삐져나오지 않음 → 박스 세로 불변) */
+.tag-cat-tab.is-cat-editing .cat-action {
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.tag-cat-tab.is-cat-editing .cat-action:hover  { transform: translateY(-50%) scale(1.12); }
+.tag-cat-tab.is-cat-editing .cat-action:active { transform: translateY(-50%) scale(0.9); }
 
 /* 대분류 편집 하단 시트 */
 .cat-edit-backdrop {
@@ -8485,6 +8469,8 @@ body:has(.lib-edit-bar) .library-cards {
   color: var(--c-coin-deep, #5F6B5F);
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;   /* 쪼그라들 때 글자 줄바꿈 방지 → 세로로 안 길어짐 */
+  flex-shrink: 0;        /* 폭 부족해도 안 쪼그라듦 (대신 가로 스크롤) */
   animation: catShake 0.34s ease-in-out infinite;
 }
 .tag-cat-add-chip:hover { background: var(--c-sage-50, #E8ECE6); }
@@ -8534,7 +8520,11 @@ body:has(.lib-edit-bar) .library-cards {
   box-shadow: 0 6px 18px rgba(0,0,0,0.22);
   cursor: grabbing;
   transform: scale(1.06);
+  transition: transform .12s ease;   /* left/top은 즉시 추종(transition 제외), 집을 때 scale만 부드럽게 */
 }
+/* 드래그 중 — 나머지 탭/칩 흔들림 정지 (FLIP transform이 먹게 + 산만함 제거) */
+.tag-cat-tabs.is-cat-dragging .tag-cat-tab,
+.tag-cat-tabs.is-cat-dragging .tag-cat-add-chip { animation: none; }
 .tag-cat-tab.is-drag-ph {
   animation: none;
   opacity: 0.35;
@@ -21555,21 +21545,24 @@ body.cn-locked {
 
   <!-- ═══════════ 탭 바 ═══════════ -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="library">
-      <span class="tab-icon">📚</span><span>서재</span>
-    </button>
-    <button class="tab-btn" data-tab="stats">
-      <span class="tab-icon">📊</span><span>통계</span>
-    </button>
-    <button class="tab-btn" data-tab="goals">
-      <span class="tab-icon">🎯</span><span>목표</span>
-    </button>
-    <button class="tab-btn" data-tab="notes">
-      <span class="tab-icon">✍️</span><span>노트</span>
-    </button>
-    <button class="tab-btn" data-tab="booknook" id="bnTabBtn">
-      <span class="tab-icon">🛋️</span><span>Booknook</span>
-    </button>
+    <div class="tab-isl">
+      <span class="tab-thumb"></span>
+      <button class="tab-btn active" data-tab="library">
+        <span class="tab-icon">📚</span><span>서재</span>
+      </button>
+      <button class="tab-btn" data-tab="stats">
+        <span class="tab-icon">📊</span><span>통계</span>
+      </button>
+      <button class="tab-btn" data-tab="goals">
+        <span class="tab-icon">🎯</span><span>목표</span>
+      </button>
+      <button class="tab-btn" data-tab="notes">
+        <span class="tab-icon">✍️</span><span>노트</span>
+      </button>
+      <button class="tab-btn" data-tab="booknook" id="bnTabBtn">
+        <span class="tab-icon">🛋️</span><span>Booknook</span>
+      </button>
+    </div>
   </nav>
 
   <!-- ═══════════ Pane 뷰포트 · 캐러셀 트랙 ═══════════ -->
@@ -21825,7 +21818,6 @@ body.cn-locked {
       
       <!-- 책 권수 (한 줄 컴팩트) -->
       <div class="annual-hero-row">
-        <span class="annual-hero-row-icon">📚</span>
         <span class="annual-hero-num">6</span>
         <span class="annual-hero-row-target">/ <span class="annual-hero-target">30권</span></span>
         <span class="annual-hero-row-right annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
@@ -21839,7 +21831,6 @@ body.cn-locked {
       
       <!-- 연속독서일 (한 줄 컴팩트) -->
       <div class="annual-hero-row annual-hero-row-streak">
-        <span class="annual-hero-row-icon">🔥</span>
         <span class="annual-hero-num annual-hero-streak-num">0</span>
         <span class="annual-hero-row-target">/ <span class="annual-hero-streak-target">7일</span></span>
         <span class="annual-hero-row-right">최고 <strong class="annual-hero-streak-best">0</strong>일</span>
@@ -27955,6 +27946,7 @@ function snapToTab(idx, opts = {}) {
   // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
+  positionTabThumb();
 }
 
 /* 활성 탭에 맞춰 FAB 라벨 전환 */
@@ -27963,6 +27955,20 @@ function updateFabLabel(tabId) {
   if (!label) return;
   label.textContent = tabId === 'notes' ? '노트 추가' : '책 추가';
 }
+
+/* v1.13.0 — B2 아일랜드: 활성 탭 따라 썸 이동 (클릭·스와이프·프로그램 전환 공통) */
+function positionTabThumb() {
+  const isl = document.querySelector('.tab-isl'); if (!isl) return;
+  const th = isl.querySelector('.tab-thumb');
+  const a = isl.querySelector('.tab-btn.active');
+  if (!th) return;
+  if (!a || !a.offsetWidth) { th.style.width = '0'; return; }
+  th.style.left = a.offsetLeft + 'px';
+  th.style.width = a.offsetWidth + 'px';
+}
+window.addEventListener('load', positionTabThumb);
+window.addEventListener('resize', positionTabThumb);
+requestAnimationFrame(positionTabThumb);
 
 function switchTab(nextIdx, opts = {}) {
   // v1.12.0 — Booknook 탭 (인덱스 4) 분기 처리
@@ -29638,7 +29644,7 @@ function _dedupeByIsbn(arr) {
 function _mergeByIsbn(arr) {
   const PRIORITY = {
     info:  ['naver', 'kakao', 'aladin', 'google'],
-    price: ['naver', 'aladin', 'kakao', 'google'],
+    price: ['aladin', 'naver', 'kakao', 'google'],
     cover: ['kakao', 'aladin', 'naver', 'google'],
     pages: ['aladin', 'google'],
   };
@@ -29688,13 +29694,15 @@ function _mergeByIsbn(arr) {
               || '';
 
     // 가격 — priceSource도 같이 추적 (가격 카드 출처 chip용)
-    const priceSales = pickByPriority(group, PRIORITY.price, 'priceSales', hasNum);
-    const priceList  = pickByPriority(group, PRIORITY.price, 'priceList',  hasNum);
-    let priceSource = null;
-    if (priceSales != null || priceList != null) {
-      for (const src of PRIORITY.price) {
-        const it = group.find(g => g.source === src);
-        if (it && (hasNum(it.priceSales) || hasNum(it.priceList))) { priceSource = src; break; }
+    // v1.x — 정가·판매가를 같은 소스에서 짝으로 뽑음 (서로 다른 소스 혼합 → 짝 어긋남 방지). 우선순위 = 알라딘 우선
+    let priceSales = null, priceList = null, priceSource = null;
+    for (const src of PRIORITY.price) {
+      const it = group.find(g => g.source === src);
+      if (it && (hasNum(it.priceSales) || hasNum(it.priceList))) {
+        priceSales = hasNum(it.priceSales) ? it.priceSales : null;
+        priceList  = hasNum(it.priceList)  ? it.priceList  : null;
+        priceSource = src;
+        break;
       }
     }
 
@@ -31268,7 +31276,7 @@ function _renderCatTabs(tabsEl, scope) {
     // 편집 모드: 소분류와 동일하게 ✏️ 배지 하나만 (삭제는 모달에서)
     let actions = '';
     if (editing) {
-      actions += `<button type="button" class="cat-action ca-edit" data-catact="edit" data-cat="${c.id}">✎</button>`;
+      actions += `<span role="button" tabindex="0" class="cat-action ca-edit" data-catact="edit" data-cat="${c.id}">✎</span>`;
     }
     return `<button type="button" class="${cls}" data-cat="${c.id}" data-catact="select">${actions}${esc(c.label)}${cntBadge}</button>`;
   }).join('');
@@ -31464,6 +31472,7 @@ function _onCatDragStart(e, scope) {
   const rect = tab.getBoundingClientRect();
   _catDrag = {
     scope, id: tab.dataset.cat, el: tab,
+    parent: tab.parentNode,
     startX: e.clientX, startY: e.clientY,
     offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top,
     width: rect.width, height: rect.height, moved: false,
@@ -31485,45 +31494,66 @@ function _onCatDragMove(e) {
     ph.style.width = _catDrag.width + 'px';
     ph.style.height = _catDrag.height + 'px';
     _catDrag.placeholder = ph;
-    _catDrag.el.parentNode.insertBefore(ph, _catDrag.el);
+    _catDrag.parent.insertBefore(ph, _catDrag.el);
+    _catDrag.parent.classList.add('is-cat-dragging');  // 흔들림 정지
+    // v1.12.1 — fixed 요소를 body로 이동: transform/backdrop-filter 조상이 containing block을 가로채는 것 방지
+    document.body.appendChild(_catDrag.el);
     _catDrag.el.classList.add('is-dragging');
     _catDrag.el.style.position = 'fixed';
+    _catDrag.el.style.zIndex = '99999';
     _catDrag.el.style.width = _catDrag.width + 'px';
     _catDrag.el.style.margin = '0';
   }
   if (_catDrag.moved) {
     _catDrag.el.style.left = (e.clientX - _catDrag.offsetX) + 'px';
     _catDrag.el.style.top = (e.clientY - _catDrag.offsetY) + 'px';
-    const tabs = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')].filter(t =>
+    const tabs = [..._catDrag.parent.querySelectorAll('.tag-cat-tab')].filter(t =>
       t !== _catDrag.el && t !== _catDrag.placeholder && t.dataset.cat && t.dataset.cat !== 'hidden'
     );
-    let inserted = false;
+    // 한 줄 가로 정렬 — 세로 제약 없이 X 중앙 기준으로 삽입 위치 결정
+    let target = null;
     for (const t of tabs) {
       const r = t.getBoundingClientRect();
-      const midX = r.left + r.width / 2;
-      if (e.clientY >= r.top && e.clientY <= r.bottom && e.clientX < midX) {
-        t.parentNode.insertBefore(_catDrag.placeholder, t);
-        inserted = true;
-        break;
-      }
+      if (e.clientX < r.left + r.width / 2) { target = t; break; }
     }
-    if (!inserted) {
-      const addChip = _catDrag.el.parentNode.querySelector('.tag-cat-add-chip');
-      if (addChip) _catDrag.el.parentNode.insertBefore(_catDrag.placeholder, addChip);
-    }
+    if (!target) target = _catDrag.parent.querySelector('.tag-cat-add-chip');
+    _catFlipMove(target);
   }
+}
+/* FLIP — placeholder를 옮기면서 비키는 탭들을 부드럽게 슬라이드 */
+function _catFlipMove(refNode) {
+  const ph = _catDrag.placeholder;
+  const parent = ph && ph.parentNode;
+  if (!ph || !parent) return;
+  if (refNode === ph || ph.nextSibling === refNode) return;  // 이미 그 자리 → 스킵
+  const sibs = [...parent.querySelectorAll('.tag-cat-tab, .tag-cat-add-chip')]
+    .filter(t => t !== _catDrag.el && t !== ph);
+  const before = new Map(sibs.map(t => [t, t.getBoundingClientRect().left]));
+  parent.insertBefore(ph, refNode);
+  sibs.forEach(t => {
+    const dxp = before.get(t) - t.getBoundingClientRect().left;
+    if (Math.abs(dxp) > 0.5) {
+      t.style.transition = 'none';
+      t.style.transform = `translateX(${dxp}px)`;
+      requestAnimationFrame(() => {
+        t.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
+        t.style.transform = '';
+      });
+    }
+  });
 }
 function _onCatDragEnd(e) {
   if (!_catDrag) return;
   const tab = _catDrag.el;
   const scope = _catDrag.scope;
+  if (_catDrag.parent) _catDrag.parent.classList.remove('is-cat-dragging');
   tab.removeEventListener('pointermove', _onCatDragMove);
   tab.removeEventListener('pointerup', _onCatDragEnd);
   tab.removeEventListener('pointercancel', _onCatDragEnd);
 
   if (_catDrag.moved && _catDrag.placeholder) {
-    const orderedIds = [..._catDrag.el.parentNode.querySelectorAll('.tag-cat-tab')]
-      .map(t => t === _catDrag.el ? _catDrag.placeholder : t)
+    const orderedIds = [..._catDrag.parent.querySelectorAll('.tag-cat-tab')]
+      .filter(t => t !== _catDrag.el)   // 떠다니는 원본 제외 — placeholder가 드롭 위치를 대표 (중복 방지)
       .filter(t => (t === _catDrag.placeholder) || (t.dataset.cat && t.dataset.cat !== 'hidden'))
       .map(t => t === _catDrag.placeholder ? _catDrag.id : t.dataset.cat)
       .filter(Boolean);
@@ -31535,9 +31565,7 @@ function _onCatDragEnd(e) {
     showToast('순서 변경됨');
   }
   if (_catDrag.placeholder) _catDrag.placeholder.remove();
-  tab.classList.remove('is-dragging');
-  tab.style.position = ''; tab.style.left = ''; tab.style.top = '';
-  tab.style.width = ''; tab.style.margin = '';
+  tab.remove();  // v1.12.1 — body로 빼둔 원본 제거 (재렌더가 strip을 새로 그림)
   _catDragMoved = _catDrag.moved;  // 드래그였으면 직후 click 무시
   _catDrag = null;
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
@@ -32882,110 +32910,78 @@ const HIDDEN_TAGS = new Set();
 
 // 책 데이터 (샘플) — 실제 앱에선 localStorage / IndexedDB
 const BOOKS = [
-  { id:1, title:'데미안', author:'헤르만 헤세', palette:'demian',
-    pages:248, status:'reading', dateStart:'2026-04-14', currentPage:162,
-    readingSessions: [
-      { date: '2026-04-14', minutes: 35, pages: 28 },
-      { date: '2026-04-15', minutes: 42, pages: 30 },
-      { date: '2026-04-17', minutes: 50, pages: 40 },
-      { date: '2026-04-19', minutes: 45, pages: 35 },
-      { date: '2026-04-20', minutes: 38, pages: 29 },
+  /* ─── 위시 5권 ─── */
+  { id:1, title:'클라라와 태양', author:'가즈오 이시구로', palette:'demian',
+    pages:416, status:'wish', tags:['외국소설','SF'],
+    wishNote:'책방에서 표지 보고 찜해둠' },
+  { id:2, title:'물고기는 존재하지 않는다', author:'룰루 밀러', palette:'factful',
+    pages:380, status:'wish', tags:['과학','에세이'] },
+  { id:3, title:'화산귀환', author:'비가', palette:'guns',
+    pages:600, status:'wish', tags:['무협','회귀'],
+    wishNote:'웹툰 보고 원작 궁금해서' },
+  { id:4, title:'마음의 법칙', author:'폴커 키츠', palette:'nudge',
+    pages:264, status:'wish', tags:['심리','사고법'] },
+  { id:5, title:'시를 잊은 그대에게', author:'정재찬', palette:'courage',
+    pages:320, status:'wish', tags:['시·시집','에세이'] },
+
+  /* ─── 독서중 5권 ─── */
+  { id:6, title:'전지적 독자 시점 1', author:'싱숑', palette:'1984',
+    pages:408, status:'reading', dateStart:'2026-05-20', currentPage:210,
+    readingSessions:[
+      { date:'2026-05-20', minutes:40, pages:70 },
+      { date:'2026-05-24', minutes:55, pages:80 },
+      { date:'2026-06-02', minutes:35, pages:60 },
     ],
-    tags:['성장','고전','자기성찰'] },
-  { id:2, title:'1984', author:'조지 오웰', palette:'1984',
-    pages:326, status:'reading', dateStart:'2026-04-18', currentPage:102,
+    tags:['현대판타지','회귀'] },
+  { id:7, title:'사피엔스', author:'유발 하라리', palette:'sapiens',
+    pages:636, status:'reading', dateStart:'2026-05-28', currentPage:300,
+    readingSessions:[
+      { date:'2026-05-28', minutes:50, pages:90 },
+      { date:'2026-05-31', minutes:45, pages:110 },
+      { date:'2026-06-06', minutes:40, pages:100 },
+    ],
+    tags:['역사','과학'] },
+  { id:8, title:'노르웨이의 숲', author:'무라카미 하루키', palette:'prince',
+    pages:460, status:'reading', dateStart:'2026-06-01', currentPage:180,
     format:'ebook',
-    readingSessions: [
-      { date: '2026-04-18', minutes: 55, pages: 45 },
-      { date: '2026-04-19', minutes: 40, pages: 32 },
-      { date: '2026-04-20', minutes: 30, pages: 25 },
+    readingSessions:[
+      { date:'2026-06-01', minutes:38, pages:95 },
+      { date:'2026-06-07', minutes:42, pages:85 },
     ],
-    tags:['고전','디스토피아','정치'] },
-  { id:3, title:'넛지', author:'리처드 탈러', palette:'nudge',
-    pages:416, status:'done', dateStart:'2026-04-03', dateEnd:'2026-04-10', rating:4.0,
-    tags:['경제','행동심리'] },
-  { id:4, title:'코스모스', author:'칼 세이건', palette:'cosmos',
-    pages:720, status:'done', dateStart:'2026-03-22', dateEnd:'2026-04-02', rating:5.0,
+    tags:['일본문학','로맨스'] },
+  { id:9, title:'원씽', author:'게리 켈러', palette:'atomic',
+    pages:280, status:'reading', dateStart:'2026-05-15', currentPage:120,
+    readingSessions:[
+      { date:'2026-05-15', minutes:30, pages:60 },
+      { date:'2026-05-22', minutes:35, pages:60 },
+    ],
+    tags:['자기계발','습관/생산성'] },
+  { id:10, title:'멋진 신세계', author:'올더스 헉슬리', palette:'homo',
+    pages:380, status:'reading', dateStart:'2026-06-05', currentPage:95,
+    readingSessions:[
+      { date:'2026-06-05', minutes:33, pages:55 },
+      { date:'2026-06-08', minutes:28, pages:40 },
+    ],
+    tags:['SF','해외고전'] },
+
+  /* ─── 완독 5권 ─── */
+  { id:11, title:'코스모스', author:'칼 세이건', palette:'cosmos',
+    pages:720, status:'done', dateStart:'2026-04-22', dateEnd:'2026-05-10', rating:5.0,
     isLifeBook:true,
-    rereads:[
-      { dateStart:'2020-09-10', dateEnd:'2020-10-05', rating:5.0 },
-      { dateStart:'2023-07-14', dateEnd:'2023-07-28', rating:5.0 },
-    ],
-    tags:['과학','우주','고전'] },
-  { id:5, title:'사피엔스', author:'유발 하라리', palette:'sapiens',
-    pages:648, status:'done', dateStart:'2026-03-08', dateEnd:'2026-03-20', rating:4.5,
-    tags:['역사','인류학'] },
-  { id:6, title:'총, 균, 쇠', author:'재레드 다이아몬드', palette:'guns',
-    pages:648, status:'done', dateStart:'2026-02-10', dateEnd:'2026-02-25', rating:4.0,
-    tags:['역사','인류학'] },
-  { id:7, title:'팩트풀니스', author:'한스 로슬링', palette:'factful',
-    pages:400, status:'done', dateStart:'2026-01-18', dateEnd:'2026-01-30', rating:4.0,
-    tags:['데이터','행동심리'] },
-  { id:8, title:'Atomic Habits', author:'James Clear', palette:'atomic',
-    pages:320, status:'done', dateStart:'2025-12-20', dateEnd:'2026-01-05', rating:5.0,
+    tags:['과학','인생책'] },
+  { id:12, title:'데미안', author:'헤르만 헤세', palette:'demian',
+    pages:248, status:'done', dateStart:'2026-04-01', dateEnd:'2026-04-12', rating:4.5,
+    tags:['해외고전','자기성찰'] },
+  { id:13, title:'불편한 편의점', author:'김호연', palette:'endhistory',
+    pages:268, status:'done', dateStart:'2026-03-20', dateEnd:'2026-03-28', rating:4.0,
+    tags:['한국소설'] },
+  { id:14, title:'아주 작은 습관의 힘', author:'제임스 클리어', palette:'atomic',
+    pages:320, status:'done', dateStart:'2026-02-10', dateEnd:'2026-02-25', rating:5.0,
     format:'ebook',
-    isLifeBook:true,
-    rereads:[
-      { dateStart:'2022-11-02', dateEnd:'2022-11-18', rating:5.0 },
-    ],
-    tags:['습관','자기계발','원서'] },
-  { id:9, title:'호모 데우스', author:'유발 하라리', palette:'homo',
-    pages:580, status:'done', dateStart:'2025-11-05', dateEnd:'2025-11-22', rating:4.0,
-    tags:['역사','미래','과학'] },
-  { id:10, title:'미움받을 용기', author:'기시미 이치로', palette:'courage',
-    pages:280, status:'done', dateStart:'2025-10-10', dateEnd:'2025-10-18', rating:4.5,
-    isLifeBook:true,
-    rereads:[
-      { dateStart:'2021-05-03', dateEnd:'2021-05-12', rating:5.0 },
-    ],
-    tags:['자기성찰','철학'] },
-  /* ─── v1.6.0 — 하차 책 시드 (다양한 케이스 노출) ─── */
-  { id:11, title:'참을 수 없는 존재의 가벼움', author:'밀란 쿤데라', palette:'prince',
-    pages:384, status:'dropped', dateStart:'2026-04-12', currentPage:88,
-    format:'paper',
-    dropped: {
-      at: '2026-04-28',
-      atPage: 88,
-      reasons: ['taste', 'expectation'],
-      customReasons: ['철학 토씨가 너무 많음'],
-      note: '주제는 흥미로운데 토마시가 너무 답답해서 손이 안 잡힘',
-      rating: 3.0,
-      wouldRetry: 'maybe',
-      history: [],
-    },
-    tags:['소설','체코','철학'] },
-  { id:12, title:'율리시스', author:'제임스 조이스', palette:'1984',
-    pages:1024, status:'dropped', dateStart:'2026-03-15', currentPage:142,
-    format:'paper',
-    dropped: {
-      at: '2026-03-30',
-      atPage: 142,
-      reasons: ['hard', 'distracted'],
-      customReasons: [],
-      note: '',
-      rating: 0,
-      wouldRetry: 'maybe',
-      history: [],
-    },
-    tags:['고전','모더니즘','아일랜드'] },
-  { id:13, title:'단정함의 힘', author:'에밀리 챈', palette:'factful',
-    pages:280, status:'dropped', dateStart:'2026-02-22', currentPage:84,
-    format:'ebook',
-    dropped: {
-      at: '2026-04-15',
-      atPage: 84,
-      reasons: ['translation'],
-      customReasons: ['문장이 이상함'],
-      note: '원서로 보는 게 나을 것 같아요',
-      rating: 2.0,
-      wouldRetry: 'no',
-      history: [
-        { at: '2025-08-10', atPage: 42, reasons: ['lazy'], customReasons: [],
-          note: '나중에 다시', rating: 0, wouldRetry: 'yes',
-          retried: '2026-02-22', retriedMode: 'restart' },
-      ],
-    },
-    tags:['자기계발','원서'] },
+    tags:['자기계발','습관/생산성','원서'] },
+  { id:15, title:'주홍색 연구', author:'아서 코난 도일', palette:'guns',
+    pages:200, status:'done', dateStart:'2026-03-01', dateEnd:'2026-03-06', rating:4.0,
+    tags:['미스터리','추리','해외고전'] },
 ];
 
 /* ─── 노트 데이터 (하이라이트·인용구·내 생각) ─── */
@@ -46175,16 +46171,33 @@ function hasEffectivePrice(b) {
   return getEffectivePrice(b) > 0;
 }
 
+/* v1.x — Bookflex 지출 귀속 연도: 구매일(acqDate) 있으면 완독 여부 무관 그 연도, 없으면 완독한 책만 완독일(dateEnd) 연도. 비대상이면 null */
+function _spendYearOf(b) {
+  if (b && b.acqDate) {
+    const y = new Date(b.acqDate).getFullYear();
+    return isNaN(y) ? null : y;
+  }
+  if (b && b.status === 'done' && b.dateEnd) {
+    const y = new Date(b.dateEnd).getFullYear();
+    return isNaN(y) ? null : y;
+  }
+  return null;
+}
+/* v1.x — 지출 귀속 시점(ts): 구매일 우선, 없으면 완독일 */
+function _spendTsOf(b) {
+  const d = (b && b.acqDate) ? b.acqDate : ((b && b.status === 'done') ? b.dateEnd : null);
+  if (!d) return null;
+  const t = new Date(d).getTime();
+  return isNaN(t) ? null : t;
+}
+
 function _calcSpend(year) {
   // v1.x — year 파라미터: null/undefined면 전체, 숫자면 그 연도에 dateEnd 있는 책만
-  const allDone = (BOOKS || []).filter(b => b.status === 'done');
+  // v1.x — 지출 귀속: 구매일 있으면 그 연도(완독 무관), 없으면 완독한 책만 완독일 연도
+  const eligibleAll = (BOOKS || []).filter(b => _spendYearOf(b) != null);
   const all = (year == null)
-    ? allDone
-    : allDone.filter(b => {
-        if (!b.dateEnd) return false;
-        const y = new Date(b.dateEnd).getFullYear();
-        return y === year;
-      });
+    ? eligibleAll
+    : eligibleAll.filter(b => _spendYearOf(b) === year);
   const byFormat = { paper: [], ebook: [], audio: [] };
   all.forEach(b => {
     const f = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
@@ -46213,11 +46226,10 @@ function _calcSpend(year) {
 
   // v1.10.0 — 권당 평균 + 월 평균 (Bookflex 4+ 시안 적용)
   const perBookAvg = grandRegistered > 0 ? Math.round(grandTotal / grandRegistered) : 0;
-  const allReadDates = all
-    .filter(b => b.dateEnd)
-    .map(b => new Date(b.dateEnd).getTime())
-    .filter(t => !isNaN(t));
-  const firstReadTs = allReadDates.length ? Math.min(...allReadDates) : null;
+  const allSpendTs = all
+    .map(b => _spendTsOf(b))
+    .filter(t => t != null);
+  const firstReadTs = allSpendTs.length ? Math.min(...allSpendTs) : null;
   let monthlyAvg = 0;
   if (year != null) {
     // 연도별 모드: 올해면 현재 월까지, 과거면 12개월
@@ -46236,10 +46248,8 @@ function _calcSpend(year) {
 function _getSpendYears() {
   const years = new Set();
   (BOOKS || []).forEach(b => {
-    if (b.status === 'done' && b.dateEnd) {
-      const y = new Date(b.dateEnd).getFullYear();
-      if (!isNaN(y)) years.add(y);
-    }
+    const y = _spendYearOf(b);
+    if (y != null) years.add(y);
   });
   return Array.from(years).sort((a, b) => b - a);  // 최신순
 }
@@ -46438,7 +46448,7 @@ function _renderSpendModal() {
   if (s.grandCount === 0) {
     body.innerHTML =
       '<div class="sp-empty">' +
-        '<b>' + (isYearMode ? viewYear + '년에 완독한 책이 없어요' : '아직 완독한 책이 없어요') + '</b>' +
+        '<b>' + (isYearMode ? viewYear + '년 지출 기록이 없어요' : '아직 지출 기록이 없어요') + '</b>' +
         '완독한 책의 종이값이 여기 쌓여요.' +
       '</div>';
     return;
@@ -46608,12 +46618,10 @@ function _renderSpendModal() {
     (function() {
       const fmt = _SPEND_SELECTED_FORMAT;
       const eligible = (BOOKS || []).filter(function(b) {
-        if (b.status !== 'done') return false;
-        // v1.x — 연도 필터링
-        if (_SPEND_VIEW_YEAR != null) {
-          if (!b.dateEnd) return false;
-          if (new Date(b.dateEnd).getFullYear() !== _SPEND_VIEW_YEAR) return false;
-        }
+        var _sy = _spendYearOf(b);
+        if (_sy == null) return false;
+        // v1.x — 연도 필터링 (구매일 우선, 없으면 완독일)
+        if (_SPEND_VIEW_YEAR != null && _sy !== _SPEND_VIEW_YEAR) return false;
         if (!fmt) return true;
         var bf = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
         return bf === fmt;
@@ -46633,7 +46641,7 @@ function _renderSpendModal() {
       if (allBooks.length === 0) {
         return '<div class="sp-books-section">' +
           '<div class="sp-sec-title">' + sectionTitle + '</div>' +
-          '<div class="sp-books-empty">완독한 ' + fmtName + '이 아직 없어요</div>' +
+          '<div class="sp-books-empty">' + fmtName + ' 기록이 아직 없어요</div>' +
         '</div>';
       }
 
@@ -49095,7 +49103,7 @@ function _bfClose() {
 const ENRICH_PRIORITY = {
   cover: ['kakao', 'aladin', 'google'],
   pages: ['aladin', 'google'],
-  price: ['naver', 'aladin', 'google'],
+  price: ['aladin', 'naver', 'google'],
 };
 const ENRICH_SOURCE_FN = {
   kakao:  typeof _searchKakao  === 'function' ? _searchKakao  : null,
