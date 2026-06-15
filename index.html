@@ -679,53 +679,40 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .tab-bar {
   position: sticky; top: calc(68px + env(safe-area-inset-top)); z-index: 45;
   background: var(--c-canvas);
-  padding: 6px 20px 0;
-  display: flex;
-  justify-content: flex-start;
-  gap: 22px;
+  padding: 8px 16px 10px;
+  display: flex; justify-content: center;
   margin: 0;
-  border-bottom: 1px solid var(--c-border);
-  /* v1.3.0 — 모바일 탭 영역 위아래 드래그 → 텍스트 선택/탭 따라오기 차단 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; touch-action: manipulation;
+}
+/* v1.13.0 — B2 플로팅 아일랜드 네비 */
+.tab-isl {
+  position: relative; display: inline-flex; gap: 2px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px; padding: 5px; max-width: 100%;
+  box-shadow: 0 6px 18px rgba(20,17,13,.08);
+}
+.tab-thumb {
+  position: absolute; top: 5px; bottom: 5px; left: 0; width: 0;
+  background: var(--c-text); border-radius: 11px; z-index: 0;
+  transition: left .32s cubic-bezier(.34,1.5,.5,1), width .32s cubic-bezier(.34,1.5,.5,1);
 }
 .tab-bar::after { display: none; }
 .tab-btn {
-  padding: 10px 0 14px 0;
-  border-radius: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 16px; font-weight: 500;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
+  position: relative; z-index: 1;
+  padding: 9px 16px; border-radius: 11px;
+  background: transparent; border: 0;
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  color: var(--c-label); letter-spacing: -0.01em;
   display: flex; flex-direction: row; align-items: center; gap: 4px;
-  transition: color .15s;
-  position: relative;
-  /* v1.3.0 — 텍스트 선택 차단 + 탭 핸들링 */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  touch-action: manipulation;
+  transition: color .26s; white-space: nowrap; cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 .tab-btn .tab-icon { display: none; }
-.tab-btn.active {
-  color: var(--c-text);
-  font-weight: 700;
-}
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--c-text);
-  border-radius: 2px;
-  transform: none;
-  width: auto;
-}
+.tab-btn.active { color: var(--c-canvas); font-weight: 600; }
 
 /* ═══════════ 탭 콘텐츠 (캐러셀 트랙) ═══════════ */
 .pane-viewport {
@@ -5026,44 +5013,32 @@ body:has(.lib-edit-bar) .library-cards {
 
 /* 뷰 토글 세그먼트 */
 .view-toggle {
-  display: inline-flex;
-  background: var(--c-border);
-  border: none;
-  border-radius: 5px;
-  padding: 3px;
-  margin: 4px 0 16px;
+  display: inline-flex; background: transparent; border: none;
+  padding: 0; margin: 6px 0 16px;
 }
-/* 3개 세그먼트 버전 — 모바일 화면에 맞춰 full-width grid로 */
+/* v1.13.0 — B2 서브: 세이지 밑줄 */
 .view-toggle.view-toggle-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 100%;
-  gap: 0;
+  display: flex; width: 100%; gap: 4px;
+  border-bottom: 1px solid var(--c-border);
 }
 .view-toggle.view-toggle-3 .vt-btn {
-  padding: 8px 6px;
-  justify-content: center;
-  font-size: 13px;
+  flex: 1; padding: 9px 6px 11px; justify-content: center; font-size: 13px;
 }
 .vt-btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px; font-weight: 500;
-  color: var(--c-label);
-  letter-spacing: -0.01em;
-  text-transform: none;
-  transition: all .15s;
-  display: flex; align-items: center; gap: 6px;
-  white-space: nowrap;
+  padding: 9px 12px 11px; border-radius: 0;
+  background: transparent; border: 0;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  color: var(--c-label); letter-spacing: -0.01em; text-transform: none;
+  transition: color .2s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  position: relative; margin-bottom: -1px;
+  border-bottom: 2px solid transparent; cursor: pointer;
 }
 .vt-btn.active {
-  background: var(--c-surface);
-  color: var(--c-text);
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(25,31,40,0.08);
+  background: transparent; color: var(--c-text); font-weight: 600;
+  box-shadow: none; border-bottom-color: var(--c-coin-deep, #5F6B5F);
 }
-.vt-btn-icon { font-size: 14px; }
+.vt-btn-icon { font-size: 14px; display: inline-flex; }
 
 /* ═══════════ 명예의 전당 ═══════════ */
 .library-hall {
@@ -21568,18 +21543,21 @@ body.cn-locked {
 
   <!-- ═══════════ 탭 바 ═══════════ -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="library">
-      <span class="tab-icon">📚</span><span>서재</span>
-    </button>
-    <button class="tab-btn" data-tab="stats">
-      <span class="tab-icon">📊</span><span>통계</span>
-    </button>
-    <button class="tab-btn" data-tab="goals">
-      <span class="tab-icon">🎯</span><span>목표</span>
-    </button>
-    <button class="tab-btn" data-tab="notes">
-      <span class="tab-icon">✍️</span><span>노트</span>
-    </button>
+    <div class="tab-isl">
+      <span class="tab-thumb"></span>
+      <button class="tab-btn active" data-tab="library">
+        <span class="tab-icon">📚</span><span>서재</span>
+      </button>
+      <button class="tab-btn" data-tab="stats">
+        <span class="tab-icon">📊</span><span>통계</span>
+      </button>
+      <button class="tab-btn" data-tab="goals">
+        <span class="tab-icon">🎯</span><span>목표</span>
+      </button>
+      <button class="tab-btn" data-tab="notes">
+        <span class="tab-icon">✍️</span><span>노트</span>
+      </button>
+    </div>
   </nav>
 
   <!-- ═══════════ Pane 뷰포트 · 캐러셀 트랙 ═══════════ -->
@@ -25948,6 +25926,7 @@ function snapToTab(idx) {
   // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
+  positionTabThumb();
 }
 
 /* 활성 탭에 맞춰 FAB 라벨 전환 */
@@ -25956,6 +25935,20 @@ function updateFabLabel(tabId) {
   if (!label) return;
   label.textContent = tabId === 'notes' ? '노트 추가' : '책 추가';
 }
+
+/* v1.13.0 — B2 아일랜드: 활성 탭 따라 썸 이동 (클릭·스와이프·프로그램 전환 공통) */
+function positionTabThumb() {
+  const isl = document.querySelector('.tab-isl'); if (!isl) return;
+  const th = isl.querySelector('.tab-thumb');
+  const a = isl.querySelector('.tab-btn.active');
+  if (!th) return;
+  if (!a || !a.offsetWidth) { th.style.width = '0'; return; }
+  th.style.left = a.offsetLeft + 'px';
+  th.style.width = a.offsetWidth + 'px';
+}
+window.addEventListener('load', positionTabThumb);
+window.addEventListener('resize', positionTabThumb);
+requestAnimationFrame(positionTabThumb);
 
 function switchTab(nextIdx, opts = {}) {
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
