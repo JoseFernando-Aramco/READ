@@ -16548,9 +16548,11 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
-/* 방향(세로↔가로) 전환 시 무대를 페이드 아웃 → 레이아웃 전환 → 페이드 인 */
+/* 방향(세로↔가로) 전환 시 무대를 페이드 아웃 → 레이아웃 즉시 스냅 → 페이드 인
+   (cn-no-anim: 전환 순간 자식 요소 transition 차단해 글씨가 슬라이드되지 않게) */
 .cn-stage { transition: opacity 0.28s ease; }
 .cn-overlay.cn-switching .cn-stage { opacity: 0; }
+.cn-overlay.cn-no-anim * { transition: none !important; }
 /* 타이머 종료 시트 — 기록 없이 종료 버튼 */
 .tm-discard-btn {
   display: block;
@@ -35876,7 +35878,11 @@ const CINEMA = {
         // 페이드 아웃 → 레이아웃 전환 → 페이드 인
         overlay.classList.add('cn-switching');
         setTimeout(() => {
+          // 슬라이드 모션 차단: transition 끈 채 레이아웃만 즉시 스냅
+          overlay.classList.add('cn-no-anim');
           this._updateMode();
+          void overlay.offsetWidth; // 리플로우 강제 — 스냅 확정 후 transition 복원
+          overlay.classList.remove('cn-no-anim');
           requestAnimationFrame(() => overlay.classList.remove('cn-switching'));
         }, 280);
       }, 120);
