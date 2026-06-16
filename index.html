@@ -16548,20 +16548,11 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
-/* 시네마 가로 고정: 항상 landscape 레이아웃.
-   세로 방향일 때만 CSS 미디어쿼리로 오버레이를 90° 회전 (JS 토글 없음 → 방향 전환 시 플리커 없음).
-   iOS는 orientation.lock 미지원이라 이 회전으로 가로 강제. */
-@media (orientation: portrait) {
-  .cn-overlay.open {
-    inset: auto;
-    top: 0;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    transform-origin: top left;
-    transform: rotate(90deg) translateY(-100%);
-  }
-}
+/* 방향(세로↔가로) 전환: 전환 감지 → 즉시 어둡게 가리고(트랜지션 없이) 요소 모션 차단 →
+   완전히 어두운 동안 새 레이아웃으로 재배치(스냅) → 완성된 화면을 페이드 인으로 드러냄. */
+.cn-stage { transition: opacity 0.32s ease; }
+.cn-overlay.cn-switching .cn-stage { opacity: 0; transition: none; }
+.cn-overlay.cn-switching * { transition: none !important; }
 /* 타이머 종료 시트 — 기록 없이 종료 버튼 */
 .tm-discard-btn {
   display: block;
@@ -35736,8 +35727,8 @@ const CINEMA = {
 
   /* data-cn-mode 속성을 현재 orientation으로 동기화 */
   _updateMode() {
-    // 항상 가로 레이아웃 고정 (세로 모드 없음). 회전은 CSS 미디어쿼리가 처리.
-    document.getElementById('cnOverlay').dataset.cnMode = 'landscape';
+    const overlay = document.getElementById('cnOverlay');
+    overlay.dataset.cnMode = this._isLandscape() ? 'landscape' : 'portrait';
   },
 
   /* 상태바 색을 시네마 검정으로 (Android Chrome · iOS PWA 일부) */
@@ -35813,15 +35804,8 @@ const CINEMA = {
     if (this.clockTimer) clearInterval(this.clockTimer);
     this.clockTimer = setInterval(() => this._updateClock(), 15000);
 
-    // 풀스크린 시도
+    // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
     await this._tryFullscreen();
-
-    // 가로 잠금 시도 (Android Chrome 풀스크린에서만 동작 · iOS는 무시되고 CSS 회전으로 대체)
-    try {
-      if (screen.orientation && typeof screen.orientation.lock === 'function') {
-        screen.orientation.lock('landscape').catch(() => {});
-      }
-    } catch (_) {}
 
     // 진입 애니메이션 트리거 (다음 프레임에서 cn-running 추가)
     requestAnimationFrame(() => {
@@ -35833,9 +35817,8 @@ const CINEMA = {
       if (this.active) this._showControls(2400);
     }, 1900);
 
-    // orientation 변경 리스너 등록
-    // 회전 반응 JS 제거 — 가로 고정은 CSS 미디어쿼리(@media orientation:portrait)가 전담.
-    //   (JS 토글이 iOS 회전 도중 세로 프레임을 만들던 깜빡임 원인이라 제거)
+    // orientation 변경 리스너 등록 (전환 시 어둡게 가리고 재배치 후 드러냄)
+    this._attachRotationListener();
 
     // v1.5.x — 화면 꺼짐 방지 + 가시성 복귀 시 재요청 (OS가 lock을 해제하므로)
     this._requestWakeLock();
@@ -35886,11 +35869,20 @@ const CINEMA = {
   _attachRotationListener() {
     if (this.rotateListener) return;
     this.rotateListener = () => {
-      // 방향이 바뀌어도 항상 가로 고정 — 회전 상태(cn-rotate)만 즉시 갱신
-      setTimeout(() => {
-        if (!this.active) return;
+      if (!this.active) return;
+      const overlay = document.getElementById('cnOverlay');
+      const newMode = this._isLandscape() ? 'landscape' : 'portrait';
+      if (overlay.dataset.cnMode === newMode) return; // 방향 안 바뀜(스크롤 등 resize 잡음) → 무시
+      // 1) 즉시 어둡게 가리기 (재배치가 안 보이게)
+      overlay.classList.add('cn-switching');
+      clearTimeout(this._switchT);
+      // 2) 완전히 어두운 동안 새 방향으로 재배치(스냅) → 3) 완성된 화면 페이드 인
+      this._switchT = setTimeout(() => {
+        if (!this.active) { overlay.classList.remove('cn-switching'); return; }
         this._updateMode();
-      }, 60);
+        void overlay.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.remove('cn-switching')));
+      }, 260);
     };
     window.addEventListener('orientationchange', this.rotateListener);
     window.addEventListener('resize', this.rotateListener);
@@ -35911,7 +35903,7 @@ const CINEMA = {
     if (!this.active) return;
     const overlay = document.getElementById('cnOverlay');
 
-    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused');
+    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused', 'cn-switching');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
 
@@ -35928,8 +35920,7 @@ const CINEMA = {
       window.removeEventListener('resize', this.rotateListener);
       this.rotateListener = null;
     }
-    // 가로 잠금 해제
-    try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch (_) {}
+    if (this._switchT) { clearTimeout(this._switchT); this._switchT = null; }
 
     // v1.5.x — 시계 인터벌 + wakeLock + 가시성 리스너 정리
     if (this.clockTimer) { clearInterval(this.clockTimer); this.clockTimer = null; }
