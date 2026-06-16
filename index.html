@@ -5029,7 +5029,7 @@ body:has(.lib-edit-bar) .library-cards {
 .vt-btn {
   padding: 9px 12px 11px; border-radius: 0;
   background: transparent; border: 0;
-  font-family: inherit; font-size: 14px; font-weight: 500;
+  font-family: inherit; font-size: 15px; font-weight: 500;
   color: var(--c-label); letter-spacing: -0.01em; text-transform: none;
   transition: color .2s;
   display: flex; align-items: center; gap: 6px; white-space: nowrap;
@@ -21597,15 +21597,9 @@ body.cn-locked {
 
     <!-- 뷰 토글: 북카드 ⇔ 로그 ⇔ 명예의 전당 -->
     <div class="view-toggle view-toggle-3">
-      <button class="vt-btn active" data-view="cards">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></span>북카드
-      </button>
-      <button class="vt-btn" data-view="log">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg></span>로그
-      </button>
-      <button class="vt-btn" data-view="hall">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg></span>명예의 전당
-      </button>
+      <button class="vt-btn active" data-view="cards">북카드</button>
+      <button class="vt-btn" data-view="log">리딩로그</button>
+      <button class="vt-btn" data-view="hall">명예의 전당</button>
     </div>
 
     <!-- 북카드 뷰 (기존 콘텐츠) -->
@@ -25842,14 +25836,14 @@ function renderLibSearchResults(query) {
     if (q) {
       libSearchBody.innerHTML = `
         <div class="lib-search-empty">
-          <div class="lib-search-empty-icon">📭</div>
+          <div class="lib-search-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
           <div class="lib-search-empty-text">"${esc(q)}" 검색 결과가 없어요</div>
           <div class="lib-search-empty-hint">제목·저자·태그로 찾을 수 있어요</div>
         </div>`;
     } else {
       libSearchBody.innerHTML = `
         <div class="lib-search-empty">
-          <div class="lib-search-empty-icon">📚</div>
+          <div class="lib-search-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-books"/></svg></div>
           <div class="lib-search-empty-text">아직 등록된 책이 없어요</div>
           <div class="lib-search-empty-hint">책을 추가하면 여기서 빠르게 찾을 수 있어요</div>
         </div>`;
@@ -33113,7 +33107,7 @@ function renderLibraryCards() {
   // 빈 pane용 HTML
   const emptyPane = (msg) => `
     <div class="lib-cat-pane-empty">
-      <div class="lib-cat-pane-empty-icon">📚</div>
+      <div class="lib-cat-pane-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-books"/></svg></div>
       <div class="lib-cat-pane-empty-msg">${msg}</div>
     </div>`;
 
@@ -47577,7 +47571,7 @@ function _bdeRenderResults(book, searchInfo) {
   if (candidates.length === 0) {
     body.innerHTML = `
       <div class="bde-empty">
-        <div class="bde-empty-icon">🔍</div>
+        <div class="bde-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
         <div>알라딘·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
         절판이거나 등록되지 않은 책일 수 있어요.</div>
