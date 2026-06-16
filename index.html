@@ -16548,16 +16548,19 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
-/* 시네마 가로 고정: 항상 landscape 레이아웃. 폰을 세로로 들면 오버레이를 90° 회전해 가로로 보이게.
-   (iOS는 방향 잠금 미지원 → CSS 회전. transform 트랜지션 없음 = 즉시 적용, 전환 모션 없음) */
-.cn-overlay.cn-rotate {
-  inset: auto;
-  top: 0;
-  left: 0;
-  width: 100vh;
-  height: 100vw;
-  transform-origin: top left;
-  transform: rotate(90deg) translateY(-100%);
+/* 시네마 가로 고정: 항상 landscape 레이아웃.
+   세로 방향일 때만 CSS 미디어쿼리로 오버레이를 90° 회전 (JS 토글 없음 → 방향 전환 시 플리커 없음).
+   iOS는 orientation.lock 미지원이라 이 회전으로 가로 강제. */
+@media (orientation: portrait) {
+  .cn-overlay.open {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: top left;
+    transform: rotate(90deg) translateY(-100%);
+  }
 }
 /* 타이머 종료 시트 — 기록 없이 종료 버튼 */
 .tm-discard-btn {
@@ -22962,7 +22965,7 @@ body.cn-locked {
 </aside>
 
 <!-- ═══════════ 시네마 모드 (가로/세로 풀스크린 타이머) ═══════════ -->
-<div class="cn-overlay" id="cnOverlay" data-cn-mode="portrait" aria-hidden="true">
+<div class="cn-overlay" id="cnOverlay" data-cn-mode="landscape" aria-hidden="true">
   <!-- 시네마 무대 (가로·세로 양쪽 지원) -->
   <div class="cn-stage" id="cnStage" aria-hidden="true">
     <div class="cn-letterbox cn-letterbox-top"></div>
@@ -35733,11 +35736,8 @@ const CINEMA = {
 
   /* data-cn-mode 속성을 현재 orientation으로 동기화 */
   _updateMode() {
-    const overlay = document.getElementById('cnOverlay');
-    // 항상 가로 레이아웃 고정 (세로 모드 제거)
-    overlay.dataset.cnMode = 'landscape';
-    // 물리적으로 세로면 90° 회전해 가로로 보이게
-    overlay.classList.toggle('cn-rotate', !this._isLandscape());
+    // 항상 가로 레이아웃 고정 (세로 모드 없음). 회전은 CSS 미디어쿼리가 처리.
+    document.getElementById('cnOverlay').dataset.cnMode = 'landscape';
   },
 
   /* 상태바 색을 시네마 검정으로 (Android Chrome · iOS PWA 일부) */
@@ -35834,7 +35834,8 @@ const CINEMA = {
     }, 1900);
 
     // orientation 변경 리스너 등록
-    this._attachRotationListener();
+    // 회전 반응 JS 제거 — 가로 고정은 CSS 미디어쿼리(@media orientation:portrait)가 전담.
+    //   (JS 토글이 iOS 회전 도중 세로 프레임을 만들던 깜빡임 원인이라 제거)
 
     // v1.5.x — 화면 꺼짐 방지 + 가시성 복귀 시 재요청 (OS가 lock을 해제하므로)
     this._requestWakeLock();
@@ -35910,7 +35911,7 @@ const CINEMA = {
     if (!this.active) return;
     const overlay = document.getElementById('cnOverlay');
 
-    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused', 'cn-rotate');
+    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
 
