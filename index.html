@@ -16548,6 +16548,25 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
+/* 방향(세로↔가로) 전환 시 무대를 페이드 아웃 → 레이아웃 전환 → 페이드 인 */
+.cn-stage { transition: opacity 0.28s ease; }
+.cn-overlay.cn-switching .cn-stage { opacity: 0; }
+/* 타이머 종료 시트 — 기록 없이 종료 버튼 */
+.tm-discard-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--c-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  cursor: pointer;
+}
+.tm-discard-btn:active { opacity: .6; }
 
 /* ─── 시네마 무대 ─── */
 .cn-stage {
@@ -21517,7 +21536,7 @@ body.cn-locked {
   <!-- v1.7.0 - 클라우드 동기화 -->
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" /></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></symbol>
-  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></symbol><symbol id="i-season-spring" viewBox="0 0 24 24"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></symbol><symbol id="i-season-summer" viewBox="0 0 24 24"><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></symbol><symbol id="i-season-autumn" viewBox="0 0 24 24"><path d="M5 21c.5 -4.5 2.5 -8 7 -10" /><path d="M9 18c6.218 0 10.5 -3.288 11 -12v-2h-4.014c-9 0 -11.986 4 -12 9c0 1 0 3 2 5h3l.014 0" /></symbol><symbol id="i-season-winter" viewBox="0 0 24 24"><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M8 9h8" /><path d="M8 13h6" /><path d="M9 18h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-3l-3 3l-3 -3" /></symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></symbol><symbol id="i-season-spring" viewBox="0 0 24 24"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></symbol><symbol id="i-season-summer" viewBox="0 0 24 24"><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></symbol><symbol id="i-season-autumn" viewBox="0 0 24 24"><path d="M5 21c.5 -4.5 2.5 -8 7 -10" /><path d="M13 19c-2.733 0 -4.16 -3.11 -5 -5c-1.892 -.84 -4 -1.826 -4 -4.556c1.014 -.644 2.816 -.649 4 -.444c-.312 -2.071 -.37 -4.414 1 -6c2.364 .369 3 4 3 4c1.463 -1.368 4 -2 6 -2c0 2 -.63 4.538 -2 6q 3.687 .996 4 3c-1.586 1.36 -3.933 1.311 -6 1q .19 1.098 -1 4" /></symbol><symbol id="i-season-winter" viewBox="0 0 24 24"><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M8 9h8" /><path d="M8 13h6" /><path d="M9 18h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-3l-3 3l-3 -3" /></symbol>
   <!-- 카카오톡 말풍선 (로그인용) -->
   <symbol id="i-kakao" viewBox="0 0 20 20"><path d="M10 3C5.58 3 2 5.86 2 9.39c0 2.27 1.5 4.27 3.78 5.4l-.96 3.51c-.07.27.22.49.46.34l4.21-2.78c.17.01.34.02.51.02 4.42 0 8-2.86 8-6.39C18 5.86 14.42 3 10 3z"/></symbol>
 </svg>
@@ -22889,6 +22908,7 @@ body.cn-locked {
       <button class="btn-secondary" id="tmCancel">계속 읽기</button>
       <button class="btn-primary" id="tmSave">기록 저장</button>
     </div>
+    <button type="button" class="tm-discard-btn" id="tmDiscard">기록 없이 종료</button>
   </div>
 </aside>
 
@@ -35527,10 +35547,29 @@ function saveTimerSession() {
   TIMER.timeManuallyEdited = false;
 }
 
+/* 기록 없이 종료 — 세션 저장하지 않고 타이머만 정리 (currentPage·readingSessions 미변경) */
+function discardTimerSession() {
+  if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+  TIMER.bookId = null;
+  TIMER.startTime = null;
+  TIMER.intervalId = null;
+  TIMER.pendingMinutes = null;
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
+  TIMER.measuredMinutes = null;
+  TIMER.timeManuallyEdited = false;
+  STORE.set('timer', null);
+  CINEMA.exit({ silent: true });
+  closeTimerStop();
+  renderLibraryCards();
+  showToast('기록 없이 종료했어요');
+}
+
 /* 타이머 정지 시트 이벤트 바인딩 */
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
 document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+document.getElementById('tmDiscard').addEventListener('click', discardTimerSession);
 
 /* 타이머 세션 편집 시트 이벤트 바인딩 (v1.10.4) */
 document.getElementById('tsBackdrop').addEventListener('click', closeTimerSessionEdit);
@@ -35831,7 +35870,15 @@ const CINEMA = {
       // setTimeout: orientation 이벤트 직후 innerWidth가 아직 갱신 안 된 경우 대비
       setTimeout(() => {
         if (!this.active) return;
-        this._updateMode();
+        const overlay = document.getElementById('cnOverlay');
+        const newMode = this._isLandscape() ? 'landscape' : 'portrait';
+        if (overlay.dataset.cnMode === newMode) return; // 방향 그대로면 전환 안 함
+        // 페이드 아웃 → 레이아웃 전환 → 페이드 인
+        overlay.classList.add('cn-switching');
+        setTimeout(() => {
+          this._updateMode();
+          requestAnimationFrame(() => overlay.classList.remove('cn-switching'));
+        }, 280);
       }, 120);
     };
     window.addEventListener('orientationchange', this.rotateListener);
@@ -36627,9 +36674,9 @@ function renderBookDetail() {
             </div>
           </div>
           <div class="tm-sess-list" id="bdTmSessList">
-            ${[...sess].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).map((s, i, arr) => {
+            ${sess.map((s, origIdx) => ({ s, origIdx })).sort((a, b) => String(b.s.date || '').localeCompare(String(a.s.date || ''))).map(({ s, origIdx }) => {
               const todayCls = (s.date === todayStr()) ? 'today' : '';
-              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${arr.length - 1 - i}`;
+              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${origIdx}`;
               return `
                 <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
                   <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
