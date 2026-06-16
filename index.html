@@ -16548,11 +16548,11 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
-/* 방향(세로↔가로) 전환 시 무대를 페이드 아웃 → 레이아웃 즉시 스냅 → 페이드 인
-   (cn-no-anim: 전환 순간 자식 요소 transition 차단해 글씨가 슬라이드되지 않게) */
-.cn-stage { transition: opacity 0.28s ease; }
-.cn-overlay.cn-switching .cn-stage { opacity: 0; }
-.cn-overlay.cn-no-anim * { transition: none !important; }
+/* 방향(세로↔가로) 전환: 회전 감지 순간 즉시 캄캄하게 덮고(트랜지션 없이) 모든 요소 모션 차단 →
+   어두운 동안 새 레이아웃으로 스냅 → 완성된 화면을 페이드 인 (뒤에서 구성이 움직이는 게 안 보이게) */
+.cn-stage { transition: opacity 0.35s ease; }
+.cn-overlay.cn-switching .cn-stage { opacity: 0; transition: none; }
+.cn-overlay.cn-switching * { transition: none !important; }
 /* 타이머 종료 시트 — 기록 없이 종료 버튼 */
 .tm-discard-btn {
   display: block;
@@ -35869,23 +35869,20 @@ const CINEMA = {
   _attachRotationListener() {
     if (this.rotateListener) return;
     this.rotateListener = () => {
-      // setTimeout: orientation 이벤트 직후 innerWidth가 아직 갱신 안 된 경우 대비
-      setTimeout(() => {
-        if (!this.active) return;
-        const overlay = document.getElementById('cnOverlay');
-        const newMode = this._isLandscape() ? 'landscape' : 'portrait';
-        if (overlay.dataset.cnMode === newMode) return; // 방향 그대로면 전환 안 함
-        // 페이드 아웃 → 레이아웃 전환 → 페이드 인
-        overlay.classList.add('cn-switching');
-        setTimeout(() => {
-          // 슬라이드 모션 차단: transition 끈 채 레이아웃만 즉시 스냅
-          overlay.classList.add('cn-no-anim');
-          this._updateMode();
-          void overlay.offsetWidth; // 리플로우 강제 — 스냅 확정 후 transition 복원
-          overlay.classList.remove('cn-no-anim');
-          requestAnimationFrame(() => overlay.classList.remove('cn-switching'));
-        }, 280);
-      }, 120);
+      if (!this.active) return;
+      const overlay = document.getElementById('cnOverlay');
+      const newMode = this._isLandscape() ? 'landscape' : 'portrait';
+      if (overlay.dataset.cnMode === newMode) return; // 방향 안 바뀜(스크롤 등 resize 잡음) → 무시
+      // 회전 감지 → 즉시 캄캄하게 가리고 모션 차단 (뒤에서 슥슥 움직이는 거 안 보이게)
+      overlay.classList.add('cn-switching');
+      clearTimeout(this._switchTimer);
+      // 어두운 동안 레이아웃 안정화 대기 → 새 방향으로 스냅 → 완성된 화면 페이드 인
+      this._switchTimer = setTimeout(() => {
+        if (!this.active) { overlay.classList.remove('cn-switching'); return; }
+        this._updateMode();
+        void overlay.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.remove('cn-switching')));
+      }, 400);
     };
     window.addEventListener('orientationchange', this.rotateListener);
     window.addEventListener('resize', this.rotateListener);
@@ -35906,7 +35903,7 @@ const CINEMA = {
     if (!this.active) return;
     const overlay = document.getElementById('cnOverlay');
 
-    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused');
+    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused', 'cn-switching');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
 
@@ -35923,6 +35920,7 @@ const CINEMA = {
       window.removeEventListener('resize', this.rotateListener);
       this.rotateListener = null;
     }
+    if (this._switchTimer) { clearTimeout(this._switchTimer); this._switchTimer = null; }
 
     // v1.5.x — 시계 인터벌 + wakeLock + 가시성 리스너 정리
     if (this.clockTimer) { clearInterval(this.clockTimer); this.clockTimer = null; }
