@@ -24655,6 +24655,128 @@ const READ_AUTH = {
     if (typeof showToast === 'function') showToast('로그아웃됨');
     this.refreshUI();
   },
+  /* ═══════════════ 탈퇴 (카카오 연결 끊기 + 전체 삭제) ═══════════════ */
+
+  /* 실제 탈퇴 — 서버 unlink 성공 시에만 로컬 데이터 삭제 */
+  async withdraw() {
+    let res;
+    try {
+      res = await this.authFetch(ALADIN_PROXY_URL + '/auth/unlink', { method: 'POST' });
+    } catch (e) {
+      return { ok: false, reason: 'network' };
+    }
+    if (!res || !res.ok) return { ok: false, reason: 'server' };
+
+    // 서버 연결 끊기 성공 → 로컬 전체 삭제 (read.* localStorage + 표지 IndexedDB)
+    try {
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('read.') === 0) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
+      try { sessionStorage.removeItem('read.auth.usedCode'); } catch (_) {}
+    } catch (e) {}
+    try { indexedDB.deleteDatabase('keepbook'); } catch (e) {}
+    return { ok: true };
+  },
+
+  /* 탈퇴 확인 시트 열기 */
+  confirmWithdraw() {
+    if (!this.isLoggedIn()) {
+      if (typeof showToast === 'function') showToast('로그인 상태에서만 탈퇴할 수 있어요');
+      return;
+    }
+    if (typeof closeKbMenu === 'function') { try { closeKbMenu(); } catch (_) {} }
+    this._openWithdrawSheet();
+  },
+
+  _openWithdrawSheet() {
+    const self = this;
+    const RED = '#E24B4A';
+    const old = document.getElementById('wdSheetWrap');
+    if (old) old.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'wdSheetWrap';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;';
+    wrap.innerHTML =
+      '<div id="wdBackdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.45);opacity:0;transition:opacity .25s;"></div>' +
+      '<div id="wdSheet" style="position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--c-surface);border-top-left-radius:18px;border-top-right-radius:18px;transform:translateY(110%);transition:transform .32s cubic-bezier(.22,.61,.36,1);padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));">' +
+        '<div style="width:38px;height:4px;border-radius:2px;background:var(--c-surface-2);margin:6px auto 16px;"></div>' +
+        '<div id="wdBody"></div>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    const backdrop = wrap.querySelector('#wdBackdrop');
+    const sheet = wrap.querySelector('#wdSheet');
+    const body = wrap.querySelector('#wdBody');
+    const ic = (id, sz) => '<svg class="ic" aria-hidden="true" style="width:' + (sz || 18) + 'px;height:' + (sz || 18) + 'px"><use href="#' + id + '"/></svg>';
+
+    function open() { requestAnimationFrame(() => { backdrop.style.opacity = '1'; sheet.style.transform = 'translateY(0)'; }); }
+    function close() { backdrop.style.opacity = '0'; sheet.style.transform = 'translateY(110%)'; setTimeout(() => wrap.remove(), 340); }
+
+    function wrow(t) {
+      return '<div style="display:flex;gap:8px;padding:4px 0;"><span style="color:' + RED + ';flex-shrink:0;display:inline-flex;">' + ic('i-x', 16) + '</span><span>' + t + '</span></div>';
+    }
+
+    function warnView() {
+      body.innerHTML =
+        '<div style="text-align:center;margin-bottom:14px;">' +
+          '<div style="width:46px;height:46px;border-radius:50%;background:rgba(226,75,74,0.12);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;color:' + RED + ';">' + ic('i-alert', 24) + '</div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--c-text);">정말 탈퇴하시겠어요?</div>' +
+        '</div>' +
+        '<div style="background:var(--c-surface-2);border-radius:10px;padding:13px 14px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--c-text-2);">' +
+          wrow('카카오 계정 연결이 끊겨요') +
+          wrow('이 기기와 서버에 저장된 모든 독서 기록·노트가 삭제돼요') +
+          wrow('삭제된 데이터는 되돌릴 수 없어요') +
+        '</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-text-2);margin-bottom:14px;cursor:pointer;"><input type="checkbox" id="wdAgree" style="width:18px;height:18px;accent-color:' + RED + ';">위 내용을 모두 이해했어요</label>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<button id="wdCancel" style="flex:1;padding:13px;border-radius:10px;border:1px solid var(--c-surface-2);background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:var(--c-text);cursor:pointer;">취소</button>' +
+          '<button id="wdGo" disabled style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--c-surface-2);font-family:inherit;font-size:14px;font-weight:700;color:var(--c-muted);cursor:not-allowed;">탈퇴하기</button>' +
+        '</div>';
+      wrap.querySelector('#wdCancel').onclick = close;
+      const go = wrap.querySelector('#wdGo');
+      wrap.querySelector('#wdAgree').onchange = (e) => {
+        if (e.target.checked) { go.disabled = false; go.style.background = RED; go.style.color = '#fff'; go.style.cursor = 'pointer'; }
+        else { go.disabled = true; go.style.background = 'var(--c-surface-2)'; go.style.color = 'var(--c-muted)'; go.style.cursor = 'not-allowed'; }
+      };
+      go.onclick = () => { if (!go.disabled) runWithdraw(); };
+      backdrop.onclick = close;
+    }
+
+    async function runWithdraw() {
+      backdrop.onclick = null;
+      body.innerHTML =
+        '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:14px;">탈퇴를 처리하고 있어요</div>' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 6px;color:var(--c-text-2);font-size:14px;">' +
+          '<span class="wdspin" style="display:inline-flex;color:var(--c-muted);">' + ic('i-refresh-cw', 20) + '</span>카카오 연결을 끊고 데이터를 삭제하는 중...' +
+        '</div>' +
+        '<style>.wdspin{animation:wdsp .8s linear infinite}@keyframes wdsp{to{transform:rotate(360deg)}}</style>';
+      const r = await self.withdraw();
+      if (r && r.ok) { doneView(); }
+      else {
+        const msg = (r && r.reason === 'network') ? '네트워크 오류 · 다시 시도해주세요' : '탈퇴 처리에 실패했어요 · 잠시 후 다시 시도해주세요';
+        if (typeof showToast === 'function') showToast(msg);
+        warnView();
+      }
+    }
+
+    function doneView() {
+      backdrop.onclick = null;
+      body.innerHTML =
+        '<div style="text-align:center;padding:6px 0 4px;">' +
+          '<div style="width:48px;height:48px;border-radius:50%;background:var(--c-surface-2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--c-text);">' + ic('i-check-circle', 26) + '</div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--c-text);margin-bottom:6px;">탈퇴가 완료됐어요</div>' +
+          '<div style="font-size:13px;line-height:1.6;color:var(--c-text-2);margin-bottom:18px;">그동안 keepbook과 함께해 주셔서 고마웠어요.</div>' +
+          '<button id="wdDone" style="width:100%;padding:13px;border-radius:10px;border:1px solid var(--c-surface-2);background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:var(--c-text);cursor:pointer;">확인</button>' +
+        '</div>';
+      wrap.querySelector('#wdDone').onclick = () => { location.reload(); };
+    }
+
+    warnView();
+    open();
+  },
+
 
   /* Authorization 헤더 자동 추가하는 fetch 래퍼 */
   async authFetch(url, options) {
@@ -25002,6 +25124,15 @@ const READ_AUTH = {
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <button class="settings-row" onclick="READ_AUTH.confirmWithdraw()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-trash"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl" style="color:#E24B4A">탈퇴하기</div>
+            <div class="settings-row-sub">카카오 연결 끊기 · 모든 데이터 삭제</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+
       `;
     } else {
       section.innerHTML = `
