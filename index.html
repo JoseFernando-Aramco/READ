@@ -22,34 +22,56 @@
    소프트 키보드 올라오면 visualViewport.height가 줄어듦 → 임계 150px 이상이면 키보드로 판단
    html.kbd-open 상태일 때 CSS에서 backdrop-filter 비활성 (검은 깜빡임 방지) */
 (function detectKeyboardFlicker() {
-  if (typeof window === 'undefined' || !window.visualViewport) return;
-  const vp = window.visualViewport;
+  if (typeof window === 'undefined') return;
   const docEl = document.documentElement;
-  let kbdShown = false;
-  let raf = 0;
-  let composing = false;  // v1.11.6 — IME(한글 등) 조합 중 추적
+  let vpKbd = false;     // visualViewport 높이 변화 기반 감지
+  let focusKbd = false;  // 텍스트 입력 포커스 기반 감지 (PWA standalone 등 viewport 감지 실패 대비)
+  let composing = false; // v1.11.6 — IME(한글 등) 조합 중 추적
+  let raf = 0, blurT = 0;
 
-  function check() {
-    raf = 0;
+  function apply() {
     // v1.11.6 — IME 조합 중에는 backdrop-filter 토글 보류.
     //   iOS Safari에서 조합 중 backdrop-filter 재합성이 IME를 깨서
     //   "먹먹하기도"가 "하하하기도"처럼 글자가 뭉개지는 버그 방지.
     if (composing) return;
-    const heightDiff = window.innerHeight - vp.height;
-    const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
-    if (isKeyboard === kbdShown) return;
-    kbdShown = isKeyboard;
-    docEl.classList.toggle('kbd-open', isKeyboard);
+    docEl.classList.toggle('kbd-open', vpKbd || focusKbd);
   }
-  function onResize() {
-    if (raf) return;
-    raf = requestAnimationFrame(check);
-  }
-  vp.addEventListener('resize', onResize, { passive: true });
 
-  // v1.11.6 — IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
+  // 1) visualViewport 높이가 줄면(>150px) 키보드로 추정
+  const vp = window.visualViewport;
+  if (vp) {
+    const check = () => {
+      raf = 0;
+      const isKeyboard = (window.innerHeight - vp.height) > 150;
+      if (isKeyboard !== vpKbd) { vpKbd = isKeyboard; apply(); }
+    };
+    vp.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(check); }, { passive: true });
+  }
+
+  // 2) 텍스트 입력 요소 포커스 = 키보드 뜸 (가장 확실한 트리거, viewport에 의존 안 함)
+  const isTextEntry = (el) => {
+    if (!el) return false;
+    const tag = el.tagName;
+    if (tag === 'TEXTAREA') return true;
+    if (tag === 'INPUT') {
+      const t = (el.type || 'text').toLowerCase();
+      return ['button','submit','reset','checkbox','radio','range','color','file','image','hidden'].indexOf(t) === -1;
+    }
+    return el.isContentEditable === true;
+  };
+  document.addEventListener('focusin', (e) => {
+    if (isTextEntry(e.target)) { clearTimeout(blurT); focusKbd = true; apply(); }
+  }, true);
+  document.addEventListener('focusout', () => {
+    clearTimeout(blurT);
+    blurT = setTimeout(() => {
+      if (!isTextEntry(document.activeElement)) { focusKbd = false; apply(); }
+    }, 120);
+  }, true);
+
+  // 3) IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
   document.addEventListener('compositionstart', () => { composing = true; }, true);
-  document.addEventListener('compositionend', () => { composing = false; onResize(); }, true);
+  document.addEventListener('compositionend', () => { composing = false; apply(); }, true);
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
@@ -15532,6 +15554,13 @@ body:has(.lib-edit-bar) .library-cards {
    ═══════════════════════════════════════════════════════════ */
 html.kbd-open [class$="-backdrop"],
 html.kbd-open [class*="-backdrop "] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* v1.x — 보강: 입력 중에는 클래스 이름과 무관하게 모든 backdrop-filter 비활성
+   (노트 편집 등 -backdrop 가 아닌 요소의 검은 깜빡임까지 차단) */
+html.kbd-open * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
