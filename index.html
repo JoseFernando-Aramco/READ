@@ -21852,38 +21852,56 @@ body.cn-locked {
   </section>
 
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
+<style id="goalTilesCss">
+.br-panel{background:var(--c-surface-2);border-radius:16px;padding:14px;margin-bottom:14px}
+.br-head{display:flex;align-items:center;margin-bottom:12px}
+.br-title{font-size:15px;font-weight:600;color:var(--c-text)}
+.br-sub{font-size:12px;color:var(--c-muted);margin-top:1px}
+.br-edit{font-size:12px;padding:6px 10px;border-radius:9px;border:1px solid var(--c-surface);background:transparent;color:var(--c-text-2);font-family:inherit;display:flex;align-items:center;gap:4px;cursor:pointer}
+.br-edit .ic{width:14px;height:14px}
+.br-note{display:flex;align-items:flex-start;gap:6px;margin-top:12px;font-size:11.5px;color:var(--c-muted);line-height:1.45}
+.br-note .ic{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.goal-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.goal-tile{background:var(--c-surface);border:1px solid var(--c-surface-2);border-radius:13px;padding:12px;min-height:104px;display:flex;flex-direction:column;text-align:left;font-family:inherit;cursor:pointer;width:100%;color:inherit;position:relative}
+.goal-tile-top{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-text-2)}
+.goal-tile-top .ic{width:15px;height:15px}
+.goal-tile-mid{flex:1;display:flex;align-items:center;justify-content:center}
+.goal-tile-num{font-size:27px;font-weight:600;line-height:1}
+.goal-tile-num .unit{font-size:13px;color:var(--c-text-2);font-weight:400}
+.goal-tile-sub{font-size:11px;color:var(--c-muted);text-align:center;line-height:1.4}
+.goal-tile-rm{position:absolute;top:7px;right:7px;width:21px;height:21px;border-radius:50%;border:none;background:var(--c-surface-2);color:var(--c-text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.goal-tile-rm .ic{width:12px;height:12px}
+.goal-tile-add{width:100%;box-sizing:border-box;min-height:104px;border:1.5px dashed var(--c-surface);border-radius:13px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--c-muted);cursor:pointer;font-family:inherit;font-size:12px}
+.goal-tile-add .ic{width:20px;height:20px}
+.goal-tile.is-done{border:2px solid var(--bc);animation:goalNeon var(--dur,1.9s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes goalNeon{0%,100%{box-shadow:0 0 3px rgba(var(--gc),.40),0 0 7px rgba(var(--gc),.22)}45%{box-shadow:0 0 9px rgba(var(--gc),.90),0 0 18px rgba(var(--gc),.55),inset 0 0 6px rgba(var(--gc),.18)}70%{box-shadow:0 0 6px rgba(var(--gc),.65),0 0 12px rgba(var(--gc),.38)}}
+@media (prefers-reduced-motion:reduce){.goal-tile.is-done{animation:none;box-shadow:0 0 6px rgba(var(--gc),.5)}}
+.goal-done-badge{position:absolute;top:9px;right:9px;display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 8px;border-radius:20px;z-index:2}
+.goal-done-ck{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.gset-bd{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9998}
+.gset-bd.open{opacity:1;pointer-events:auto}
+.gset-sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--c-surface);border-top-left-radius:18px;border-top-right-radius:18px;transform:translateY(110%);transition:transform .28s cubic-bezier(.22,.61,.36,1);padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));z-index:9999}
+.gset-sheet.open{transform:translateY(0)}
+.gset-grip{width:36px;height:4px;border-radius:2px;background:var(--c-surface-2);margin:6px auto 14px}
+.gset-chips{display:flex;gap:8px;margin-bottom:18px}
+.gset-chip{font-size:13px;padding:8px 0;flex:1;text-align:center;border:1px solid var(--c-surface-2);border-radius:9px;background:transparent;color:var(--c-text-2);cursor:pointer;font-family:inherit}
+.gset-chip.on{border-color:transparent;background:var(--c-text);color:var(--c-surface)}
+.gset-save{width:100%;padding:13px;border-radius:11px;border:none;background:var(--c-text);color:var(--c-surface);font-family:inherit;font-size:14px;font-weight:600}
+.gt-info{margin-left:4px;width:18px;height:18px;border:none;background:transparent;color:var(--c-muted);cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.gt-info .ic{width:14px;height:14px}
+</style>
   <section class="pane" id="pane-goals">
 
-    <!-- 연간 목표 + 연속독서일 히어로 (v1.0.1 — D 시안: 상하 동등 컴팩트) -->
-    <div class="annual-hero">
-      <button class="annual-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
-        <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
-        <span>수정</span>
-      </button>
-      <div class="annual-hero-lbl">올해 목표</div>
-      
-      <!-- 책 권수 (한 줄 컴팩트) -->
-      <div class="annual-hero-row">
-        <span class="annual-hero-num">6</span>
-        <span class="annual-hero-row-target">/ <span class="annual-hero-target">30권</span></span>
-        <span class="annual-hero-row-right annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
+    <!-- 목표 타일 그리드 (v1.x — annual-hero 대체) -->
+    <!-- Book records 패널 (목표 타일 그리드) -->
+    <div class="br-panel">
+      <div class="br-head">
+        <div style="flex:1">
+          <div class="br-title">Keepbook records</div>
+          <div class="br-sub">독서목표 모아보기</div>
+        </div>
       </div>
-      <div class="annual-hero-track">
-        <div class="annual-hero-fill" style="width:20%"></div>
-      </div>
-      
-      <!-- v1.0.1 — pace 안내 (책 진행률 바 아래 + 구분선으로 분리) -->
-      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
-      
-      <!-- 연속독서일 (한 줄 컴팩트) -->
-      <div class="annual-hero-row annual-hero-row-streak">
-        <span class="annual-hero-num annual-hero-streak-num">0</span>
-        <span class="annual-hero-row-target">/ <span class="annual-hero-streak-target">7일</span></span>
-        <span class="annual-hero-row-right">최고 <strong class="annual-hero-streak-best">0</strong>일</span>
-      </div>
-      <div class="annual-hero-track">
-        <div class="annual-hero-fill annual-hero-streak-fill" style="width:0%"></div>
-      </div>
+      <div id="goalTiles" class="goal-tiles"></div>
     </div>
 
     <!-- 이번달 strip (v1.0.1 — 연속·최고는 위 히어로로 이동, 이번달만 남김) -->
@@ -34224,6 +34242,7 @@ function _grpCloseSheet() {
 /* _applyStatusChange의 update 객체 빌드 부분만 추출 — 다중 처리용 */
 function _libBuildStatusUpdate(b, newStatus, today) {
   const update = { status: newStatus };
+  update.stagePass = _mergeStagePass(b.stagePass, b.status, newStatus);
   if (newStatus === 'reading') {
     if (b.status === 'done' && b.dateEnd) {
       const existing = Array.isArray(b.rereads) ? b.rereads : [];
@@ -35264,6 +35283,9 @@ function getAllReads(b) {
 function updateBook(id, partial) {
   const idx = BOOKS.findIndex(b => b.id === id);
   if (idx < 0) return null;
+  if (partial && partial.status && partial.status !== BOOKS[idx].status) {
+    partial = { ...partial, stagePass: _mergeStagePass(BOOKS[idx].stagePass, BOOKS[idx].status, partial.status) };
+  }
   BOOKS[idx] = { ...BOOKS[idx], ...partial };
   STORE.set('books', BOOKS);
   BD.book = BOOKS[idx]; // 참조 업데이트
@@ -39517,6 +39539,7 @@ function getGoals() {
     return {
       annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL,
       streak: Number(parsed.streak) || DEFAULT_GOAL_STREAK,
+      wishComplete: parsed.wishComplete === true,
     };
   } catch (e) {
     return { annual: DEFAULT_GOAL_ANNUAL, streak: DEFAULT_GOAL_STREAK };
@@ -40808,6 +40831,8 @@ function renderGoalsPane() {
   if (streakTargetEl) streakTargetEl.textContent = `${streakTarget}일`;
   if (streakFillEl) streakFillEl.style.width = `${streakPct}%`;
 
+  try { renderGoalTiles({ done, target, pct, remaining, streakCur: streak.current, streakBest: streak.best, streakTarget, streakPct }); } catch(e) { console.error('[goalTiles]', e); }
+
   if (paceEl) {
     if (achieved) {
       paceEl.textContent = '올해 목표를 넘어섰어요. 축하해요';
@@ -40869,6 +40894,241 @@ function renderGoalsPane() {
   // 독서 캘린더 (실제 데이터 기반) — 목표 탭 렌더 시점에 함께 갱신
   try { renderHeatmap(); } catch(e) { console.error('[heatmap]', e); }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   🎯 목표 타일 그리드 + 위시컴플릿 (v1.x)
+   ═══════════════════════════════════════════════════════════ */
+
+/* 상태 전환 시 단계 통과 기록 병합 — 이전 상태와 새 상태를 모두 찍음.
+   (덕분에 위시→독서중 전환 한 번으로 위시 단계도 같이 기록돼,
+    신규 생성 시점을 따로 건드리지 않아도 됨) */
+function _mergeStagePass(prevSp, fromStatus, toStatus) {
+  const sp = { ...(prevSp || {}) };
+  const now = Date.now();
+  if (fromStatus && !sp[fromStatus]) sp[fromStatus] = now;
+  if (toStatus && !sp[toStatus]) sp[toStatus] = now;
+  return sp;
+}
+
+/* 위시컴플릿 집계 — 위시 단계를 거친 책 기준
+   - 남은 위시 = 현재 status==='wish'
+   - 읽는 중   = status==='reading' && 위시 거침
+   - 완료      = status==='done' && 위시→독서중→완독 모두 거침 */
+function countWishComplete() {
+  const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+  let done = 0, wish = 0, reading = 0;
+  for (const b of books) {
+    const sp = b.stagePass || null;
+    if (b.status === 'wish') wish++;
+    else if (b.status === 'reading' && sp && sp.wish) reading++;
+    else if (b.status === 'done' && sp && sp.wish && sp.reading && sp.done) done++;
+  }
+  return { done, wish, reading, total: done + wish + reading };
+}
+
+/* 올해 목표 권수만 편집 */
+function editAnnualGoal() { openGoalSheet('annual'); }
+
+/* 목표 설정 바텀시트 (슬라이더 + 빠른선택 칩) */
+function openGoalSheet(type) {
+  const goals = getGoals();
+  const conf = (type === 'annual')
+    ? { title: '올해 목표 권수', short: '올해 목표', unit: '권', min: 1, max: 200, presets: [20, 30, 50, 100], cur: goals.annual, save: (n) => saveGoals({ annual: n }) }
+    : { title: '연속 독서 목표', short: '연속 목표', unit: '일', min: 1, max: 365, presets: [7, 14, 30, 100], cur: goals.streak, save: (n) => saveGoals({ streak: n }) };
+  const old = document.getElementById('gsetWrap'); if (old) old.remove();
+  let val = conf.cur;
+  const wrap = document.createElement('div');
+  wrap.id = 'gsetWrap';
+  wrap.innerHTML =
+    '<div class="gset-bd"></div>' +
+    '<div class="gset-sheet">' +
+      '<div class="gset-grip"></div>' +
+      '<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:14px">' +
+        '<span style="font-size:15px;font-weight:600">' + conf.title + '</span>' +
+        '<span style="margin-left:auto;font-size:24px;font-weight:600"><span id="gsetVal">' + val + '</span><span style="font-size:14px;color:var(--c-text-2);font-weight:400">' + conf.unit + '</span></span>' +
+      '</div>' +
+      '<input type="range" id="gsetRange" min="' + conf.min + '" max="' + conf.max + '" step="1" value="' + val + '" style="width:100%;margin-bottom:14px">' +
+      '<div class="gset-chips" id="gsetChips"></div>' +
+      '<button class="gset-save" id="gsetSave" type="button">저장</button>' +
+    '</div>';
+  document.body.appendChild(wrap);
+  const bd = wrap.querySelector('.gset-bd'), sheet = wrap.querySelector('.gset-sheet');
+  const range = wrap.querySelector('#gsetRange'), valEl = wrap.querySelector('#gsetVal'), chips = wrap.querySelector('#gsetChips');
+  function paintChips() { chips.innerHTML = conf.presets.map(p => '<button class="gset-chip' + (p === val ? ' on' : '') + '" type="button" data-p="' + p + '">' + p + '</button>').join(''); }
+  function setVal(n) { val = Math.min(conf.max, Math.max(conf.min, Math.round(n) || conf.min)); range.value = val; valEl.textContent = val; paintChips(); }
+  range.addEventListener('input', () => { val = +range.value; valEl.textContent = val; paintChips(); });
+  chips.addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b) setVal(+b.getAttribute('data-p')); });
+  function close() { bd.classList.remove('open'); sheet.classList.remove('open'); setTimeout(() => wrap.remove(), 300); }
+  bd.addEventListener('click', close);
+  wrap.querySelector('#gsetSave').addEventListener('click', () => {
+    conf.save(val);
+    try { renderGoalsPane(); } catch (e) {}
+    try { renderGoalSettingsRow(); } catch (e) {}
+    try { showToast(conf.short + ' ' + val + conf.unit + '로 저장됨'); } catch (e) {}
+    close();
+  });
+  paintChips();
+  requestAnimationFrame(() => { bd.classList.add('open'); sheet.classList.add('open'); });
+}
+
+/* 목표 추가 슬롯 탭 — 위시컴플릿 추가, 이후엔 곧 안내 */
+function goalAddSlotTap() {
+  try { showToast('독서 시간·빈도 목표가 곧 추가될 거예요'); } catch (e) {}
+}
+
+
+
+/* 연속 독서 목표일만 편집 */
+function editStreakGoal() { openGoalSheet('streak'); }
+
+/* 위시컴플릿 목표 추가 / 제거 */
+function enableWishComplete() {
+  saveGoals({ wishComplete: true });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('위시컴플릿 목표를 추가했어요'); } catch(e){}
+}
+function disableWishComplete() {
+  saveGoals({ wishComplete: false });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('위시컴플릿 목표를 내렸어요'); } catch(e){}
+}
+
+/* 위시컴플릿 상세 설명 모달 (무엇을 추적/집계하는지) */
+function openWishCompleteInfo() {
+  const old = document.getElementById('wcInfoWrap'); if (old) old.remove();
+  const chip = (t, bg, fg) => '<span style="font-size:11px;padding:3px 9px;border-radius:7px;background:' + bg + ';color:' + fg + '">' + t + '</span>';
+  const arr = '<span style="color:var(--c-muted);font-size:13px;margin:0 1px">→</span>';
+  const wrap = document.createElement('div');
+  wrap.id = 'wcInfoWrap';
+  wrap.innerHTML =
+    '<div class="gset-bd"></div>' +
+    '<div class="gset-sheet">' +
+      '<div class="gset-grip"></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+        '<svg class="ic" aria-hidden="true" style="width:20px;height:20px;color:#D85A30"><use href="#i-bookmark"/></svg>' +
+        '<span style="font-size:16px;font-weight:600">위시컴플릿</span>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;margin-bottom:14px">' +
+        chip('위시', 'var(--c-surface-2)', 'var(--c-text-2)') + arr +
+        chip('독서중', 'var(--c-surface-2)', 'var(--c-text-2)') + arr +
+        chip('완독', '#FAECE7', '#993C1D') +
+      '</div>' +
+      '<p style="font-size:13px;line-height:1.65;color:var(--c-text-2);margin:0 0 16px">사놓고 안 읽은 책(위시리스트)을 끝까지 읽어내는 걸 추적해요. 위시에 담은 책이 <b>독서중을 거쳐 완독</b>까지 간 비율을 자동으로 보여줘요.</p>' +
+      '<div style="font-size:12.5px;font-weight:600;color:var(--c-text);margin-bottom:7px">어떻게 집계되나요</div>' +
+      '<ul style="font-size:12.5px;line-height:1.7;color:var(--c-text-2);margin:0 0 18px;padding-left:18px">' +
+        '<li>전체(분모) = 위시를 거친 책 — 남은 위시 + 읽는 중 + 완료</li>' +
+        '<li>완료(분자) = 위시 → 독서중 → 완독 세 단계를 모두 거친 책</li>' +
+        '<li>위시를 안 거치고 바로 완독한 책은 빠져요.</li>' +
+        '<li>기능을 켠 뒤 거치는 책부터 추적돼요(과거 완독 책은 제외).</li>' +
+      '</ul>' +
+      '<button class="gset-save" id="wcInfoClose" type="button">확인</button>' +
+    '</div>';
+  document.body.appendChild(wrap);
+  const bd = wrap.querySelector('.gset-bd'), sheet = wrap.querySelector('.gset-sheet');
+  function close() { bd.classList.remove('open'); sheet.classList.remove('open'); setTimeout(() => wrap.remove(), 300); }
+  bd.addEventListener('click', close);
+  wrap.querySelector('#wcInfoClose').addEventListener('click', close);
+  requestAnimationFrame(() => { bd.classList.add('open'); sheet.classList.add('open'); });
+}
+
+/* 링 게이지 SVG (r=26, 둘레 ≈ 163.36) */
+function _goalRingSvg(pct, color, centerText, subText) {
+  const C = 163.36;
+  const p = Math.min(100, Math.max(0, pct));
+  const off = (C * (1 - p / 100)).toFixed(1);
+  return `<svg width="74" height="74" viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--c-surface-2)" stroke-width="6"/>
+    <circle cx="32" cy="32" r="26" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 32 32)"/>
+    <text x="32" y="34" text-anchor="middle" font-size="19" font-weight="600" fill="${color}">${centerText}</text>
+    <text x="32" y="46" text-anchor="middle" font-size="9" fill="var(--c-muted)">${subText}</text>
+  </svg>`;
+}
+
+/* 목표 타일 그리드 렌더 — renderGoalsPane 끝에서 호출 */
+function renderGoalTiles(v) {
+  const host = document.getElementById('goalTiles');
+  if (!host) return;
+  v = v || {};
+  const goals = getGoals();
+  const AMBER = '#BA7517', RED = '#E24B4A', CORAL = '#D85A30';
+  const plusSvg = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+  // 달성 타일 공통 조각 (네온 테두리 + 배지 + 큰 체크)
+  const M = {
+    annual: { c: AMBER, rgb: '186,117,23', c50: '#FAEEDA', c8: '#854F0B', dur: '1.9s', dl: '0s' },
+    streak: { c: RED,   rgb: '226,75,74',  c50: '#FCEBEB', c8: '#791F1F', dur: '1.6s', dl: '.5s' },
+    wish:   { c: CORAL, rgb: '216,90,48',  c50: '#FAECE7', c8: '#993C1D', dur: '2.2s', dl: '.9s' }
+  };
+  const neon = (m) => `--bc:${m.c};--gc:${m.rgb};--dur:${m.dur};--dl:${m.dl}`;
+  const bigCheck = (m) => `<div class="goal-done-ck" style="background:${m.c50}"><svg class="ic" aria-hidden="true" style="width:22px;height:22px;color:${m.c}"><use href="#i-check"/></svg></div>`;
+
+  const done = v.done || 0, target = v.target || 0, pct = v.pct || 0;
+  const streakCur = v.streakCur || 0, streakBest = v.streakBest || 0, streakTarget = v.streakTarget || 0;
+
+  // ── 올해 완독 목표 ──
+  const annualDone = target > 0 && done >= target;
+  const annualTile = annualDone ? `
+    <button class="goal-tile is-done" type="button" onclick="editAnnualGoal()" style="${neon(M.annual)}" aria-label="올해 완독 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>올해 완독 목표</div>
+      <div class="goal-tile-mid">${bigCheck(M.annual)}</div>
+      <div class="goal-tile-sub" style="color:${AMBER};font-weight:600">${done} / ${target} 달성</div>
+    </button>` : `
+    <button class="goal-tile" type="button" onclick="editAnnualGoal()" aria-label="올해 완독 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>올해 완독 목표</div>
+      <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${AMBER}">${done}<span class="unit"> / ${target}</span></div></div>
+      <div class="goal-tile-sub">${pct}% 달성</div>
+    </button>`;
+
+  // ── 연속 독서 ── (목표 도달 시 자동 승급되어 보통은 진행 표시)
+  const streakDone = streakTarget > 0 && streakCur >= streakTarget;
+  const streakTile = streakDone ? `
+    <button class="goal-tile is-done" type="button" onclick="editStreakGoal()" style="${neon(M.streak)}" aria-label="연속 독서 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg>연속 독서</div>
+      <div class="goal-tile-mid">${bigCheck(M.streak)}</div>
+      <div class="goal-tile-sub" style="color:${RED};font-weight:600">${streakCur} / ${streakTarget}일 달성</div>
+    </button>` : `
+    <button class="goal-tile" type="button" onclick="editStreakGoal()" aria-label="연속 독서 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg>연속 독서</div>
+      <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${RED}">${streakCur}<span class="unit"> / ${streakTarget}일</span></div></div>
+      <div class="goal-tile-sub">최고 ${streakBest}일</div>
+    </button>`;
+
+  const addTile = `<button class="goal-tile-add" type="button" onclick="goalAddSlotTap()" aria-label="목표 추가">${plusSvg}목표 추가</button>`;
+  const wishAddTile = `<button class="goal-tile-add" type="button" onclick="enableWishComplete()" aria-label="위시컴플릿 추가"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿 추가</button>`;
+
+  let slotA, slotB;
+  if (goals.wishComplete) {
+    const w = countWishComplete();
+    const wishDone = w.total > 0 && w.done >= w.total;
+    const infoBtn = `<button class="gt-info" type="button" onclick="event.stopPropagation();openWishCompleteInfo()" aria-label="위시컴플릿 설명"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button>`;
+    const rmBtn = `<button class="goal-tile-rm" type="button" onclick="disableWishComplete()" aria-label="위시컴플릿 내리기"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>`;
+    if (wishDone) {
+      slotA = `
+      <div class="goal-tile is-done" style="${neon(M.wish)};cursor:default">
+        ${rmBtn}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿${infoBtn}</div>
+        <div class="goal-tile-mid">${bigCheck(M.wish)}</div>
+        <div class="goal-tile-sub" style="color:${CORAL};font-weight:600">위시리스트 ${w.total}권 모두 완독</div>
+      </div>`;
+    } else {
+      const wsub = w.total > 0 ? `위시리스트 ${w.total}권 중 ${w.done}권 완독` : '위시 책을 담으면 추적돼요';
+      slotA = `
+      <div class="goal-tile" style="cursor:default">
+        ${rmBtn}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿${infoBtn}</div>
+        <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${CORAL}">${w.done}<span class="unit"> / ${w.total}</span></div></div>
+        <div class="goal-tile-sub">${wsub}</div>
+      </div>`;
+    }
+    slotB = addTile;
+  } else {
+    slotA = wishAddTile;
+    slotB = addTile;
+  }
+
+  host.innerHTML = annualTile + streakTile + slotA + slotB;
+}
+
 
 /* 설정 시트의 "연간 목표" 행 렌더 + 클릭 바인딩 (idempotent) */
 function renderGoalSettingsRow() {
