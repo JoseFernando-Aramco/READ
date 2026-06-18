@@ -45792,7 +45792,7 @@ document.getElementById('ctSubmit')?.addEventListener('click', async () => {
 
 /* ═══ 페어리(fairy.hada.io) 후원 링크 ═══
  * 페어리 핸들이 바뀌면 아래 URL만 수정하세요. */
-const FAIRY_SUPPORT_URL = 'https://fairy.hada.io/@-read';
+const FAIRY_SUPPORT_URL = 'https://fairy.hada.io/@keepbook';
 
 (function wireSupportRow() {
   const row = document.getElementById('supportRow');
@@ -49946,7 +49946,7 @@ function kbmCall(fnName, fallbackMsg) {
 function kbmOpenSupport() {
   closeKbMenu();
   setTimeout(function() {
-    var url = (typeof FAIRY_SUPPORT_URL !== 'undefined') ? FAIRY_SUPPORT_URL : 'https://fairy.hada.io/@-read';
+    var url = (typeof FAIRY_SUPPORT_URL !== 'undefined') ? FAIRY_SUPPORT_URL : 'https://fairy.hada.io/@keepbook';
     try {
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (e) {
