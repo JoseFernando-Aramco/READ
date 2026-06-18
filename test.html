@@ -22,37 +22,59 @@
    소프트 키보드 올라오면 visualViewport.height가 줄어듦 → 임계 150px 이상이면 키보드로 판단
    html.kbd-open 상태일 때 CSS에서 backdrop-filter 비활성 (검은 깜빡임 방지) */
 (function detectKeyboardFlicker() {
-  if (typeof window === 'undefined' || !window.visualViewport) return;
-  const vp = window.visualViewport;
+  if (typeof window === 'undefined') return;
   const docEl = document.documentElement;
-  let kbdShown = false;
-  let raf = 0;
-  let composing = false;  // v1.11.6 — IME(한글 등) 조합 중 추적
+  let vpKbd = false;     // visualViewport 높이 변화 기반 감지
+  let focusKbd = false;  // 텍스트 입력 포커스 기반 감지 (PWA standalone 등 viewport 감지 실패 대비)
+  let composing = false; // v1.11.6 — IME(한글 등) 조합 중 추적
+  let raf = 0, blurT = 0;
 
-  function check() {
-    raf = 0;
+  function apply() {
     // v1.11.6 — IME 조합 중에는 backdrop-filter 토글 보류.
     //   iOS Safari에서 조합 중 backdrop-filter 재합성이 IME를 깨서
     //   "먹먹하기도"가 "하하하기도"처럼 글자가 뭉개지는 버그 방지.
     if (composing) return;
-    const heightDiff = window.innerHeight - vp.height;
-    const isKeyboard = heightDiff > 150;  // 키보드 추정 임계
-    if (isKeyboard === kbdShown) return;
-    kbdShown = isKeyboard;
-    docEl.classList.toggle('kbd-open', isKeyboard);
+    docEl.classList.toggle('kbd-open', vpKbd || focusKbd);
   }
-  function onResize() {
-    if (raf) return;
-    raf = requestAnimationFrame(check);
-  }
-  vp.addEventListener('resize', onResize, { passive: true });
 
-  // v1.11.6 — IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
+  // 1) visualViewport 높이가 줄면(>150px) 키보드로 추정
+  const vp = window.visualViewport;
+  if (vp) {
+    const check = () => {
+      raf = 0;
+      const isKeyboard = (window.innerHeight - vp.height) > 150;
+      if (isKeyboard !== vpKbd) { vpKbd = isKeyboard; apply(); }
+    };
+    vp.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(check); }, { passive: true });
+  }
+
+  // 2) 텍스트 입력 요소 포커스 = 키보드 뜸 (가장 확실한 트리거, viewport에 의존 안 함)
+  const isTextEntry = (el) => {
+    if (!el) return false;
+    const tag = el.tagName;
+    if (tag === 'TEXTAREA') return true;
+    if (tag === 'INPUT') {
+      const t = (el.type || 'text').toLowerCase();
+      return ['button','submit','reset','checkbox','radio','range','color','file','image','hidden'].indexOf(t) === -1;
+    }
+    return el.isContentEditable === true;
+  };
+  document.addEventListener('focusin', (e) => {
+    if (isTextEntry(e.target)) { clearTimeout(blurT); focusKbd = true; apply(); }
+  }, true);
+  document.addEventListener('focusout', () => {
+    clearTimeout(blurT);
+    blurT = setTimeout(() => {
+      if (!isTextEntry(document.activeElement)) { focusKbd = false; apply(); }
+    }, 120);
+  }, true);
+
+  // 3) IME 조합 중에는 토글 멈춤, 조합 끝나면 상태 재확인
   document.addEventListener('compositionstart', () => { composing = true; }, true);
-  document.addEventListener('compositionend', () => { composing = false; onResize(); }, true);
+  document.addEventListener('compositionend', () => { composing = false; apply(); }, true);
 })();
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>keepbook — 독서기록</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -88,8 +110,6 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<!-- v1.12.0 — Booknook 노트 작성용 서체 7종 (Pretendard는 기본 포함) -->
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=East+Sea+Dokdo&family=Gaegu&family=Gowun+Dodum&family=Hi+Melody&family=Nanum+Pen+Script&family=Noto+Serif+KR:wght@500&display=swap" rel="stylesheet">
 
 <style>
 /* ───────── keepbook 로고 (PNG embed) ───────── */
@@ -2169,6 +2189,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   flex: 1;
   border-bottom: none;
   margin-bottom: 0;
+  justify-content: space-between;
+  padding: 0 18px;
 }
 .lib-cat-edit-btn {
   flex-shrink: 0;
@@ -2710,6 +2732,38 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* ═══════════ [TAB 2] 통계 ═══════════ */
+/* ── 통계 연간 기록 히어로 (시안 B · 미니멀 인라인, 앱 톤 통일) ── */
+.al-hero { background: var(--c-surface-2); border-radius: 16px; padding: 20px 18px; margin-bottom: 14px; }
+.al-top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.al-yearpill { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--c-border-2); border-radius: 999px; padding: 3px 6px; background: var(--c-surface); }
+.al-yearbtn { width: 24px; height: 24px; border: none; background: transparent; color: var(--c-text-2); font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; border-radius: 50%; font-family: inherit; }
+.al-yearbtn:active { background: var(--c-surface-2); }
+.al-yearval { font-size: 13px; font-weight: 600; color: var(--c-text); min-width: 36px; text-align: center; }
+.al-label { font-size: 11px; letter-spacing: .13em; color: var(--c-muted); }
+.al-today { display: inline-block; margin-bottom: 12px; font-size: 12px; color: var(--c-text-2); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-family: inherit; }
+.al-headline { font-size: 26px; font-weight: 600; color: var(--c-text); line-height: 1.14; letter-spacing: -.01em; }
+.al-headline strong { font-weight: 700; }
+.al-sub { font-size: 13.5px; color: var(--c-text-2); margin-top: 8px; }
+.al-bar { position: relative; height: 4px; border-radius: 4px; background: var(--c-border-2); margin: 16px 0 20px; }
+.al-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #BA7517; border-radius: 4px; min-width: 4px; transition: width .5s ease; }
+.al-bar-end { position: absolute; right: 0; top: 50%; width: 0; height: 0; }
+.al-dot, .al-rip { position: absolute; left: 0; top: 0; border-radius: 50%; background: #BA7517; }
+.al-dot { width: 8px; height: 8px; transform: translate(-50%, -50%); }
+.al-rip { width: 8px; height: 8px; animation: alRipple 1.5s ease-out infinite; }
+.al-rip.al-rip2 { animation-delay: .75s; }
+@keyframes alRipple { 0% { opacity: .5; transform: translate(-50%,-50%) scale(1); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(3.6); } }
+@media (prefers-reduced-motion: reduce) { .al-rip { animation: none; } }
+.al-stats { display: flex; align-items: stretch; }
+.al-stat { flex: 1; min-width: 0; text-align: center; }
+.al-stat-c { text-align: center; }
+.al-stat-r { text-align: center; }
+.al-stat-v { font-size: 19px; font-weight: 700; color: var(--c-text); }
+.al-stat-v .al-unit { font-size: 12px; color: var(--c-muted); font-weight: 400; }
+.al-stat-l { font-size: 11px; color: var(--c-muted); margin-top: 3px; }
+.al-stat-div { width: 1px; background: var(--c-border); margin: 2px 10px; }
+.al-report { border-top: 1px solid var(--c-border); margin-top: 18px; padding-top: 14px; }
+.al-report-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--c-text); background: transparent; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+
 /* ═══════════ Annual Ledger V1 Hero (blue gradient) ═══════════ */
 .annual-hero {
   background: linear-gradient(135deg, var(--primary) 0%, #1a5fcc 100%);
@@ -5029,7 +5083,7 @@ body:has(.lib-edit-bar) .library-cards {
 .vt-btn {
   padding: 9px 12px 11px; border-radius: 0;
   background: transparent; border: 0;
-  font-family: inherit; font-size: 14px; font-weight: 500;
+  font-family: inherit; font-size: 15px; font-weight: 600;
   color: var(--c-label); letter-spacing: -0.01em; text-transform: none;
   transition: color .2s;
   display: flex; align-items: center; gap: 6px; white-space: nowrap;
@@ -5037,7 +5091,7 @@ body:has(.lib-edit-bar) .library-cards {
   border-bottom: 2px solid transparent; cursor: pointer;
 }
 .vt-btn.active {
-  background: transparent; color: var(--c-text); font-weight: 600;
+  background: transparent; color: var(--c-text); font-weight: 800;
   box-shadow: none; border-bottom-color: var(--c-coin-deep, #5F6B5F);
 }
 .vt-btn-icon { font-size: 14px; display: inline-flex; }
@@ -6502,6 +6556,11 @@ body:has(.lib-edit-bar) .library-cards {
   font-size: 12px;
   font-weight: 800;
   color: var(--c-text);
+}
+.achv-cat-name .ic {
+  width: 1.35em;
+  height: 1.35em;
+  vertical-align: -0.25em;
 }
 .achv-cat-summary {
   font-size: 11px;
@@ -8119,12 +8178,6 @@ body:has(.lib-edit-bar) .library-cards {
   padding-bottom: 2px;
 }
 .tag-cat-tabs::-webkit-scrollbar { display: none; }
-/* v1.12.0 — 편집 모드: overflow visible만으로 좌상단 ✎ 배지 안 잘림. 박스 높이 변동 없게 padding 0 유지 */
-.tag-cat-tabs.is-editing-mode {
-  overflow: visible;
-  padding-top: 0;
-  padding-left: 0;
-}
 .tag-cat-tab {
   padding: 7px 11px;
   border-radius: 4px;
@@ -8173,6 +8226,183 @@ body:has(.lib-edit-bar) .library-cards {
   background: rgba(255, 255, 255, 0.3);
   color: white;
 }
+/* v1.12.0 — 편집 모드: overflow visible만으로 좌상단 ✎ 배지 안 잘림. 박스 높이 변동 없게 padding 0 유지 */
+.tag-cat-tabs.is-editing-mode {
+  overflow: visible;
+  padding-top: 0;
+  padding-left: 0;
+}
+/* ═══════ v1.12.0 — 대분류 관리 (흔들림 + 드래그) ═══════ */
+
+/* 흔들림 */
+@keyframes catShake {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
+}
+.tag-cat-tab.is-cat-editing {
+  cursor: pointer;
+  position: relative;
+  /* 좌측에만 배지 자리 확보 → 가로로만 늘어나고 세로 높이는 불변 (상하 padding 그대로) */
+  padding-left: 24px;
+  animation: catShake 0.32s ease-in-out infinite;
+  touch-action: none;
+  overflow: visible;
+}
+.tag-cat-tab.is-cat-editing:nth-child(even) { animation-duration: 0.36s; animation-direction: reverse; }
+.tag-cat-tab.is-cat-editing:nth-child(3n) { animation-duration: 0.30s; }
+
+/* ✎ 배지 — 칩 좌상단 모서리에 겹쳐 띄움 (iOS 홈 아이콘 스타일). 칩 크기 영향 X */
+.tag-cat-tab .cat-action {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  transform: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary, #6D4C41);
+  color: white;
+  border: 1.5px solid var(--c-surface, #FCFCFA);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+  z-index: 3;
+  transition: transform .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.tag-cat-tab .cat-action:hover { transform: scale(1.15); }
+.tag-cat-tab .cat-action:active { transform: scale(0.92); }
+/* 편집 모드: 배지를 탭 안쪽 왼쪽 세로 중앙에 (위로 삐져나오지 않음 → 박스 세로 불변) */
+.tag-cat-tab.is-cat-editing .cat-action {
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.tag-cat-tab.is-cat-editing .cat-action:hover  { transform: translateY(-50%) scale(1.12); }
+.tag-cat-tab.is-cat-editing .cat-action:active { transform: translateY(-50%) scale(0.9); }
+
+/* 대분류 편집 하단 시트 */
+.cat-edit-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 1199;
+}
+.cat-edit-backdrop.is-open { opacity: 1; pointer-events: auto; }
+.cat-edit-sheet { z-index: 1200; }
+.cat-sheet-del-row { margin: 14px 0 4px; }
+.cat-sheet-del-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #B85A4A;
+  border: 1px solid #E5C5BE;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.cat-sheet-del-btn:hover:not(:disabled) { background: #F5E8E5; }
+.cat-sheet-del-btn:disabled { color: #C0BCB4; border-color: #E5E2DC; cursor: not-allowed; }
+.cat-sheet-del-hint { font-size: 11px; color: var(--c-text-3, #9A958C); text-align: center; margin-top: 6px; }
+
+/* + 새 분류 칩 */
+.tag-cat-add-chip {
+  padding: 5px 13px;
+  background: transparent;
+  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-coin-deep, #5F6B5F);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;   /* 쪼그라들 때 글자 줄바꿈 방지 → 세로로 안 길어짐 */
+  flex-shrink: 0;        /* 폭 부족해도 안 쪼그라듦 (대신 가로 스크롤) */
+  animation: catShake 0.34s ease-in-out infinite;
+}
+.tag-cat-add-chip:hover { background: var(--c-sage-50, #E8ECE6); }
+
+/* 새 분류 입력 */
+.tag-cat-add-wrap { display: none; gap: 6px; margin: 8px 0 4px; align-items: center; }
+.tag-cat-add-wrap.open { display: flex; }
+.tcaw-input {
+  flex: 1;
+  padding: 7px 11px;
+  border: 1px solid var(--c-coin-deep, #5F6B5F);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: inherit;
+  background: var(--c-surface, #FCFCFA);
+  min-width: 0;
+}
+.tcaw-input:focus { outline: none; }
+.tcaw-confirm {
+  padding: 7px 13px;
+  background: var(--c-coin-deep, #5F6B5F);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.tcaw-cancel {
+  padding: 7px 8px;
+  background: transparent;
+  color: var(--c-text-3, #9A958C);
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+/* 드래그 */
+.tag-cat-tab.is-dragging {
+  animation: none;
+  opacity: 0.92;
+  z-index: 50;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  cursor: grabbing;
+  transform: scale(1.06);
+  transition: transform .12s ease;   /* left/top은 즉시 추종(transition 제외), 집을 때 scale만 부드럽게 */
+}
+/* 드래그 중 — 나머지 탭/칩 흔들림 정지 (FLIP transform이 먹게 + 산만함 제거) */
+.tag-cat-tabs.is-cat-dragging .tag-cat-tab,
+.tag-cat-tabs.is-cat-dragging .tag-cat-add-chip { animation: none; }
+.tag-cat-tab.is-drag-ph {
+  animation: none;
+  opacity: 0.35;
+  background: var(--c-sage-50, #E8ECE6);
+  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
+  color: transparent;
+}
+.tag-cat-tab.is-drag-ph .tcc, .tag-cat-tab.is-drag-ph .cat-action { visibility: hidden; }
+
+/* 편집 모드 안내 */
+.tag-cat-edit-hint {
+  font-size: 11px;
+  color: var(--c-coin-deep, #5F6B5F);
+  background: var(--c-sage-50, #E8ECE6);
+  border-radius: 8px;
+  padding: 7px 11px;
+  margin: 8px 0;
+  display: none;
+}
+.tag-cat-edit-hint.show { display: block; }
+
 
 /* v1.9.0 — 편집 토글 색상 모드 */
 .tag-edit-toggle.is-hidden-mode.is-editing {
@@ -8374,177 +8604,6 @@ body:has(.lib-edit-bar) .library-cards {
   border-color: transparent;
   box-shadow: 0 2px 6px rgba(139, 109, 61, 0.25);
 }
-
-/* ═══════ v1.12.0 — 대분류 관리 (흔들림 + 드래그) ═══════ */
-
-/* 흔들림 */
-@keyframes catShake {
-  0%, 100% { transform: rotate(-1.2deg); }
-  50% { transform: rotate(1.2deg); }
-}
-.tag-cat-tab.is-cat-editing {
-  cursor: pointer;
-  position: relative;
-  /* 좌측에만 배지 자리 확보 → 가로로만 늘어나고 세로 높이는 불변 (상하 padding 그대로) */
-  padding-left: 24px;
-  animation: catShake 0.32s ease-in-out infinite;
-  touch-action: none;
-  overflow: visible;
-}
-.tag-cat-tab.is-cat-editing:nth-child(even) { animation-duration: 0.36s; animation-direction: reverse; }
-.tag-cat-tab.is-cat-editing:nth-child(3n) { animation-duration: 0.30s; }
-
-/* ✎ 배지 — 칩 좌상단 모서리에 겹쳐 띄움 (iOS 홈 아이콘 스타일). 칩 크기 영향 X */
-.tag-cat-tab .cat-action {
-  position: absolute;
-  left: -6px;
-  top: -6px;
-  transform: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--primary, #6D4C41);
-  color: white;
-  border: 1.5px solid var(--c-surface, #FCFCFA);
-  font-size: 9px;
-  font-weight: 900;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  line-height: 1;
-  padding: 0;
-  z-index: 3;
-  transition: transform .15s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.tag-cat-tab .cat-action:hover { transform: scale(1.15); }
-.tag-cat-tab .cat-action:active { transform: scale(0.92); }
-/* 편집 모드: 배지를 탭 안쪽 왼쪽 세로 중앙에 (위로 삐져나오지 않음 → 박스 세로 불변) */
-.tag-cat-tab.is-cat-editing .cat-action {
-  left: 3px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.tag-cat-tab.is-cat-editing .cat-action:hover  { transform: translateY(-50%) scale(1.12); }
-.tag-cat-tab.is-cat-editing .cat-action:active { transform: translateY(-50%) scale(0.9); }
-
-/* 대분류 편집 하단 시트 */
-.cat-edit-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-  z-index: 1199;
-}
-.cat-edit-backdrop.is-open { opacity: 1; pointer-events: auto; }
-.cat-edit-sheet { z-index: 1200; }
-.cat-sheet-del-row { margin: 14px 0 4px; }
-.cat-sheet-del-btn {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  color: #B85A4A;
-  border: 1px solid #E5C5BE;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .15s;
-}
-.cat-sheet-del-btn:hover:not(:disabled) { background: #F5E8E5; }
-.cat-sheet-del-btn:disabled { color: #C0BCB4; border-color: #E5E2DC; cursor: not-allowed; }
-.cat-sheet-del-hint { font-size: 11px; color: var(--c-text-3, #9A958C); text-align: center; margin-top: 6px; }
-
-/* + 새 분류 칩 */
-.tag-cat-add-chip {
-  padding: 5px 13px;
-  background: transparent;
-  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
-  border-radius: 99px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--c-coin-deep, #5F6B5F);
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;   /* 쪼그라들 때 글자 줄바꿈 방지 → 세로로 안 길어짐 */
-  flex-shrink: 0;        /* 폭 부족해도 안 쪼그라듦 (대신 가로 스크롤) */
-  animation: catShake 0.34s ease-in-out infinite;
-}
-.tag-cat-add-chip:hover { background: var(--c-sage-50, #E8ECE6); }
-
-/* 새 분류 입력 */
-.tag-cat-add-wrap { display: none; gap: 6px; margin: 8px 0 4px; align-items: center; }
-.tag-cat-add-wrap.open { display: flex; }
-.tcaw-input {
-  flex: 1;
-  padding: 7px 11px;
-  border: 1px solid var(--c-coin-deep, #5F6B5F);
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-family: inherit;
-  background: var(--c-surface, #FCFCFA);
-  min-width: 0;
-}
-.tcaw-input:focus { outline: none; }
-.tcaw-confirm {
-  padding: 7px 13px;
-  background: var(--c-coin-deep, #5F6B5F);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  flex-shrink: 0;
-}
-.tcaw-cancel {
-  padding: 7px 8px;
-  background: transparent;
-  color: var(--c-text-3, #9A958C);
-  border: none;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  flex-shrink: 0;
-}
-
-/* 드래그 */
-.tag-cat-tab.is-dragging {
-  animation: none;
-  opacity: 0.92;
-  z-index: 50;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
-  cursor: grabbing;
-  transform: scale(1.06);
-  transition: transform .12s ease;   /* left/top은 즉시 추종(transition 제외), 집을 때 scale만 부드럽게 */
-}
-/* 드래그 중 — 나머지 탭/칩 흔들림 정지 (FLIP transform이 먹게 + 산만함 제거) */
-.tag-cat-tabs.is-cat-dragging .tag-cat-tab,
-.tag-cat-tabs.is-cat-dragging .tag-cat-add-chip { animation: none; }
-.tag-cat-tab.is-drag-ph {
-  animation: none;
-  opacity: 0.35;
-  background: var(--c-sage-50, #E8ECE6);
-  border: 1.5px dashed var(--c-coin-deep, #5F6B5F);
-  color: transparent;
-}
-.tag-cat-tab.is-drag-ph .tcc, .tag-cat-tab.is-drag-ph .cat-action { visibility: hidden; }
-
-/* 편집 모드 안내 */
-.tag-cat-edit-hint {
-  font-size: 11px;
-  color: var(--c-coin-deep, #5F6B5F);
-  background: var(--c-sage-50, #E8ECE6);
-  border-radius: 8px;
-  padding: 7px 11px;
-  margin: 8px 0;
-  display: none;
-}
-.tag-cat-edit-hint.show { display: block; }
 
 /* 태그 칩 (책 상세·북 추가·필터 공통) */
 .tag-chip {
@@ -15531,6 +15590,41 @@ html.kbd-open [class*="-backdrop "] {
   -webkit-backdrop-filter: none !important;
 }
 
+/* v1.x — 보강: 입력 중에는 클래스 이름과 무관하게 모든 backdrop-filter 비활성
+   (노트 편집 등 -backdrop 가 아닌 요소의 검은 깜빡임까지 차단) */
+html.kbd-open * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* v1.x — 보강: 입력 중 바텀시트 합성 레이어 백킹 안정화 (안드로이드 검은 깜빡임 방지) */
+html.kbd-open [class$="-sheet"],
+html.kbd-open [class*="-sheet "] {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* v1.x — 근본 수정: 입력 중에는 시트의 transform(합성 레이어)을 제거.
+   입력 시 리페인트로 합성 레이어가 검게 번쩍이던 문제를 시트별로 차단.
+   translate(-50%) 중앙정렬 시트는 margin으로 대체, 그 외는 transform만 제거(transition 끔 → 점프 없음). */
+
+/* translate(-50%, ) 중앙정렬: na(노트)·qn(메모)·bd(책 상세 독서/위시 노트) */
+html.kbd-open .na-sheet.open,
+html.kbd-open .qn-sheet.is-open,
+html.kbd-open .bd-sheet.open {
+  left: 0; right: 0;
+  margin-left: auto; margin-right: auto;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* 비-translate 중앙정렬: drop(포기 노트, translateY만)·ct(문의, 부모 flex 중앙) */
+html.kbd-open .drop-sheet-backdrop.open .drop-sheet,
+html.kbd-open .ct-modal.open .ct-card {
+  transform: none !important;
+  transition: none !important;
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    keepbook 환영 모달 (v1.11.0) — 새 도메인 이전 완료 + 복원 안내
@@ -16543,6 +16637,27 @@ html.kbd-open [class*="-backdrop "] {
   opacity: 1;
   pointer-events: auto;
 }
+/* 방향(세로↔가로) 전환: 전환 감지 → 즉시 어둡게 가리고(트랜지션 없이) 요소 모션 차단 →
+   완전히 어두운 동안 새 레이아웃으로 재배치(스냅) → 완성된 화면을 페이드 인으로 드러냄. */
+.cn-stage { transition: opacity 0.32s ease; }
+.cn-overlay.cn-switching .cn-stage { opacity: 0; transition: none; }
+.cn-overlay.cn-switching * { transition: none !important; }
+/* 타이머 종료 시트 — 기록 없이 종료 버튼 */
+.tm-discard-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: #E24B4A;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  cursor: pointer;
+}
+.tm-discard-btn:active { opacity: .6; }
 
 /* ─── 시네마 무대 ─── */
 .cn-stage {
@@ -21450,69 +21565,69 @@ body.cn-locked {
 <!-- ═══════════ 아이콘 스프라이트 (Lucide 스타일 · 24×24 · stroke currentColor) ═══════════ -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;pointer-events:none;overflow:hidden" aria-hidden="true">
   <!-- 검색 -->
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></symbol>
   <!-- 설정 (톱니바퀴) -->
-  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></symbol>
   <!-- 닫기 -->
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></symbol>
   <!-- 체크 -->
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10" /></symbol>
   <!-- 타이머 (시계 + 위에 손잡이) -->
-  <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24"><path d="M5 13a7 7 0 1 0 14 0a7 7 0 0 0 -14 0" /><path d="M14.5 10.5l-2.5 2.5" /><path d="M17 8l1 -1" /><path d="M14 3h-4" /></symbol>
   <!-- 일시정지 -->
-  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M6 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12" /><path d="M14 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12" /></symbol>
   <!-- 재생 (시네마 재진입용) -->
-  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13 -8l-13 -8" /></symbol>
   <!-- 셰브론 좌/우 (Now 카드 캐러셀) -->
-  <symbol id="i-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
-  <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 6l-6 6l6 6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6" /></symbol>
   <!-- 책 (닫힌) — 커버 fallback -->
-  <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12" /><path d="M19 16h-12a2 2 0 0 0 -2 2" /><path d="M9 8h6" /></symbol>
   <symbol id="i-webnovel" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><line x1="8.5" y1="7" x2="15.5" y2="7"/><line x1="8.5" y1="10" x2="15.5" y2="10"/><line x1="8.5" y1="13" x2="13" y2="13"/><circle cx="12" cy="18.5" r="0.6" fill="currentColor" stroke="none"/></symbol>
   <!-- 책 (펼친) -->
-  <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></symbol>
   <!-- 책 2권 스택 -->
-  <symbol id="i-books" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v4.5a.5.5 0 0 1-.5.5h-13A2.5 2.5 0 0 1 4 19.5Z"/><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5v-10A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
+  <symbol id="i-books" viewBox="0 0 24 24"><path d="M5 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14" /><path d="M9 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14" /><path d="M5 8h4" /><path d="M9 16h4" /><path d="M13.803 4.56l2.184 -.53c.562 -.135 1.133 .19 1.282 .732l3.695 13.418a1.02 1.02 0 0 1 -.634 1.219l-.133 .041l-2.184 .53c-.562 .135 -1.133 -.19 -1.282 -.732l-3.695 -13.418a1.02 1.02 0 0 1 .634 -1.219l.133 -.041" /><path d="M14 9l4 -1" /><path d="M16 16l3.923 -.98" /></symbol>
   <!-- 바차트 (통계) -->
-  <symbol id="i-bar-chart" viewBox="0 0 24 24"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></symbol>
+  <symbol id="i-bar-chart" viewBox="0 0 24 24"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></symbol>
   <!-- 과녁 (목표) -->
-  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></symbol>
   <!-- 쓰레기통 -->
-  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></symbol>
   <!-- 삼각형 경고 -->
-  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></symbol>
   <!-- 벨 -->
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></symbol>
   <!-- 노트북 (펼친 노트) -->
-  <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M10 3v18"/></symbol>
+  <symbol id="i-notebook" viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18" /><path d="M13 8l2 0" /><path d="M13 12l2 0" /></symbol>
   <!-- 펜 (내 생각) -->
-  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></symbol>
   <!-- 하트 (위시리스트) -->
-  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></symbol>
   <!-- 라디오 시그널 (API/검색) -->
-  <symbol id="i-radio" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></symbol>
+  <symbol id="i-radio" viewBox="0 0 24 24"><path d="M18.364 19.364a9 9 0 1 0 -12.728 0" /><path d="M15.536 16.536a5 5 0 1 0 -7.072 0" /><path d="M11 13a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></symbol>
   <!-- 체크 원형 (완독 state) -->
-  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></symbol>
   <!-- 불꽃 (streak) -->
-  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 10.941c2.333 -3.308 .167 -7.823 -1 -8.941c0 3.395 -2.235 5.299 -3.667 6.706c-1.43 1.408 -2.333 3.294 -2.333 5.588c0 3.704 3.134 6.706 7 6.706c3.866 0 7 -3.002 7 -6.706c0 -1.712 -1.232 -4.403 -2.333 -5.588c-2.084 3.353 -3.257 3.353 -4.667 2.235" /></symbol>
   <!-- 트로피 -->
-  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21l8 0" /><path d="M12 17l0 4" /><path d="M7 4l10 0" /><path d="M17 4v8a5 5 0 0 1 -10 0v-8" /><path d="M3 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /></symbol>
   <!-- 캘린더 -->
-  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></symbol>
   <!-- 업로드 / 내보내기 -->
-  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
-  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></symbol>
   <!-- 정보 -->
-  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
-  <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></symbol>
   <!-- 하차 (v1.6.0) -->
-  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
-  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
-  <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></symbol>
+  <symbol id="i-plus-circle" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M9 12h6" /><path d="M12 9v6" /></symbol>
   <!-- v1.7.0 - 클라우드 동기화 -->
-  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1.41-8.78A6 6 0 0 0 5.16 13.39 4 4 0 0 0 6 21h11.5z"/></symbol>
-  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
-  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" /></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></symbol><symbol id="i-season-spring" viewBox="0 0 24 24"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></symbol><symbol id="i-season-summer" viewBox="0 0 24 24"><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></symbol><symbol id="i-season-autumn" viewBox="0 0 24 24"><path d="M5 21c.5 -4.5 2.5 -8 7 -10" /><path d="M13 19c-2.733 0 -4.16 -3.11 -5 -5c-1.892 -.84 -4 -1.826 -4 -4.556c1.014 -.644 2.816 -.649 4 -.444c-.312 -2.071 -.37 -4.414 1 -6c2.364 .369 3 4 3 4c1.463 -1.368 4 -2 6 -2c0 2 -.63 4.538 -2 6q 3.687 .996 4 3c-1.586 1.36 -3.933 1.311 -6 1q .19 1.098 -1 4" /></symbol><symbol id="i-season-winter" viewBox="0 0 24 24"><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M8 9h8" /><path d="M8 13h6" /><path d="M9 18h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-3l-3 3l-3 -3" /></symbol>
   <!-- 카카오톡 말풍선 (로그인용) -->
   <symbol id="i-kakao" viewBox="0 0 20 20"><path d="M10 3C5.58 3 2 5.86 2 9.39c0 2.27 1.5 4.27 3.78 5.4l-.96 3.51c-.07.27.22.49.46.34l4.21-2.78c.17.01.34.02.51.02 4.42 0 8-2.86 8-6.39C18 5.86 14.42 3 10 3z"/></symbol>
 </svg>
@@ -21544,6 +21659,56 @@ body.cn-locked {
   </header>
 
   <!-- ═══════════ 탭 바 ═══════════ -->
+<style id="sayu-styles">
+/* ═══════════ [TAB 5] 사유 — 몽환 피드 (B 라이트 / A midnight) ═══════════ */
+#pane-sayu{ background:linear-gradient(165deg,#E9E3F6 0%,#F4E8EF 46%,#FBF2E7 100%); min-height:72vh; }
+.sayu-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+.sayu-head .sayu-title{ font-size:18px; font-weight:600; color:#41385C; letter-spacing:.02em; }
+.sayu-head .sayu-desc{ font-size:11.5px; color:#8A7FA3; }
+.sayu-card{ background:rgba(255,255,255,.62); border:1px solid rgba(255,255,255,.85); border-radius:16px; padding:15px 16px; margin-bottom:12px; box-shadow:0 10px 26px rgba(120,100,150,.13); }
+.sayu-top{ display:flex; align-items:center; gap:8px; margin-bottom:11px; }
+.sayu-av{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; flex-shrink:0; }
+.sayu-name{ font-size:13px; font-weight:500; color:#41385C; }
+.sayu-time{ font-size:11px; color:#9A8FB0; }
+.sayu-tag{ margin-left:auto; font-size:10.5px; padding:2px 9px; border-radius:999px; background:rgba(167,133,201,.16); color:#7C6B96; white-space:nowrap; }
+.sayu-quote{ font-family:'Noto Serif KR',serif; font-size:15px; line-height:1.65; color:#352E4A; padding-left:12px; border-left:2px solid rgba(167,133,201,.55); }
+.sayu-review{ font-family:'Noto Serif KR',serif; font-size:15px; line-height:1.65; color:#352E4A; }
+.sayu-clamp{ display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
+.sayu-more{ color:#9A8FB0; font-weight:500; }
+.sayu-bookchip{ display:flex; align-items:center; gap:8px; margin-top:11px; padding:7px 9px; background:rgba(255,255,255,.5); border-radius:9px; }
+.sayu-cover{ width:22px; height:30px; border-radius:3px; flex-shrink:0; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:rgba(255,255,255,.92); }
+.sayu-bookmeta{ font-size:12px; color:#5A5070; line-height:1.35; }
+.sayu-bookmeta .sub{ color:#9A8FB0; font-size:11px; }
+.sayu-foot{ display:flex; align-items:center; margin-top:12px; padding-top:11px; border-top:1px solid rgba(120,100,150,.15); }
+.sayu-heart{ display:inline-flex; align-items:center; gap:6px; border:none; background:transparent; cursor:pointer; font-family:inherit; font-size:13px; padding:0; color:#9A8FB0; }
+.sayu-heart.on{ color:#D8718E; }
+.sayu-heart .n{ color:#6D6480; }
+.sayu-cmt{ display:inline-flex; align-items:center; gap:5px; margin-left:16px; font-size:13px; color:#8A7FA3; }
+.sayu-dots{ margin-left:auto; color:#A99FBA; background:none; border:none; cursor:pointer; padding:0; display:inline-flex; }
+/* ─── midnight(다크) = 박명 무드 ─── */
+[data-theme="midnight"] #pane-sayu{ background:linear-gradient(168deg,#14121F 0%,#1B1A2E 45%,#241F33 78%,#2B2433 100%); }
+[data-theme="midnight"] .sayu-head .sayu-title{ color:#F2EDF8; }
+[data-theme="midnight"] .sayu-head .sayu-desc{ color:#9387AE; }
+[data-theme="midnight"] .sayu-card{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 30px rgba(8,6,16,.4); }
+[data-theme="midnight"] .sayu-name{ color:#EDE7F5; }
+[data-theme="midnight"] .sayu-time{ color:#9387AE; }
+[data-theme="midnight"] .sayu-tag{ background:rgba(255,255,255,.08); color:#CFC4E0; }
+[data-theme="midnight"] .sayu-quote{ color:#F4F0FA; border-left-color:rgba(201,166,224,.5); }
+[data-theme="midnight"] .sayu-review{ color:#F4F0FA; }
+[data-theme="midnight"] .sayu-bookchip{ background:rgba(0,0,0,.22); }
+[data-theme="midnight"] .sayu-bookmeta{ color:#D6CDE5; }
+[data-theme="midnight"] .sayu-bookmeta .sub{ color:#9387AE; }
+[data-theme="midnight"] .sayu-foot{ border-top-color:rgba(255,255,255,.1); }
+[data-theme="midnight"] .sayu-heart{ color:#C9BFD9; }
+[data-theme="midnight"] .sayu-heart.on{ color:#F0A6BC; }
+[data-theme="midnight"] .sayu-heart .n{ color:#D6CDE5; }
+[data-theme="midnight"] .sayu-cmt{ color:#B9AECF; }
+[data-theme="midnight"] .sayu-more{ color:#9387AE; }
+.sayu-tab-label{ position:relative; }
+.sayu-new-dot{ position:absolute; top:-3px; right:-9px; width:6px; height:6px; border-radius:50%; background:#C3A4E6; box-shadow:0 0 5px 1px rgba(195,164,230,.85); animation:sayuTwinkle 1.8s ease-in-out infinite; pointer-events:none; }
+@keyframes sayuTwinkle{ 0%,100%{ opacity:.5; transform:scale(.82); box-shadow:0 0 3px 0 rgba(195,164,230,.45); } 50%{ opacity:1; transform:scale(1.18); box-shadow:0 0 8px 2px rgba(195,164,230,.95); } }
+@media (prefers-reduced-motion:reduce){ .sayu-new-dot{ animation:none; opacity:.9; } }
+</style>
   <nav class="tab-bar">
     <div class="tab-isl">
       <span class="tab-thumb"></span>
@@ -21559,8 +21724,8 @@ body.cn-locked {
       <button class="tab-btn" data-tab="notes">
         <span class="tab-icon">✍️</span><span>노트</span>
       </button>
-      <button class="tab-btn" data-tab="booknook" id="bnTabBtn">
-        <span class="tab-icon">🛋️</span><span>Booknook</span>
+      <button class="tab-btn" data-tab="sayu">
+        <span class="tab-icon">🌙</span><span class="sayu-tab-label">思惟<i class="sayu-new-dot" aria-label="새 기능"></i></span>
       </button>
     </div>
   </nav>
@@ -21574,15 +21739,9 @@ body.cn-locked {
 
     <!-- 뷰 토글: 북카드 ⇔ 로그 ⇔ 명예의 전당 -->
     <div class="view-toggle view-toggle-3">
-      <button class="vt-btn active" data-view="cards">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg></span>북카드
-      </button>
-      <button class="vt-btn" data-view="log">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg></span>로그
-      </button>
-      <button class="vt-btn" data-view="hall">
-        <span class="vt-btn-icon"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg></span>명예의 전당
-      </button>
+      <button class="vt-btn active" data-view="cards">북카드</button>
+      <button class="vt-btn" data-view="log">리딩로그</button>
+      <button class="vt-btn" data-view="hall">명예의 전당</button>
     </div>
 
     <!-- 북카드 뷰 (기존 콘텐츠) -->
@@ -21632,37 +21791,33 @@ body.cn-locked {
   <section class="pane" id="pane-stats">
 
     <!-- ═══ V1 · Annual Ledger Hero (blue gradient) ═══ -->
-    <div class="annual-hero" id="annualHero">
-      <div class="annual-year-nav">
-        <button class="annual-year-btn" id="annualYearPrev" aria-label="이전 연도">‹</button>
-        <div class="annual-year-label">
-          <span class="annual-year-prefix">ANNUAL LEDGER ·</span>
-          <span class="annual-year-value" id="annualYear">2026</span>
+    <!-- 통계 연간 기록 히어로 (시안 B · 미니멀 인라인) -->
+    <div class="al-hero" id="annualHero">
+      <div class="al-top">
+        <div class="al-yearpill">
+          <button class="al-yearbtn" id="annualYearPrev" aria-label="이전 연도">‹</button>
+          <span class="al-yearval" id="annualYear">2026</span>
+          <button class="al-yearbtn" id="annualYearNext" aria-label="다음 연도">›</button>
         </div>
-        <button class="annual-year-btn" id="annualYearNext" aria-label="다음 연도">›</button>
+        <span class="al-label">ANNUAL LEDGER</span>
       </div>
-      <button class="annual-year-today" id="annualYearToday" style="display:none">올해로 돌아가기</button>
-      <div class="annual-hero-line"><strong id="annualBigNum">—</strong>권<br/>읽었습니다.</div>
-      <div class="annual-hero-sub" id="annualHeroSub">—</div>
-      <div class="annual-hero-divider"></div>
-      <div class="annual-hero-mini">
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualPagesNum">—</span><span class="unit">p</span></div>
-          <div class="ah-m-l">누적 페이지</div>
+      <button class="al-today" id="annualYearToday" style="display:none">올해로 돌아가기</button>
+      <div class="al-headline"><strong id="annualBigNum">—</strong>권 읽었습니다.</div>
+      <div class="al-sub" id="annualHeroSub">—</div>
+      <div class="al-bar" id="annualProgBar">
+        <div class="al-bar-fill" id="annualProgFill" style="width:0%">
+          <span class="al-bar-end"><span class="al-rip"></span><span class="al-rip al-rip2"></span><span class="al-dot"></span></span>
         </div>
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualAvgStar">★—</span></div>
-          <div class="ah-m-l">평균 별점</div>
-        </div>
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualReadDays">—</span><span class="unit">일</span></div>
-          <div class="ah-m-l">독서일</div>
-        </div>
-        <!-- v1.5.0 — 월간 독서 리포트 진입 (4번째 칸, 다른 메트릭과 폼 통일) -->
-        <div class="ah-m ah-m-cta" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">
-          <div class="ah-m-v ah-m-cta-text">월간<br/>독서 리포트</div>
-          <div class="ah-m-l">보기 →</div>
-        </div>
+      </div>
+      <div class="al-stats">
+        <div class="al-stat"><div class="al-stat-v"><span id="annualPagesNum">—</span><span class="al-unit">p</span></div><div class="al-stat-l">누적 페이지</div></div>
+        <div class="al-stat-div"></div>
+        <div class="al-stat al-stat-c"><div class="al-stat-v"><span id="annualAvgStar">★—</span></div><div class="al-stat-l">평균 별점</div></div>
+        <div class="al-stat-div"></div>
+        <div class="al-stat al-stat-r"><div class="al-stat-v"><span id="annualReadDays">—</span><span class="al-unit">일</span></div><div class="al-stat-l">독서일</div></div>
+      </div>
+      <div class="al-report">
+        <button class="al-report-link" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">월간 독서 리포트 보기 →</button>
       </div>
     </div>
 
@@ -21792,7 +21947,7 @@ body.cn-locked {
     <div class="drop-stat-card" id="dropStatCard" style="display:none">
       <div class="drop-stat-head">
         <div class="drop-stat-bar"></div>
-        <div class="drop-stat-ttl">🔖 책갈피</div>
+        <div class="drop-stat-ttl"><svg class="ic"><use href="#i-bookmark"/></svg> 책갈피</div>
         <span class="drop-stat-sub" id="dropStatSub">—</span>
       </div>
       <!-- 요약: 완독 vs 하차 -->
@@ -21806,38 +21961,56 @@ body.cn-locked {
   </section>
 
   <!-- ═══════════ [TAB 3] 목표 ═══════════ -->
+<style id="goalTilesCss">
+.br-panel{background:var(--c-surface-2);border-radius:16px;padding:14px;margin-bottom:14px}
+.br-head{display:flex;align-items:center;margin-bottom:12px}
+.br-title{font-size:15px;font-weight:600;color:var(--c-text)}
+.br-sub{font-size:12px;color:var(--c-muted);margin-top:1px}
+.br-edit{font-size:12px;padding:6px 10px;border-radius:9px;border:1px solid var(--c-surface);background:transparent;color:var(--c-text-2);font-family:inherit;display:flex;align-items:center;gap:4px;cursor:pointer}
+.br-edit .ic{width:14px;height:14px}
+.br-note{display:flex;align-items:flex-start;gap:6px;margin-top:12px;font-size:11.5px;color:var(--c-muted);line-height:1.45}
+.br-note .ic{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.goal-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.goal-tile{background:var(--c-surface);border:1px solid var(--c-surface-2);border-radius:13px;padding:12px;min-height:104px;display:flex;flex-direction:column;text-align:left;font-family:inherit;cursor:pointer;width:100%;color:inherit;position:relative}
+.goal-tile-top{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-text-2)}
+.goal-tile-top .ic{width:15px;height:15px}
+.goal-tile-mid{flex:1;display:flex;align-items:center;justify-content:center}
+.goal-tile-num{font-size:27px;font-weight:600;line-height:1}
+.goal-tile-num .unit{font-size:13px;color:var(--c-text-2);font-weight:400}
+.goal-tile-sub{font-size:11px;color:var(--c-muted);text-align:center;line-height:1.4}
+.goal-tile-rm{position:absolute;top:7px;right:7px;width:21px;height:21px;border-radius:50%;border:none;background:var(--c-surface-2);color:var(--c-text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.goal-tile-rm .ic{width:12px;height:12px}
+.goal-tile-add{width:100%;box-sizing:border-box;min-height:104px;border:1.5px dashed var(--c-surface);border-radius:13px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--c-muted);cursor:pointer;font-family:inherit;font-size:12px}
+.goal-tile-add .ic{width:20px;height:20px}
+.goal-tile.is-done{border:2px solid var(--bc);animation:goalNeon var(--dur,1.9s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes goalNeon{0%,100%{box-shadow:0 0 3px rgba(var(--gc),.40),0 0 7px rgba(var(--gc),.22)}45%{box-shadow:0 0 9px rgba(var(--gc),.90),0 0 18px rgba(var(--gc),.55),inset 0 0 6px rgba(var(--gc),.18)}70%{box-shadow:0 0 6px rgba(var(--gc),.65),0 0 12px rgba(var(--gc),.38)}}
+@media (prefers-reduced-motion:reduce){.goal-tile.is-done{animation:none;box-shadow:0 0 6px rgba(var(--gc),.5)}}
+.goal-done-badge{position:absolute;top:9px;right:9px;display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 8px;border-radius:20px;z-index:2}
+.goal-done-ck{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.gset-bd{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9998}
+.gset-bd.open{opacity:1;pointer-events:auto}
+.gset-sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--c-surface);border-top-left-radius:18px;border-top-right-radius:18px;transform:translateY(110%);transition:transform .28s cubic-bezier(.22,.61,.36,1);padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));z-index:9999}
+.gset-sheet.open{transform:translateY(0)}
+.gset-grip{width:36px;height:4px;border-radius:2px;background:var(--c-surface-2);margin:6px auto 14px}
+.gset-chips{display:flex;gap:8px;margin-bottom:18px}
+.gset-chip{font-size:13px;padding:8px 0;flex:1;text-align:center;border:1px solid var(--c-surface-2);border-radius:9px;background:transparent;color:var(--c-text-2);cursor:pointer;font-family:inherit}
+.gset-chip.on{border-color:transparent;background:var(--c-text);color:var(--c-surface)}
+.gset-save{width:100%;padding:13px;border-radius:11px;border:none;background:var(--c-text);color:var(--c-surface);font-family:inherit;font-size:14px;font-weight:600}
+.gt-info{margin-left:4px;width:18px;height:18px;border:none;background:transparent;color:var(--c-muted);cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.gt-info .ic{width:14px;height:14px}
+</style>
   <section class="pane" id="pane-goals">
 
-    <!-- 연간 목표 + 연속독서일 히어로 (v1.0.1 — D 시안: 상하 동등 컴팩트) -->
-    <div class="annual-hero">
-      <button class="annual-hero-edit" type="button" onclick="openGoalEditor()" aria-label="목표 수정">
-        <svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg>
-        <span>수정</span>
-      </button>
-      <div class="annual-hero-lbl">올해 목표</div>
-      
-      <!-- 책 권수 (한 줄 컴팩트) -->
-      <div class="annual-hero-row">
-        <span class="annual-hero-num">6</span>
-        <span class="annual-hero-row-target">/ <span class="annual-hero-target">30권</span></span>
-        <span class="annual-hero-row-right annual-hero-remain-wrap">남은 <strong class="annual-hero-remain">24권</strong></span>
+    <!-- 목표 타일 그리드 (v1.x — annual-hero 대체) -->
+    <!-- Book records 패널 (목표 타일 그리드) -->
+    <div class="br-panel">
+      <div class="br-head">
+        <div style="flex:1">
+          <div class="br-title">Keepbook records</div>
+          <div class="br-sub">당신의 독서를 더 활기차게!</div>
+        </div>
       </div>
-      <div class="annual-hero-track">
-        <div class="annual-hero-fill" style="width:20%"></div>
-      </div>
-      
-      <!-- v1.0.1 — pace 안내 (책 진행률 바 아래 + 구분선으로 분리) -->
-      <div class="annual-hero-pace" id="annualHeroPace">앞으로 월 2.7권씩만 읽어도 연말에 닿아요</div>
-      
-      <!-- 연속독서일 (한 줄 컴팩트) -->
-      <div class="annual-hero-row annual-hero-row-streak">
-        <span class="annual-hero-num annual-hero-streak-num">0</span>
-        <span class="annual-hero-row-target">/ <span class="annual-hero-streak-target">7일</span></span>
-        <span class="annual-hero-row-right">최고 <strong class="annual-hero-streak-best">0</strong>일</span>
-      </div>
-      <div class="annual-hero-track">
-        <div class="annual-hero-fill annual-hero-streak-fill" style="width:0%"></div>
-      </div>
+      <div id="goalTiles" class="goal-tiles"></div>
     </div>
 
     <!-- 이번달 strip (v1.0.1 — 연속·최고는 위 히어로로 이동, 이번달만 남김) -->
@@ -21926,11 +22099,76 @@ body.cn-locked {
 
   </section>
 
+  <!-- ═══════════ [TAB 5] 사유 — 공유 노트 피드 (1a 스캐폴드·더미) ═══════════ -->
+  <section class="pane" id="pane-sayu">
+    <div class="sayu-head">
+      <div class="sayu-title">사유</div>
+      <div class="sayu-desc">다른 독자들의 문장과 생각</div>
+    </div>
+    <div class="sayu-feed" id="sayuFeed">
+
+      <article class="sayu-card">
+        <div class="sayu-top">
+          <div class="sayu-av" style="background:linear-gradient(135deg,#D7B8EC,#A985C9)">밤</div>
+          <div class="sayu-name">밤톨</div>
+          <div class="sayu-time">· 3시간 전</div>
+          <span class="sayu-tag">인용구 · p.142</span>
+        </div>
+        <div class="sayu-quote">결국 우리가 읽는 건 문장이 아니라, 그 문장을 지나온 우리 자신이었다.</div>
+        <div class="sayu-bookchip">
+          <div class="sayu-cover" style="background:linear-gradient(135deg,#C9A66B,#7A5E3B)"></div>
+          <div class="sayu-bookmeta">읽다 만 마음 <span class="sub">· 서윤하</span></div>
+        </div>
+        <div class="sayu-foot">
+          <button class="sayu-heart on"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.3 1.6 6.6 4.9 5.7c2-.55 3.9.5 5.1 2.2 1.2-1.7 3.1-2.75 5.1-2.2 3.3.9 4 4.6 2.23 7.23C18.7 16.65 12 21 12 21z"/></svg><span class="n">24</span></button>
+          <span class="sayu-cmt"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.7-.85L3 21l1.85-5.8A8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>5</span>
+          <button class="sayu-dots" aria-label="더보기"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        </div>
+      </article>
+
+      <article class="sayu-card">
+        <div class="sayu-top">
+          <div class="sayu-av" style="background:linear-gradient(135deg,#A9D9C0,#6FB592)">독</div>
+          <div class="sayu-name">독서가J</div>
+          <div class="sayu-time">· 어제</div>
+          <span class="sayu-tag">감상</span>
+        </div>
+        <div class="sayu-review"><span class="sayu-clamp">후반부에서 한참을 멍하니 있었다. 다 읽고도 첫 장을 다시 펼치게 되는, 그런 종류의 책이었다. 처음엔 잔잔한 일상의 기록처럼 보였는데, 페이지를 넘길수록 인물의 선택 하나하나가 마음에 박혔다. 특히 마지막 편지 장면은 한동안 책을 덮지 못하게 만들었다.</span><span class="sayu-more">… 더보기</span></div>
+        <div class="sayu-bookchip">
+          <div class="sayu-cover" style="background:linear-gradient(135deg,#7BA7C9,#3B5E7A)"></div>
+          <div class="sayu-bookmeta">겨울의 문장들 <span class="sub">· 한도경</span></div>
+        </div>
+        <div class="sayu-foot">
+          <button class="sayu-heart"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 20s-6.2-4.05-8.7-7.55C1.6 10.1 2.2 6.9 5 6.1c1.85-.5 3.6.45 4.7 2.05.4.55 1.2.55 1.6 0C12.4 6.55 14.15 5.6 16 6.1c2.8.8 3.4 4 1.7 6.35C15.2 15.95 12 20 12 20z"/></svg><span class="n">11</span></button>
+          <span class="sayu-cmt"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.7-.85L3 21l1.85-5.8A8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>2</span>
+          <button class="sayu-dots" aria-label="더보기"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        </div>
+      </article>
+
+      <article class="sayu-card">
+        <div class="sayu-top">
+          <div class="sayu-av" style="background:linear-gradient(135deg,#E8B27A,#C97C3B)">하</div>
+          <div class="sayu-name">하루책방</div>
+          <div class="sayu-time">· 2일 전</div>
+          <span class="sayu-tag">인용구 · p.58</span>
+        </div>
+        <div class="sayu-quote">읽는다는 건 결국, 나를 한 번 더 통과시키는 일이다.</div>
+        <div class="sayu-bookchip">
+          <div class="sayu-cover" style="background:linear-gradient(135deg,#9C8AB8,#5E4A78)">표</div>
+          <div class="sayu-bookmeta">표지 없는 책 <span class="sub">· 미상</span></div>
+        </div>
+        <div class="sayu-foot">
+          <button class="sayu-heart"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 20s-6.2-4.05-8.7-7.55C1.6 10.1 2.2 6.9 5 6.1c1.85-.5 3.6.45 4.7 2.05.4.55 1.2.55 1.6 0C12.4 6.55 14.15 5.6 16 6.1c2.8.8 3.4 4 1.7 6.35C15.2 15.95 12 20 12 20z"/></svg><span class="n">7</span></button>
+          <span class="sayu-cmt"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.7-.85L3 21l1.85-5.8A8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>0</span>
+          <button class="sayu-dots" aria-label="더보기"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
   </div><!-- /.pane-track -->
   </div><!-- /.pane-viewport -->
-
-  <!-- v1.12.0 — Booknook 탭 콘텐츠 영역 (5번째 탭) -->
-  <div class="bn-tab-content" id="bnTabContent"></div>
 
   <footer class="app-footer">
     <div class="app-footer-brand">
@@ -22107,24 +22345,11 @@ body.cn-locked {
       <div class="kbm-item-main"><div class="kbm-item-ttl">설정</div><div class="kbm-item-sub">테마 · 알림 · 동기화</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
-    <button class="kbm-item" id="kbmBooknookItem" onclick="bnToggle(event)" type="button">
-      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5c0-2.5 2.5-4 6.5-4s6.5 1.5 6.5 4V20"/><circle cx="17" cy="9" r="2.8"/><path d="M15 14.2c.65-.13 1.32-.2 2-.2 2.8 0 4.5 1.1 4.5 3V20"/></svg></div>
-      <div class="kbm-item-main">
-        <div class="kbm-item-ttl">Booknook</div>
-        <div class="kbm-item-sub">같이 읽기 · 책으로 만나는 코너</div>
-      </div>
-      <div class="bn-toggle" id="bnToggleSwitch"></div>
-    </button>
 
     <div class="kbm-section-lbl">More</div>
     <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
       <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div></div>
-      <span class="kbm-item-arrow">›</span>
-    </button>
-    <button class="kbm-item" onclick="if(typeof showToast==='function')showToast('곧 새 소식이 와요 ✨')">
-      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.39 6.95H22l-6.31 4.59 2.41 7.46L12 16.42 5.9 21l2.41-7.46L2 8.95h7.61L12 2z"/></svg></div>
-      <div class="kbm-item-main"><div class="kbm-item-ttl">Coming soon</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
     <button class="kbm-item" onclick="kbmCall('openInstallGuide', '설치 안내 준비 중')">
@@ -22619,7 +22844,6 @@ body.cn-locked {
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
-        <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
         <div class="tag-cat-edit-hint" id="tagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
         <div class="tag-cat-add-wrap" id="tagCatAddWrap">
           <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
@@ -22641,7 +22865,11 @@ body.cn-locked {
         </div>
         <div class="tag-new-cat-row" id="tagNewCatRow">
           <span class="tnc-label">📂 어느 카테고리에?</span>
-          <!-- v1.12.0 JS 동적 렌더 -->
+          <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
+          <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
+          <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
+          <button type="button" class="tnc-chip" data-cat="format">형식</button>
+          <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
         </div>
       </div>
 
@@ -22900,6 +23128,7 @@ body.cn-locked {
       <button class="btn-secondary" id="tmCancel">계속 읽기</button>
       <button class="btn-primary" id="tmSave">기록 저장</button>
     </div>
+    <button type="button" class="tm-discard-btn" id="tmDiscard">기록 없이 종료</button>
   </div>
 </aside>
 
@@ -22945,7 +23174,7 @@ body.cn-locked {
 </aside>
 
 <!-- ═══════════ 시네마 모드 (가로/세로 풀스크린 타이머) ═══════════ -->
-<div class="cn-overlay" id="cnOverlay" data-cn-mode="portrait" aria-hidden="true">
+<div class="cn-overlay" id="cnOverlay" data-cn-mode="landscape" aria-hidden="true">
   <!-- 시네마 무대 (가로·세로 양쪽 지원) -->
   <div class="cn-stage" id="cnStage" aria-hidden="true">
     <div class="cn-letterbox cn-letterbox-top"></div>
@@ -24331,2011 +24560,6 @@ body.cn-locked {
 
 
 
-
-<!-- ═══════════════════════════════════════════════════════════
-     Booknook (v1.12.0 — test.html 전용)
-     ─────────────────────────────────────────────────────────
-     같이 읽기 · 책으로 만나는 코너
-     인트로버트 친화 · 닉네임 lazy 수집 · 옵트인 디폴트 OFF
-     localStorage 기반 시뮬레이션 (Cloudflare KV는 다음 단계)
-     ═══════════════════════════════════════════════════════════ -->
-<style>
-/* Booknook 전용 CSS — .bn-* 네임스페이스 */
-
-/* 설정 토글 스위치 */
-.bn-toggle {
-  width: 42px; height: 24px;
-  border-radius: 12px;
-  background: var(--c-surface-2, #E8E8E4);
-  position: relative;
-  transition: background 200ms;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.bn-toggle.on { background: #5F6B5F; }
-.bn-toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 200ms;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-.bn-toggle.on::after { transform: translateX(18px); }
-
-/* v1.12.0 — 노트 작성 서체 8종 */
-.bn-ft-default { font-family: 'Pretendard Variable', Pretendard, sans-serif !important; }
-.bn-ft-myeongjo { font-family: 'Noto Serif KR', serif !important; font-weight: 500; line-height: 1.7; }
-.bn-ft-blackhansans { font-family: 'Black Han Sans', sans-serif !important; letter-spacing: -0.02em; line-height: 1.55; }
-.bn-ft-gowun { font-family: 'Gowun Dodum', sans-serif !important; line-height: 1.65; }
-.bn-ft-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.5em; line-height: 1.3; }
-.bn-ft-himelody { font-family: 'Hi Melody', cursive !important; font-size: 1.15em; line-height: 1.5; }
-.bn-ft-gaegu { font-family: 'Gaegu', cursive !important; font-size: 1.1em; line-height: 1.45; }
-.bn-ft-eastsea { font-family: 'East Sea Dokdo', cursive !important; font-size: 1.3em; line-height: 1.4; }
-
-/* 노트 모달 — 서체 선택 칩 */
-.bn-font-picker { margin-bottom: 14px; }
-.bn-font-picker-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--c-text, #15110D);
-  margin-bottom: 6px;
-}
-.bn-font-chips {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-.bn-font-chip {
-  padding: 5px 11px;
-  background: var(--c-surface-2, #E8E8E4);
-  color: var(--c-text-2, #3A3A35);
-  border-radius: 14px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-}
-.bn-font-chip.active {
-  background: #5F6B5F;
-  color: white;
-  border-color: #455045;
-}
-.bn-font-chip.ft-c-default { font-family: 'Pretendard Variable', Pretendard, sans-serif; }
-.bn-font-chip.ft-c-myeongjo { font-family: 'Noto Serif KR', serif; font-weight: 700; }
-.bn-font-chip.ft-c-blackhansans { font-family: 'Black Han Sans', sans-serif; }
-.bn-font-chip.ft-c-gowun { font-family: 'Gowun Dodum', sans-serif; }
-.bn-font-chip.ft-c-pen { font-family: 'Nanum Pen Script', cursive; font-size: 15px; }
-.bn-font-chip.ft-c-himelody { font-family: 'Hi Melody', cursive; font-size: 14px; }
-.bn-font-chip.ft-c-gaegu { font-family: 'Gaegu', cursive; }
-.bn-font-chip.ft-c-eastsea { font-family: 'East Sea Dokdo', cursive; font-size: 15px; }
-
-/* ═══════ v1.12.0 — 답글 시스템 ═══════ */
-.bn-replies {
-  margin-top: 6px;
-  margin-left: 30px;  /* 들여쓰기로 위계 표현 */
-  border-left: 2px solid #DCDCD8;
-  padding-left: 11px;
-}
-.bn-reply {
-  display: flex;
-  gap: 7px;
-  margin-bottom: 6px;
-  align-items: flex-start;
-}
-.bn-reply-dot {
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  color: white;
-  font-size: 9px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.bn-reply-content { flex: 1; min-width: 0; }
-.bn-reply-name {
-  font-size: 9.5px;
-  color: var(--c-muted, #7A7A75);
-  margin-bottom: 1px;
-  font-weight: 700;
-}
-.bn-reply-bubble {
-  background: #F0F0EC;
-  border-radius: 9px;
-  padding: 5px 9px;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--c-text, #15110D);
-  display: inline-block;
-  max-width: 100%;
-}
-
-/* "답글 달기" 버튼 */
-.bn-reply-trigger {
-  margin-left: 30px;
-  margin-top: 4px;
-  font-size: 10.5px;
-  color: var(--c-muted, #7A7A75);
-  background: transparent;
-  border: none;
-  padding: 3px 7px;
-  cursor: pointer;
-  font-family: inherit;
-  border-radius: 6px;
-}
-.bn-reply-trigger:hover {
-  color: #5F6B5F;
-  background: #E8ECE6;
-}
-
-/* 답글 입력 영역 (인라인) */
-.bn-reply-input-wrap {
-  margin-left: 30px;
-  margin-top: 6px;
-  padding: 10px;
-  background: var(--c-surface-2, #E8E8E4);
-  border-radius: 9px;
-  display: none;
-}
-.bn-reply-input-wrap.open { display: block; }
-.bn-reply-input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 7px;
-  background: var(--c-surface, #FCFCFA);
-  font-size: 12.5px;
-  color: var(--c-text, #15110D);
-  font-family: inherit;
-  resize: none;
-  min-height: 45px;
-}
-.bn-reply-input-actions {
-  display: flex;
-  gap: 7px;
-  margin-top: 7px;
-  align-items: center;
-}
-.bn-reply-fonts {
-  flex: 1;
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-.bn-reply-fontchip {
-  padding: 3px 9px;
-  background: var(--c-surface, #FCFCFA);
-  color: var(--c-text-2, #3A3A35);
-  border-radius: 11px;
-  font-size: 10.5px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.bn-reply-fontchip.active {
-  background: #5F6B5F;
-  color: white;
-}
-.bn-reply-submit {
-  padding: 6px 13px;
-  background: #5F6B5F;
-  color: white;
-  border: none;
-  border-radius: 7px;
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  flex-shrink: 0;
-}
-.bn-reply-cancel {
-  padding: 6px 9px;
-  background: transparent;
-  color: var(--c-muted, #7A7A75);
-  border: none;
-  font-size: 11px;
-  cursor: pointer;
-  font-family: inherit;
-  flex-shrink: 0;
-}
-
-/* v1.12.0 — 메인 탭바에 통합된 Booknook 탭 (5번째) */
-.tab-btn[data-tab="booknook"] { display: none; }
-body.bn-enabled .tab-btn[data-tab="booknook"] { display: flex; }
-
-.bn-tab-content {
-  display: none;
-  padding: 16px;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
-  min-height: 60vh;
-}
-/* v1.12.0 — display:none 대신 height:0 사용:
-   모바일에서 display 전환 시 layout 재계산 타이밍 불안정 → paneWidth() 부정확
-   → transform 위치 어긋남으로 옆 탭 살짝 보임. height:0이면 layout 항상 유지 */
-body.bn-active .pane-viewport {
-  height: 0 !important;
-  overflow: hidden !important;
-}
-body.bn-active .bn-tab-content { display: block; }
-body.bn-active .fab,
-body.bn-active .lib-edit-fab-wrap { display: none !important; }
-
-/* Booknook 메인 오버레이 (전체 화면 스택) */
-.bn-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--c-canvas, #F3F3F0);
-  z-index: 900;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-}
-.bn-overlay.open { display: flex; }
-
-/* Booknook 헤더 */
-.bn-hdr {
-  background: var(--c-surface, #FCFCFA);
-  border-bottom: 1px solid var(--c-border, #DCDCD8);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  padding-top: calc(14px + env(safe-area-inset-top, 0));
-}
-.bn-hdr-back {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: var(--c-text, #15110D);
-  cursor: pointer;
-  padding: 4px 8px;
-  margin-left: -8px;
-}
-.bn-hdr-ttl {
-  font-weight: 800;
-  font-size: 16px;
-  flex: 1;
-  color: var(--c-text, #15110D);
-  letter-spacing: -0.01em;
-}
-.bn-hdr-action {
-  background: none;
-  border: none;
-  color: var(--c-muted, #7A7A75);
-  font-size: 20px;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-/* Booknook 본문 */
-.bn-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
-}
-
-/* === 빈 상태 === */
-.bn-empty {
-  padding: 40px 20px;
-  text-align: center;
-}
-.bn-empty-icon {
-  font-size: 48px;
-  margin-bottom: 14px;
-  opacity: 0.7;
-}
-.bn-empty-ttl {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--c-text, #15110D);
-}
-.bn-empty-sub {
-  font-size: 12.5px;
-  color: var(--c-muted, #7A7A75);
-  line-height: 1.55;
-  margin-bottom: 22px;
-}
-.bn-action-list {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  max-width: 320px;
-  margin: 0 auto;
-}
-.bn-action-row {
-  background: #E8ECE6;
-  border: 1px solid #C8D2C8;
-  padding: 13px 15px;
-  border-radius: 11px;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: background 150ms;
-}
-.bn-action-row:active { background: #D8E0D6; }
-.bn-action-emoji { font-size: 22px; flex-shrink: 0; }
-.bn-action-main { flex: 1; min-width: 0; }
-.bn-action-ttl { font-weight: 700; font-size: 13px; color: #455045; margin-bottom: 1px; }
-.bn-action-sub { font-size: 11px; color: var(--c-text-2, #3A3A35); }
-.bn-action-arrow { color: #5F6B5F; font-size: 16px; }
-
-/* === 내 그룹 카드 (활성 그룹 리스트) === */
-.bn-my-section { margin-bottom: 20px; }
-.bn-my-ttl {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--c-muted, #7A7A75);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 10px;
-  padding: 0 2px;
-}
-.bn-my-card {
-  background: var(--c-surface, #FCFCFA);
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 11px;
-  padding: 12px;
-  margin-bottom: 9px;
-  display: flex;
-  gap: 11px;
-  cursor: pointer;
-  transition: transform 120ms;
-}
-.bn-my-card:active { transform: scale(0.98); }
-.bn-cover {
-  width: 42px; height: 60px;
-  background: #C8A368;
-  border-radius: 4px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  color: white;
-  font-size: 8.5px;
-  font-weight: 700;
-  padding-bottom: 4px;
-  line-height: 1.15;
-  text-align: center;
-  padding-left: 3px;
-  padding-right: 3px;
-  word-break: keep-all;
-}
-.bn-cover.c-sage { background: #5F6B5F; }
-.bn-cover.c-blue { background: #4A6B8A; }
-.bn-cover.c-mauve { background: #A06B8E; }
-.bn-cover.c-red { background: #B85A4A; }
-.bn-my-info { flex: 1; min-width: 0; }
-.bn-my-bttl { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-.bn-my-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); margin-bottom: 5px; }
-.bn-my-turn {
-  display: inline-block;
-  background: #F5EFE3;
-  color: #6E5B45;
-  padding: 2px 8px;
-  border-radius: 9px;
-  font-size: 10px;
-  font-weight: 700;
-}
-.bn-my-turn.mine {
-  background: #E8ECE6;
-  color: #455045;
-}
-
-/* === 게시판 필터 === */
-.bn-filter-bar {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 14px;
-  padding: 0 2px;
-}
-.bn-filter-chip {
-  padding: 5px 12px;
-  background: var(--c-surface-2, #E8E8E4);
-  color: var(--c-text-2, #3A3A35);
-  border-radius: 14px;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-}
-.bn-filter-chip.active {
-  background: #5F6B5F;
-  color: white;
-}
-
-/* === 모집 카드 === */
-.bn-recruit-card {
-  background: var(--c-surface, #FCFCFA);
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 11px;
-  padding: 12px;
-  margin-bottom: 10px;
-  display: flex;
-  gap: 11px;
-  cursor: pointer;
-  transition: transform 120ms;
-}
-.bn-recruit-card:active { transform: scale(0.98); }
-.bn-recruit-card.closed { opacity: 0.55; }
-.bn-recruit-card.closed .bn-recruit-capacity {
-  background: var(--c-surface-2, #E8E8E4);
-  color: var(--c-muted, #7A7A75);
-}
-.bn-recruit-main { flex: 1; min-width: 0; }
-.bn-recruit-ttl { font-weight: 700; font-size: 12.5px; margin-bottom: 2px; }
-.bn-recruit-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); margin-bottom: 5px; }
-.bn-recruit-intro {
-  font-size: 11.5px;
-  color: var(--c-text-2, #3A3A35);
-  line-height: 1.45;
-  margin-bottom: 6px;
-}
-.bn-recruit-foot {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 10.5px;
-}
-.bn-recruit-capacity {
-  background: #E8ECE6;
-  color: #455045;
-  padding: 2px 7px;
-  border-radius: 9px;
-  font-weight: 700;
-}
-.bn-recruit-deadline { color: var(--c-muted, #7A7A75); }
-
-/* === 폼 === */
-.bn-form-group { margin-bottom: 14px; }
-.bn-form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--c-text, #15110D);
-  margin-bottom: 6px;
-}
-.bn-form-input,
-.bn-form-textarea,
-.bn-form-select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 8px;
-  background: var(--c-surface, #FCFCFA);
-  font-size: 13px;
-  color: var(--c-text, #15110D);
-  font-family: inherit;
-}
-.bn-form-textarea { min-height: 70px; resize: none; }
-.bn-form-row { display: flex; gap: 10px; }
-.bn-form-row > * { flex: 1; }
-.bn-form-counter {
-  font-size: 10px;
-  color: var(--c-muted, #7A7A75);
-  text-align: right;
-  margin-top: 3px;
-}
-.bn-selected-book {
-  background: #E8ECE6;
-  border: 1px solid #C8D2C8;
-  border-radius: 9px;
-  padding: 10px;
-  display: flex;
-  gap: 10px;
-}
-.bn-selected-book .bn-cover { width: 32px; height: 46px; font-size: 7.5px; }
-.bn-sb-info { flex: 1; min-width: 0; }
-.bn-sb-ttl { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
-.bn-sb-author { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
-
-/* === 버튼 === */
-.bn-btn-primary {
-  width: 100%;
-  padding: 13px;
-  background: #5F6B5F;
-  color: white;
-  font-weight: 800;
-  border-radius: 9px;
-  text-align: center;
-  font-size: 13.5px;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  margin-top: 8px;
-}
-.bn-btn-primary:active { background: #455045; }
-.bn-btn-primary:disabled {
-  background: var(--c-surface-2, #E8E8E4);
-  color: var(--c-muted, #7A7A75);
-  cursor: not-allowed;
-}
-.bn-btn-ghost {
-  width: 100%;
-  padding: 11px;
-  background: transparent;
-  color: var(--c-muted, #7A7A75);
-  font-weight: 600;
-  text-align: center;
-  font-size: 12.5px;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  margin-top: 4px;
-}
-
-/* === 모집 상세 화면 === */
-.bn-detail-hero {
-  background: #E8ECE6;
-  padding: 24px;
-  border-radius: 12px;
-  text-align: center;
-  margin-bottom: 16px;
-}
-.bn-detail-hero .bn-cover {
-  width: 75px; height: 108px;
-  font-size: 10.5px;
-  margin: 0 auto 11px;
-}
-.bn-detail-bttl { font-weight: 800; font-size: 14.5px; margin-bottom: 3px; }
-.bn-detail-bauthor { font-size: 11.5px; color: var(--c-muted, #7A7A75); }
-
-.bn-host-area {
-  background: var(--c-surface, #FCFCFA);
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 13px;
-}
-.bn-host-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-.bn-avatar {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.bn-avatar.c-sage { background: #5F6B5F; }
-.bn-avatar.c-amber { background: #C8A368; }
-.bn-avatar.c-blue { background: #4A6B8A; }
-.bn-avatar.c-mauve { background: #A06B8E; }
-.bn-avatar.c-red { background: #B85A4A; }
-.bn-host-nick { font-size: 12px; font-weight: 700; }
-.bn-host-tag { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
-.bn-host-msg { font-size: 12px; color: var(--c-text-2, #3A3A35); line-height: 1.5; }
-
-.bn-members-area {
-  background: var(--c-surface-2, #E8E8E4);
-  border-radius: 9px;
-  padding: 11px;
-  margin-bottom: 16px;
-}
-.bn-members-ttl {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--c-text-2, #3A3A35);
-  margin-bottom: 8px;
-}
-.bn-members-list {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.bn-member-chip {
-  background: var(--c-surface, #FCFCFA);
-  border: 1px solid var(--c-border, #DCDCD8);
-  border-radius: 11px;
-  padding: 4px 10px 4px 5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-}
-.bn-member-chip .bn-avatar { width: 17px; height: 17px; font-size: 8.5px; }
-.bn-member-empty {
-  background: transparent;
-  border: 1px dashed var(--c-border, #DCDCD8);
-  color: var(--c-muted, #7A7A75);
-  border-radius: 11px;
-  padding: 4px 10px;
-  font-size: 10.5px;
-}
-
-/* === 그룹 화면 (핵심) === */
-.bn-group-book-bar {
-  background: #E8ECE6;
-  border: 1px solid #C8D2C8;
-  border-radius: 9px;
-  padding: 11px;
-  display: flex;
-  gap: 10px;
-  margin-bottom: 13px;
-}
-.bn-group-book-bar .bn-cover { width: 32px; height: 46px; font-size: 7.5px; }
-.bn-group-book-info { flex: 1; min-width: 0; }
-.bn-group-book-ttl { font-size: 12.5px; font-weight: 700; margin-bottom: 2px; }
-.bn-group-book-meta { font-size: 10.5px; color: var(--c-muted, #7A7A75); }
-
-.bn-turn-bar {
-  border-radius: 9px;
-  padding: 9px 12px;
-  margin-bottom: 13px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #F5EFE3;
-  border: 1px solid #C8A368;
-}
-.bn-turn-bar.mine {
-  background: #E8ECE6;
-  border-color: #5F6B5F;
-}
-.bn-turn-label { font-size: 10.5px; color: #6E5B45; font-weight: 700; }
-.bn-turn-name { font-size: 12px; font-weight: 800; color: #6E5B45; }
-.bn-turn-bar.mine .bn-turn-label,
-.bn-turn-bar.mine .bn-turn-name { color: #455045; }
-
-.bn-members-bar {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--c-border, #DCDCD8);
-  align-items: center;
-}
-.bn-member-dot {
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  flex-shrink: 0;
-}
-.bn-member-dot.c-sage { background: #5F6B5F; }
-.bn-member-dot.c-amber { background: #C8A368; }
-.bn-member-dot.c-blue { background: #4A6B8A; }
-.bn-member-dot.c-mauve { background: #A06B8E; }
-.bn-member-dot.c-red { background: #B85A4A; }
-.bn-member-dot.current::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 5px; height: 5px;
-  background: #6E5B45;
-  border-radius: 50%;
-}
-.bn-member-order {
-  font-size: 9.5px;
-  color: var(--c-muted, #7A7A75);
-  margin-left: 4px;
-}
-
-/* 페이지별 노트 thread */
-.bn-page-thread {
-  margin-bottom: 14px;
-}
-.bn-page-label {
-  display: inline-block;
-  background: var(--c-surface-2, #E8E8E4);
-  color: var(--c-text-2, #3A3A35);
-  padding: 2px 10px;
-  border-radius: 11px;
-  font-size: 10.5px;
-  font-weight: 700;
-  margin-bottom: 7px;
-}
-.bn-thread-note {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 6px;
-  align-items: flex-start;
-}
-.bn-thread-note .bn-member-dot {
-  width: 20px; height: 20px;
-  font-size: 9px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.bn-thread-content { flex: 1; min-width: 0; }
-.bn-thread-name {
-  font-size: 9.5px;
-  color: var(--c-muted, #7A7A75);
-  margin-bottom: 2px;
-  font-weight: 700;
-}
-.bn-thread-bubble {
-  background: var(--c-surface-2, #E8E8E4);
-  border-radius: 10px;
-  padding: 7px 11px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--c-text, #15110D);
-  display: inline-block;
-  max-width: 100%;
-}
-.bn-thread-note.mine .bn-thread-bubble {
-  background: #E8ECE6;
-}
-/* v1.12.0 — 코멘트의 인용구 표시 (코멘트와 같은 서체, 옅은 배경 + 좌측 사선) */
-.bn-thread-quote {
-  display: block;
-  padding: 6px 10px 6px 11px;
-  margin-bottom: 5px;
-  background: rgba(95, 107, 95, 0.07);
-  border-left: 2.5px solid #5F6B5F;
-  border-radius: 4px 7px 7px 4px;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--c-text-2, #3A3A35);
-  opacity: 0.92;
-}
-.bn-thread-quote::before {
-  content: "❝ ";
-  font-weight: 700;
-  color: #5F6B5F;
-  opacity: 0.6;
-}
-
-/* 노트 입력 바 */
-.bn-note-input-area {
-  background: var(--c-surface, #FCFCFA);
-  border: 1.5px dashed #5F6B5F;
-  border-radius: 9px;
-  padding: 11px;
-  margin-top: 13px;
-  cursor: pointer;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: #455045;
-  transition: background 150ms;
-}
-.bn-note-input-area:active { background: #E8ECE6; }
-.bn-note-input-area.disabled {
-  border-color: var(--c-border, #DCDCD8);
-  color: var(--c-muted, #7A7A75);
-  cursor: not-allowed;
-}
-
-/* 노트 작성 모달 */
-.bn-note-modal-bd {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 17, 23, 0.5);
-  z-index: 1010;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-}
-.bn-note-modal-bd.open { display: flex; }
-.bn-note-modal {
-  background: var(--c-surface, #FCFCFA);
-  border-radius: 16px 16px 0 0;
-  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0));
-  width: 100%;
-  max-width: 480px;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-.bn-note-modal-ttl {
-  font-weight: 800;
-  font-size: 14px;
-  margin-bottom: 14px;
-}
-
-/* 다이얼로그 */
-.bn-dialog-bd {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 17, 23, 0.5);
-  z-index: 1020;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.bn-dialog-bd.open { display: flex; }
-.bn-dialog {
-  background: white;
-  border-radius: 14px;
-  padding: 22px 20px 16px;
-  max-width: 320px;
-  width: 100%;
-}
-.bn-dialog-icon { font-size: 26px; margin-bottom: 11px; text-align: center; }
-.bn-dialog-ttl { font-size: 14.5px; font-weight: 800; margin-bottom: 7px; text-align: center; }
-.bn-dialog-msg { font-size: 12px; color: var(--c-text-2, #3A3A35); line-height: 1.55; text-align: center; margin-bottom: 13px; }
-.bn-dialog-groups {
-  background: var(--c-surface-2, #E8E8E4);
-  border-radius: 7px;
-  padding: 9px 11px;
-  margin-bottom: 14px;
-  font-size: 11px;
-  color: var(--c-text-2, #3A3A35);
-}
-.bn-dialog-group-row { padding: 3px 0; }
-.bn-dialog-btns { display: flex; gap: 8px; }
-.bn-dialog-btn {
-  flex: 1;
-  padding: 11px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 700;
-  text-align: center;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-.bn-dialog-btn.cancel { background: var(--c-surface-2, #E8E8E4); color: var(--c-text-2, #3A3A35); }
-.bn-dialog-btn.confirm { background: #B85A4A; color: white; }
-.bn-dialog-btn.confirm-sage { background: #5F6B5F; color: white; }
-
-/* Toast */
-.bn-toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--c-text, #15110D);
-  color: var(--c-surface, #FCFCFA);
-  padding: 11px 18px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  z-index: 1030;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 200ms;
-  max-width: 84%;
-  text-align: center;
-}
-.bn-toast.show { opacity: 1; }
-</style>
-
-
-<!-- ════════════ Booknook 게시판 ════════════ -->
-<div class="bn-overlay" id="bnBoard">
-  <div class="bn-hdr">
-    <button class="bn-hdr-back" onclick="bnOpenMain()">‹</button>
-    <div class="bn-hdr-ttl">📋 같이 읽을 사람</div>
-    <button class="bn-hdr-action" onclick="bnOpenCreate()" title="모집글 작성">＋</button>
-  </div>
-  <div class="bn-body">
-    <div class="bn-filter-bar">
-      <button class="bn-filter-chip active" data-filter="active">진행중</button>
-      <button class="bn-filter-chip" data-filter="closed">마감</button>
-      <button class="bn-filter-chip" data-filter="mine">내 모집</button>
-    </div>
-    <div id="bnBoardList"></div>
-  </div>
-</div>
-
-<!-- ════════════ Booknook 모집글 작성 ════════════ -->
-<div class="bn-overlay" id="bnCreate">
-  <div class="bn-hdr">
-    <button class="bn-hdr-back" onclick="bnOpenBoard()">‹</button>
-    <div class="bn-hdr-ttl">모집글 작성</div>
-    <button class="bn-hdr-action" onclick="bnOpenBoard()">×</button>
-  </div>
-  <div class="bn-body">
-    <div class="bn-form-group">
-      <label class="bn-form-label">📕 책 선택</label>
-      <div class="bn-selected-book" id="bnCreateBookArea" onclick="bnPickBook()">
-        <div class="bn-cover" id="bnCreateBookCover" style="background:var(--c-surface-2,#E8E8E4);color:var(--c-muted,#7A7A75);">📚</div>
-        <div class="bn-sb-info">
-          <div class="bn-sb-ttl" id="bnCreateBookTtl">탭해서 책 고르기</div>
-          <div class="bn-sb-author" id="bnCreateBookAuthor">내 서재에서 선택</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bn-form-row">
-      <div class="bn-form-group">
-        <label class="bn-form-label">👥 정원</label>
-        <select class="bn-form-select" id="bnCreateCapacity">
-          <option value="2">2명</option>
-          <option value="3" selected>3명</option>
-          <option value="4">4명</option>
-          <option value="5">5명</option>
-        </select>
-      </div>
-      <div class="bn-form-group">
-        <label class="bn-form-label">⏰ 마감</label>
-        <select class="bn-form-select" id="bnCreateDeadline">
-          <option value="3">3일</option>
-          <option value="7" selected>1주</option>
-          <option value="14">2주</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="bn-form-group">
-      <label class="bn-form-label">💬 짧은 소개 (선택)</label>
-      <textarea class="bn-form-textarea" id="bnCreateIntro" placeholder="어떤 분과 읽고 싶나요?" maxlength="200" oninput="bnUpdateCounter()"></textarea>
-      <div class="bn-form-counter"><span id="bnCreateCounter">0</span> / 200</div>
-    </div>
-
-    <button class="bn-btn-primary" id="bnCreateSubmit" onclick="bnSubmitRecruit()" disabled>모집글 올리기</button>
-    <button class="bn-btn-ghost" onclick="bnOpenBoard()">취소</button>
-  </div>
-</div>
-
-<!-- ════════════ Booknook 모집 상세 ════════════ -->
-<div class="bn-overlay" id="bnDetail">
-  <div class="bn-hdr">
-    <button class="bn-hdr-back" onclick="bnOpenBoard()">‹</button>
-    <div class="bn-hdr-ttl">모집 상세</div>
-  </div>
-  <div class="bn-body" id="bnDetailBody"></div>
-</div>
-
-<!-- ════════════ Booknook 그룹 화면 (핵심) ════════════ -->
-<div class="bn-overlay" id="bnGroup">
-  <div class="bn-hdr">
-    <button class="bn-hdr-back" onclick="bnOpenMain()">‹</button>
-    <div class="bn-hdr-ttl">우리 코너</div>
-    <button class="bn-hdr-action" onclick="bnGroupNextTurn()" title="차례 넘기기 (시뮬레이션)">⋯</button>
-  </div>
-  <div class="bn-body" id="bnGroupBody"></div>
-</div>
-
-<!-- ════════════ 비활성화 확인 다이얼로그 ════════════ -->
-<div class="bn-dialog-bd" id="bnDisableDialog">
-  <div class="bn-dialog">
-    <div class="bn-dialog-icon">🚪</div>
-    <div class="bn-dialog-ttl">Booknook 비활성화</div>
-    <div class="bn-dialog-msg">참여 중인 다음 그룹에서 빠지게 돼요. 작성하신 노트는 그대로 남습니다.</div>
-    <div class="bn-dialog-groups" id="bnDisableGroupList"></div>
-    <div class="bn-dialog-btns">
-      <button class="bn-dialog-btn cancel" onclick="bnCloseDisableDialog()">취소</button>
-      <button class="bn-dialog-btn confirm" onclick="bnConfirmDisable()">비활성화</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ 닉네임 입력 다이얼로그 (lazy 수집) ════════════ -->
-<div class="bn-dialog-bd" id="bnNicknameDialog">
-  <div class="bn-dialog">
-    <div class="bn-dialog-icon">✨</div>
-    <div class="bn-dialog-ttl">닉네임 설정</div>
-    <div class="bn-dialog-msg">다른 분들에게 보일 이름을 정해주세요. 본명 아닌 닉네임 추천 🍃</div>
-    <input type="text" class="bn-form-input" id="bnNicknameInput" placeholder="예: 달밤독자, 책읽는다람쥐" maxlength="14" style="margin-bottom:13px;">
-    <div class="bn-dialog-btns">
-      <button class="bn-dialog-btn cancel" onclick="bnCloseNicknameDialog()">취소</button>
-      <button class="bn-dialog-btn confirm-sage" onclick="bnConfirmNickname()">확인</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ 노트 작성 모달 ════════════ -->
-<div class="bn-note-modal-bd" id="bnNoteModal">
-  <div class="bn-note-modal">
-    <div class="bn-note-modal-ttl">노트 남기기</div>
-    <div class="bn-form-row">
-      <div class="bn-form-group" style="flex:0 0 90px;">
-        <label class="bn-form-label">📄 페이지</label>
-        <input type="number" class="bn-form-input" id="bnNotePage" min="1" placeholder="42">
-      </div>
-      <div class="bn-form-group">
-        <label class="bn-form-label">📖 인용 <span style="color:var(--c-muted);font-weight:500;font-size:10.5px">(선택)</span></label>
-        <textarea class="bn-form-textarea bn-ft-default" id="bnNoteQuote" placeholder="책에서 옮겨오고 싶은 문장이 있다면…" maxlength="200" style="min-height:48px;font-size:12.5px;"></textarea>
-      </div>
-    </div>
-    <div class="bn-form-group" style="margin-bottom:14px;">
-      <label class="bn-form-label">💬 내용</label>
-      <textarea class="bn-form-textarea bn-ft-default" id="bnNoteText" placeholder="이 페이지에서 느낀 점을 다음 분께 전해보세요" maxlength="300"></textarea>
-    </div>
-    <div class="bn-font-picker">
-      <label class="bn-font-picker-label">✏️ 서체</label>
-      <div class="bn-font-chips" id="bnFontChips">
-        <button class="bn-font-chip ft-c-default active" type="button" data-bnfont="default">기본</button>
-        <button class="bn-font-chip ft-c-myeongjo" type="button" data-bnfont="myeongjo">명조</button>
-        <button class="bn-font-chip ft-c-blackhansans" type="button" data-bnfont="blackhansans">굵은 고딕</button>
-        <button class="bn-font-chip ft-c-gowun" type="button" data-bnfont="gowun">둥근체</button>
-        <button class="bn-font-chip ft-c-pen" type="button" data-bnfont="pen">펜글씨</button>
-        <button class="bn-font-chip ft-c-himelody" type="button" data-bnfont="himelody">둥근 손글씨</button>
-        <button class="bn-font-chip ft-c-gaegu" type="button" data-bnfont="gaegu">어린이 글씨</button>
-        <button class="bn-font-chip ft-c-eastsea" type="button" data-bnfont="eastsea">옛글씨</button>
-      </div>
-    </div>
-    <button class="bn-btn-primary" onclick="bnSubmitNote()">노트 추가하기</button>
-    <button class="bn-btn-ghost" onclick="bnCloseNoteModal()">취소</button>
-  </div>
-</div>
-
-<!-- ════════════ Toast ════════════ -->
-<div class="bn-toast" id="bnToast"></div>
-
-
-<script>
-/* ═══════════════════════════════════════════════════════════
-   Booknook v1.12.0 — 상태 + 동작
-   ─────────────────────────────────────────────────────────
-   localStorage 기반 시뮬레이션. Cloudflare KV는 다음 단계.
-   다른 멤버는 더미 데이터 (시드).
-   ═══════════════════════════════════════════════════════════ */
-
-const BN_KEY = 'read.booknook.v1';
-const BN_COLORS = ['c-sage', 'c-amber', 'c-blue', 'c-mauve', 'c-red'];
-const BN_DUMMY_BOOKS = [
-  { title: '불편한 편의점', author: '김호연', pages: 268, cover: 'c-amber' },
-  { title: '아침의 피아노', author: '김진영', pages: 224, cover: 'c-sage' },
-  { title: '모순', author: '양귀자', pages: 408, cover: 'c-blue' },
-  { title: '달밤의 도서관', author: '정세랑', pages: 192, cover: 'c-mauve' },
-];
-
-let BN_DATA = {
-  enabled: false,
-  myToken: '',
-  myNickname: '',
-  recruits: [],
-  groups: [],
-};
-let BN_CURRENT = { recruitId: null, groupId: null, filter: 'active', pendingAction: null };
-
-function bnHydrate() {
-  try {
-    const raw = localStorage.getItem(BN_KEY);
-    if (raw) {
-      BN_DATA = JSON.parse(raw);
-    } else {
-      bnSeedDummy();
-    }
-    if (!BN_DATA.myToken) BN_DATA.myToken = 'tk_' + Math.random().toString(36).slice(2, 11);
-  } catch (e) {
-    bnSeedDummy();
-  }
-  bnApplyEnabledState();
-}
-
-function bnSeedDummy() {
-  BN_DATA = {
-    enabled: false,
-    myToken: 'tk_' + Math.random().toString(36).slice(2, 11),
-    myNickname: '',
-    recruits: [
-      {
-        id: 'r1', book: BN_DUMMY_BOOKS[0], capacity: 5, deadlineDays: 3,
-        intro: '같이 읽으면서 인생 얘기 하실 분 찾아요. 부담 없이 한 챕터씩 ;)',
-        hostToken: 'tk_dummy_dal', hostNickname: '달밤독자', hostColor: 'c-amber',
-        members: [
-          { token: 'tk_dummy_dal', nickname: '달밤독자', color: 'c-amber' },
-          { token: 'tk_dummy_chu', nickname: '청춘독자', color: 'c-sage' },
-          { token: 'tk_dummy_go',  nickname: '고요한밤', color: 'c-blue' },
-        ],
-        status: 'active',
-        createdAt: Date.now() - 86400000 * 2,
-      },
-      {
-        id: 'r2', book: BN_DUMMY_BOOKS[1], capacity: 3, deadlineDays: 5,
-        intro: '천천히 한 페이지씩 곱씹으며 읽어요. 인트로버트만 환영',
-        hostToken: 'tk_dummy_yeo', hostNickname: '여름밤꿈', hostColor: 'c-mauve',
-        members: [
-          { token: 'tk_dummy_yeo', nickname: '여름밤꿈', color: 'c-mauve' },
-          { token: 'tk_dummy_pa',  nickname: '파란새벽', color: 'c-blue' },
-        ],
-        status: 'active',
-        createdAt: Date.now() - 86400000 * 1,
-      },
-      {
-        id: 'r3', book: BN_DUMMY_BOOKS[2], capacity: 4, deadlineDays: 0,
-        intro: '모순 다시 읽기 모임',
-        hostToken: 'tk_dummy_mo', hostNickname: '모순독자', hostColor: 'c-red',
-        members: [
-          { token: 'tk_dummy_mo', nickname: '모순독자', color: 'c-red' },
-          { token: 'tk_dummy_a',  nickname: '느린읽기', color: 'c-sage' },
-          { token: 'tk_dummy_b',  nickname: '깊은밤', color: 'c-blue' },
-          { token: 'tk_dummy_c',  nickname: '책장넘김', color: 'c-amber' },
-        ],
-        status: 'closed',
-        createdAt: Date.now() - 86400000 * 5,
-      },
-    ],
-    groups: [],
-  };
-  bnPersist();
-}
-
-function bnPersist() {
-  try { localStorage.setItem(BN_KEY, JSON.stringify(BN_DATA)); } catch(e) {}
-}
-
-/* v1.12.0 — 개발용 테스트 그룹 시드. 4명 멤버 + 다양한 서체 노트 + 내 차례 */
-function bnSeedTestGroup() {
-  // 닉네임 없으면 자동 설정
-  if (!BN_DATA.myNickname) BN_DATA.myNickname = '나';
-
-  const book = BN_DUMMY_BOOKS[0] || { title: '데미안', author: '헤르만 헤세', pages: 250, cover: 'bn-cover-c1' };
-  const now = Date.now();
-
-  const testGroup = {
-    id: 'g_test_' + Math.random().toString(36).slice(2, 7),
-    recruitId: 'r_test',
-    book: book,
-    members: [
-      { token: 'tk_dummy_dal', nickname: '달밤독자', color: 'c-sage', order: 0 },
-      { token: 'tk_dummy_chu', nickname: '청춘독자', color: 'c-amber', order: 1 },
-      { token: 'tk_dummy_go',  nickname: '고요한밤', color: 'c-blue', order: 2 },
-      { token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: 'c-mauve', order: 3 },
-    ],
-    notes: [
-      {
-        page: 12,
-        comments: [
-          { id: 'c_seed_1', token: 'tk_dummy_dal', text: '첫 문장부터 묵직하네요. 이 표현이 책 전체를 관통하는 키워드 같아요.', quote: '나는 진실로 내 안에서 솟아 나오려는 것, 그것을 살아보려 했을 뿐.', font: 'myeongjo', ts: now - 86400000 * 3,
-            replies: [
-              { id: 'r_seed_1a', token: 'tk_dummy_chu', text: '저도 이 문장 사진 찍어둔 적 있어요 ㅎㅎ', font: 'default', ts: now - 86400000 * 3 + 7200000 },
-              { id: 'r_seed_1b', token: 'tk_dummy_go',  text: '명조체로 보니까 더 묵직해지네요', font: 'gowun', ts: now - 86400000 * 2 + 3600000 },
-            ]
-          },
-          { id: 'c_seed_2', token: 'tk_dummy_chu', text: '저도 그 부분 한참 곱씹었어요', font: 'default', ts: now - 86400000 * 3 + 3600000, replies: [] },
-          { id: 'c_seed_3', token: 'tk_dummy_go',  text: '명과 암의 대비가 책 전체를 관통하는 것 같아요', font: 'pen', ts: now - 86400000 * 2, replies: [] },
-        ]
-      },
-      {
-        page: 42,
-        comments: [
-          { id: 'c_seed_4', token: 'tk_dummy_dal', text: '독고 아저씨 등장하는 장면. 무뚝뚝한 듯 다정해서 묘하게 끌리네요.', quote: '그는 늘 한 발짝 뒤에서, 그러나 누구보다 가까이 있었다.', font: 'myeongjo', ts: now - 86400000 * 2 + 3600000,
-            replies: [
-              { id: 'r_seed_4a', token: 'tk_dummy_go', text: '이 캐릭터가 책의 정서를 다 잡아주는 듯해요', font: 'himelody', ts: now - 86400000 * 1 + 3600000 },
-            ]
-          },
-          { id: 'c_seed_5', token: 'tk_dummy_chu', text: '동의 ㅋㅋ 이름부터 좀 웃겼어요', font: 'gaegu', ts: now - 86400000 * 1, replies: [] },
-          { id: 'c_seed_6', token: 'tk_dummy_go',  text: '이 아저씨가 결국 싱클레어의 인생을 바꾸는 인물이죠', font: 'himelody', ts: now - 86400000 + 7200000, replies: [] },
-        ]
-      },
-      {
-        page: 87,
-        comments: [
-          { id: 'c_seed_7', token: 'tk_dummy_dal', text: '여기서 갑자기 분위기가 바뀝니다. 데미안 첫 등장.', font: 'blackhansans', ts: now - 86400000 + 10000000, replies: [] },
-          { id: 'c_seed_8', token: 'tk_dummy_chu', text: '카인의 표적 얘기 처음 들었을 때 머리가 띵', quote: '새는 알을 깨고 나온다. 알은 곧 세계이다.', font: 'eastsea', ts: now - 86400000 + 12000000,
-            replies: [
-              { id: 'r_seed_8a', token: 'tk_dummy_dal', text: '이 인용구 우리 그룹의 명문장으로 정해요 ㅋㅋ', font: 'pen', ts: now - 86400000 + 18000000 },
-              { id: 'r_seed_8b', token: 'tk_dummy_go',  text: 'ㄱㄱ 채택', font: 'default', ts: now - 86400000 + 19000000 },
-            ]
-          },
-        ]
-      },
-    ],
-    turnIndex: 3,  // 내 차례
-    startedAt: now - 86400000 * 5,
-  };
-
-  BN_DATA.groups = BN_DATA.groups || [];
-  BN_DATA.groups.push(testGroup);
-  bnPersist();
-
-  bnShowToast('테스트 그룹 생성 완료. 노트 작성을 체험해보세요');
-  // 바로 그룹 화면 진입
-  setTimeout(() => bnOpenGroup(testGroup.id), 400);
-}
-
-function bnApplyEnabledState() {
-  // v1.12.0 — 햄버거 토글 행은 항상 노출, 토글 스위치만 상태 반영
-  const toggle = document.getElementById('bnToggleSwitch');
-  if (toggle) toggle.classList.toggle('on', BN_DATA.enabled);
-
-  // body 클래스로 탭 표시 토글
-  document.body.classList.toggle('bn-enabled', BN_DATA.enabled);
-  // 비활성화 시 Booknook 탭 활성 상태였으면 서재로 복귀
-  if (!BN_DATA.enabled && document.body.classList.contains('bn-active')) {
-    bnDeactivateTab();
-    if (typeof switchTab === 'function') switchTab(0);
-  }
-}
-
-/* v1.12.0 — 메인 탭 5번째로 통합 */
-function bnActivateTab() {
-  if (!BN_DATA.enabled) {
-    bnShowToast('먼저 설정에서 Booknook을 활성화해주세요');
-    return;
-  }
-  // 다른 탭 active 제거
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const bnBtn = document.querySelector('.tab-btn[data-tab="booknook"]');
-  if (bnBtn) bnBtn.classList.add('active');
-
-  document.body.classList.add('bn-active');
-  // 모든 오버레이 닫기 (혹시 떠있다면)
-  document.querySelectorAll('.bn-overlay').forEach(o => o.classList.remove('open'));
-  bnRenderTab();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function bnDeactivateTab() {
-  if (!document.body.classList.contains('bn-active')) return;
-  document.body.classList.remove('bn-active');
-  const bnBtn = document.querySelector('.tab-btn[data-tab="booknook"]');
-  if (bnBtn) bnBtn.classList.remove('active');
-  // v1.12.0 — 편집 FAB의 visible 클래스 즉시 제거.
-  // bn-active 해제로 display:flex 복귀 시 opacity 0.92 잔여 → 페이드아웃 깜빡임 발생.
-  // 새 탭에서 필요하면 _libEditFabRefresh가 다시 visible 부여하며 자연스럽게 페이드인.
-  const editFab = document.getElementById('libEditFab');
-  if (editFab) editFab.classList.remove('visible');
-}
-
-function bnRenderTab() {
-  const body = document.getElementById('bnTabContent');
-  if (!body) return;
-  const myGroups = BN_DATA.groups || [];
-
-  let html = `
-    <div style="margin-bottom:18px;">
-      <h2 style="font-size:22px;font-weight:800;margin:0 0 4px;letter-spacing:-0.02em;color:var(--c-text,#15110D);">Booknook</h2>
-      <div style="font-size:12.5px;color:var(--c-muted,#7A7A75);">같이 읽기 · 책으로 만나는 코너</div>
-    </div>
-  `;
-
-  if (myGroups.length === 0) {
-    html += `
-      <div class="bn-empty">
-        <div class="bn-empty-ttl">아직 참여한 독서그룹이 없어요</div>
-        <div class="bn-empty-sub">친구들과 그룹을 만들거나 게시판에서 같이 읽을 사람을 찾아보세요.</div>
-        <div class="bn-action-list">
-          <div class="bn-action-row" onclick="bnShowToast('친구 그룹 기능은 다음 단계에서 구현 예정')">
-            <div class="bn-action-emoji">👥</div>
-            <div class="bn-action-main">
-              <div class="bn-action-ttl">친구랑 시작하기</div>
-              <div class="bn-action-sub">초대 코드를 만들어 카톡으로 보내기</div>
-            </div>
-            <span class="bn-action-arrow">›</span>
-          </div>
-          <div class="bn-action-row" onclick="bnOpenBoard()">
-            <div class="bn-action-emoji">📋</div>
-            <div class="bn-action-main">
-              <div class="bn-action-ttl">게시판 둘러보기</div>
-              <div class="bn-action-sub">모르는 분과 책으로 만나기</div>
-            </div>
-            <span class="bn-action-arrow">›</span>
-          </div>
-          <div class="bn-action-row" onclick="bnSeedTestGroup()" style="background:#FAF5EA;border-color:#C8A368;">
-            <div class="bn-action-emoji">🧪</div>
-            <div class="bn-action-main">
-              <div class="bn-action-ttl" style="color:#6E5B45">🧪 테스트 그룹 만들기</div>
-              <div class="bn-action-sub" style="color:#9A7E5A">노트 작성을 바로 체험 (개발용)</div>
-            </div>
-            <span class="bn-action-arrow">›</span>
-          </div>
-        </div>
-      </div>
-    `;
-  } else {
-    html += `<div class="bn-my-section"><div class="bn-my-ttl">참여 중 그룹 (${myGroups.length})</div>`;
-    myGroups.forEach(g => {
-      const turn = g.members[g.turnIndex];
-      const isMyTurn = turn.token === BN_DATA.myToken;
-      html += `
-        <div class="bn-my-card" onclick="bnOpenGroup('${g.id}')">
-          <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
-          <div class="bn-my-info">
-            <div class="bn-my-bttl">${bnEscape(g.book.title)}</div>
-            <div class="bn-my-meta">${bnEscape(g.book.author)} · ${g.members.length}명 · 노트 ${g.notes ? g.notes.length : 0}개</div>
-            <span class="bn-my-turn ${isMyTurn ? 'mine' : ''}">${isMyTurn ? '🌟 내 차례' : turn.nickname + ' 차례'}</span>
-          </div>
-        </div>
-      `;
-    });
-    html += '</div>';
-    html += `
-      <div class="bn-my-section">
-        <div class="bn-my-ttl">더 만나보기</div>
-        <div class="bn-action-list">
-          <div class="bn-action-row" onclick="bnOpenBoard()">
-            <div class="bn-action-emoji">📋</div>
-            <div class="bn-action-main">
-              <div class="bn-action-ttl">게시판 둘러보기</div>
-              <div class="bn-action-sub">새 모집글 보기 / 내 모집 올리기</div>
-            </div>
-            <span class="bn-action-arrow">›</span>
-          </div>
-          <div class="bn-action-row" onclick="bnSeedTestGroup()" style="background:#FAF5EA;border-color:#C8A368;">
-            <div class="bn-action-emoji">🧪</div>
-            <div class="bn-action-main">
-              <div class="bn-action-ttl" style="color:#6E5B45">🧪 테스트 그룹 만들기</div>
-              <div class="bn-action-sub" style="color:#9A7E5A">노트 작성을 바로 체험 (개발용)</div>
-            </div>
-            <span class="bn-action-arrow">›</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  body.innerHTML = html;
-}
-
-function bnOpenMain() {
-  // v1.12.0 — 메인 탭으로 진입 (오버레이 X)
-  bnActivateTab();
-  if (typeof closeKbMenu === 'function') closeKbMenu();
-}
-
-function bnRenderMain() {
-  // v1.12.0 — 탭 콘텐츠 렌더로 위임
-  bnRenderTab();
-}
-
-function bnToggle(e) {
-  if (e && e.target.closest('.bn-toggle')) {
-    // 토글 자체 클릭은 그대로
-  }
-  if (BN_DATA.enabled) {
-    // 비활성화 시 참여 그룹 확인
-    if (BN_DATA.groups && BN_DATA.groups.length > 0) {
-      bnOpenDisableDialog();
-      return;
-    }
-    BN_DATA.enabled = false;
-    bnPersist();
-    bnApplyEnabledState();
-    bnShowToast('Booknook을 비활성화했어요');
-  } else {
-    BN_DATA.enabled = true;
-    bnPersist();
-    bnApplyEnabledState();
-    bnShowToast('🛋️ Booknook 활성화! 햄버거에서 만나요');
-  }
-}
-
-function bnOpenBoard() {
-  if (!BN_DATA.enabled) return;
-  bnCloseAllOverlays();
-  bnRenderBoard();
-  document.getElementById('bnBoard').classList.add('open');
-}
-
-function bnRenderBoard() {
-  const list = document.getElementById('bnBoardList');
-  const filter = BN_CURRENT.filter || 'active';
-  document.querySelectorAll('.bn-filter-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.filter === filter);
-  });
-
-  let filtered = BN_DATA.recruits || [];
-  if (filter === 'active') filtered = filtered.filter(r => r.status === 'active');
-  else if (filter === 'closed') filtered = filtered.filter(r => r.status === 'closed');
-  else if (filter === 'mine') filtered = filtered.filter(r => r.hostToken === BN_DATA.myToken);
-
-  if (filtered.length === 0) {
-    list.innerHTML = `
-      <div class="bn-empty" style="padding:30px 20px;">
-        <div class="bn-empty-icon">📭</div>
-        <div class="bn-empty-ttl">아직 모집글이 없어요</div>
-        <div class="bn-empty-sub">우측 상단 ＋를 눌러 처음 모집글을 올려보세요</div>
-      </div>
-    `;
-    return;
-  }
-
-  list.innerHTML = filtered.map(r => `
-    <div class="bn-recruit-card ${r.status === 'closed' ? 'closed' : ''}" onclick="bnOpenDetail('${r.id}')">
-      <div class="bn-cover ${r.book.cover}">${bnEscape(r.book.title)}</div>
-      <div class="bn-recruit-main">
-        <div class="bn-recruit-ttl">${bnEscape(r.book.title)}</div>
-        <div class="bn-recruit-meta">${bnEscape(r.book.author)} · ${r.book.pages}쪽</div>
-        <div class="bn-recruit-intro">"${bnEscape(r.intro)}"</div>
-        <div class="bn-recruit-foot">
-          <span class="bn-recruit-capacity">${r.members.length}/${r.capacity}명</span>
-          <span class="bn-recruit-deadline">${r.status === 'closed' ? '마감됨' : '⏰ ' + r.deadlineDays + '일 남음'}</span>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function bnOpenCreate() {
-  bnCloseAllOverlays();
-  document.getElementById('bnCreate').classList.add('open');
-  // 폼 리셋
-  document.getElementById('bnCreateBookTtl').textContent = '탭해서 책 고르기';
-  document.getElementById('bnCreateBookAuthor').textContent = '내 서재에서 선택';
-  document.getElementById('bnCreateBookCover').textContent = '📚';
-  document.getElementById('bnCreateBookCover').className = 'bn-cover';
-  document.getElementById('bnCreateBookCover').style.background = 'var(--c-surface-2,#E8E8E4)';
-  document.getElementById('bnCreateBookCover').style.color = 'var(--c-muted,#7A7A75)';
-  document.getElementById('bnCreateCapacity').value = '3';
-  document.getElementById('bnCreateDeadline').value = '7';
-  document.getElementById('bnCreateIntro').value = '';
-  document.getElementById('bnCreateCounter').textContent = '0';
-  document.getElementById('bnCreateSubmit').disabled = true;
-  BN_CURRENT.pickedBook = null;
-}
-
-function bnPickBook() {
-  // 더미: 서재 책 중 하나 랜덤 (실제론 책 선택 시트 열기)
-  const pick = BN_DUMMY_BOOKS[Math.floor(Math.random() * BN_DUMMY_BOOKS.length)];
-  BN_CURRENT.pickedBook = pick;
-  document.getElementById('bnCreateBookTtl').textContent = pick.title;
-  document.getElementById('bnCreateBookAuthor').textContent = pick.author + ' · ' + pick.pages + '쪽';
-  const cover = document.getElementById('bnCreateBookCover');
-  cover.textContent = pick.title;
-  cover.className = 'bn-cover ' + pick.cover;
-  cover.style.background = '';
-  cover.style.color = '';
-  document.getElementById('bnCreateSubmit').disabled = false;
-}
-
-function bnUpdateCounter() {
-  const v = document.getElementById('bnCreateIntro').value;
-  document.getElementById('bnCreateCounter').textContent = v.length;
-}
-
-function bnSubmitRecruit() {
-  if (!BN_CURRENT.pickedBook) {
-    bnShowToast('책을 먼저 골라주세요');
-    return;
-  }
-  // 닉네임 lazy 수집
-  if (!BN_DATA.myNickname) {
-    BN_CURRENT.pendingAction = 'submitRecruit';
-    bnOpenNicknameDialog();
-    return;
-  }
-  _bnDoSubmitRecruit();
-}
-
-function _bnDoSubmitRecruit() {
-  const capacity = parseInt(document.getElementById('bnCreateCapacity').value);
-  const deadline = parseInt(document.getElementById('bnCreateDeadline').value);
-  const intro = document.getElementById('bnCreateIntro').value.trim() || '같이 읽어요';
-  const myColor = bnPickColor();
-  const r = {
-    id: 'r_' + Date.now(),
-    book: BN_CURRENT.pickedBook,
-    capacity: capacity,
-    deadlineDays: deadline,
-    intro: intro,
-    hostToken: BN_DATA.myToken,
-    hostNickname: BN_DATA.myNickname,
-    hostColor: myColor,
-    members: [{ token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: myColor }],
-    status: 'active',
-    createdAt: Date.now(),
-  };
-  BN_DATA.recruits.unshift(r);
-  bnPersist();
-  bnShowToast('모집글을 올렸어요!');
-  setTimeout(() => bnOpenBoard(), 600);
-}
-
-function bnOpenDetail(recruitId) {
-  BN_CURRENT.recruitId = recruitId;
-  bnCloseAllOverlays();
-  bnRenderDetail();
-  document.getElementById('bnDetail').classList.add('open');
-}
-
-function bnRenderDetail() {
-  const r = BN_DATA.recruits.find(x => x.id === BN_CURRENT.recruitId);
-  if (!r) return;
-  const body = document.getElementById('bnDetailBody');
-  const isMember = r.members.some(m => m.token === BN_DATA.myToken);
-  const isFull = r.members.length >= r.capacity;
-  const isClosed = r.status === 'closed';
-  const isHost = r.hostToken === BN_DATA.myToken;
-
-  let btnHtml = '';
-  if (isClosed) {
-    btnHtml = '<button class="bn-btn-primary" disabled>마감되었어요</button>';
-  } else if (isMember) {
-    btnHtml = '<button class="bn-btn-primary" disabled>✓ 이미 참여 중이에요</button>';
-  } else if (isFull) {
-    btnHtml = '<button class="bn-btn-primary" disabled>정원 마감</button>';
-  } else {
-    btnHtml = `<button class="bn-btn-primary" onclick="bnJoinRecruit('${r.id}')">참여하기</button>`;
-  }
-
-  body.innerHTML = `
-    <div class="bn-detail-hero">
-      <div class="bn-cover ${r.book.cover}">${bnEscape(r.book.title)}</div>
-      <div class="bn-detail-bttl">${bnEscape(r.book.title)}</div>
-      <div class="bn-detail-bauthor">${bnEscape(r.book.author)} · ${r.book.pages}쪽</div>
-    </div>
-
-    <div class="bn-host-area">
-      <div class="bn-host-row">
-        <div class="bn-avatar ${r.hostColor}">${bnEscape(r.hostNickname.charAt(0))}</div>
-        <span class="bn-host-nick">${bnEscape(r.hostNickname)}</span>
-        <span class="bn-host-tag">· 모집장</span>
-      </div>
-      <div class="bn-host-msg">"${bnEscape(r.intro)}"</div>
-    </div>
-
-    <div class="bn-members-area">
-      <div class="bn-members-ttl">참여 중 (${r.members.length}/${r.capacity})</div>
-      <div class="bn-members-list">
-        ${r.members.map(m => `
-          <div class="bn-member-chip">
-            <div class="bn-avatar ${m.color}">${bnEscape(m.nickname.charAt(0))}</div>
-            ${bnEscape(m.nickname)}${m.token === BN_DATA.myToken ? ' (나)' : ''}
-          </div>
-        `).join('')}
-        ${r.members.length < r.capacity && !isClosed ? `<div class="bn-member-empty">자리 ${r.capacity - r.members.length}개 남음</div>` : ''}
-      </div>
-    </div>
-
-    ${btnHtml}
-  `;
-}
-
-function bnJoinRecruit(recruitId) {
-  if (!BN_DATA.myNickname) {
-    BN_CURRENT.pendingAction = 'join:' + recruitId;
-    bnOpenNicknameDialog();
-    return;
-  }
-  _bnDoJoinRecruit(recruitId);
-}
-
-function _bnDoJoinRecruit(recruitId) {
-  const r = BN_DATA.recruits.find(x => x.id === recruitId);
-  if (!r) return;
-  if (r.members.some(m => m.token === BN_DATA.myToken)) return;
-
-  // 사용 가능한 색상 찾기
-  const usedColors = r.members.map(m => m.color);
-  const availColor = BN_COLORS.find(c => !usedColors.includes(c)) || BN_COLORS[r.members.length % BN_COLORS.length];
-
-  r.members.push({ token: BN_DATA.myToken, nickname: BN_DATA.myNickname, color: availColor });
-
-  // 정원 차면 자동 그룹 생성
-  if (r.members.length >= r.capacity) {
-    r.status = 'closed';
-    const g = {
-      id: 'g_' + Date.now(),
-      recruitId: r.id,
-      book: r.book,
-      members: r.members.map((m, i) => ({ ...m, order: i + 1 })),
-      notes: [],
-      turnIndex: 0,
-      startedAt: Date.now(),
-    };
-    if (!BN_DATA.groups) BN_DATA.groups = [];
-    BN_DATA.groups.push(g);
-    bnPersist();
-    bnShowToast('정원이 찼어요! 코너가 시작됩니다 🎉');
-    setTimeout(() => bnOpenGroup(g.id), 800);
-    return;
-  }
-  bnPersist();
-  bnShowToast('참여 완료! ' + r.members.length + '/' + r.capacity);
-  setTimeout(() => bnRenderDetail(), 400);
-}
-
-function bnOpenGroup(groupId) {
-  const g = (BN_DATA.groups || []).find(x => x.id === groupId);
-  if (!g) {
-    bnShowToast('그룹을 찾을 수 없어요');
-    return;
-  }
-  BN_CURRENT.groupId = groupId;
-  bnCloseAllOverlays();
-  bnRenderGroup();
-  document.getElementById('bnGroup').classList.add('open');
-}
-
-function bnRenderGroup() {
-  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
-  if (!g) return;
-  const body = document.getElementById('bnGroupBody');
-  const turnMember = g.members[g.turnIndex];
-  const isMyTurn = turnMember.token === BN_DATA.myToken;
-
-  // 페이지별 정렬
-  const sortedNotes = [...(g.notes || [])].sort((a, b) => a.page - b.page);
-
-  let threadsHtml = '';
-  if (sortedNotes.length === 0) {
-    threadsHtml = `
-      <div class="bn-empty" style="padding:30px 20px;">
-        <div class="bn-empty-icon">📝</div>
-        <div class="bn-empty-ttl">아직 노트가 없어요</div>
-        <div class="bn-empty-sub">${isMyTurn ? '내 차례예요. 첫 노트를 남겨보세요' : turnMember.nickname + '님이 첫 노트를 남기는 중이에요'}</div>
-      </div>
-    `;
-  } else {
-    threadsHtml = sortedNotes.map(note => {
-      const comments = note.comments || [];
-      return `
-        <div class="bn-page-thread">
-          <span class="bn-page-label">p. ${note.page}</span>
-          ${comments.map((c, ci) => {
-            const m = g.members.find(mm => mm.token === c.token) || {color:'c-sage',nickname:'?'};
-            const isMine = c.token === BN_DATA.myToken;
-            const cId = c.id || ('c_' + note.page + '_' + ci);
-            const replies = c.replies || [];
-            return `
-              <div class="bn-thread-note ${isMine ? 'mine' : ''}">
-                <div class="bn-member-dot ${m.color}">${bnEscape(m.nickname.charAt(0))}</div>
-                <div class="bn-thread-content">
-                  <div class="bn-thread-name">${bnEscape(m.nickname)}${isMine ? ' (나)' : ''}</div>
-                  <div class="bn-thread-bubble bn-ft-${c.font || 'default'}">
-                    ${c.quote ? `<span class="bn-thread-quote">${bnEscape(c.quote)}</span>` : ''}
-                    ${bnEscape(c.text)}
-                  </div>
-                </div>
-              </div>
-              ${replies.length > 0 ? `
-                <div class="bn-replies">
-                  ${replies.map(r => {
-                    const rm = g.members.find(mm => mm.token === r.token) || {color:'c-sage',nickname:'?'};
-                    return `
-                      <div class="bn-reply">
-                        <div class="bn-reply-dot ${rm.color}">${bnEscape(rm.nickname.charAt(0))}</div>
-                        <div class="bn-reply-content">
-                          <div class="bn-reply-name">${bnEscape(rm.nickname)}</div>
-                          <div class="bn-reply-bubble bn-ft-${r.font || 'default'}">${bnEscape(r.text)}</div>
-                        </div>
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
-              ` : ''}
-              <button class="bn-reply-trigger" onclick="bnToggleReplyInput('${cId}')" type="button">↳ 답글</button>
-              <div class="bn-reply-input-wrap" id="bnReplyWrap-${cId}" data-page="${note.page}" data-cid="${cId}">
-                <textarea class="bn-reply-input bn-ft-default" id="bnReplyTxt-${cId}" placeholder="답글을 적어보세요" maxlength="200"></textarea>
-                <div class="bn-reply-input-actions">
-                  <div class="bn-reply-fonts" id="bnReplyFonts-${cId}">
-                    <button class="bn-reply-fontchip active" data-rfont="default" type="button">기본</button>
-                    <button class="bn-reply-fontchip" data-rfont="myeongjo" type="button" style="font-family:'Noto Serif KR',serif;font-weight:700">명조</button>
-                    <button class="bn-reply-fontchip" data-rfont="gowun" type="button" style="font-family:'Gowun Dodum',sans-serif">둥근</button>
-                    <button class="bn-reply-fontchip" data-rfont="pen" type="button" style="font-family:'Nanum Pen Script',cursive;font-size:13px">펜</button>
-                    <button class="bn-reply-fontchip" data-rfont="himelody" type="button" style="font-family:'Hi Melody',cursive">손글씨</button>
-                  </div>
-                  <button class="bn-reply-submit" onclick="bnSubmitReply('${cId}')" type="button">남기기</button>
-                  <button class="bn-reply-cancel" onclick="bnToggleReplyInput('${cId}')" type="button">취소</button>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }).join('');
-  }
-
-  body.innerHTML = `
-    <div class="bn-group-book-bar">
-      <div class="bn-cover ${g.book.cover}">${bnEscape(g.book.title)}</div>
-      <div class="bn-group-book-info">
-        <div class="bn-group-book-ttl">${bnEscape(g.book.title)}</div>
-        <div class="bn-group-book-meta">${bnEscape(g.book.author)} · ${g.members.length}명 그룹</div>
-      </div>
-    </div>
-
-    <div class="bn-turn-bar ${isMyTurn ? 'mine' : ''}">
-      <span class="bn-turn-label">지금 차례 →</span>
-      <span class="bn-turn-name">${isMyTurn ? '나 (' + bnEscape(turnMember.nickname) + ')' : bnEscape(turnMember.nickname)}</span>
-    </div>
-
-    <div class="bn-members-bar">
-      ${g.members.map((m, i) => `
-        <div class="bn-member-dot ${m.color} ${i === g.turnIndex ? 'current' : ''}">${bnEscape(m.nickname.charAt(0))}</div>
-      `).join('')}
-      <span class="bn-member-order">${isMyTurn ? '내 차례' : bnEscape(turnMember.nickname) + ' 차례'}</span>
-    </div>
-
-    ${threadsHtml}
-
-    <div class="bn-note-input-area" onclick="bnOpenNoteModal()">
-      ✍️ 노트 남기기${isMyTurn ? ' (내 차례)' : ''}
-    </div>
-  `;
-}
-
-
-function bnOpenNoteModal() {
-  document.getElementById('bnNotePage').value = '';
-  const ta = document.getElementById('bnNoteText');
-  const qa = document.getElementById('bnNoteQuote');
-  ta.value = '';
-  if (qa) qa.value = '';
-
-  // v1.12.0 — 마지막 선택 서체 복원 (없으면 default)
-  let lastFont = 'default';
-  try {
-    const saved = localStorage.getItem('read.booknook.lastFont');
-    if (saved) lastFont = saved;
-  } catch (e) {}
-  BN_CURRENT.noteFont = lastFont;
-
-  // textarea + quote + 칩 상태 동기화
-  ta.className = 'bn-form-textarea bn-ft-' + lastFont;
-  if (qa) qa.className = 'bn-form-textarea bn-ft-' + lastFont;
-  const chips = document.querySelectorAll('#bnFontChips .bn-font-chip');
-  chips.forEach(ch => ch.classList.toggle('active', ch.dataset.bnfont === lastFont));
-
-  // 칩 클릭 핸들러 (한 번만 attach — flag 사용)
-  const wrap = document.getElementById('bnFontChips');
-  if (wrap && !wrap.dataset.bound) {
-    wrap.addEventListener('click', (e) => {
-      const btn = e.target.closest('.bn-font-chip');
-      if (!btn) return;
-      const font = btn.dataset.bnfont || 'default';
-      BN_CURRENT.noteFont = font;
-      wrap.querySelectorAll('.bn-font-chip').forEach(c => c.classList.toggle('active', c === btn));
-      const tx = document.getElementById('bnNoteText');
-      const qx = document.getElementById('bnNoteQuote');
-      if (tx) tx.className = 'bn-form-textarea bn-ft-' + font;
-      if (qx) qx.className = 'bn-form-textarea bn-ft-' + font;
-    });
-    wrap.dataset.bound = '1';
-  }
-
-  document.getElementById('bnNoteModal').classList.add('open');
-}
-function bnCloseNoteModal() {
-  document.getElementById('bnNoteModal').classList.remove('open');
-}
-
-function bnSubmitNote() {
-  const page = parseInt(document.getElementById('bnNotePage').value);
-  const text = document.getElementById('bnNoteText').value.trim();
-  const quote = (document.getElementById('bnNoteQuote')?.value || '').trim();
-  if (!page || page < 1) {
-    bnShowToast('페이지를 입력해주세요');
-    return;
-  }
-  if (!text) {
-    bnShowToast('내용을 입력해주세요');
-    return;
-  }
-  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
-  if (!g) return;
-
-  if (!g.notes) g.notes = [];
-  let pageNote = g.notes.find(n => n.page === page);
-  if (!pageNote) {
-    pageNote = { page: page, comments: [] };
-    g.notes.push(pageNote);
-  }
-  pageNote.comments.push({
-    id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    token: BN_DATA.myToken,
-    text: text,
-    quote: quote || undefined,  // 빈 문자열이면 저장 안 함
-    font: BN_CURRENT.noteFont || 'default',
-    ts: Date.now(),
-    replies: []
-  });
-
-  // v1.12.0 — 마지막 선택 서체 localStorage에 저장 (다음 노트 작성 시 복원)
-  try {
-    localStorage.setItem('read.booknook.lastFont', BN_CURRENT.noteFont || 'default');
-  } catch (e) {}
-
-  // 차례 자동 넘기기
-  g.turnIndex = (g.turnIndex + 1) % g.members.length;
-  bnPersist();
-  bnCloseNoteModal();
-  bnShowToast('노트 추가 완료! 다음은 ' + g.members[g.turnIndex].nickname + ' 차례');
-  bnRenderGroup();
-}
-
-/* v1.12.0 — 답글 입력 토글 (인라인) */
-function bnToggleReplyInput(cId) {
-  const wrap = document.getElementById('bnReplyWrap-' + cId);
-  if (!wrap) return;
-  const isOpen = wrap.classList.contains('open');
-  // 다른 답글 입력창 모두 닫기
-  document.querySelectorAll('.bn-reply-input-wrap.open').forEach(el => el.classList.remove('open'));
-  if (!isOpen) {
-    wrap.classList.add('open');
-    // 답글 폰트 칩 핸들러 attach (1회만)
-    const fontWrap = document.getElementById('bnReplyFonts-' + cId);
-    if (fontWrap && !fontWrap.dataset.bound) {
-      fontWrap.addEventListener('click', (e) => {
-        const btn = e.target.closest('.bn-reply-fontchip');
-        if (!btn) return;
-        const font = btn.dataset.rfont || 'default';
-        fontWrap.querySelectorAll('.bn-reply-fontchip').forEach(c => c.classList.toggle('active', c === btn));
-        const txt = document.getElementById('bnReplyTxt-' + cId);
-        if (txt) txt.className = 'bn-reply-input bn-ft-' + font;
-      });
-      fontWrap.dataset.bound = '1';
-    }
-    setTimeout(() => {
-      const txt = document.getElementById('bnReplyTxt-' + cId);
-      if (txt) txt.focus();
-    }, 100);
-  }
-}
-
-/* v1.12.0 — 답글 저장 */
-function bnSubmitReply(cId) {
-  const wrap = document.getElementById('bnReplyWrap-' + cId);
-  if (!wrap) return;
-  const page = parseInt(wrap.dataset.page);
-  const txt = document.getElementById('bnReplyTxt-' + cId);
-  const text = (txt?.value || '').trim();
-  if (!text) {
-    bnShowToast('답글 내용을 적어주세요');
-    return;
-  }
-  const activeChip = document.querySelector('#bnReplyFonts-' + cId + ' .bn-reply-fontchip.active');
-  const font = activeChip ? (activeChip.dataset.rfont || 'default') : 'default';
-
-  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
-  if (!g || !g.notes) return;
-  const pageNote = g.notes.find(n => n.page === page);
-  if (!pageNote) return;
-  const comment = pageNote.comments.find((c, ci) => (c.id || ('c_' + page + '_' + ci)) === cId);
-  if (!comment) return;
-
-  if (!comment.replies) comment.replies = [];
-  comment.replies.push({
-    id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
-    token: BN_DATA.myToken,
-    text: text,
-    font: font,
-    ts: Date.now()
-  });
-  bnPersist();
-  bnShowToast('답글 남김');
-  bnRenderGroup();
-}
-
-function bnGroupNextTurn() {
-  // 시뮬레이션: 차례 강제 넘기기 + 다른 멤버 노트 자동 생성
-  const g = BN_DATA.groups.find(x => x.id === BN_CURRENT.groupId);
-  if (!g) return;
-  const turn = g.members[g.turnIndex];
-  if (turn.token === BN_DATA.myToken) {
-    bnShowToast('내 차례에선 노트를 작성해서 넘겨주세요');
-    return;
-  }
-  // 더미 노트 자동 추가
-  const dummyTexts = [
-    '이 부분 좋네요. 다음 분도 잘 봐주세요',
-    '여기서 좀 멈칫했어요. 어떻게 읽으셨나요?',
-    '한 줄 한 줄 곱씹게 되네요',
-    '이 페이지가 가장 인상 깊었어요',
-  ];
-  if (!g.notes) g.notes = [];
-  const randPage = 10 + Math.floor(Math.random() * 100);
-  let pageNote = g.notes.find(n => n.page === randPage);
-  if (!pageNote) {
-    pageNote = { page: randPage, comments: [] };
-    g.notes.push(pageNote);
-  }
-  pageNote.comments.push({
-    token: turn.token,
-    text: dummyTexts[Math.floor(Math.random() * dummyTexts.length)],
-    ts: Date.now(),
-  });
-  g.turnIndex = (g.turnIndex + 1) % g.members.length;
-  bnPersist();
-  bnShowToast(turn.nickname + '님이 노트 남김. 다음은 ' + g.members[g.turnIndex].nickname);
-  bnRenderGroup();
-}
-
-/* 닉네임 lazy 다이얼로그 */
-function bnOpenNicknameDialog() {
-  document.getElementById('bnNicknameInput').value = '';
-  document.getElementById('bnNicknameDialog').classList.add('open');
-  setTimeout(() => document.getElementById('bnNicknameInput').focus(), 100);
-}
-function bnCloseNicknameDialog() {
-  document.getElementById('bnNicknameDialog').classList.remove('open');
-  BN_CURRENT.pendingAction = null;
-}
-function bnConfirmNickname() {
-  const v = document.getElementById('bnNicknameInput').value.trim();
-  if (!v) { bnShowToast('닉네임을 입력해주세요'); return; }
-  if (v.length < 2) { bnShowToast('2자 이상 입력해주세요'); return; }
-  BN_DATA.myNickname = v;
-  bnPersist();
-  document.getElementById('bnNicknameDialog').classList.remove('open');
-
-  const action = BN_CURRENT.pendingAction;
-  BN_CURRENT.pendingAction = null;
-  if (action === 'submitRecruit') {
-    _bnDoSubmitRecruit();
-  } else if (action && action.startsWith('join:')) {
-    _bnDoJoinRecruit(action.slice(5));
-  }
-}
-
-/* 비활성화 다이얼로그 */
-function bnOpenDisableDialog() {
-  const groups = BN_DATA.groups || [];
-  const list = document.getElementById('bnDisableGroupList');
-  if (groups.length === 0) {
-    list.innerHTML = '<div class="bn-dialog-group-row" style="color:#7A7A75;">참여 그룹 없음</div>';
-  } else {
-    list.innerHTML = groups.map(g => `
-      <div class="bn-dialog-group-row">· ${bnEscape(g.book.title)} (${g.turnIndex + 1}/${g.members.length} 차례)</div>
-    `).join('');
-  }
-  document.getElementById('bnDisableDialog').classList.add('open');
-}
-function bnCloseDisableDialog() {
-  document.getElementById('bnDisableDialog').classList.remove('open');
-}
-function bnConfirmDisable() {
-  // 모든 그룹에서 빠지기 (자기 token 제거)
-  (BN_DATA.recruits || []).forEach(r => {
-    r.members = r.members.filter(m => m.token !== BN_DATA.myToken);
-  });
-  BN_DATA.groups = [];
-  BN_DATA.enabled = false;
-  bnPersist();
-  bnApplyEnabledState();
-  document.getElementById('bnDisableDialog').classList.remove('open');
-  bnCloseAllOverlays();
-  bnShowToast('Booknook을 비활성화했어요');
-}
-
-/* 유틸 */
-function bnPickColor() {
-  // 사용 가능한 색상 중 랜덤 (내 색상은 모집글 만들 때 정해짐)
-  return BN_COLORS[Math.floor(Math.random() * BN_COLORS.length)];
-}
-function bnEscape(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-function bnCloseAllOverlays() {
-  document.querySelectorAll('.bn-overlay').forEach(o => o.classList.remove('open'));
-}
-function bnCloseAll() {
-  bnCloseAllOverlays();
-}
-function bnShowToast(msg) {
-  const t = document.getElementById('bnToast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._tt);
-  t._tt = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function bnNotMyTurnAlert() {
-  bnShowToast('아직 내 차례가 아니에요');
-}
-
-/* 필터 chip 이벤트 */
-document.querySelectorAll('.bn-filter-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    BN_CURRENT.filter = chip.dataset.filter;
-    bnRenderBoard();
-  });
-});
-
-/* 초기화 */
-bnHydrate();
-</script>
-
-
 <!-- ═══════════ 데이터 헬스 알림 모달 (v1.5.x · 크기 경고 / 손상 안내) ═══════════ -->
 <div class="mig-backdrop" id="dataAlertBackdrop" aria-hidden="true"></div>
 <div class="mig-modal" id="dataAlertModal" aria-hidden="true" role="dialog" aria-labelledby="daTitle">
@@ -26655,6 +24879,128 @@ const READ_AUTH = {
     if (typeof showToast === 'function') showToast('로그아웃됨');
     this.refreshUI();
   },
+  /* ═══════════════ 탈퇴 (카카오 연결 끊기 + 전체 삭제) ═══════════════ */
+
+  /* 실제 탈퇴 — 서버 unlink 성공 시에만 로컬 데이터 삭제 */
+  async withdraw() {
+    let res;
+    try {
+      res = await this.authFetch(ALADIN_PROXY_URL + '/auth/unlink', { method: 'POST' });
+    } catch (e) {
+      return { ok: false, reason: 'network' };
+    }
+    if (!res || !res.ok) return { ok: false, reason: 'server' };
+
+    // 서버 연결 끊기 성공 → 로컬 전체 삭제 (read.* localStorage + 표지 IndexedDB)
+    try {
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('read.') === 0) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
+      try { sessionStorage.removeItem('read.auth.usedCode'); } catch (_) {}
+    } catch (e) {}
+    try { indexedDB.deleteDatabase('keepbook'); } catch (e) {}
+    return { ok: true };
+  },
+
+  /* 탈퇴 확인 시트 열기 */
+  confirmWithdraw() {
+    if (!this.isLoggedIn()) {
+      if (typeof showToast === 'function') showToast('로그인 상태에서만 탈퇴할 수 있어요');
+      return;
+    }
+    if (typeof closeKbMenu === 'function') { try { closeKbMenu(); } catch (_) {} }
+    this._openWithdrawSheet();
+  },
+
+  _openWithdrawSheet() {
+    const self = this;
+    const RED = '#E24B4A';
+    const old = document.getElementById('wdSheetWrap');
+    if (old) old.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'wdSheetWrap';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;';
+    wrap.innerHTML =
+      '<div id="wdBackdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.45);opacity:0;transition:opacity .25s;"></div>' +
+      '<div id="wdSheet" style="position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--c-surface);border-top-left-radius:18px;border-top-right-radius:18px;transform:translateY(110%);transition:transform .32s cubic-bezier(.22,.61,.36,1);padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));">' +
+        '<div style="width:38px;height:4px;border-radius:2px;background:var(--c-surface-2);margin:6px auto 16px;"></div>' +
+        '<div id="wdBody"></div>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    const backdrop = wrap.querySelector('#wdBackdrop');
+    const sheet = wrap.querySelector('#wdSheet');
+    const body = wrap.querySelector('#wdBody');
+    const ic = (id, sz) => '<svg class="ic" aria-hidden="true" style="width:' + (sz || 18) + 'px;height:' + (sz || 18) + 'px"><use href="#' + id + '"/></svg>';
+
+    function open() { requestAnimationFrame(() => { backdrop.style.opacity = '1'; sheet.style.transform = 'translateY(0)'; }); }
+    function close() { backdrop.style.opacity = '0'; sheet.style.transform = 'translateY(110%)'; setTimeout(() => wrap.remove(), 340); }
+
+    function wrow(t) {
+      return '<div style="display:flex;gap:8px;padding:4px 0;"><span style="color:' + RED + ';flex-shrink:0;display:inline-flex;">' + ic('i-x', 16) + '</span><span>' + t + '</span></div>';
+    }
+
+    function warnView() {
+      body.innerHTML =
+        '<div style="text-align:center;margin-bottom:14px;">' +
+          '<div style="width:46px;height:46px;border-radius:50%;background:rgba(226,75,74,0.12);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;color:' + RED + ';">' + ic('i-alert', 24) + '</div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--c-text);">정말 탈퇴하시겠어요?</div>' +
+        '</div>' +
+        '<div style="background:var(--c-surface-2);border-radius:10px;padding:13px 14px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--c-text-2);">' +
+          wrow('카카오 계정 연결이 끊겨요') +
+          wrow('이 기기와 서버에 저장된 모든 독서 기록·노트가 삭제돼요') +
+          wrow('삭제된 데이터는 되돌릴 수 없어요') +
+        '</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-text-2);margin-bottom:14px;cursor:pointer;"><input type="checkbox" id="wdAgree" style="width:18px;height:18px;accent-color:' + RED + ';">위 내용을 모두 이해했어요</label>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<button id="wdCancel" style="flex:1;padding:13px;border-radius:10px;border:1px solid var(--c-surface-2);background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:var(--c-text);cursor:pointer;">취소</button>' +
+          '<button id="wdGo" disabled style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--c-surface-2);font-family:inherit;font-size:14px;font-weight:700;color:var(--c-muted);cursor:not-allowed;">탈퇴하기</button>' +
+        '</div>';
+      wrap.querySelector('#wdCancel').onclick = close;
+      const go = wrap.querySelector('#wdGo');
+      wrap.querySelector('#wdAgree').onchange = (e) => {
+        if (e.target.checked) { go.disabled = false; go.style.background = RED; go.style.color = '#fff'; go.style.cursor = 'pointer'; }
+        else { go.disabled = true; go.style.background = 'var(--c-surface-2)'; go.style.color = 'var(--c-muted)'; go.style.cursor = 'not-allowed'; }
+      };
+      go.onclick = () => { if (!go.disabled) runWithdraw(); };
+      backdrop.onclick = close;
+    }
+
+    async function runWithdraw() {
+      backdrop.onclick = null;
+      body.innerHTML =
+        '<div style="text-align:center;font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:14px;">탈퇴를 처리하고 있어요</div>' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 6px;color:var(--c-text-2);font-size:14px;">' +
+          '<span class="wdspin" style="display:inline-flex;color:var(--c-muted);">' + ic('i-refresh-cw', 20) + '</span>카카오 연결을 끊고 데이터를 삭제하는 중...' +
+        '</div>' +
+        '<style>.wdspin{animation:wdsp .8s linear infinite}@keyframes wdsp{to{transform:rotate(360deg)}}</style>';
+      const r = await self.withdraw();
+      if (r && r.ok) { doneView(); }
+      else {
+        const msg = (r && r.reason === 'network') ? '네트워크 오류 · 다시 시도해주세요' : '탈퇴 처리에 실패했어요 · 잠시 후 다시 시도해주세요';
+        if (typeof showToast === 'function') showToast(msg);
+        warnView();
+      }
+    }
+
+    function doneView() {
+      backdrop.onclick = null;
+      body.innerHTML =
+        '<div style="text-align:center;padding:6px 0 4px;">' +
+          '<div style="width:48px;height:48px;border-radius:50%;background:var(--c-surface-2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--c-text);">' + ic('i-check-circle', 26) + '</div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--c-text);margin-bottom:6px;">탈퇴가 완료됐어요</div>' +
+          '<div style="font-size:13px;line-height:1.6;color:var(--c-text-2);margin-bottom:18px;">그동안 keepbook과 함께해 주셔서 고마웠어요.</div>' +
+          '<button id="wdDone" style="width:100%;padding:13px;border-radius:10px;border:1px solid var(--c-surface-2);background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:var(--c-text);cursor:pointer;">확인</button>' +
+        '</div>';
+      wrap.querySelector('#wdDone').onclick = () => { location.reload(); };
+    }
+
+    warnView();
+    open();
+  },
+
 
   /* Authorization 헤더 자동 추가하는 fetch 래퍼 */
   async authFetch(url, options) {
@@ -27002,6 +25348,15 @@ const READ_AUTH = {
           </div>
           <div class="settings-row-right arrow">›</div>
         </button>
+        <button class="settings-row" onclick="READ_AUTH.confirmWithdraw()">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-trash"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl" style="color:#E24B4A">탈퇴하기</div>
+            <div class="settings-row-sub">카카오 연결 끊기 · 모든 데이터 삭제</div>
+          </div>
+          <div class="settings-row-right arrow">›</div>
+        </button>
+
       `;
     } else {
       section.innerHTML = `
@@ -27836,14 +26191,14 @@ function renderLibSearchResults(query) {
     if (q) {
       libSearchBody.innerHTML = `
         <div class="lib-search-empty">
-          <div class="lib-search-empty-icon">📭</div>
+          <div class="lib-search-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
           <div class="lib-search-empty-text">"${esc(q)}" 검색 결과가 없어요</div>
           <div class="lib-search-empty-hint">제목·저자·태그로 찾을 수 있어요</div>
         </div>`;
     } else {
       libSearchBody.innerHTML = `
         <div class="lib-search-empty">
-          <div class="lib-search-empty-icon">📚</div>
+          <div class="lib-search-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-books"/></svg></div>
           <div class="lib-search-empty-text">아직 등록된 책이 없어요</div>
           <div class="lib-search-empty-hint">책을 추가하면 여기서 빠르게 찾을 수 있어요</div>
         </div>`;
@@ -27921,16 +26276,14 @@ document.addEventListener('keydown', (e) => {
 /* ═══════════ 탭 전환 — 캐러셀 (클릭 + 드래그 + 스냅) ═══════════ */
 const tabBtns = document.querySelectorAll('.tab-btn');
 const panes   = document.querySelectorAll('.pane');
-const TAB_ORDER = ['library', 'stats', 'goals', 'notes'];
+const TAB_ORDER = ['library', 'stats', 'goals', 'notes', 'sayu'];
 const TAB_COUNT = TAB_ORDER.length;
 const track   = document.getElementById('paneTrack');
 const viewport = track?.parentElement;
 let currentTabIdx = 0;
 
 function paneWidth() {
-  // v1.12.0 — viewport.clientWidth가 0이면 (display:none 등) window.innerWidth fallback
-  const w = viewport ? viewport.clientWidth : 0;
-  return w > 0 ? w : window.innerWidth;
+  return viewport ? viewport.clientWidth : window.innerWidth;
 }
 
 function setTrackX(px, { instant = false } = {}) {
@@ -27940,8 +26293,8 @@ function setTrackX(px, { instant = false } = {}) {
   track.style.transform = `translate3d(${px}px, 0, 0)`;
 }
 
-function snapToTab(idx, opts = {}) {
-  setTrackX(-idx * paneWidth(), { instant: opts.instant === true });
+function snapToTab(idx) {
+  setTrackX(-idx * paneWidth(), { instant: false });
   tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
   // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
@@ -27971,30 +26324,7 @@ window.addEventListener('resize', positionTabThumb);
 requestAnimationFrame(positionTabThumb);
 
 function switchTab(nextIdx, opts = {}) {
-  // v1.12.0 — Booknook 탭 (인덱스 4) 분기 처리
-  if (nextIdx === 4) {
-    if (typeof bnActivateTab === 'function') bnActivateTab();
-    return;
-  }
-  // v1.12.0 — Booknook → 일반 탭 전환 시 transition 없이 즉시 점프
-  // (옆 탭들이 슬라이드 중 보이는 어색함 방지)
-  const wasBnActive = document.body.classList.contains('bn-active');
-  if (typeof bnDeactivateTab === 'function') bnDeactivateTab();
-
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
-
-  if (wasBnActive) {
-    currentTabIdx = nextIdx;
-    snapToTab(currentTabIdx, { instant: true });
-    if (opts.scrollTop !== false) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    if (typeof window._libEditFabRefresh === 'function') {
-      window._libEditFabRefresh();
-    }
-    return;
-  }
-
   if (nextIdx === currentTabIdx) {
     // 드래그 후 제자리로 돌아가는 snap도 여기서 처리
     snapToTab(currentTabIdx);
@@ -30745,7 +29075,7 @@ function renderConfirm() {
   });
 
   // 날짜 기본값 세팅 (오늘)
-  // v1.11.x — 메타데이터 백그라운드 조회 완료 시 renderConfirm이 재호출되면
+  // v1.11.6 — 메타데이터 백그라운드 조회 완료 시 renderConfirm이 재호출되면
   //   사용자가 입력 중이던 날짜를 오늘로 덮어쓰는 버그 수정.
   //   이미 사용자 입력이 있으면 보존, 빈값일 때만 오늘 default.
   const today = new Date().toISOString().slice(0, 10);
@@ -31239,7 +29569,7 @@ function _getTagsByCategory(cat) {
     .map(([name, tag]) => ({ name, ...tag }));
 }
 
-/* v1.9.0 — 카테고리 탭 렌더 / v1.12.0 — 흔들림 편집 + 드래그 (소분류 편집과 통합) */
+/* v1.9.0 — 카테고리 탭 렌더 */
 function renderTagCategoryTabs() {
   const tabsEl = document.getElementById('tagCatTabs');
   if (!tabsEl) return;
@@ -32879,6 +31209,9 @@ _syncTagCategoriesObj();  // 초기 동기화
 
 // v1.9.0 — 기존 시드 18개 → 새 카테고리 자동 마이그레이션 매핑
 // 정확 매칭 우선, 그 다음 의미상 가까운 카테고리로
+
+// v1.9.0 — 기존 시드 18개 → 새 카테고리 자동 마이그레이션 매핑
+// 정확 매칭 우선, 그 다음 의미상 가까운 카테고리로
 const LEGACY_TAG_MIGRATION = {
   '성장':      { category: 'growth',     mergeInto: null },           // 유지 (사용자)
   '고전':      { category: 'genre',      mergeInto: null },           // 유지 (사용자)
@@ -32910,78 +31243,110 @@ const HIDDEN_TAGS = new Set();
 
 // 책 데이터 (샘플) — 실제 앱에선 localStorage / IndexedDB
 const BOOKS = [
-  /* ─── 위시 5권 ─── */
-  { id:1, title:'클라라와 태양', author:'가즈오 이시구로', palette:'demian',
-    pages:416, status:'wish', tags:['외국소설','SF'],
-    wishNote:'책방에서 표지 보고 찜해둠' },
-  { id:2, title:'물고기는 존재하지 않는다', author:'룰루 밀러', palette:'factful',
-    pages:380, status:'wish', tags:['과학','에세이'] },
-  { id:3, title:'화산귀환', author:'비가', palette:'guns',
-    pages:600, status:'wish', tags:['무협','회귀'],
-    wishNote:'웹툰 보고 원작 궁금해서' },
-  { id:4, title:'마음의 법칙', author:'폴커 키츠', palette:'nudge',
-    pages:264, status:'wish', tags:['심리','사고법'] },
-  { id:5, title:'시를 잊은 그대에게', author:'정재찬', palette:'courage',
-    pages:320, status:'wish', tags:['시·시집','에세이'] },
-
-  /* ─── 독서중 5권 ─── */
-  { id:6, title:'전지적 독자 시점 1', author:'싱숑', palette:'1984',
-    pages:408, status:'reading', dateStart:'2026-05-20', currentPage:210,
-    readingSessions:[
-      { date:'2026-05-20', minutes:40, pages:70 },
-      { date:'2026-05-24', minutes:55, pages:80 },
-      { date:'2026-06-02', minutes:35, pages:60 },
+  { id:1, title:'데미안', author:'헤르만 헤세', palette:'demian',
+    pages:248, status:'reading', dateStart:'2026-04-14', currentPage:162,
+    readingSessions: [
+      { date: '2026-04-14', minutes: 35, pages: 28 },
+      { date: '2026-04-15', minutes: 42, pages: 30 },
+      { date: '2026-04-17', minutes: 50, pages: 40 },
+      { date: '2026-04-19', minutes: 45, pages: 35 },
+      { date: '2026-04-20', minutes: 38, pages: 29 },
     ],
-    tags:['현대판타지','회귀'] },
-  { id:7, title:'사피엔스', author:'유발 하라리', palette:'sapiens',
-    pages:636, status:'reading', dateStart:'2026-05-28', currentPage:300,
-    readingSessions:[
-      { date:'2026-05-28', minutes:50, pages:90 },
-      { date:'2026-05-31', minutes:45, pages:110 },
-      { date:'2026-06-06', minutes:40, pages:100 },
-    ],
-    tags:['역사','과학'] },
-  { id:8, title:'노르웨이의 숲', author:'무라카미 하루키', palette:'prince',
-    pages:460, status:'reading', dateStart:'2026-06-01', currentPage:180,
+    tags:['성장','고전','자기성찰'] },
+  { id:2, title:'1984', author:'조지 오웰', palette:'1984',
+    pages:326, status:'reading', dateStart:'2026-04-18', currentPage:102,
     format:'ebook',
-    readingSessions:[
-      { date:'2026-06-01', minutes:38, pages:95 },
-      { date:'2026-06-07', minutes:42, pages:85 },
+    readingSessions: [
+      { date: '2026-04-18', minutes: 55, pages: 45 },
+      { date: '2026-04-19', minutes: 40, pages: 32 },
+      { date: '2026-04-20', minutes: 30, pages: 25 },
     ],
-    tags:['일본문학','로맨스'] },
-  { id:9, title:'원씽', author:'게리 켈러', palette:'atomic',
-    pages:280, status:'reading', dateStart:'2026-05-15', currentPage:120,
-    readingSessions:[
-      { date:'2026-05-15', minutes:30, pages:60 },
-      { date:'2026-05-22', minutes:35, pages:60 },
-    ],
-    tags:['자기계발','습관/생산성'] },
-  { id:10, title:'멋진 신세계', author:'올더스 헉슬리', palette:'homo',
-    pages:380, status:'reading', dateStart:'2026-06-05', currentPage:95,
-    readingSessions:[
-      { date:'2026-06-05', minutes:33, pages:55 },
-      { date:'2026-06-08', minutes:28, pages:40 },
-    ],
-    tags:['SF','해외고전'] },
-
-  /* ─── 완독 5권 ─── */
-  { id:11, title:'코스모스', author:'칼 세이건', palette:'cosmos',
-    pages:720, status:'done', dateStart:'2026-04-22', dateEnd:'2026-05-10', rating:5.0,
+    tags:['고전','디스토피아','정치'] },
+  { id:3, title:'넛지', author:'리처드 탈러', palette:'nudge',
+    pages:416, status:'done', dateStart:'2026-04-03', dateEnd:'2026-04-10', rating:4.0,
+    tags:['경제','행동심리'] },
+  { id:4, title:'코스모스', author:'칼 세이건', palette:'cosmos',
+    pages:720, status:'done', dateStart:'2026-03-22', dateEnd:'2026-04-02', rating:5.0,
     isLifeBook:true,
-    tags:['과학','인생책'] },
-  { id:12, title:'데미안', author:'헤르만 헤세', palette:'demian',
-    pages:248, status:'done', dateStart:'2026-04-01', dateEnd:'2026-04-12', rating:4.5,
-    tags:['해외고전','자기성찰'] },
-  { id:13, title:'불편한 편의점', author:'김호연', palette:'endhistory',
-    pages:268, status:'done', dateStart:'2026-03-20', dateEnd:'2026-03-28', rating:4.0,
-    tags:['한국소설'] },
-  { id:14, title:'아주 작은 습관의 힘', author:'제임스 클리어', palette:'atomic',
-    pages:320, status:'done', dateStart:'2026-02-10', dateEnd:'2026-02-25', rating:5.0,
+    rereads:[
+      { dateStart:'2020-09-10', dateEnd:'2020-10-05', rating:5.0 },
+      { dateStart:'2023-07-14', dateEnd:'2023-07-28', rating:5.0 },
+    ],
+    tags:['과학','우주','고전'] },
+  { id:5, title:'사피엔스', author:'유발 하라리', palette:'sapiens',
+    pages:648, status:'done', dateStart:'2026-03-08', dateEnd:'2026-03-20', rating:4.5,
+    tags:['역사','인류학'] },
+  { id:6, title:'총, 균, 쇠', author:'재레드 다이아몬드', palette:'guns',
+    pages:648, status:'done', dateStart:'2026-02-10', dateEnd:'2026-02-25', rating:4.0,
+    tags:['역사','인류학'] },
+  { id:7, title:'팩트풀니스', author:'한스 로슬링', palette:'factful',
+    pages:400, status:'done', dateStart:'2026-01-18', dateEnd:'2026-01-30', rating:4.0,
+    tags:['데이터','행동심리'] },
+  { id:8, title:'Atomic Habits', author:'James Clear', palette:'atomic',
+    pages:320, status:'done', dateStart:'2025-12-20', dateEnd:'2026-01-05', rating:5.0,
     format:'ebook',
-    tags:['자기계발','습관/생산성','원서'] },
-  { id:15, title:'주홍색 연구', author:'아서 코난 도일', palette:'guns',
-    pages:200, status:'done', dateStart:'2026-03-01', dateEnd:'2026-03-06', rating:4.0,
-    tags:['미스터리','추리','해외고전'] },
+    isLifeBook:true,
+    rereads:[
+      { dateStart:'2022-11-02', dateEnd:'2022-11-18', rating:5.0 },
+    ],
+    tags:['습관','자기계발','원서'] },
+  { id:9, title:'호모 데우스', author:'유발 하라리', palette:'homo',
+    pages:580, status:'done', dateStart:'2025-11-05', dateEnd:'2025-11-22', rating:4.0,
+    tags:['역사','미래','과학'] },
+  { id:10, title:'미움받을 용기', author:'기시미 이치로', palette:'courage',
+    pages:280, status:'done', dateStart:'2025-10-10', dateEnd:'2025-10-18', rating:4.5,
+    isLifeBook:true,
+    rereads:[
+      { dateStart:'2021-05-03', dateEnd:'2021-05-12', rating:5.0 },
+    ],
+    tags:['자기성찰','철학'] },
+  /* ─── v1.6.0 — 하차 책 시드 (다양한 케이스 노출) ─── */
+  { id:11, title:'참을 수 없는 존재의 가벼움', author:'밀란 쿤데라', palette:'prince',
+    pages:384, status:'dropped', dateStart:'2026-04-12', currentPage:88,
+    format:'paper',
+    dropped: {
+      at: '2026-04-28',
+      atPage: 88,
+      reasons: ['taste', 'expectation'],
+      customReasons: ['철학 토씨가 너무 많음'],
+      note: '주제는 흥미로운데 토마시가 너무 답답해서 손이 안 잡힘',
+      rating: 3.0,
+      wouldRetry: 'maybe',
+      history: [],
+    },
+    tags:['소설','체코','철학'] },
+  { id:12, title:'율리시스', author:'제임스 조이스', palette:'1984',
+    pages:1024, status:'dropped', dateStart:'2026-03-15', currentPage:142,
+    format:'paper',
+    dropped: {
+      at: '2026-03-30',
+      atPage: 142,
+      reasons: ['hard', 'distracted'],
+      customReasons: [],
+      note: '',
+      rating: 0,
+      wouldRetry: 'maybe',
+      history: [],
+    },
+    tags:['고전','모더니즘','아일랜드'] },
+  { id:13, title:'단정함의 힘', author:'에밀리 챈', palette:'factful',
+    pages:280, status:'dropped', dateStart:'2026-02-22', currentPage:84,
+    format:'ebook',
+    dropped: {
+      at: '2026-04-15',
+      atPage: 84,
+      reasons: ['translation'],
+      customReasons: ['문장이 이상함'],
+      note: '원서로 보는 게 나을 것 같아요',
+      rating: 2.0,
+      wouldRetry: 'no',
+      history: [
+        { at: '2025-08-10', atPage: 42, reasons: ['lazy'], customReasons: [],
+          note: '나중에 다시', rating: 0, wouldRetry: 'yes',
+          retried: '2026-02-22', retriedMode: 'restart' },
+      ],
+    },
+    tags:['자기계발','원서'] },
 ];
 
 /* ─── 노트 데이터 (하이라이트·인용구·내 생각) ─── */
@@ -33516,11 +31881,11 @@ function getSeason(dateStr) {
   const d = new Date(dateStr);
   const m = d.getMonth() + 1;
   const y = d.getFullYear();
-  if (m >= 3  && m <= 5)  return { year:y,   season:'봄',   emoji:'🌸', order:1 };
-  if (m >= 6  && m <= 8)  return { year:y,   season:'여름', emoji:'☀️', order:2 };
-  if (m >= 9  && m <= 11) return { year:y,   season:'가을', emoji:'🍁', order:3 };
-  if (m === 12)           return { year:y,   season:'겨울', emoji:'❄️', order:4 };
-  return { year:y-1, season:'겨울', emoji:'❄️', order:4 };
+  if (m >= 3  && m <= 5)  return { year:y,   season:'봄',   emoji:'<svg class="ic"><use href="#i-season-spring"/></svg>', order:1 };
+  if (m >= 6  && m <= 8)  return { year:y,   season:'여름', emoji:'<svg class="ic"><use href="#i-season-summer"/></svg>', order:2 };
+  if (m >= 9  && m <= 11) return { year:y,   season:'가을', emoji:'<svg class="ic"><use href="#i-season-autumn"/></svg>', order:3 };
+  if (m === 12)           return { year:y,   season:'겨울', emoji:'<svg class="ic"><use href="#i-season-winter"/></svg>', order:4 };
+  return { year:y-1, season:'겨울', emoji:'<svg class="ic"><use href="#i-season-winter"/></svg>', order:4 };
 }
 const seasonKey = s => `${s.year}-${s.order}`;
 const pad2 = n => String(n).padStart(2, '0');
@@ -34793,7 +33158,7 @@ function renderMonthStrip() {
 })();
 
 /* 섹션 하나 (제목 + 책 카드들) */
-function renderBookSection(title, subLabel, books, trailing = '') {
+function renderBookSection(title, subLabel, books, trailing = '', headerBtn = '') {
   if (!books.length) return '';
   // v1.11.0 — 묶음 entry가 섞여있으면 raw 책 수로 합산
   const totalRaw = books.reduce((s, e) => s + (e._isGroupCover ? (e._grpBooks||[]).length : 1), 0);
@@ -34803,7 +33168,10 @@ function renderBookSection(title, subLabel, books, trailing = '') {
         <div>
           <div class="section-title">${title}</div>
         </div>
-        <span class="section-sub">${totalRaw}권${subLabel ? ' · ' + esc(subLabel) : ''}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="section-sub">${totalRaw}권${subLabel ? ' · ' + esc(subLabel) : ''}</span>
+          ${headerBtn}
+        </div>
       </div>
       <div class="book-row">
         ${books.map((b, i) => renderBookCard(b, i)).join('')}
@@ -34913,7 +33281,7 @@ let _wishSortMode = 'recent';
 /* ═══════════════════════════════════════════════════════════
    위시리스트 전용 렌더 — 정렬 토글 + 취향 점수 배지
    ═══════════════════════════════════════════════════════════ */
-function renderWishlistSection(wish, trailing = '', subLabel = '') {
+function renderWishlistSection(wish, trailing = '', subLabel = '', headerBtn = '') {
   if (!wish.length) return '';
 
   const hasLikedBooks = BOOKS.some(b => b.status === 'done' && (b.rating || 0) >= 4);
@@ -34954,7 +33322,10 @@ function renderWishlistSection(wish, trailing = '', subLabel = '') {
         <div>
           <div class="section-title">위시리스트</div>
         </div>
-        <span class="section-sub">${esc(displaySubLabel)}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="section-sub">${esc(displaySubLabel)}</span>
+          ${headerBtn}
+        </div>
       </div>
       ${sortToggle}
       <div class="book-row">
@@ -35091,7 +33462,7 @@ function renderLibraryCards() {
   // 빈 pane용 HTML
   const emptyPane = (msg) => `
     <div class="lib-cat-pane-empty">
-      <div class="lib-cat-pane-empty-icon">📚</div>
+      <div class="lib-cat-pane-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-books"/></svg></div>
       <div class="lib-cat-pane-empty-msg">${msg}</div>
     </div>`;
 
@@ -35117,7 +33488,6 @@ function renderLibraryCards() {
         <button class="lib-cat-tab ${activeCat==='done'?'active':''}" data-cat="done" role="tab">완독 <span class="lib-cat-cnt">${doneAllRaw.length}</span></button>
         <button class="lib-cat-tab ${activeCat==='dropped'?'active':''}" data-cat="dropped" role="tab">하차 <span class="lib-cat-cnt">${droppedRaw.length}</span></button>
       </div>
-      ${editBtnHtml}
     </div>
     ${editingBannerHtml}`;
 
@@ -35138,16 +33508,16 @@ function renderLibraryCards() {
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
-      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel) : emptyPane('위시리스트가 비어있어요')) : ''}
+      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel, editBtnHtml) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing) : emptyPane('읽고 있는 책이 없어요')) : ''}
+      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml) : emptyPane('읽고 있는 책이 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
-      ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing) : emptyPane('완독한 책이 아직 없어요')) : ''}
+      ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing, editBtnHtml) : emptyPane('완독한 책이 아직 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing) : emptyPane('하차한 책이 없어요')) : ''}
+      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing, editBtnHtml) : emptyPane('하차한 책이 없어요')) : ''}
     </div>
   `;
 
@@ -36049,6 +34419,7 @@ function _grpCloseSheet() {
 /* _applyStatusChange의 update 객체 빌드 부분만 추출 — 다중 처리용 */
 function _libBuildStatusUpdate(b, newStatus, today) {
   const update = { status: newStatus };
+  update.stagePass = _mergeStagePass(b.stagePass, b.status, newStatus);
   if (newStatus === 'reading') {
     if (b.status === 'done' && b.dateEnd) {
       const existing = Array.isArray(b.rereads) ? b.rereads : [];
@@ -37089,6 +35460,9 @@ function getAllReads(b) {
 function updateBook(id, partial) {
   const idx = BOOKS.findIndex(b => b.id === id);
   if (idx < 0) return null;
+  if (partial && partial.status && partial.status !== BOOKS[idx].status) {
+    partial = { ...partial, stagePass: _mergeStagePass(BOOKS[idx].stagePass, BOOKS[idx].status, partial.status) };
+  }
   BOOKS[idx] = { ...BOOKS[idx], ...partial };
   STORE.set('books', BOOKS);
   BD.book = BOOKS[idx]; // 참조 업데이트
@@ -37528,10 +35902,29 @@ function saveTimerSession() {
   TIMER.timeManuallyEdited = false;
 }
 
+/* 기록 없이 종료 — 세션 저장하지 않고 타이머만 정리 (currentPage·readingSessions 미변경) */
+function discardTimerSession() {
+  if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+  TIMER.bookId = null;
+  TIMER.startTime = null;
+  TIMER.intervalId = null;
+  TIMER.pendingMinutes = null;
+  TIMER.pausedAt = null;
+  TIMER.pausedTotal = 0;
+  TIMER.measuredMinutes = null;
+  TIMER.timeManuallyEdited = false;
+  STORE.set('timer', null);
+  CINEMA.exit({ silent: true });
+  closeTimerStop();
+  renderLibraryCards();
+  showToast('기록 없이 종료했어요');
+}
+
 /* 타이머 정지 시트 이벤트 바인딩 */
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
 document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
+document.getElementById('tmDiscard').addEventListener('click', discardTimerSession);
 
 /* 타이머 세션 편집 시트 이벤트 바인딩 (v1.10.4) */
 document.getElementById('tsBackdrop').addEventListener('click', closeTimerSessionEdit);
@@ -37777,7 +36170,7 @@ const CINEMA = {
       if (this.active) this._showControls(2400);
     }, 1900);
 
-    // orientation 변경 리스너 등록
+    // orientation 변경 리스너 등록 (전환 시 어둡게 가리고 재배치 후 드러냄)
     this._attachRotationListener();
 
     // v1.5.x — 화면 꺼짐 방지 + 가시성 복귀 시 재요청 (OS가 lock을 해제하므로)
@@ -37829,14 +36222,30 @@ const CINEMA = {
   _attachRotationListener() {
     if (this.rotateListener) return;
     this.rotateListener = () => {
-      // setTimeout: orientation 이벤트 직후 innerWidth가 아직 갱신 안 된 경우 대비
-      setTimeout(() => {
-        if (!this.active) return;
+      if (!this.active) return;
+      const overlay = document.getElementById('cnOverlay');
+      const newMode = this._isLandscape() ? 'landscape' : 'portrait';
+      // 방향 그대로면 무시. 단 이미 전환 중(어두운 상태)이면 reveal 타이머만 미뤄
+      //   회전 도중 resize 폭주 동안 끝까지 어둡게 유지 (디바운스).
+      if (overlay.dataset.cnMode === newMode && !overlay.classList.contains('cn-switching')) return;
+      // 1) 회전 감지 즉시 어둡게 — 실제 회전/재배치를 사용자가 못 보게
+      overlay.classList.add('cn-switching');
+      clearTimeout(this._switchT);
+      // 2) 회전·재배치가 완전히 끝날 때까지 어둠 유지 → 새 방향으로 스냅 → 3) 완성 화면 페이드 인
+      this._switchT = setTimeout(() => {
+        if (!this.active) { overlay.classList.remove('cn-switching'); return; }
         this._updateMode();
-      }, 120);
+        void overlay.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.remove('cn-switching')));
+      }, 420);
     };
     window.addEventListener('orientationchange', this.rotateListener);
     window.addEventListener('resize', this.rotateListener);
+    // 가장 이른 방향 신호 — 미디어쿼리 변화 시점에 바로 어둡게 (orientationchange보다 빠른 경우 대비)
+    if (window.matchMedia) {
+      this._mqlOrient = window.matchMedia('(orientation: portrait)');
+      if (this._mqlOrient.addEventListener) this._mqlOrient.addEventListener('change', this.rotateListener);
+    }
   },
 
   /* 컨트롤 페이드 인 + 자동 페이드 아웃 */
@@ -37854,7 +36263,7 @@ const CINEMA = {
     if (!this.active) return;
     const overlay = document.getElementById('cnOverlay');
 
-    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused');
+    overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused', 'cn-switching');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
 
@@ -37869,8 +36278,11 @@ const CINEMA = {
     if (this.rotateListener) {
       window.removeEventListener('orientationchange', this.rotateListener);
       window.removeEventListener('resize', this.rotateListener);
+      if (this._mqlOrient && this._mqlOrient.removeEventListener) this._mqlOrient.removeEventListener('change', this.rotateListener);
+      this._mqlOrient = null;
       this.rotateListener = null;
     }
+    if (this._switchT) { clearTimeout(this._switchT); this._switchT = null; }
 
     // v1.5.x — 시계 인터벌 + wakeLock + 가시성 리스너 정리
     if (this.clockTimer) { clearInterval(this.clockTimer); this.clockTimer = null; }
@@ -38628,9 +37040,9 @@ function renderBookDetail() {
             </div>
           </div>
           <div class="tm-sess-list" id="bdTmSessList">
-            ${[...sess].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).map((s, i, arr) => {
+            ${sess.map((s, origIdx) => ({ s, origIdx })).sort((a, b) => String(b.s.date || '').localeCompare(String(a.s.date || ''))).map(({ s, origIdx }) => {
               const todayCls = (s.date === todayStr()) ? 'today' : '';
-              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${arr.length - 1 - i}`;
+              const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${origIdx}`;
               return `
                 <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
                   <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
@@ -38801,7 +37213,6 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
-      <!-- v1.12.0 대분류 편집 안내 + 새 분류 입력 (흔들림 방식) -->
       <div class="tag-cat-edit-hint" id="bdTagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
       <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
         <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
@@ -38823,7 +37234,11 @@ function renderBookDetail() {
       </div>
       <div class="tag-new-cat-row" id="bdTagNewCatRow">
         <span class="tnc-label">📂 어느 카테고리에?</span>
-        ${getTagCategoriesSorted().map(c => `<button type="button" class="tnc-chip${BD.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`).join('')}
+        <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
+        <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
+        <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
+        <button type="button" class="tnc-chip" data-cat="format">형식</button>
+        <button type="button" class="tnc-chip" data-cat="webnovel">웹소설</button>
       </div>
     </div>
     ` : ''}
@@ -41301,6 +39716,9 @@ function getGoals() {
     return {
       annual: Number(parsed.annual) || DEFAULT_GOAL_ANNUAL,
       streak: Number(parsed.streak) || DEFAULT_GOAL_STREAK,
+      wishComplete: parsed.wishComplete === true,
+      readTime: parsed.readTime === true,
+      readMinutes: Number(parsed.readMinutes) || 30,
     };
   } catch (e) {
     return { annual: DEFAULT_GOAL_ANNUAL, streak: DEFAULT_GOAL_STREAK };
@@ -42153,7 +40571,7 @@ function renderAchievements() {
   // 카테고리 정의 — v1.x: 권수/페이지/연속 단계 자동 확장
   const cats = [
     {
-      icon: '📚', name: '권수',
+      icon: '<svg class="ic"><use href="#i-books"/></svg>', name: '권수',
       groups: [{
         steps: extendBookStages(a.bookCount),
         current: a.bookCount,
@@ -42162,7 +40580,7 @@ function renderAchievements() {
       chips: [],
     },
     {
-      icon: '📄', name: '페이지',
+      icon: '<svg class="ic"><use href="#i-file-text"/></svg>', name: '페이지',
       groups: [{
         steps: extendPageStages(a.pageTotal),
         current: a.pageTotal,
@@ -42173,7 +40591,7 @@ function renderAchievements() {
       ],
     },
     {
-      icon: '🔥', name: '연속 · 최고',
+      icon: '<svg class="ic"><use href="#i-flame"/></svg>', name: '연속 · 최고',
       groups: [{
         steps: extendStreakStages(a.bestStreak),
         current: a.bestStreak,
@@ -42184,7 +40602,7 @@ function renderAchievements() {
       ],
     },
     {
-      icon: '💭', name: '깊이',
+      icon: '<svg class="ic"><use href="#i-message"/></svg>', name: '깊이',
       summary: `메모 ${a.memoCount}개 · 인생책 ${a.lifeCount}권`,
       groups: [
         {
@@ -42268,10 +40686,10 @@ function renderAchievements() {
   
   const dashboardHtml = `
     <div class="nd-dashboard">
-      ${_statCellHtml('📚', '권수',   a.bookCount,  _bookNext)}
-      ${_statCellHtml('📄', '페이지', a.pageTotal,  _pageNext, _fmtCompact)}
-      ${_statCellHtml('🔥', '최고 연속', a.bestStreak, _streakNext)}
-      ${_statCellHtml('💭', '메모',   a.memoCount,  _memoNext)}
+      ${_statCellHtml('<svg class="ic"><use href="#i-books"/></svg>', '권수',   a.bookCount,  _bookNext)}
+      ${_statCellHtml('<svg class="ic"><use href="#i-file-text"/></svg>', '페이지', a.pageTotal,  _pageNext, _fmtCompact)}
+      ${_statCellHtml('<svg class="ic"><use href="#i-flame"/></svg>', '최고 연속', a.bestStreak, _streakNext)}
+      ${_statCellHtml('<svg class="ic"><use href="#i-message"/></svg>', '메모',   a.memoCount,  _memoNext)}
       ${_statCellHtml('★',  '인생책', a.lifeCount,  _lifeNext)}
     </div>`;
 
@@ -42592,6 +41010,8 @@ function renderGoalsPane() {
   if (streakTargetEl) streakTargetEl.textContent = `${streakTarget}일`;
   if (streakFillEl) streakFillEl.style.width = `${streakPct}%`;
 
+  try { renderGoalTiles({ done, target, pct, remaining, streakCur: streak.current, streakBest: streak.best, streakTarget, streakPct }); } catch(e) { console.error('[goalTiles]', e); }
+
   if (paceEl) {
     if (achieved) {
       paceEl.textContent = '올해 목표를 넘어섰어요. 축하해요';
@@ -42653,6 +41073,336 @@ function renderGoalsPane() {
   // 독서 캘린더 (실제 데이터 기반) — 목표 탭 렌더 시점에 함께 갱신
   try { renderHeatmap(); } catch(e) { console.error('[heatmap]', e); }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   🎯 목표 타일 그리드 + 위시컴플릿 (v1.x)
+   ═══════════════════════════════════════════════════════════ */
+
+/* 상태 전환 시 단계 통과 기록 병합 — 이전 상태와 새 상태를 모두 찍음.
+   (덕분에 위시→독서중 전환 한 번으로 위시 단계도 같이 기록돼,
+    신규 생성 시점을 따로 건드리지 않아도 됨) */
+function _mergeStagePass(prevSp, fromStatus, toStatus) {
+  const sp = { ...(prevSp || {}) };
+  const now = Date.now();
+  if (fromStatus && !sp[fromStatus]) sp[fromStatus] = now;
+  if (toStatus && !sp[toStatus]) sp[toStatus] = now;
+  return sp;
+}
+
+/* 위시컴플릿 집계 — 위시 단계를 거친 책 기준
+   - 남은 위시 = 현재 status==='wish'
+   - 읽는 중   = status==='reading' && 위시 거침
+   - 완료      = status==='done' && 위시→독서중→완독 모두 거침 */
+function countWishComplete() {
+  const books = (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS)) ? BOOKS : [];
+  let done = 0, wish = 0, reading = 0;
+  for (const b of books) {
+    const sp = b.stagePass || null;
+    if (b.status === 'wish') wish++;
+    else if (b.status === 'reading' && sp && sp.wish) reading++;
+    else if (b.status === 'done' && sp && sp.wish && sp.reading && sp.done) done++;
+  }
+  return { done, wish, reading, total: done + wish + reading };
+}
+
+/* 올해 목표 권수만 편집 */
+function editAnnualGoal() { openGoalSheet('annual'); }
+
+/* 목표 설정 바텀시트 (슬라이더 + 빠른선택 칩) */
+function openGoalSheet(type) {
+  const goals = getGoals();
+  const conf = (type === 'annual')
+    ? { title: '올해 목표 권수', short: '올해 목표', unit: '권', min: 1, max: 200, presets: [20, 30, 50, 100], cur: goals.annual, save: (n) => saveGoals({ annual: n }) }
+    : (type === 'read')
+    ? { title: '하루 독서 시간', short: '하루 목표', unit: '분', min: 10, max: 180, presets: [15, 30, 60, 90], cur: goals.readMinutes, save: (n) => saveGoals({ readMinutes: n }) }
+    : { title: '연속 독서 목표', short: '연속 목표', unit: '일', min: 1, max: 365, presets: [7, 14, 30, 100], cur: goals.streak, save: (n) => saveGoals({ streak: n }) };
+  const old = document.getElementById('gsetWrap'); if (old) old.remove();
+  let val = conf.cur;
+  const wrap = document.createElement('div');
+  wrap.id = 'gsetWrap';
+  wrap.innerHTML =
+    '<div class="gset-bd"></div>' +
+    '<div class="gset-sheet">' +
+      '<div class="gset-grip"></div>' +
+      '<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:14px">' +
+        '<span style="font-size:15px;font-weight:600">' + conf.title + '</span>' +
+        '<span style="margin-left:auto;font-size:24px;font-weight:600"><span id="gsetVal">' + val + '</span><span style="font-size:14px;color:var(--c-text-2);font-weight:400">' + conf.unit + '</span></span>' +
+      '</div>' +
+      '<input type="range" id="gsetRange" min="' + conf.min + '" max="' + conf.max + '" step="1" value="' + val + '" style="width:100%;margin-bottom:14px">' +
+      '<div class="gset-chips" id="gsetChips"></div>' +
+      '<button class="gset-save" id="gsetSave" type="button">저장</button>' +
+    '</div>';
+  document.body.appendChild(wrap);
+  const bd = wrap.querySelector('.gset-bd'), sheet = wrap.querySelector('.gset-sheet');
+  const range = wrap.querySelector('#gsetRange'), valEl = wrap.querySelector('#gsetVal'), chips = wrap.querySelector('#gsetChips');
+  function paintChips() { chips.innerHTML = conf.presets.map(p => '<button class="gset-chip' + (p === val ? ' on' : '') + '" type="button" data-p="' + p + '">' + p + '</button>').join(''); }
+  function setVal(n) { val = Math.min(conf.max, Math.max(conf.min, Math.round(n) || conf.min)); range.value = val; valEl.textContent = val; paintChips(); }
+  range.addEventListener('input', () => { val = +range.value; valEl.textContent = val; paintChips(); });
+  chips.addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b) setVal(+b.getAttribute('data-p')); });
+  function close() { bd.classList.remove('open'); sheet.classList.remove('open'); setTimeout(() => wrap.remove(), 300); }
+  bd.addEventListener('click', close);
+  wrap.querySelector('#gsetSave').addEventListener('click', () => {
+    conf.save(val);
+    try { renderGoalsPane(); } catch (e) {}
+    try { renderGoalSettingsRow(); } catch (e) {}
+    try { showToast(conf.short + ' ' + val + conf.unit + '로 저장됨'); } catch (e) {}
+    close();
+  });
+  paintChips();
+  requestAnimationFrame(() => { bd.classList.add('open'); sheet.classList.add('open'); });
+}
+
+
+
+/* 연속 독서 목표일만 편집 */
+function editStreakGoal() { openGoalSheet('streak'); }
+
+/* 위시컴플릿 목표 추가 / 제거 */
+function enableWishComplete() {
+  saveGoals({ wishComplete: true });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('위시컴플릿 목표를 추가했어요'); } catch(e){}
+}
+function disableWishComplete() {
+  saveGoals({ wishComplete: false });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('위시컴플릿 목표를 내렸어요'); } catch(e){}
+}
+
+/* 오늘(로컬 날짜) 누적 독서 분 — readingSessions 합산 */
+function todayReadingMinutes() {
+  const d = new Date();
+  const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  try { return _sumSessionStats(_getSessionsInRange(iso, iso)).minutes; } catch (e) { return 0; }
+}
+
+/* 독서 시간 목표 연속 달성일 — 날짜별 분 합산해서 목표 이상인 날을 거꾸로 카운트.
+   오늘 달성이면 오늘 포함, 미달성이면 어제까지. 날짜 기반이라 자정에 자동 리셋. */
+function timeGoalStreak() {
+  const goals = getGoals();
+  const target = goals.readMinutes || 30;
+  if (!target) return 0;
+  const byDate = {};
+  BOOKS.forEach(b => (b.readingSessions || []).forEach(s => {
+    if (s && s.date) byDate[s.date] = (byDate[s.date] || 0) + (Number(s.minutes) || 0);
+  }));
+  const fmt = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const cur = new Date(); cur.setHours(0,0,0,0);
+  if ((byDate[fmt(cur)] || 0) < target) cur.setDate(cur.getDate() - 1);
+  let streak = 0;
+  while ((byDate[fmt(cur)] || 0) >= target) { streak++; cur.setDate(cur.getDate() - 1); }
+  return streak;
+}
+
+function enableReadTime() {
+  saveGoals({ readTime: true });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('독서 시간 목표를 추가했어요'); } catch(e){}
+}
+function disableReadTime() {
+  saveGoals({ readTime: false });
+  try { renderGoalsPane(); } catch(e){}
+  try { showToast('독서 시간 목표를 내렸어요'); } catch(e){}
+}
+
+/* 독서 시간 목표 상세 설명 모달 */
+function openReadTimeInfo() {
+  const old = document.getElementById('rtInfoWrap'); if (old) old.remove();
+  const goals = getGoals();
+  const tgt = goals.readMinutes || 30;
+  const wrap = document.createElement('div');
+  wrap.id = 'rtInfoWrap';
+  wrap.innerHTML =
+    '<div class="gset-bd"></div>' +
+    '<div class="gset-sheet">' +
+      '<div class="gset-grip"></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+        '<svg class="ic" aria-hidden="true" style="width:20px;height:20px;color:#4C9A6E"><use href="#i-timer"/></svg>' +
+        '<span style="font-size:16px;font-weight:600">독서 시간</span>' +
+      '</div>' +
+      '<p style="font-size:13px;line-height:1.65;color:var(--c-text-2);margin:0 0 16px">하루에 책 읽은 시간을 모아서, <b>오늘 누적 ' + tgt + '분</b>을 넘으면 그날 목표를 달성해요. 한 번에 읽든 나눠 읽든, 합쳐서 ' + tgt + '분이면 돼요.</p>' +
+      '<div style="font-size:12.5px;font-weight:600;color:var(--c-text);margin-bottom:7px">어떻게 집계되나요</div>' +
+      '<ul style="font-size:12.5px;line-height:1.7;color:var(--c-text-2);margin:0 0 18px;padding-left:18px">' +
+        '<li>타이머로 읽은 시간을 그날 날짜로 합산해요.</li>' +
+        '<li>여러 번 나눠 읽어도 모두 더해져요.</li>' +
+        '<li>매일 0분부터 새로 시작하는 하루 목표예요.</li>' +
+        '<li>타이머 없이 읽은 시간은 집계되지 않아요 — 타이머로 기록해야 잡혀요.</li>' +
+      '</ul>' +
+      '<button class="gset-save" id="rtInfoClose" type="button">확인</button>' +
+    '</div>';
+  document.body.appendChild(wrap);
+  const bd = wrap.querySelector('.gset-bd'), sheet = wrap.querySelector('.gset-sheet');
+  function close() { bd.classList.remove('open'); sheet.classList.remove('open'); setTimeout(() => wrap.remove(), 300); }
+  bd.addEventListener('click', close);
+  wrap.querySelector('#rtInfoClose').addEventListener('click', close);
+  requestAnimationFrame(() => { bd.classList.add('open'); sheet.classList.add('open'); });
+}
+
+/* 위시컴플릿 상세 설명 모달 (무엇을 추적/집계하는지) */
+function openWishCompleteInfo() {
+  const old = document.getElementById('wcInfoWrap'); if (old) old.remove();
+  const chip = (t, bg, fg) => '<span style="font-size:11px;padding:3px 9px;border-radius:7px;background:' + bg + ';color:' + fg + '">' + t + '</span>';
+  const arr = '<span style="color:var(--c-muted);font-size:13px;margin:0 1px">→</span>';
+  const wrap = document.createElement('div');
+  wrap.id = 'wcInfoWrap';
+  wrap.innerHTML =
+    '<div class="gset-bd"></div>' +
+    '<div class="gset-sheet">' +
+      '<div class="gset-grip"></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+        '<svg class="ic" aria-hidden="true" style="width:20px;height:20px;color:#D85A30"><use href="#i-bookmark"/></svg>' +
+        '<span style="font-size:16px;font-weight:600">위시컴플릿</span>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;margin-bottom:14px">' +
+        chip('위시', 'var(--c-surface-2)', 'var(--c-text-2)') + arr +
+        chip('독서중', 'var(--c-surface-2)', 'var(--c-text-2)') + arr +
+        chip('완독', '#FAECE7', '#993C1D') +
+      '</div>' +
+      '<p style="font-size:13px;line-height:1.65;color:var(--c-text-2);margin:0 0 16px">사놓고 안 읽은 책(위시리스트)을 끝까지 읽어내는 걸 추적해요. 위시에 담은 책이 <b>독서중을 거쳐 완독</b>까지 간 비율을 자동으로 보여줘요.</p>' +
+      '<div style="font-size:12.5px;font-weight:600;color:var(--c-text);margin-bottom:7px">어떻게 집계되나요</div>' +
+      '<ul style="font-size:12.5px;line-height:1.7;color:var(--c-text-2);margin:0 0 18px;padding-left:18px">' +
+        '<li>전체(분모) = 위시를 거친 책 — 남은 위시 + 읽는 중 + 완료</li>' +
+        '<li>완료(분자) = 위시 → 독서중 → 완독 세 단계를 모두 거친 책</li>' +
+        '<li>위시를 안 거치고 바로 완독한 책은 빠져요.</li>' +
+        '<li>기능을 켠 뒤 거치는 책부터 추적돼요(과거 완독 책은 제외).</li>' +
+      '</ul>' +
+      '<button class="gset-save" id="wcInfoClose" type="button">확인</button>' +
+    '</div>';
+  document.body.appendChild(wrap);
+  const bd = wrap.querySelector('.gset-bd'), sheet = wrap.querySelector('.gset-sheet');
+  function close() { bd.classList.remove('open'); sheet.classList.remove('open'); setTimeout(() => wrap.remove(), 300); }
+  bd.addEventListener('click', close);
+  wrap.querySelector('#wcInfoClose').addEventListener('click', close);
+  requestAnimationFrame(() => { bd.classList.add('open'); sheet.classList.add('open'); });
+}
+
+/* 링 게이지 SVG (r=26, 둘레 ≈ 163.36) */
+function _goalRingSvg(pct, color, centerText, subText) {
+  const C = 163.36;
+  const p = Math.min(100, Math.max(0, pct));
+  const off = (C * (1 - p / 100)).toFixed(1);
+  return `<svg width="74" height="74" viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--c-surface-2)" stroke-width="6"/>
+    <circle cx="32" cy="32" r="26" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 32 32)"/>
+    <text x="32" y="34" text-anchor="middle" font-size="19" font-weight="600" fill="${color}">${centerText}</text>
+    <text x="32" y="46" text-anchor="middle" font-size="9" fill="var(--c-muted)">${subText}</text>
+  </svg>`;
+}
+
+/* 목표 타일 그리드 렌더 — renderGoalsPane 끝에서 호출 */
+function renderGoalTiles(v) {
+  const host = document.getElementById('goalTiles');
+  if (!host) return;
+  v = v || {};
+  const goals = getGoals();
+  const AMBER = '#BA7517', RED = '#E24B4A', CORAL = '#D85A30', GREEN = '#4C9A6E';
+  const plusSvg = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+  // 달성(네온) 메타: 테두리색/글로우 rgb/완료 배경/리듬
+  const M = {
+    annual: { c: AMBER, rgb: '186,117,23', c50: '#FAEEDA', c8: '#854F0B', dur: '1.9s', dl: '0s' },
+    streak: { c: RED,   rgb: '226,75,74',  c50: '#FCEBEB', c8: '#791F1F', dur: '1.6s', dl: '.5s' },
+    wish:   { c: CORAL, rgb: '216,90,48',  c50: '#FAECE7', c8: '#993C1D', dur: '2.2s', dl: '.9s' },
+    read:   { c: GREEN, rgb: '76,154,110', c50: '#E8F2EB', c8: '#2C5E40', dur: '2.0s', dl: '.3s' }
+  };
+  const neon = (m) => `--bc:${m.c};--gc:${m.rgb};--dur:${m.dur};--dl:${m.dl}`;
+  const bigCheck = (m) => `<div class="goal-done-ck" style="background:${m.c50}"><svg class="ic" aria-hidden="true" style="width:22px;height:22px;color:${m.c}"><use href="#i-check"/></svg></div>`;
+
+  const done = v.done || 0, target = v.target || 0, pct = v.pct || 0;
+  const streakCur = v.streakCur || 0, streakBest = v.streakBest || 0, streakTarget = v.streakTarget || 0;
+
+  // ── 올해 완독 목표 ──
+  const annualDone = target > 0 && done >= target;
+  const annualTile = annualDone ? `
+    <button class="goal-tile is-done" type="button" onclick="editAnnualGoal()" style="${neon(M.annual)}" aria-label="올해 완독 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>올해 완독 목표</div>
+      <div class="goal-tile-mid">${bigCheck(M.annual)}</div>
+      <div class="goal-tile-sub" style="color:${AMBER};font-weight:600">${done} / ${target} 달성</div>
+    </button>` : `
+    <button class="goal-tile" type="button" onclick="editAnnualGoal()" aria-label="올해 완독 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>올해 완독 목표</div>
+      <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${AMBER}">${done}<span class="unit"> / ${target}</span></div></div>
+      <div class="goal-tile-sub">${pct}% 달성</div>
+    </button>`;
+
+  // ── 연속 독서 ── (목표 도달 시 자동 승급되어 보통은 진행 표시)
+  const streakDone = streakTarget > 0 && streakCur >= streakTarget;
+  const streakTile = streakDone ? `
+    <button class="goal-tile is-done" type="button" onclick="editStreakGoal()" style="${neon(M.streak)}" aria-label="연속 독서 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg>연속 독서</div>
+      <div class="goal-tile-mid">${bigCheck(M.streak)}</div>
+      <div class="goal-tile-sub" style="color:${RED};font-weight:600">${streakCur} / ${streakTarget}일 달성</div>
+    </button>` : `
+    <button class="goal-tile" type="button" onclick="editStreakGoal()" aria-label="연속 독서 목표 수정">
+      <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg>연속 독서</div>
+      <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${RED}">${streakCur}<span class="unit"> / ${streakTarget}일</span></div></div>
+      <div class="goal-tile-sub">최고 ${streakBest}일</div>
+    </button>`;
+
+  // ── 옵트인 목표: 위시컴플릿 ──
+  const wishAddTile = `<button class="goal-tile-add" type="button" onclick="enableWishComplete()" aria-label="위시컴플릿 추가"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿 추가</button>`;
+  let wishTile = null;
+  if (goals.wishComplete) {
+    const w = countWishComplete();
+    const wishDone = w.total > 0 && w.done >= w.total;
+    const infoBtn = `<button class="gt-info" type="button" onclick="event.stopPropagation();openWishCompleteInfo()" aria-label="위시컴플릿 설명"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button>`;
+    const rmBtn = `<button class="goal-tile-rm" type="button" onclick="disableWishComplete()" aria-label="위시컴플릿 내리기"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>`;
+    if (wishDone) {
+      wishTile = `
+      <div class="goal-tile is-done" style="${neon(M.wish)};cursor:default">
+        ${rmBtn}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿${infoBtn}</div>
+        <div class="goal-tile-mid">${bigCheck(M.wish)}</div>
+        <div class="goal-tile-sub" style="color:${CORAL};font-weight:600">위시리스트 ${w.total}권 모두 완독</div>
+      </div>`;
+    } else {
+      const wsub = w.total > 0 ? `위시리스트 ${w.total}권 중 ${w.done}권 완독` : '위시 책을 담으면 추적돼요';
+      wishTile = `
+      <div class="goal-tile" style="cursor:default">
+        ${rmBtn}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-bookmark"/></svg>위시컴플릿${infoBtn}</div>
+        <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${CORAL}">${w.done}<span class="unit"> / ${w.total}</span></div></div>
+        <div class="goal-tile-sub">${wsub}</div>
+      </div>`;
+    }
+  }
+
+  // ── 옵트인 목표: 하루 독서 시간 ── (그날 누적 분이 목표 이상이면 달성, 매일 리셋)
+  const readAddTile = `<button class="goal-tile-add" type="button" onclick="enableReadTime()" aria-label="독서 시간 추가"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>독서 시간 추가</button>`;
+  let readTile = null;
+  if (goals.readTime) {
+    const rTarget = goals.readMinutes || 30;
+    const todayMin = todayReadingMinutes();
+    const readDone = todayMin >= rTarget;
+    const streak = timeGoalStreak();
+    const rmBtnR = `<button class="goal-tile-rm" type="button" onclick="event.stopPropagation();disableReadTime()" aria-label="독서 시간 목표 내리기"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>`;
+    if (readDone) {
+      readTile = `
+      <div class="goal-tile is-done" style="${neon(M.read)};cursor:pointer" onclick="openGoalSheet('read')">
+        ${rmBtnR}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>독서 시간<button class="gt-info" type="button" onclick="event.stopPropagation();openReadTimeInfo()" aria-label="독서 시간 목표 설명"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
+        <div class="goal-tile-mid">${bigCheck(M.read)}</div>
+        <div class="goal-tile-sub" style="color:${GREEN};font-weight:600">오늘 달성 · ${streak}일째</div>
+      </div>`;
+    } else {
+      readTile = `
+      <div class="goal-tile" style="cursor:pointer" onclick="openGoalSheet('read')">
+        ${rmBtnR}
+        <div class="goal-tile-top"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>독서 시간<button class="gt-info" type="button" onclick="event.stopPropagation();openReadTimeInfo()" aria-label="독서 시간 목표 설명"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
+        <div class="goal-tile-mid"><div class="goal-tile-num" style="color:${GREEN}">${todayMin}<span class="unit"> / ${rTarget}분</span></div></div>
+        <div class="goal-tile-sub">${streak > 0 ? streak + "일 연속 중 · 오늘 도전" : "오늘 채우면 1일째"}</div>
+      </div>`;
+    }
+  }
+
+  // 켜진 목표는 타일로, 꺼진 목표는 추가 버튼으로 (항상 4칸 유지)
+  const enabled = [], adds = [];
+  if (wishTile) enabled.push(wishTile); else adds.push(wishAddTile);
+  if (readTile) enabled.push(readTile); else adds.push(readAddTile);
+
+  host.innerHTML = annualTile + streakTile + enabled.join('') + adds.join('');
+}
+
 
 /* 설정 시트의 "연간 목표" 행 렌더 + 클릭 바인딩 (idempotent) */
 function renderGoalSettingsRow() {
@@ -43636,6 +42386,16 @@ function renderAnnualLedger() {
   if (yearEl) yearEl.textContent = year;
   numEl.textContent = total;
 
+  // 진행 막대 (연간 목표 대비) — 시안 B
+  const _progBar = document.getElementById('annualProgBar');
+  const _progFill = document.getElementById('annualProgFill');
+  if (_progBar && _progFill) {
+    const _g = (typeof getGoals === 'function') ? getGoals() : null;
+    const _goal = _g && _g.annual ? _g.annual : 0;
+    if (_goal > 0) { _progBar.style.display = ''; _progFill.style.width = Math.min(100, Math.round(total / _goal * 100)) + '%'; }
+    else { _progBar.style.display = 'none'; }
+  }
+
   // 페이지 누적 (올해)
   const pagesYTD = BOOKS.reduce((sum, b) => {
     let p = 0;
@@ -43938,7 +42698,7 @@ function renderTasteInsight() {
   let html = '';
 
   if (dist.length > 0) {
-    html += `<div class="taste-insight-h">🎯 장르 균형</div>`;
+    html += `<div class="taste-insight-h"><svg class="ic"><use href="#i-target"/></svg> 장르 균형</div>`;
     html += `<div class="taste-insight-sub">완독한 책들의 태그 분포예요</div>`;
     html += `<div class="balance-card">`;
     dist.slice(0, 6).forEach((d, i) => {
@@ -43951,11 +42711,11 @@ function renderTasteInsight() {
         </div>`;
     });
     html += `</div>`;
-    html += `<div class="balance-comment">💭 ${esc(getBalanceComment(dist, doneCount))}</div>`;
+    html += `<div class="balance-comment"><svg class="ic"><use href="#i-message"/></svg> ${esc(getBalanceComment(dist, doneCount))}</div>`;
   }
 
   if (recommended.length > 0 && recommended[0]._recScore > 0) {
-    html += `<div class="taste-insight-h">📚 다음 책 어때요?</div>`;
+    html += `<div class="taste-insight-h"><svg class="ic"><use href="#i-books"/></svg> 다음 책 어때요?</div>`;
     html += `<div class="taste-insight-sub">완독한 책과 비슷한 결의 위시리스트예요</div>`;
     html += `<div class="taste-rec-row">`;
     recommended.forEach((b, i) => {
@@ -47219,7 +45979,7 @@ document.getElementById('ctSubmit')?.addEventListener('click', async () => {
 
 /* ═══ 페어리(fairy.hada.io) 후원 링크 ═══
  * 페어리 핸들이 바뀌면 아래 URL만 수정하세요. */
-const FAIRY_SUPPORT_URL = 'https://fairy.hada.io/@-read';
+const FAIRY_SUPPORT_URL = 'https://fairy.hada.io/@keepbook';
 
 (function wireSupportRow() {
   const row = document.getElementById('supportRow');
@@ -49515,7 +48275,7 @@ function _bdeRenderResults(book, searchInfo) {
   if (candidates.length === 0) {
     body.innerHTML = `
       <div class="bde-empty">
-        <div class="bde-empty-icon">🔍</div>
+        <div class="bde-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
         <div>알라딘·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
         절판이거나 등록되지 않은 책일 수 있어요.</div>
@@ -51373,7 +50133,7 @@ function kbmCall(fnName, fallbackMsg) {
 function kbmOpenSupport() {
   closeKbMenu();
   setTimeout(function() {
-    var url = (typeof FAIRY_SUPPORT_URL !== 'undefined') ? FAIRY_SUPPORT_URL : 'https://fairy.hada.io/@-read';
+    var url = (typeof FAIRY_SUPPORT_URL !== 'undefined') ? FAIRY_SUPPORT_URL : 'https://fairy.hada.io/@keepbook';
     try {
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (e) {
