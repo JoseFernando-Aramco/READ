@@ -74,7 +74,7 @@
   document.addEventListener('compositionend', () => { composing = false; apply(); }, true);
 })();
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>keepbook — 독서기록</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15563,6 +15563,34 @@ html.kbd-open [class*="-backdrop "] {
 html.kbd-open * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* v1.x — 보강: 입력 중 바텀시트 합성 레이어 백킹 안정화 (안드로이드 검은 깜빡임 방지) */
+html.kbd-open [class$="-sheet"],
+html.kbd-open [class*="-sheet "] {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* v1.x — 근본 수정: 입력 중에는 시트의 transform(합성 레이어)을 제거.
+   입력 시 리페인트로 합성 레이어가 검게 번쩍이던 문제를 시트별로 차단.
+   translate(-50%) 중앙정렬 시트는 margin으로 대체, 그 외는 transform만 제거(transition 끔 → 점프 없음). */
+
+/* translate(-50%, ) 중앙정렬: na(노트)·qn(메모)·bd(책 상세 독서/위시 노트) */
+html.kbd-open .na-sheet.open,
+html.kbd-open .qn-sheet.is-open,
+html.kbd-open .bd-sheet.open {
+  left: 0; right: 0;
+  margin-left: auto; margin-right: auto;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* 비-translate 중앙정렬: drop(포기 노트, translateY만)·ct(문의, 부모 flex 중앙) */
+html.kbd-open .drop-sheet-backdrop.open .drop-sheet,
+html.kbd-open .ct-modal.open .ct-card {
+  transform: none !important;
+  transition: none !important;
 }
 
 
