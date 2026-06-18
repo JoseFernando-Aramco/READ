@@ -2732,6 +2732,38 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* ═══════════ [TAB 2] 통계 ═══════════ */
+/* ── 통계 연간 기록 히어로 (시안 B · 미니멀 인라인, 앱 톤 통일) ── */
+.al-hero { background: var(--c-surface-2); border-radius: 16px; padding: 20px 18px; margin-bottom: 14px; }
+.al-top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.al-yearpill { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--c-border-2); border-radius: 999px; padding: 3px 6px; background: var(--c-surface); }
+.al-yearbtn { width: 24px; height: 24px; border: none; background: transparent; color: var(--c-text-2); font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; border-radius: 50%; font-family: inherit; }
+.al-yearbtn:active { background: var(--c-surface-2); }
+.al-yearval { font-size: 13px; font-weight: 600; color: var(--c-text); min-width: 36px; text-align: center; }
+.al-label { font-size: 11px; letter-spacing: .13em; color: var(--c-muted); }
+.al-today { display: inline-block; margin-bottom: 12px; font-size: 12px; color: var(--c-text-2); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-family: inherit; }
+.al-headline { font-size: 26px; font-weight: 600; color: var(--c-text); line-height: 1.14; letter-spacing: -.01em; }
+.al-headline strong { font-weight: 700; }
+.al-sub { font-size: 13.5px; color: var(--c-text-2); margin-top: 8px; }
+.al-bar { position: relative; height: 4px; border-radius: 4px; background: var(--c-border-2); margin: 16px 0 20px; }
+.al-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #BA7517; border-radius: 4px; min-width: 4px; transition: width .5s ease; }
+.al-bar-end { position: absolute; right: 0; top: 50%; width: 0; height: 0; }
+.al-dot, .al-rip { position: absolute; left: 0; top: 0; border-radius: 50%; background: #BA7517; }
+.al-dot { width: 8px; height: 8px; transform: translate(-50%, -50%); }
+.al-rip { width: 8px; height: 8px; animation: alRipple 1.5s ease-out infinite; }
+.al-rip.al-rip2 { animation-delay: .75s; }
+@keyframes alRipple { 0% { opacity: .5; transform: translate(-50%,-50%) scale(1); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(3.6); } }
+@media (prefers-reduced-motion: reduce) { .al-rip { animation: none; } }
+.al-stats { display: flex; align-items: stretch; }
+.al-stat { flex: 1; min-width: 0; }
+.al-stat-c { text-align: center; }
+.al-stat-r { text-align: right; }
+.al-stat-v { font-size: 19px; font-weight: 700; color: var(--c-text); }
+.al-stat-v .al-unit { font-size: 12px; color: var(--c-muted); font-weight: 400; }
+.al-stat-l { font-size: 11px; color: var(--c-muted); margin-top: 3px; }
+.al-stat-div { width: 1px; background: var(--c-border); margin: 2px 10px; }
+.al-report { border-top: 1px solid var(--c-border); margin-top: 18px; padding-top: 14px; }
+.al-report-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--c-text); background: transparent; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+
 /* ═══════════ Annual Ledger V1 Hero (blue gradient) ═══════════ */
 .annual-hero {
   background: linear-gradient(135deg, var(--primary) 0%, #1a5fcc 100%);
@@ -21706,37 +21738,33 @@ body.cn-locked {
   <section class="pane" id="pane-stats">
 
     <!-- ═══ V1 · Annual Ledger Hero (blue gradient) ═══ -->
-    <div class="annual-hero" id="annualHero">
-      <div class="annual-year-nav">
-        <button class="annual-year-btn" id="annualYearPrev" aria-label="이전 연도">‹</button>
-        <div class="annual-year-label">
-          <span class="annual-year-prefix">ANNUAL LEDGER ·</span>
-          <span class="annual-year-value" id="annualYear">2026</span>
+    <!-- 통계 연간 기록 히어로 (시안 B · 미니멀 인라인) -->
+    <div class="al-hero" id="annualHero">
+      <div class="al-top">
+        <div class="al-yearpill">
+          <button class="al-yearbtn" id="annualYearPrev" aria-label="이전 연도">‹</button>
+          <span class="al-yearval" id="annualYear">2026</span>
+          <button class="al-yearbtn" id="annualYearNext" aria-label="다음 연도">›</button>
         </div>
-        <button class="annual-year-btn" id="annualYearNext" aria-label="다음 연도">›</button>
+        <span class="al-label">ANNUAL LEDGER</span>
       </div>
-      <button class="annual-year-today" id="annualYearToday" style="display:none">올해로 돌아가기</button>
-      <div class="annual-hero-line"><strong id="annualBigNum">—</strong>권<br/>읽었습니다.</div>
-      <div class="annual-hero-sub" id="annualHeroSub">—</div>
-      <div class="annual-hero-divider"></div>
-      <div class="annual-hero-mini">
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualPagesNum">—</span><span class="unit">p</span></div>
-          <div class="ah-m-l">누적 페이지</div>
+      <button class="al-today" id="annualYearToday" style="display:none">올해로 돌아가기</button>
+      <div class="al-headline"><strong id="annualBigNum">—</strong>권 읽었습니다.</div>
+      <div class="al-sub" id="annualHeroSub">—</div>
+      <div class="al-bar" id="annualProgBar">
+        <div class="al-bar-fill" id="annualProgFill" style="width:0%">
+          <span class="al-bar-end"><span class="al-rip"></span><span class="al-rip al-rip2"></span><span class="al-dot"></span></span>
         </div>
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualAvgStar">★—</span></div>
-          <div class="ah-m-l">평균 별점</div>
-        </div>
-        <div class="ah-m">
-          <div class="ah-m-v"><span id="annualReadDays">—</span><span class="unit">일</span></div>
-          <div class="ah-m-l">독서일</div>
-        </div>
-        <!-- v1.5.0 — 월간 독서 리포트 진입 (4번째 칸, 다른 메트릭과 폼 통일) -->
-        <div class="ah-m ah-m-cta" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">
-          <div class="ah-m-v ah-m-cta-text">월간<br/>독서 리포트</div>
-          <div class="ah-m-l">보기 →</div>
-        </div>
+      </div>
+      <div class="al-stats">
+        <div class="al-stat"><div class="al-stat-v"><span id="annualPagesNum">—</span><span class="al-unit">p</span></div><div class="al-stat-l">누적 페이지</div></div>
+        <div class="al-stat-div"></div>
+        <div class="al-stat al-stat-c"><div class="al-stat-v"><span id="annualAvgStar">★—</span></div><div class="al-stat-l">평균 별점</div></div>
+        <div class="al-stat-div"></div>
+        <div class="al-stat al-stat-r"><div class="al-stat-v"><span id="annualReadDays">—</span><span class="al-unit">일</span></div><div class="al-stat-l">독서일</div></div>
+      </div>
+      <div class="al-report">
+        <button class="al-report-link" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">월간 독서 리포트 보기 →</button>
       </div>
     </div>
 
@@ -42236,6 +42264,16 @@ function renderAnnualLedger() {
 
   if (yearEl) yearEl.textContent = year;
   numEl.textContent = total;
+
+  // 진행 막대 (연간 목표 대비) — 시안 B
+  const _progBar = document.getElementById('annualProgBar');
+  const _progFill = document.getElementById('annualProgFill');
+  if (_progBar && _progFill) {
+    const _g = (typeof getGoals === 'function') ? getGoals() : null;
+    const _goal = _g && _g.annual ? _g.annual : 0;
+    if (_goal > 0) { _progBar.style.display = ''; _progFill.style.width = Math.min(100, Math.round(total / _goal * 100)) + '%'; }
+    else { _progBar.style.display = 'none'; }
+  }
 
   // 페이지 누적 (올해)
   const pagesYTD = BOOKS.reduce((sum, b) => {
