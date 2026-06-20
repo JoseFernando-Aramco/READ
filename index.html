@@ -4343,6 +4343,14 @@ body:has(.lib-edit-bar) .library-cards {
   letter-spacing: -0.005em;
 }
 .notes-sum-line2 strong { color: var(--c-text-2); font-weight: 600; }
+.notes-stat-card { background: var(--c-surface); border: 1px solid var(--c-border-2); border-radius: 14px; padding: 13px 15px; }
+.nsc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.nsc-sub { font-size: 12px; color: var(--c-muted); margin-top: 3px; letter-spacing: -0.01em; }
+.notes-stat-strip { display: flex; margin-top: 11px; border-top: 1px solid var(--c-border); padding-top: 10px; }
+.nss-item { flex: 1; text-align: center; }
+.nss-item + .nss-item { border-left: 1px solid var(--c-border); }
+.nss-v { font-size: 15px; font-weight: 700; color: var(--c-text); letter-spacing: -0.01em; }
+.nss-k { font-size: 11px; color: var(--c-muted); margin-top: 1px; }
 
 /* ─── 검색바 ─── */
 .note-search {
@@ -4365,9 +4373,9 @@ body:has(.lib-edit-bar) .library-cards {
 
 /* ─── 필터 행 (세그먼트 + 즐겨찾기 + 정렬) ─── */
 .note-filter-row {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; justify-content: space-evenly; gap: 4px;
   margin-top: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .note-type-seg {
   display: inline-flex;
@@ -4376,13 +4384,13 @@ body:has(.lib-edit-bar) .library-cards {
   padding: 2px;
 }
 .note-type-seg-btn {
-  padding: 5px 11px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
   font-family: inherit;
   font-size: 12px; font-weight: 500;
   color: var(--c-text-2);
   letter-spacing: -0.01em;
-  border: none; background: transparent;
+  border: none; background: var(--c-border);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: all .15s;
@@ -4390,10 +4398,10 @@ body:has(.lib-edit-bar) .library-cards {
   white-space: nowrap;
 }
 .note-type-seg-btn.active {
-  background: var(--c-surface);
-  color: var(--c-text);
+  background: var(--c-text);
+  color: var(--c-surface);
   font-weight: 700;
-  box-shadow: 0 1px 2px rgba(25,31,40,0.08);
+  box-shadow: none;
 }
 .note-fav-toggle {
   display: inline-flex; align-items: center; gap: 4px;
@@ -43054,16 +43062,31 @@ function renderNoteSummaryHead() {
   });
   const topBook = topBookId != null ? BOOKS.find(b => b.id === topBookId) : null;
 
-  const line2Parts = [];
-  if (thisMonthAdded > 0) line2Parts.push(`이번 달 +${thisMonthAdded}`);
-  if (topBook) line2Parts.push(`자주 기록 · <strong>${esc(topBook.title)}</strong> ${topCnt}개`);
+  const favCnt = NOTES.filter(n => n.favorite).length;
+  const sortLabels = { recent: '최신순', oldest: '오래된순', page: '페이지순', byBook: '책별 묶기' };
+  const curSort = NOTE_FILTER.sort || 'recent';
+  const curSortLabel = sortLabels[curSort] || '최신순';
+  const sortItems = Object.entries(sortLabels).map(([key, lab]) => `
+      <button class="note-sort-menu-item ${key === curSort ? 'active' : ''}" data-sort="${key}" type="button"><span>${esc(lab)}</span><span class="check">✓</span></button>`).join('');
 
   head.innerHTML = `
-    <div class="notes-sum-line1">
-      <span class="notes-sum-title">노트</span>
-      <span class="notes-sum-count">${total}개 · ${bookCnt}권</span>
+    <div class="notes-stat-card">
+      <div class="nsc-top">
+        <div>
+          <div><span class="notes-sum-title">노트</span> <span class="notes-sum-count">${total}개 · ${bookCnt}권</span></div>
+          <div class="nsc-sub">밑줄 친 문장들이 머무는 곳</div>
+        </div>
+        <div class="note-sort-wrap">
+          <button class="note-sort-toggle" id="noteSortToggle" type="button" aria-haspopup="menu" aria-expanded="false">${esc(curSortLabel)}<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="note-sort-menu" id="noteSortMenu" role="menu">${sortItems}</div>
+        </div>
+      </div>
+      <div class="notes-stat-strip">
+        <div class="nss-item"><div class="nss-v">+${thisMonthAdded}</div><div class="nss-k">이번 달</div></div>
+        <div class="nss-item"><div class="nss-v">${bookCnt}</div><div class="nss-k">기록한 책</div></div>
+        <div class="nss-item"><div class="nss-v">${favCnt}</div><div class="nss-k">즐겨찾기</div></div>
+      </div>
     </div>
-    ${line2Parts.length ? `<div class="notes-sum-line2">${line2Parts.join(' · ')}</div>` : ''}
   `;
 }
 
@@ -43083,39 +43106,12 @@ function renderNoteFilterRow() {
   const thoughtCnt = NOTES.filter(n => n.type === 'thought').length;
   const reviewCnt = NOTES.filter(n => n.type === 'review').length;  // v1.0.4 — 한줄평
   const favCnt = NOTES.filter(n => n.favorite).length;
-  const sortLabels = {
-    recent: '최신순', oldest: '오래된순', page: '페이지순', byBook: '책별 묶기'
-  };
-  const curSort = NOTE_FILTER.sort || 'recent';
-  const curSortLabel = sortLabels[curSort] || '최신순';
-
-  const sortItems = Object.entries(sortLabels).map(([key, lab]) => `
-    <button class="note-sort-menu-item ${key === curSort ? 'active' : ''}" data-sort="${key}" type="button">
-      <span>${esc(lab)}</span>
-      <span class="check">✓</span>
-    </button>`).join('');
-
   row.innerHTML = `
-    <div class="note-type-seg" id="noteTypeSeg">
       <button class="note-type-seg-btn ${!NOTE_FILTER.type ? 'active' : ''}" data-type="" type="button">전체 ${total}</button>
       ${reviewCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'review' ? 'active' : ''}" data-type="review" type="button">한줄평 ${reviewCnt}</button>` : ''}
       ${thoughtCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'thought' ? 'active' : ''}" data-type="thought" type="button">내 생각 ${thoughtCnt}</button>` : ''}
       ${quoteCnt ? `<button class="note-type-seg-btn ${NOTE_FILTER.type === 'quote' ? 'active' : ''}" data-type="quote" type="button">인용구 ${quoteCnt}</button>` : ''}
-    </div>
-    ${favCnt ? `
-    <button class="note-fav-toggle ${NOTE_FILTER.favorite ? 'active' : ''}" id="noteFavToggle" type="button">
-      <svg class="star-icn" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      ${favCnt}
-    </button>` : ''}
-    <div class="note-sort-wrap">
-      <button class="note-sort-toggle" id="noteSortToggle" type="button" aria-haspopup="menu" aria-expanded="false">
-        ${esc(curSortLabel)}
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="note-sort-menu" id="noteSortMenu" role="menu">
-        ${sortItems}
-      </div>
-    </div>
+    ${favCnt ? `<button class="note-fav-toggle ${NOTE_FILTER.favorite ? 'active' : ''}" id="noteFavToggle" type="button"><svg class="star-icn" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${favCnt}</button>` : ''}
   `;
 }
 
@@ -43306,6 +43302,27 @@ document.getElementById('noteFilterRow').addEventListener('click', (e) => {
       const menu = document.getElementById('noteSortMenu');
       if (menu) menu.classList.remove('show');
     }
+    return;
+  }
+});
+
+/* ─── 헤더 카드 정렬 메뉴 위임 ─── */
+document.getElementById('notesSummaryHead').addEventListener('click', (e) => {
+  const sortBtn = e.target.closest('#noteSortToggle');
+  if (sortBtn) {
+    e.stopPropagation();
+    const menu = document.getElementById('noteSortMenu');
+    if (!menu) return;
+    const isOpen = menu.classList.toggle('show');
+    sortBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    return;
+  }
+  const sortItem = e.target.closest('.note-sort-menu-item');
+  if (sortItem) {
+    e.stopPropagation();
+    const next = sortItem.dataset.sort;
+    if (next && next !== NOTE_FILTER.sort) { NOTE_FILTER.sort = next; renderNotesTab(); }
+    else { const menu = document.getElementById('noteSortMenu'); if (menu) menu.classList.remove('show'); }
     return;
   }
 });
