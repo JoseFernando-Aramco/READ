@@ -4640,7 +4640,7 @@ body:has(.lib-edit-bar) .library-cards {
 /* 우측 상단 유형 라벨 */
 .note-type-pill {
   position: absolute;
-  top: 9px; right: 42px;
+  top: 8px; right: 14px;
   font-family: inherit;
   font-size: 9px; font-weight: 700;
   letter-spacing: 0.05em;
@@ -4803,17 +4803,7 @@ body:has(.lib-edit-bar) .library-cards {
 .note-meta-btn:active { opacity: 0.5; }
 .note-meta-btn.fav-on { color: #E5C04E; }
 .note-meta-btn.fav-on svg { fill: currentColor; }
-.note-fav-corner { position: absolute; top: 7px; right: 11px; z-index: 2; border: none; background: none; padding: 3px; margin: 0; cursor: pointer; color: #CFC6DD; line-height: 0; -webkit-tap-highlight-color: transparent; }
-.note-fav-corner:active { opacity: 0.5; }
-.note-fav-corner.fav-on { color: #E5C04E; }
-.note-fav-corner.fav-on svg { fill: currentColor; }
 .note-meta-btn.shared-loading { opacity: 0.4; pointer-events: none; }
-.note-meta-btn.shared-done { opacity: 0.3; pointer-events: none; cursor: default; }
-.note-keep-btn { display:inline-flex; align-items:center; gap:2px; border:none; cursor:pointer; font-family:inherit; font-size:11px; font-weight:800; letter-spacing:.02em; color:#6F5AC8; background:rgba(111,90,200,.1); padding:5px 10px; border-radius:999px; line-height:1; margin-right:2px; -webkit-tap-highlight-color:transparent; transition:opacity .12s; }
-.note-keep-btn:active { opacity:.6; }
-.note-keep-btn.shared-done { color:#9A93AD; background:rgba(150,140,170,.14); pointer-events:none; cursor:default; }
-[data-theme="midnight"] .note-keep-btn { color:#C5B6F2; background:rgba(150,125,225,.18); }
-[data-theme="midnight"] .note-keep-btn.shared-done { color:#8B82A0; background:rgba(255,255,255,.07); }
 
 /* ─── 빈 상태 ─── */
 .notes-empty {
@@ -21650,89 +21640,6 @@ body.cn-locked {
   <symbol id="i-kakao" viewBox="0 0 20 20"><path d="M10 3C5.58 3 2 5.86 2 9.39c0 2.27 1.5 4.27 3.78 5.4l-.96 3.51c-.07.27.22.49.46.34l4.21-2.78c.17.01.34.02.51.02 4.42 0 8-2.86 8-6.39C18 5.86 14.42 3 10 3z"/></symbol>
 </svg>
 
-<div id="sayuBackdrop" aria-hidden="true"></div>
-<div id="sayuBookView" aria-hidden="true">
-  <div class="bv-bar"><button class="bv-back" onclick="closeBookSayu()" aria-label="닫기">←</button><span class="bv-bartitle">책별 KEEP</span></div>
-  <div class="bv-hero">
-    <div class="bv-cover" id="bvCover"></div>
-    <div class="bv-meta"><div class="bv-title" id="bvTitle"></div><div class="bv-author" id="bvAuthor"></div><div class="bv-count" id="bvCount"></div></div>
-  </div>
-  <div class="bv-controls">
-    <div class="bv-sort" id="bvSort"><button data-s="recent" class="on" onclick="setBookSort('recent')">최신순</button><button data-s="keep" onclick="setBookSort('keep')">공감순</button></div>
-    <div class="bv-filter" id="bvFilter"><button data-t="all" class="on" onclick="setBookType('all')">전체</button><button data-t="quote" onclick="setBookType('quote')">인용구</button><button data-t="review" onclick="setBookType('review')">감상</button></div>
-  </div>
-  <div class="bv-feed sayu-feed" id="sayuBookFeed"></div>
-</div>
-<div id="sayuPostView" aria-hidden="true">
-  <div class="pv-bar"><button class="pv-back" onclick="closePostView()" aria-label="닫기">←</button><span class="pv-bartitle">댓글</span></div>
-  <div class="pv-scroll" id="pvScroll"><div id="pvPost"></div><div class="pv-cmt-head" id="pvCmtHead">댓글</div><div id="pvComments"></div></div>
-  <div class="pv-inputbar"><input id="pvInput" class="pv-input" placeholder="댓글 달기…" maxlength="150" onkeydown="if(event.key==='Enter')submitComment()"><button class="pv-send" onclick="submitComment()">등록</button></div>
-</div>
-<div id="sayuMyView" aria-hidden="true">
-  <div class="pv-bar"><button class="pv-back" onclick="closeMyView()" aria-label="닫기">←</button><span class="pv-bartitle">내 KEEP</span></div>
-  <div class="pv-scroll" id="myScroll">
-    <div id="myProfile"></div>
-    <div class="my-seg"><button class="my-seg-btn" id="mySegKept" onclick="switchMyTab('kept')">MY KEEP</button><button class="my-seg-btn" id="mySegPosts" onclick="switchMyTab('posts')">내가 쓴 글</button></div>
-    <div id="myContent"></div>
-  </div>
-</div>
-<div id="sayuDotsBackdrop" onclick="closeDotsSheet()"></div>
-<div id="sayuDotsSheet" aria-hidden="true">
-  <div id="dsMain">
-    <button class="ds-item danger" id="dsDelete" style="display:none" onclick="dotsDeleteAsk()">삭제하기</button>
-    <button class="ds-item danger" id="dsReportBtn" onclick="dotsReport()">신고하기</button>
-    <button class="ds-item" id="dsHideBtn" onclick="dotsHide()">이 글 숨기기</button>
-    <button class="ds-cancel" onclick="closeDotsSheet()">취소</button>
-  </div>
-  <div id="dsDeleteConfirm" style="display:none">
-    <div class="ds-rtitle">이 글을 삭제할까요?</div>
-    <button class="ds-item danger" onclick="confirmDeletePost()">삭제하기</button>
-    <button class="ds-cancel" onclick="closeDotsSheet()">취소</button>
-  </div>
-  <div id="dsReport" style="display:none">
-    <div class="ds-rtitle">신고 사유를 선택해주세요</div>
-    <button class="ds-item" onclick="submitReport('스팸·광고')">스팸 · 광고</button>
-    <button class="ds-item" onclick="submitReport('부적절한 내용')">부적절한 내용</button>
-    <button class="ds-item" onclick="submitReport('혐오·비방')">혐오 · 비방</button>
-    <button class="ds-item" onclick="submitReport('기타')">기타</button>
-    <button class="ds-cancel" onclick="closeDotsSheet()">취소</button>
-  </div>
-</div>
-<div id="sayuUndoBar" aria-hidden="true"><span class="ub-msg" id="ubMsg">이 글을 숨겼어요</span><button class="ub-action" onclick="undoHide()">실행취소</button></div>
-<div id="sayuDelLockBackdrop" onclick="closeDelLockModal()"></div>
-<div id="sayuDelLockModal" aria-hidden="true">
-  <div class="nm-title">아직 삭제할 수 없어요</div>
-  <div class="nm-desc" id="dlMsg">댓글이 5개 이상 달린 글은 작성 후 한 달이 지나야 삭제할 수 있어요.</div>
-  <div class="nm-actions"><button class="nm-ok" onclick="closeDelLockModal()" style="flex:1">확인</button></div>
-</div>
-<div id="sayuNickBackdrop" onclick="closeNickModal()"></div>
-<div id="sayuNickModal" aria-hidden="true">
-  <div class="nm-title">KEEP에서 쓸 이름</div>
-  <div class="nm-desc">KEEP에 공유한 글과 댓글에 이 이름이 함께 표시돼요. 다른 분들에게도 보이니 본명보다 편한 별명을 추천해요.</div>
-  <input type="text" id="nmInput" class="nm-input" maxlength="12" placeholder="예) 책읽는밤" oninput="updateNickUI()">
-  <div class="nm-hint">한 번 정하면 KEEP 글·댓글에 모두 적용돼요 · 최대 12자</div>
-  <div class="nm-actions"><button class="nm-cancel" onclick="closeNickModal()">취소</button><button class="nm-ok" id="nmOk" onclick="saveNick()" disabled>확인</button></div>
-</div>
-<div id="sayuLimitBackdrop" onclick="closeSayuLimitModal()"></div>
-<div id="sayuLimitModal" aria-hidden="true">
-  <div class="nm-title">오늘은 여기까지예요</div>
-  <div class="nm-desc">KEEP 공유는 하루 3개까지 할 수 있어요. 내일 다시 들려주세요.</div>
-  <div class="nm-actions"><button class="nm-ok" onclick="closeSayuLimitModal()" style="flex:1">확인</button></div>
-</div>
-<div id="sayuLoginBackdrop" onclick="closeSayuLoginModal()"></div>
-<div id="sayuLoginModal" aria-hidden="true">
-  <div class="nm-title">로그인하고 참여해보세요</div>
-  <div class="nm-desc">KEEP 글은 누구나 볼 수 있어요. 댓글·KEEP 저장·공유처럼 함께 남기는 활동은 카카오 로그인 후 이용할 수 있어요.</div>
-  <div class="nm-actions"><button class="nm-cancel" onclick="closeSayuLoginModal()">다음에</button><button class="nm-ok kakao" onclick="closeSayuLoginModal(); sayuStartLogin();">카카오로 로그인</button></div>
-</div>
-<div id="sayuShareBackdrop" onclick="closeSayuShareConfirm()"></div>
-<div id="sayuShareSheet" aria-hidden="true">
-  <div class="ss-handle"></div>
-  <div class="ss-head"><span>KEEP에 공유</span><button class="ss-x" onclick="closeSayuShareConfirm()" aria-label="닫기">✕</button></div>
-  <div class="sc-preview"><span class="sc-ptype quote" id="scPreviewType">인용구</span><div class="sc-pbody" id="scPreviewBody"></div><div class="sc-pbook" id="scPreviewBook"></div></div>
-  <div class="sc-hint">이 글이 KEEP 피드에 내 닉네임과 함께 올라가요.</div>
-  <button class="ss-submit" onclick="confirmShareToSayu()">KEEP에 공유하기</button>
-</div>
 <div class="main-wrap">
 
   <!-- ═══════════ 헤더 ═══════════ -->
@@ -21760,272 +21667,6 @@ body.cn-locked {
   </header>
 
   <!-- ═══════════ 탭 바 ═══════════ -->
-<style id="sayu-styles">
-/* ═══════════ [TAB 5] 사유 — 몽환 피드 (B 라이트 / A midnight) ═══════════ */
-#pane-sayu{ min-height:72vh; background:transparent; }
-.sayu-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.sayu-head-txt{ display:flex; flex-direction:column; gap:6px; }
-.sayu-profile-btn{ width:40px; height:40px; flex:none; border-radius:50%; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); color:#6F5AC8; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.sayu-profile-btn:active{ opacity:.6; }
-/* v2.0.0 — KEEP 웰컴 오버레이 + 알림 배지 */
-#pane-sayu{ position:relative; }
-.sayu-profile-btn{ position:relative; overflow:visible; }
-.sayu-profile-badge{ position:absolute; top:-4px; right:-4px; min-width:19px; height:19px; padding:0 5px; background:#FF3B30; color:#fff; font-size:11px; font-weight:800; line-height:19px; border-radius:10px; text-align:center; border:2px solid #E7E0F4; box-sizing:border-box; pointer-events:none; }
-.sayu-profile-badge[hidden]{ display:none; }
-[data-theme="midnight"] .sayu-profile-badge{ border-color:#241F38; }
-.swo{ position:absolute; inset:0; z-index:60; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 34px; background:rgba(231,225,244,0.46); -webkit-backdrop-filter:blur(13px) saturate(1.05); backdrop-filter:blur(13px) saturate(1.05); }
-.swo[hidden]{ display:none; }
-.swo-mark{ font-family:'Noto Serif KR',serif; font-size:46px; line-height:.7; color:rgba(111,90,200,.4); margin-bottom:20px; }
-.swo-ttl{ font-family:'Noto Serif KR',serif; font-size:24px; font-weight:600; color:#332B4C; line-height:1.5; margin-bottom:18px; letter-spacing:-.01em; }
-.swo-sub{ font-size:14px; line-height:1.9; color:#52496E; max-width:290px; margin-bottom:32px; }
-.swo-cta{ display:inline-block; background:#6F5AC8; color:#fff; font-size:14px; font-weight:700; padding:13px 32px; border-radius:999px; box-shadow:0 6px 18px rgba(111,90,200,.32); border:none; cursor:pointer; font-family:inherit; -webkit-tap-highlight-color:transparent; }
-.swo-cta:active{ opacity:.85; }
-[data-theme="midnight"] .swo{ background:rgba(28,24,46,0.5); }
-[data-theme="midnight"] .swo-ttl{ color:#E8E2F5; }
-[data-theme="midnight"] .swo-sub{ color:#B5ACCF; }
-[data-theme="midnight"] .swo-mark{ color:rgba(180,150,235,.45); }
-.sayu-gate{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:60px 28px 40px; }
-.sg-icon{ width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,.55); color:#8169C9; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
-.sg-title{ font-size:17px; font-weight:800; color:#352D4E; }
-.sg-desc{ font-size:13px; color:#766A92; line-height:1.6; margin-top:10px; max-width:280px; }
-.sg-login{ margin-top:24px; display:inline-flex; align-items:center; gap:7px; border:none; background:#FEE500; color:#191600; font-family:inherit; font-size:14.5px; font-weight:700; padding:13px 26px; border-radius:12px; cursor:pointer; }
-.sg-login:active{ opacity:.85; }
-[data-theme="midnight"] .sg-icon{ background:rgba(255,255,255,.08); color:#C5B6F2; }
-[data-theme="midnight"] .sg-title{ color:#F2EDF8; }
-[data-theme="midnight"] .sg-desc{ color:#9387AE; }
-#sayuMyView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:195; background:#E4DEF1; transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); visibility:hidden; display:flex; flex-direction:column; }
-#sayuMyView.open{ transform:translate(-50%,0); visibility:visible; }
-.my-profile{ display:flex; align-items:center; gap:14px; padding:12px 4px 18px; }
-.my-av{ width:54px; height:54px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:22px; font-weight:800; display:flex; align-items:center; justify-content:center; }
-.my-av-empty{ background:linear-gradient(135deg,#CFC6DD,#A99FBA); }
-.my-pinfo{ flex:1; min-width:0; }
-.my-nick{ font-size:18px; font-weight:800; color:#352D4E; }
-.my-nick-empty{ color:#9A8FB5; font-weight:700; font-size:16px; }
-.my-editnick{ margin-top:5px; border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; cursor:pointer; }
-.my-seg{ display:flex; gap:6px; background:rgba(255,255,255,.5); border-radius:12px; padding:4px; margin:0 0 14px; }
-.my-seg-btn{ flex:1; border:none; background:none; font-family:inherit; font-size:13px; font-weight:700; color:#766A92; padding:9px; border-radius:9px; cursor:pointer; }
-.my-seg-btn.on{ background:#fff; color:#41385C; box-shadow:0 2px 8px rgba(40,30,70,.08); }
-.my-empty{ text-align:center; color:#9A8FB5; font-size:13px; line-height:1.7; padding:40px 0; }
-.my-hidden-row{ display:flex; align-items:center; gap:12px; padding:13px 14px; background:rgba(255,255,255,.5); border-radius:13px; margin-bottom:8px; }
-.mh-body{ flex:1; min-width:0; }
-.mh-name{ font-size:12px; color:#8A7FA3; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mh-text{ font-size:13.5px; color:#3A3352; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mh-restore{ flex:none; border:none; background:#6F5AC8; color:#fff; font-family:inherit; font-size:12.5px; font-weight:700; padding:7px 14px; border-radius:999px; cursor:pointer; }
-.mh-restore:active{ opacity:.7; }
-[data-theme="midnight"] .sayu-profile-btn{ background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.12); color:#C5B6F2; }
-[data-theme="midnight"] #sayuMyView{ background:#1A1722; }
-[data-theme="midnight"] .my-nick{ color:#F2EDF8; }
-[data-theme="midnight"] .my-editnick{ background:rgba(150,125,225,.18); color:#C5B6F2; }
-[data-theme="midnight"] .my-seg{ background:rgba(255,255,255,.06); }
-[data-theme="midnight"] .my-seg-btn{ color:#9387AE; }
-[data-theme="midnight"] .my-seg-btn.on{ background:#332E44; color:#F2EDF8; }
-[data-theme="midnight"] .my-hidden-row{ background:rgba(255,255,255,.05); }
-[data-theme="midnight"] .mh-text{ color:#CFC6DD; }
-.sayu-head .sayu-title{ font-size:19px; font-weight:700; color:#352D4E; letter-spacing:.01em; }
-.sayu-head .sayu-title .sayu-title-ko{ font-weight:600; font-size:19px; color:#574C76; }
-.sayu-head .sayu-desc{ font-size:12.5px; color:#766A92; }
-.sayu-card{ background:rgba(255,255,255,.62); border:1px solid rgba(255,255,255,.85); border-radius:16px; padding:15px 16px; margin-bottom:12px; box-shadow:0 10px 26px rgba(120,100,150,.13); }
-.sayu-top{ display:flex; align-items:center; gap:8px; margin-bottom:11px; }
-.sayu-av{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; flex-shrink:0; }
-.sayu-name{ font-size:13px; font-weight:500; color:#41385C; }
-.sayu-time{ font-size:11px; color:#9A8FB0; }
-.sayu-tag{ margin-left:auto; font-size:10.5px; padding:2px 9px; border-radius:999px; background:rgba(167,133,201,.16); color:#7C6B96; white-space:nowrap; }
-.sayu-quote{ font-family:'Noto Serif KR',serif; font-size:14px; line-height:1.65; color:#352E4A; padding-left:12px; border-left:2px solid rgba(167,133,201,.55); }
-.sayu-review{ font-family:'Noto Serif KR',serif; font-size:14px; line-height:1.65; color:#352E4A; }
-.sayu-clamp{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-.sayu-more{ color:#9A8FB0; font-weight:500; }
-.sayu-more[hidden]{ display:none; }
-.sayu-bookchip{ display:flex; align-items:center; gap:8px; margin-top:11px; padding:7px 9px; background:rgba(255,255,255,.5); border-radius:9px; }
-.sayu-cover{ width:22px; height:30px; border-radius:3px; flex-shrink:0; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:rgba(255,255,255,.92); }
-.sayu-bookmeta{ font-size:12px; color:#5A5070; line-height:1.35; }
-.sayu-bookmeta .sub{ color:#9A8FB0; font-size:11px; }
-.sayu-foot{ display:flex; align-items:center; margin-top:12px; padding-top:11px; border-top:1px solid rgba(120,100,150,.15); }
-.sayu-keep{ display:inline-flex; align-items:center; gap:6px; border:none; background:transparent; cursor:pointer; font-family:inherit; font-size:13px; padding:5px 11px 5px 9px; margin-left:-5px; border-radius:20px; color:#8A7FA3; transition:background .18s,color .18s; }
-.sayu-keep .kic{ fill:none; stroke:currentColor; stroke-width:1.8; }
-.sayu-keep b{ font-weight:800; font-size:12.5px; letter-spacing:.03em; }
-.sayu-keep .n{ color:#6D6480; font-weight:700; }
-.sayu-keep.on{ color:#7A5AC2; background:rgba(140,110,210,.14); }
-.sayu-keep.on .kic{ fill:currentColor; stroke:none; }
-.sayu-keep.on .n{ color:#7A5AC2; }
-/* ── 책별 공명 뷰 ── */
-body.sayu-book-open{ overflow:hidden; }
-#sayuBookView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:200; background:#E4DEF1; transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); overflow-y:auto; visibility:hidden; -webkit-overflow-scrolling:touch; }
-#sayuBookView.open{ transform:translate(-50%,0); visibility:visible; }
-.bv-bar{ position:sticky; top:0; display:flex; align-items:center; gap:8px; padding:14px 16px 10px; background:#E4DEF1; z-index:2; }
-.bv-back{ width:34px; height:34px; border:none; background:rgba(255,255,255,.6); border-radius:50%; font-size:19px; color:#41385C; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.bv-bartitle{ font-size:14px; font-weight:700; color:#41385C; }
-.bv-hero{ display:flex; gap:14px; align-items:center; padding:6px 18px 16px; }
-.bv-cover{ width:60px; height:84px; border-radius:8px; flex:none; box-shadow:0 6px 16px rgba(80,60,120,.2); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.92); font-size:15px; font-weight:700; }
-.bv-title{ font-size:18px; font-weight:800; color:#2E2748; letter-spacing:-.01em; }
-.bv-author{ font-size:13px; color:#6F6590; margin-top:3px; }
-.bv-count{ font-size:12.5px; color:#7C7299; margin-top:9px; font-weight:700; }
-.bv-controls{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 18px 14px; flex-wrap:wrap; }
-.bv-sort{ display:inline-flex; background:rgba(255,255,255,.5); border-radius:11px; padding:3px; }
-.bv-sort button{ border:none; background:transparent; font-size:12.5px; font-weight:600; color:#7C7299; padding:6px 12px; border-radius:9px; cursor:pointer; }
-.bv-sort button.on{ background:#fff; color:#41385C; box-shadow:0 2px 6px rgba(80,60,120,.12); }
-.bv-filter{ display:inline-flex; gap:6px; }
-.bv-filter button{ border:none; background:rgba(255,255,255,.5); font-size:12px; font-weight:600; color:#7C7299; padding:6px 11px; border-radius:20px; cursor:pointer; }
-.bv-filter button.on{ background:#6F5AC8; color:#fff; }
-.bv-feed{ padding:0 16px 44px; }
-.bv-empty{ text-align:center; color:#8A7FA3; font-size:13px; padding:36px 0; }
-/* ── 글 상세 + 댓글 ── */
-#sayuPostView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:210; background:#E4DEF1; transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); visibility:hidden; display:flex; flex-direction:column; }
-#sayuDotsSheet{ position:fixed; z-index:320; left:50%; bottom:0; width:100%; max-width:480px; transform:translate(-50%,100%); transition:transform .28s cubic-bezier(.4,0,.2,1); background:#FBF8FF; border-radius:22px 22px 0 0; padding:14px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow:0 -12px 40px rgba(40,30,70,.22); visibility:hidden; }
-#sayuDotsSheet.open{ transform:translate(-50%,0); visibility:visible; }
-.ds-rtitle{ font-size:12.5px; font-weight:700; color:#8A7FA3; text-align:center; padding:4px 0 10px; }
-.ds-item{ display:block; width:100%; border:none; background:none; font-family:inherit; font-size:15px; color:#2E2748; padding:14px; border-radius:12px; cursor:pointer; text-align:center; }
-.ds-item:active{ background:rgba(120,100,160,.08); }
-.ds-item.danger{ color:#D4585E; font-weight:600; }
-.ds-cancel{ display:block; width:100%; border:none; background:#EFEAF6; font-family:inherit; font-size:15px; font-weight:700; color:#6F6590; padding:14px; border-radius:12px; cursor:pointer; margin-top:6px; }
-[data-theme="midnight"] #sayuDotsSheet{ background:#211D2B; }
-[data-theme="midnight"] .ds-item{ color:#EFEAF8; }
-[data-theme="midnight"] .ds-cancel{ background:#332E44; color:#B9AECF; }
-#sayuUndoBar{ position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); transform:translate(-50%,12px); z-index:340; display:flex; align-items:center; gap:14px; max-width:calc(100% - 32px); background:#2E2748; color:#F2EDF8; padding:13px 16px 13px 18px; border-radius:14px; box-shadow:0 10px 30px rgba(30,20,55,.35); opacity:0; visibility:hidden; transition:opacity .22s ease, transform .22s ease; }
-#sayuUndoBar.show{ opacity:1; visibility:visible; transform:translate(-50%,0); }
-.ub-msg{ font-size:13.5px; }
-.ub-action{ border:none; background:none; color:#C5B6F2; font-family:inherit; font-size:13.5px; font-weight:800; cursor:pointer; padding:2px 4px; flex:none; }
-#sayuPostView.open{ transform:translate(-50%,0); visibility:visible; }
-.pv-bar{ display:flex; align-items:center; gap:8px; padding:14px 16px 10px; background:#E4DEF1; flex:none; }
-.pv-back{ width:34px; height:34px; border:none; background:rgba(255,255,255,.6); border-radius:50%; font-size:19px; color:#41385C; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.pv-bartitle{ font-size:14px; font-weight:700; color:#41385C; }
-.pv-scroll{ flex:1; overflow-y:auto; padding:0 16px 16px; -webkit-overflow-scrolling:touch; }
-.pv-post{ background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); border-radius:16px; padding:16px; margin-top:6px; }
-.pv-review{ font-size:15px; line-height:1.66; color:#2E2748; white-space:pre-wrap; margin:6px 0 0; }
-.pv-post .sayu-bookchip{ margin-top:13px; }
-.pv-post-foot{ margin-top:13px; padding-top:11px; border-top:1px solid rgba(120,100,160,.13); }
-.pv-cmt-head{ font-size:13px; font-weight:700; color:#574C76; margin:20px 4px 6px; }
-.pv-cmt{ display:flex; gap:10px; padding:11px 2px; }
-.pv-cmt-av{ width:30px; height:30px; border-radius:50%; flex:none; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-.pv-cmt-body{ flex:1; min-width:0; }
-.pv-cmt-line{ display:flex; align-items:baseline; gap:6px; }
-.pv-cmt-name{ font-size:12.5px; font-weight:700; color:#41385C; }
-.pv-cmt-time{ font-size:11px; color:#A99FBA; }
-.pv-cmt-text{ font-size:13.5px; color:#3A3352; line-height:1.5; margin-top:2px; word-break:break-word; }
-.pv-cmt-empty{ text-align:center; color:#9A8FB5; font-size:13px; padding:26px 0; }
-.pv-cmt-actions{ display:flex; gap:12px; margin-top:5px; }
-.pv-cmt-act{ border:none; background:none; font-family:inherit; font-size:11.5px; color:#9A8FB5; cursor:pointer; padding:2px 0; }
-.pv-cmt-act.save{ color:#6F5AC8; font-weight:700; }
-.pv-cmt-editwrap{ margin-top:5px; }
-.pv-cmt-edit-input{ width:100%; border:1.5px solid #DCD3EC; border-radius:9px; padding:7px 10px; font-size:13.5px; font-family:inherit; color:#2E2748; background:#fff; }
-.pv-cmt-edit-input:focus{ outline:none; border-color:#8169C9; }
-.pv-cmt-editbtns{ display:flex; gap:14px; justify-content:flex-end; margin-top:7px; }
-[data-theme="midnight"] .pv-cmt-edit-input{ background:#2A2536; border-color:#3A3450; color:#F2EDF8; }
-[data-theme="midnight"] .pv-cmt-act.save{ color:#C5B6F2; }
-.pv-inputbar{ flex:none; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#fff; border-top:1px solid rgba(120,100,160,.12); }
-.pv-input{ flex:1; min-width:0; border:1.5px solid #DCD3EC; border-radius:20px; padding:10px 14px; font-size:14px; font-family:inherit; color:#2E2748; background:#F7F4FC; }
-.pv-input:focus{ outline:none; border-color:#8169C9; background:#fff; }
-.pv-send{ border:none; background:#6F5AC8; color:#fff; border-radius:20px; padding:0 16px; font-size:13.5px; font-weight:700; font-family:inherit; cursor:pointer; flex:none; }
-[data-theme="midnight"] #sayuPostView{ background:#1A1722; }
-[data-theme="midnight"] .pv-bar{ background:#1A1722; }
-[data-theme="midnight"] .pv-back{ background:rgba(255,255,255,.1); color:#E8E2F2; }
-[data-theme="midnight"] .pv-bartitle{ color:#E8E2F2; }
-[data-theme="midnight"] .pv-post{ background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.08); }
-[data-theme="midnight"] .pv-review{ color:#EFEAF8; }
-[data-theme="midnight"] .pv-cmt-head{ color:#B9AECF; }
-[data-theme="midnight"] .pv-cmt-name{ color:#E8E2F2; }
-[data-theme="midnight"] .pv-cmt-text{ color:#CFC6DD; }
-[data-theme="midnight"] .pv-inputbar{ background:#211D2B; border-top-color:rgba(255,255,255,.08); }
-[data-theme="midnight"] .pv-input{ background:#2A2536; border-color:#3A3450; color:#F2EDF8; }
-/* ── 공통 오버레이 ── */
-#sayuNickBackdrop, #sayuShareBackdrop, #sayuLimitBackdrop, #sayuDotsBackdrop, #sayuLoginBackdrop, #sayuDelLockBackdrop{ position:fixed; inset:0; z-index:300; background:rgba(30,24,46,.42); opacity:0; visibility:hidden; transition:opacity .25s ease; }
-#sayuNickBackdrop.open, #sayuShareBackdrop.open, #sayuLimitBackdrop.open, #sayuDotsBackdrop.open, #sayuLoginBackdrop.open, #sayuDelLockBackdrop.open{ opacity:1; visibility:visible; }
-/* ── 닉네임 모달 ── */
-#sayuNickModal, #sayuLimitModal, #sayuLoginModal, #sayuDelLockModal{ position:fixed; z-index:320; left:50%; top:50%; width:calc(100% - 56px); max-width:340px; transform:translate(-50%,-46%) scale(.96); opacity:0; visibility:hidden; transition:all .26s cubic-bezier(.4,0,.2,1); background:#FBF8FF; border-radius:20px; padding:22px 20px 18px; box-shadow:0 24px 60px rgba(40,30,70,.3); }
-#sayuNickModal.open, #sayuLimitModal.open, #sayuLoginModal.open, #sayuDelLockModal.open{ transform:translate(-50%,-50%) scale(1); opacity:1; visibility:visible; }
-.nm-title{ font-size:16px; font-weight:800; color:#2E2748; }
-.nm-desc{ font-size:12.5px; color:#8A7FA3; margin-top:6px; line-height:1.55; }
-.nm-hint{ font-size:11.5px; color:#A99FBA; margin-top:9px; text-align:center; line-height:1.5; }
-.nm-ok.kakao{ background:#FEE500; color:#191600; }
-[data-theme="midnight"] .nm-hint{ color:#8B82A0; }
-.nm-input{ width:100%; margin-top:16px; border:1.5px solid #DCD3EC; border-radius:11px; padding:12px 13px; font-size:14px; font-family:inherit; color:#2E2748; background:#fff; }
-.nm-input:focus{ outline:none; border-color:#8169C9; }
-.nm-actions{ display:flex; gap:8px; margin-top:16px; }
-.nm-actions button{ flex:1; border:none; border-radius:11px; padding:12px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; }
-.nm-cancel{ background:#EFEAF6; color:#6F6590; }
-.nm-ok{ background:#6F5AC8; color:#fff; }
-.nm-ok:disabled{ background:#C9C0E0; cursor:default; }
-/* ── 공유 시트 ── */
-#sayuShareSheet{ position:fixed; z-index:320; left:50%; bottom:0; width:100%; max-width:480px; transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); background:#FBF8FF; border-radius:22px 22px 0 0; padding:10px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow:0 -12px 40px rgba(40,30,70,.22); visibility:hidden; }
-#sayuShareSheet.open{ transform:translate(-50%,0); visibility:visible; }
-.ss-handle{ width:38px; height:4px; border-radius:3px; background:#D8CFE8; margin:4px auto 10px; }
-.ss-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.ss-head span{ font-size:15.5px; font-weight:800; color:#2E2748; }
-.ss-x{ border:none; background:none; font-size:16px; color:#9389A8; cursor:pointer; padding:4px; }
-.sc-preview{ background:#fff; border:1px solid #ECE6F5; border-radius:14px; padding:15px; margin-bottom:13px; }
-.sc-ptype{ display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:9px; }
-.sc-ptype.quote{ color:#6f6388; background:rgba(150,120,200,.14); }
-.sc-ptype.review{ color:#455045; background:#E8ECE6; }
-.sc-pbody{ font-family:'Noto Serif KR',serif; font-size:15px; line-height:1.62; color:#2E2748; max-height:168px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; }
-.sc-pbook{ font-size:12px; color:#8A7FA3; margin-top:11px; padding-top:10px; border-top:1px solid #F0ECF6; }
-.sc-hint{ font-size:12px; color:#9389A8; text-align:center; margin:2px 0 14px; }
-.ss-submit{ width:100%; border:none; border-radius:13px; padding:14px; font-size:14.5px; font-weight:800; font-family:inherit; background:#6F5AC8; color:#fff; cursor:pointer; }
-.ss-submit:disabled{ background:#C9C0E0; cursor:default; }
-.sayu-cmt{ display:inline-flex; align-items:center; gap:5px; margin-left:16px; font-size:13px; color:#8A7FA3; border:none; background:none; cursor:pointer; font-family:inherit; padding:0; }
-.sayu-dots{ margin-left:auto; color:#A99FBA; background:none; border:none; cursor:pointer; padding:0; display:inline-flex; }
-/* ─── midnight(다크) = 박명 무드 ─── */
-[data-theme="midnight"] #pane-sayu{ background:transparent; }
-/* ── 사유 탭 활성 시 화면 전체를 몽환 톤으로 ── */
-body::before{ content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0; transition:opacity .6s ease; background:#DDD5EE; }
-.app-header, .tab-bar { transition: background .6s ease; }
-body.sayu-active::before{ opacity:1; }
-#sayuBackdrop{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .5s ease; background:radial-gradient(48% 34% at 86% 30%, rgba(165,172,238,.5), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(160,148,228,.46), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(198,172,224,.4), transparent 72%), linear-gradient(180deg,#DDD5EE 0px,#DDD5EE 300px,#D5CDE8 640px,#CCC5E3 100%); }
-body.sayu-active #sayuBackdrop{ opacity:1; }
-[data-theme="midnight"] #sayuBackdrop{ background:radial-gradient(48% 34% at 86% 30%, rgba(92,98,152,.32), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(82,74,132,.28), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(112,86,138,.22), transparent 72%), linear-gradient(180deg,#16141F 0px,#16141F 300px,#1C1A28 640px,#211E30 100%); }
-body.sayu-active{ background:#DDD5EE; }
-body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
-body.sayu-active #pane-sayu{ background:transparent; }
-[data-theme="midnight"] body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
-[data-theme="midnight"] body.sayu-active #pane-sayu{ background:transparent; }
-body.sayu-active .app-header{ background:#DDD5EE; }
-body.sayu-active .tab-bar{ background:#DDD5EE; }
-[data-theme="midnight"] body::before{ background:#16141F; }
-[data-theme="midnight"] body.sayu-active .app-header{ background:#16141F; }
-[data-theme="midnight"] body.sayu-active .tab-bar{ background:#16141F; }
-[data-theme="midnight"] .sayu-head .sayu-title{ color:#F2EDF8; }
-[data-theme="midnight"] .sayu-head .sayu-title .sayu-title-ko{ color:#CABFE2; }
-[data-theme="midnight"] .sayu-head .sayu-desc{ color:#9387AE; }
-[data-theme="midnight"] .sayu-card{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 30px rgba(8,6,16,.4); }
-[data-theme="midnight"] .sayu-name{ color:#EDE7F5; }
-[data-theme="midnight"] .sayu-time{ color:#9387AE; }
-[data-theme="midnight"] .sayu-tag{ background:rgba(255,255,255,.08); color:#CFC4E0; }
-[data-theme="midnight"] .sayu-quote{ color:#F4F0FA; border-left-color:rgba(201,166,224,.5); }
-[data-theme="midnight"] .sayu-review{ color:#F4F0FA; }
-[data-theme="midnight"] .sayu-bookchip{ background:rgba(0,0,0,.22); }
-[data-theme="midnight"] .sayu-bookmeta{ color:#D6CDE5; }
-[data-theme="midnight"] .sayu-bookmeta .sub{ color:#9387AE; }
-[data-theme="midnight"] .sayu-foot{ border-top-color:rgba(255,255,255,.1); }
-[data-theme="midnight"] .sayu-keep{ color:#C9BFD9; }
-[data-theme="midnight"] .sayu-keep .n{ color:#D6CDE5; }
-[data-theme="midnight"] .sayu-keep.on{ color:#C5A9F2; background:rgba(160,130,230,.2); }
-[data-theme="midnight"] .sayu-keep.on .n{ color:#C5A9F2; }
-[data-theme="midnight"] #sayuBookView{ background:#1A1722; }
-[data-theme="midnight"] .bv-bar{ background:#1A1722; }
-[data-theme="midnight"] .bv-back{ background:rgba(255,255,255,.1); color:#E8E2F2; }
-[data-theme="midnight"] .bv-bartitle{ color:#E8E2F2; }
-[data-theme="midnight"] .bv-title{ color:#F2EDF8; }
-[data-theme="midnight"] .bv-author{ color:#A99FC0; }
-[data-theme="midnight"] .bv-count{ color:#B9AECF; }
-[data-theme="midnight"] .bv-sort{ background:rgba(255,255,255,.08); }
-[data-theme="midnight"] .bv-sort button{ color:#B9AECF; }
-[data-theme="midnight"] .bv-sort button.on{ background:#39314A; color:#F2EDF8; box-shadow:none; }
-[data-theme="midnight"] .bv-filter button{ background:rgba(255,255,255,.08); color:#B9AECF; }
-[data-theme="midnight"] .bv-filter button.on{ background:#8169C9; color:#fff; }
-[data-theme="midnight"] #sayuNickModal, [data-theme="midnight"] #sayuShareSheet, [data-theme="midnight"] #sayuLimitModal, [data-theme="midnight"] #sayuLoginModal, [data-theme="midnight"] #sayuDelLockModal{ background:#211D2B; }
-[data-theme="midnight"] .nm-title, [data-theme="midnight"] .ss-head span{ color:#F2EDF8; }
-[data-theme="midnight"] .nm-input{ background:#2A2536; border-color:#3A3450; color:#F2EDF8; }
-[data-theme="midnight"] .nm-cancel{ background:#332E44; color:#B9AECF; }
-[data-theme="midnight"] .sc-preview{ background:#2A2536; border-color:#3A3450; }
-[data-theme="midnight"] .sc-pbody{ color:#F2EDF8; }
-[data-theme="midnight"] .sc-pbook{ color:#A99FC0; border-top-color:#3A3450; }
-[data-theme="midnight"] .sc-hint{ color:#9387AE; }
-[data-theme="midnight"] .ss-handle{ background:#3A3450; }
-[data-theme="midnight"] .sayu-cmt{ color:#B9AECF; }
-[data-theme="midnight"] .sayu-more{ color:#9387AE; }
-.sayu-tab-label{ position:relative; }
-.sayu-new-dot{ position:absolute; top:-3px; right:-9px; width:6px; height:6px; border-radius:50%; background:#C3A4E6; box-shadow:0 0 5px 1px rgba(195,164,230,.85); animation:sayuTwinkle 1.8s ease-in-out infinite; pointer-events:none; }
-@keyframes sayuTwinkle{ 0%,100%{ opacity:.5; transform:scale(.82); box-shadow:0 0 3px 0 rgba(195,164,230,.45); } 50%{ opacity:1; transform:scale(1.18); box-shadow:0 0 8px 2px rgba(195,164,230,.95); } }
-@media (prefers-reduced-motion:reduce){ .sayu-new-dot{ animation:none; opacity:.9; } }
-</style>
   <nav class="tab-bar">
     <div class="tab-isl">
       <span class="tab-thumb"></span>
@@ -22040,9 +21681,6 @@ body.sayu-active .tab-bar{ background:#DDD5EE; }
       </button>
       <button class="tab-btn" data-tab="notes">
         <span class="tab-icon">✍️</span><span>노트</span>
-      </button>
-      <button class="tab-btn" data-tab="sayu">
-        <span class="tab-icon">🌙</span><span class="sayu-tab-label">KEEP<i class="sayu-new-dot" aria-label="새 기능"></i></span>
       </button>
     </div>
   </nav>
@@ -22414,28 +22052,6 @@ body.sayu-active .tab-bar{ background:#DDD5EE; }
       <!-- JS 렌더 -->
     </div>
 
-  </section>
-
-  <!-- ═══════════ [TAB 5] 사유 — 공유 노트 피드 (1a 스캐폴드·더미) ═══════════ -->
-  <section class="pane" id="pane-sayu">
-    <div class="sayu-head">
-      <div class="sayu-head-txt">
-        <div class="sayu-title">KEEP</div>
-        <div class="sayu-desc">당신과 나, 우리의 책 이야기</div>
-      </div>
-      <button class="sayu-profile-btn" onclick="openMyView()" aria-label="내 KEEP">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.8 3.6-6 8-6s8 2.2 8 6"/></svg>
-        <span class="sayu-profile-badge" id="sayuProfileBadge" hidden></span>
-      </button>
-    </div>
-    <div class="sayu-feed" id="sayuFeed">
-    </div>
-    <div class="swo" id="sayuWelcome" hidden>
-      <div class="swo-mark">&#10077;</div>
-      <div class="swo-ttl">혼자 읽던 문장을,<br>이제 함께</div>
-      <div class="swo-sub">노트에 간직해둔 생각과 인용구를 꺼내어, 비슷한 마음을 가진 분들과 조용히 나눠보세요. 당신의 한 줄이 누군가에겐 위로가 될지도 몰라요.</div>
-      <button class="swo-cta" onclick="dismissSayuWelcome()">KEEP 시작하기</button>
-    </div>
   </section>
 
   </div><!-- /.pane-track -->
@@ -23708,28 +23324,92 @@ body.sayu-active .tab-bar{ background:#DDD5EE; }
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
     <div class="wn-badge" id="wnBadge">업데이트 소식</div>
-    <div class="wn-ttl">밑줄 친 그 문장, 이제 함께 나눠요</div>
-    <div class="wn-sub">혼자 기록하던 keepbook에 이제 함께하는 작은 공간이 생겼어요. 노트에 적어 간직하던 내 생각들, 인상깊었던 인용구들을 다른 사람들과 함께 조용히 나누고 더 많은 영감을 얻어가세요.</div>
+    <div class="wn-ttl">내 독서 기록을 더 자세히, 더 정확하게</div>
+    <div class="wn-sub">타이머 세션을 자세히 보고 고칠 수 있게 됐어요. 그동안 답답했던 부분들을 한꺼번에 정리했습니다.</div>
 
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(111,90,200,0.13),rgba(111,90,200,0.04));border:1px solid rgba(111,90,200,0.45);">
-      <div class="wn-hero-tag" style="background:#6F5AC8;color:#fff;">
-        <span style="font-size:11px;">🌙</span>
-        NEW · KEEP
+    <!-- 1. 타이머 세션 상세보기 (메인 HERO — sage 진중) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(95,107,95,0.14),rgba(95,107,95,0.04));border:1px solid rgba(95,107,95,0.45);">
+      <div class="wn-hero-tag" style="background:#5F6B5F;color:#fff;">
+        <span style="font-size:11px;">⏱</span>
+        NEW · 타이머 세션 상세
       </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">다섯 번째 탭, KEEP</div>
-      <div class="wn-hero-sub" style="margin-bottom:14px;">내 서재는 그대로 비공개예요. 내가 올리기로 한 글만 KEEP 피드에 올라가요.</div>
-      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(111,90,200,0.22);">
-        <div style="font-size:12px;color:var(--c-text);line-height:1.9;">
-          <div style="margin-bottom:6px;">처음 한 번 <b style="font-weight:700;">KEEP에서 쓸 이름</b> 정하기</div>
-          <div style="margin-bottom:6px;">노트 카드의 <b style="font-weight:700;">[+ KEEP]</b> 버튼으로 문장 공유</div>
-          <div style="margin-bottom:6px;">댓글을 남기고, 마음에 든 글은 <b style="font-weight:700;">KEEP 저장</b></div>
-          <div>공유는 하루 <b style="font-weight:700;">3개</b>까지, 천천히</div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">기록한 세션을 보고, 고치고, 지울 수 있어요</div>
+      <div class="wn-hero-sub" style="margin-bottom:14px;">"기록 저장" 누르면 어딘가에 쌓이긴 하는데 다시 볼 방법이 없었거든요. 잘못 입력한 30분 60페이지를 못 고쳐서 답답하셨던 분들 — 이제 됩니다.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(95,107,95,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">📂 책상세 → 진행률 바 아래 <b style="font-weight:700;">⏱ 타이머 세션 N회</b> 알약</div>
+          <div style="margin-bottom:5px;">📊 <b style="font-weight:700;">통계 한 줄</b> — 총 시간 · 총 페이지(또는 %) · 평균/세션</div>
+          <div style="margin-bottom:5px;">📱 <b style="font-weight:700;">매체별 표시</b> — 종이는 <code>170→195p</code>, 전자/오디오는 <code>+8% (≈ 25p)</code></div>
+          <div>✏️ 세션 행 탭 → <b style="font-weight:700;">분 · 페이지(%) · 날짜</b> 수정, 휴지통으로 삭제</div>
+        </div>
+      </div>
+      <div class="wn-sync-status" style="margin-top:12px;font-size:10.5px;">
+        <span class="dot"></span> 세션을 고치거나 지워도 책의 <b>현재 페이지는 그대로</b> 유지 (안전)
+      </div>
+    </div>
+
+    <!-- 2. 모달 순서 정리 (인프라 — 짙은 잉크) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(74,74,69,0.10),rgba(74,74,69,0.03));border:1px solid rgba(74,74,69,0.40);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#4A4A45;color:#fff;">
+        <span style="font-size:11px;">🪟</span>
+        FIX · 모달 순서
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">책상세 뒤로 숨던 창들이 제대로 떠요</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">사용자분이 직접 신고해주신 케이스 두 건을 포함해, 모달 우선순위 체계를 처음부터 다시 짰습니다.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(74,74,69,0.22);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">✅ <b style="font-weight:700;">완독 → 독서중 전환</b> 시 확인창이 책상세 위에 제대로</div>
+          <div style="margin-bottom:5px;">✅ 시네마 → <b style="font-weight:700;">기록 저장</b> 누르면 페이지 입력 시트가 책상세 위로</div>
+          <div>🔧 70개 정도 되는 모달을 새 우선순위 체계(시트→모달→확인→시네마)로 일괄 정리</div>
         </div>
       </div>
     </div>
 
+    <!-- 3. 이번 달 요약 (개선 — 모카) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(184,149,106,0.12),rgba(184,149,106,0.04));border:1px solid rgba(184,149,106,0.40);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#B8956A;color:#fff;">
+        <span style="font-size:11px;">📊</span>
+        개선 · 이번 달 요약
+      </div>
+      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">진짜 내가 읽은 만큼만</div>
+      <div class="wn-hero-sub" style="margin-bottom:12px;">600쪽 책을 한 달 내내 읽다 다음 달 1일에 완독하면 — 이번 달 페이지가 0으로 잡혔어요. 그게 좀 이상하잖아요.</div>
+
+      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(184,149,106,0.25);">
+        <div style="font-size:11.5px;color:var(--c-text);line-height:1.75;">
+          <div style="margin-bottom:5px;">📖 <b style="font-weight:700;">페이지</b> = 이번 달 <b>타이머 세션의 페이지 합</b> (실제로 읽은 분량)</div>
+          <div style="margin-bottom:5px;">📅 <b style="font-weight:700;">독서일</b> = 이번 달 <b>세션이 있었던 날의 수</b> (실제로 책 펼친 날)</div>
+          <div>ℹ️ 독서일 옆 <b style="font-weight:700;">(i) 버튼</b> — 세 숫자가 각각 뭘 의미하는지 시트로 안내</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 태그 실시간 반영 (FIX — plum) -->
+    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(123,112,128,0.10),rgba(123,112,128,0.03));margin-top:14px;border:1px solid rgba(123,112,128,0.40);">
+      <div class="wn-hero-tag" style="background:#7B7080;color:#fff;">
+        <span style="font-size:11px;">🏷</span>
+        FIX · 태그 실시간 반영
+      </div>
+      <div class="wn-hero-ttl" style="font-size:18px;color:var(--c-text);font-weight:800;">태그 추가하면 즉시 위에 반영돼요</div>
+      <div class="wn-hero-sub" style="margin-bottom:10px;">"디스토피아" 같은 태그를 추가했는데 위쪽 요약은 안 바뀌어서 모달 닫았다 다시 열어야 보였던 거 — 이제 추가/삭제/숨김 복구 모두 즉시 반영됩니다.</div>
+    </div>
+
+    <!-- 5. 작은 변화들 (회색 콤팩트) -->
+    <div class="wn-hero" style="background:rgba(220,220,216,0.30);border:1px solid rgba(122,122,117,0.30);margin-top:14px;">
+      <div class="wn-hero-tag" style="background:#7A7A75;color:#fff;">
+        <span style="font-size:11px;">🐛</span>
+        버그 수정
+      </div>
+      <div class="wn-hero-ttl" style="font-size:16px;color:var(--c-text);font-weight:700;margin-bottom:8px;">자잘하지만 답답했던 것들</div>
+
+      <div style="font-size:11.5px;color:var(--c-text-2);line-height:1.75;">
+        <div style="margin-bottom:4px;">🔥 <b style="font-weight:700;color:var(--c-text);">연속 독서 기록(streak)</b> — 책만 추가했는데 "연속 최고 기록 진행 중"으로 뜨던 거 수정. 실제 타이머 세션이 있는 날만 카운트</div>
+      </div>
+    </div>
+
     <div class="wn-actions" style="margin-top:18px;">
-      <button class="wn-btn primary" id="wnGoStats">KEEP 보러가기</button>
+      <button class="wn-btn primary" id="wnGoStats">확인했어요</button>
     </div>
   </div>
 </div>
@@ -26195,7 +25875,7 @@ async function _ltPasteFromClipboard() {
 /* 페이지 로드 시 자동 초기화 — DOMContentLoaded 타이밍 이슈 회피 패턴 */
 (function _initAuth() {
   const init = () => {
-    try { Promise.resolve(READ_AUTH.handleCallback()).then(function(){ try{ sayuPostLoginNickCheck(); }catch(e){} }); } catch(e) { console.warn('[auth] callback init', e); }
+    try { READ_AUTH.handleCallback(); } catch(e) { console.warn('[auth] callback init', e); }
     try { READ_AUTH.refreshUI(); } catch(e) { console.warn('[auth] ui init', e); }
   };
   if (document.readyState === 'loading') {
@@ -26483,449 +26163,7 @@ document.addEventListener('keydown', (e) => {
 /* ═══════════ 탭 전환 — 캐러셀 (클릭 + 드래그 + 스냅) ═══════════ */
 const tabBtns = document.querySelectorAll('.tab-btn');
 const panes   = document.querySelectorAll('.pane');
-const TAB_ORDER = ['library', 'stats', 'goals', 'notes', 'sayu'];
-function toggleKeep(btn, id){
-  if(!sayuNeedLogin()) return;
-  const on = btn.classList.toggle('on');
-  const n = btn.querySelector('.n');
-  const c = parseInt(n.textContent, 10) || 0;
-  n.textContent = c + (on ? 1 : -1);
-  try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
-  if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
-  keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
-    if(!r.ok){
-      var back = btn.classList.toggle('on');
-      var c2 = parseInt(n.textContent,10)||0; n.textContent = c2 + (back?1:-1);
-      try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2){ k2.kept=back; k2.keep=c2+(back?1:-1);} }catch(e){}
-      if(typeof showToast==='function') showToast('처리에 실패했어요.');
-      return;
-    }
-    if(r.data){
-      if(typeof r.data.kept==='boolean') btn.classList.toggle('on', r.data.kept);
-      if(typeof r.data.count==='number'){ n.textContent=r.data.count; try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3){ k3.kept=!!r.data.kept; k3.keep=r.data.count; } }catch(e){} }
-      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept' && r.data.kept===false){ renderMyView(); } }catch(e){}
-    }
-  });
-}
-
-// ── 공명 더미 데이터 + 렌더 (1a) ──
-const SAYU_IC = {
-  keep:'<svg class="kic" viewBox="0 0 24 24" width="13" height="15" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>',
-  cmt:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.7-.85L3 21l1.85-5.8A8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>',
-  dots:'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>'
-};
-// ── KEEP 데이터: 서버에서 받아온 글 캐시 (이전: 더미 6개) ──
-let SAYU_POSTS = [];
-let _sayuFeedCursor = null;
-let _sayuFeedLoaded = false;
-
-// KEEP API 호출 (토큰 자동 첨부) → { ok, status, data }
-async function keepApi(method, path, body){
-  var url = ALADIN_PROXY_URL + path;
-  var opts = { method: method, headers: {} };
-  if (body !== undefined){ opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
-  var res;
-  try {
-    res = (typeof READ_AUTH!=='undefined' && READ_AUTH.authFetch) ? await READ_AUTH.authFetch(url, opts) : await fetch(url, opts);
-  } catch(e){ return { ok:false, status:0, data:null }; }
-  var json=null; try{ json=await res.json(); }catch(e){}
-  return { ok: res.ok, status: res.status, data: json };
-}
-
-// 닉 → 아바타 [색1,색2,이니셜] (결정적)
-function _sayuAvatar(nick){
-  var n = String(nick||'익명');
-  var h=0; for(var i=0;i<n.length;i++){ h=(h*31+n.charCodeAt(i))>>>0; }
-  var pal = SAYU_PAL[h % SAYU_PAL.length];
-  return [pal[0], pal[1], n.charAt(0)];
-}
-// 서버 cover([색1,색2] 또는 URL문자열) → 화면용
-function _sayuCover(cover){
-  if (Array.isArray(cover) && cover.length>=2) return cover;
-  return ['#9C8AB8','#5E4A78']; // URL 표지는 추후 처리, 일단 기본 그라데이션
-}
-function _sayuFromApi(p){
-  var nick = (p.author && p.author.nick) || '익명';
-  return {
-    id: p.id,
-    av: _sayuAvatar(nick),
-    name: nick,
-    _authorId: (p.author && p.author.id) || '',
-    time: (typeof timeAgo==='function') ? timeAgo(p.createdAt) : '',
-    type: p.type,
-    page: p.page || 0,
-    text: p.text || '',
-    book: {
-      isbn: (p.book && p.book.isbn) || '',
-      title: (p.book && p.book.title) || '',
-      author: (p.book && p.book.author) || '',
-      cover: _sayuCover(p.book && p.book.cover)
-    },
-    keep: p.keepCount || 0,
-    kept: !!p.kept,
-    comments: Array.isArray(p.comments) ? p.comments.map(_sayuCommentFromApi) : [],
-    _commentCount: (typeof p.commentCount==='number') ? p.commentCount : (Array.isArray(p.comments)?p.comments.length:0)
-  };
-}
-function _sayuCommentFromApi(c){
-  var nick=(c.author&&c.author.nick)||'익명';
-  return { id:c.id, name:nick, av:_sayuAvatar(nick), text:c.text||'', time:(typeof timeAgo==='function')?timeAgo(c.createdAt):'', own:!!c.own };
-}
-function sayuEsc(t){ return String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function sayuCardHTML(p){
-  const tag = p.type==='quote' ? ('인용구' + (p.page ? ' · p.' + p.page : '')) : '감상';
-  const body = p.type==='quote'
-    ? ('<div class="sayu-quote" onclick="openPostView(\''+p.id+'\')"><span class="sayu-clamp">' + sayuEsc(p.text) + '</span><span class="sayu-more" hidden>… 더보기</span></div>')
-    : ('<div class="sayu-review" onclick="openPostView(\''+p.id+'\')"><span class="sayu-clamp">' + sayuEsc(p.text) + '</span><span class="sayu-more" hidden>… 더보기</span></div>');
-  const ci = p.book.coverInit || '';
-  return '<article class="sayu-card" data-id="'+p.id+'" data-isbn="'+p.book.isbn+'">'
-    + '<div class="sayu-top"><div class="sayu-av" style="background:linear-gradient(135deg,'+p.av[0]+','+p.av[1]+')">'+p.av[2]+'</div>'
-    + '<div class="sayu-name">'+sayuEsc(p.name)+'</div><div class="sayu-time">· '+sayuEsc(p.time)+'</div>'
-    + '<span class="sayu-tag">'+tag+'</span></div>'
-    + body
-    + '<div class="sayu-bookchip" role="button" tabindex="0" onclick="openBookSayu(\''+p.book.isbn+'\')">'
-    + '<div class="sayu-cover" style="background:linear-gradient(135deg,'+p.book.cover[0]+','+p.book.cover[1]+')">'+ci+'</div>'
-    + '<div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
-    + '<div class="sayu-foot">'
-    + '<button class="sayu-keep'+(p.kept?' on':'')+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button>'
-    + '<button class="sayu-cmt" onclick="openPostView(\''+p.id+'\')">'+SAYU_IC.cmt+(p._commentCount!=null?p._commentCount:p.comments.length)+'</button>'
-    + '<button class="sayu-dots" aria-label="더보기" onclick="openDotsSheet(\''+p.id+'\')">'+SAYU_IC.dots+'</button></div></article>';
-}
-function _sayuRevealMore(root){
-  if(!root) return;
-  try{
-    root.querySelectorAll('.sayu-review, .sayu-quote').forEach(function(rv){
-      var clamp=rv.querySelector('.sayu-clamp'), more=rv.querySelector('.sayu-more');
-      if(!clamp||!more) return;
-      if(clamp.scrollHeight > clamp.clientHeight + 1){ more.removeAttribute('hidden'); }
-      else { more.setAttribute('hidden',''); }
-    });
-  }catch(e){}
-}
-function sayuHiddenSet(){ try{ return new Set(JSON.parse(localStorage.getItem('read.sayu.hidden')||'[]')); }catch(e){ return new Set(); } }
-async function renderSayuFeed(){
-  const el=document.getElementById('sayuFeed'); if(!el) return;
-  try {
-    var r = await keepApi('GET','/keep/feed');
-    if (r.ok && r.data && Array.isArray(r.data.posts)){
-      SAYU_POSTS = r.data.posts.map(_sayuFromApi);
-      _sayuFeedCursor = r.data.nextCursor || null;
-      _sayuFeedLoaded = true;
-    }
-  } catch(e){}
-  var hid=sayuHiddenSet();
-  el.innerHTML = SAYU_POSTS.filter(function(p){ return !hid.has(p.id); }).map(sayuCardHTML).join('');
-  _sayuRevealMore(el);
-}
-function sayuLoggedIn(){ return (typeof READ_AUTH!=='undefined') && READ_AUTH.isLoggedIn(); }
-function sayuStartLogin(){ try{ sessionStorage.setItem('read.sayu.loginIntent','1'); }catch(e){} if(typeof READ_AUTH!=='undefined' && typeof READ_AUTH.startKakaoLogin==='function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }
-function sayuPostLoginNickCheck(){ try{ if(sessionStorage.getItem('read.sayu.loginIntent') && sayuLoggedIn()){ sessionStorage.removeItem('read.sayu.loginIntent'); if(!sayuGetNick()){ setTimeout(function(){ openNickModal(); }, 600); } } }catch(e){} }
-function sayuApplyGate(){ renderSayuFeed(); maybeShowSayuWelcome(); updateKeepBadge(); }
-function maybeShowSayuWelcome(){ try{ if(localStorage.getItem('read.sayu.welcomeSeen')) return; }catch(e){} var el=document.getElementById('sayuWelcome'); if(el) el.hidden=false; }
-function dismissSayuWelcome(){ var el=document.getElementById('sayuWelcome'); if(el) el.hidden=true; try{ localStorage.setItem('read.sayu.welcomeSeen','1'); }catch(e){} }
-async function updateKeepBadge(){ var badge=document.getElementById('sayuProfileBadge'); if(!badge) return; if(!sayuLoggedIn()){ badge.hidden=true; return; } var r; try{ r=await keepApi('GET','/keep/mine?tab=posts'); }catch(e){ return; } if(!(r && r.ok && r.data && Array.isArray(r.data.posts))) return; var cur={}; r.data.posts.forEach(function(p){ cur[p.id]=(p.keepCount||0)+(p.commentCount||0); }); var snapRaw=null; try{ snapRaw=localStorage.getItem('read.sayu.seenCounts'); }catch(e){} if(snapRaw==null){ try{ localStorage.setItem('read.sayu.seenCounts', JSON.stringify(cur)); }catch(e){} badge.hidden=true; return; } var snap={}; try{ snap=JSON.parse(snapRaw)||{}; }catch(e){ snap={}; } var unseen=0; Object.keys(cur).forEach(function(id){ var d=cur[id]-(snap[id]||0); if(d>0) unseen+=d; }); if(unseen>0){ badge.textContent=unseen>99?'99+':String(unseen); badge.hidden=false; } else badge.hidden=true; }
-async function _keepMarkSeen(){ var badge=document.getElementById('sayuProfileBadge'); if(!sayuLoggedIn()){ if(badge) badge.hidden=true; return; } var r; try{ r=await keepApi('GET','/keep/mine?tab=posts'); }catch(e){ return; } if(!(r && r.ok && r.data && Array.isArray(r.data.posts))) return; var cur={}; r.data.posts.forEach(function(p){ cur[p.id]=(p.keepCount||0)+(p.commentCount||0); }); try{ localStorage.setItem('read.sayu.seenCounts', JSON.stringify(cur)); }catch(e){} if(badge) badge.hidden=true; }
-function openSayuLoginModal(){ document.getElementById('sayuLoginBackdrop').classList.add('open'); document.getElementById('sayuLoginModal').classList.add('open'); }
-function closeSayuLoginModal(){ document.getElementById('sayuLoginModal').classList.remove('open'); document.getElementById('sayuLoginBackdrop').classList.remove('open'); }
-function sayuNeedLogin(){ if(sayuLoggedIn()) return true; openSayuLoginModal(); return false; }
-let _bvState = { isbn:null, sort:'recent', type:'all' };
-async function openBookSayu(isbn){
-  _bvState = { isbn:isbn, sort:'recent', type:'all' };
-  try {
-    var r = await keepApi('GET','/keep/feed?book='+encodeURIComponent(isbn));
-    if (r.ok && r.data && Array.isArray(r.data.posts)){
-      var byId={}; SAYU_POSTS.forEach(function(p){ byId[p.id]=p; });
-      r.data.posts.map(_sayuFromApi).forEach(function(p){ byId[p.id]=p; });
-      SAYU_POSTS = Object.keys(byId).map(function(k){ return byId[k]; });
-    }
-  } catch(e){}
-  renderBookView();
-  const v=document.getElementById('sayuBookView');
-  if(v){ v.classList.add('open'); v.setAttribute('aria-hidden','false'); v.scrollTop=0; document.body.classList.add('sayu-book-open'); }
-}
-function closeBookSayu(){
-  const v=document.getElementById('sayuBookView');
-  if(v){ v.classList.remove('open'); v.setAttribute('aria-hidden','true'); }
-  document.body.classList.remove('sayu-book-open');
-}
-function setBookSort(sortv){ _bvState.sort=sortv; renderBookView(); }
-function setBookType(typev){ _bvState.type=typev; renderBookView(); }
-function renderBookView(){
-  const st=_bvState;
-  var _hid = sayuHiddenSet(); const all = SAYU_POSTS.filter(p=>p.book.isbn===st.isbn && !_hid.has(p.id));
-  if(!all.length) return;
-  const book = all[0].book;
-  const cov=document.getElementById('bvCover');
-  cov.style.background='linear-gradient(135deg,'+book.cover[0]+','+book.cover[1]+')';
-  cov.textContent = book.coverInit||'';
-  document.getElementById('bvTitle').textContent = book.title;
-  document.getElementById('bvAuthor').textContent = book.author;
-  document.getElementById('bvCount').textContent = all.length + '개의 KEEP';
-  let list = all.slice();
-  if(st.type==='quote') list = list.filter(p=>p.type==='quote');
-  else if(st.type==='review') list = list.filter(p=>p.type==='review');
-  if(st.sort==='keep') list.sort((a,b)=>b.keep-a.keep);
-  document.querySelectorAll('#bvSort button').forEach(b=>b.classList.toggle('on', b.dataset.s===st.sort));
-  document.querySelectorAll('#bvFilter button').forEach(b=>b.classList.toggle('on', b.dataset.t===st.type));
-  const feed=document.getElementById('sayuBookFeed');
-  feed.innerHTML = list.length ? list.map(sayuCardHTML).join('') : '<div class="bv-empty">아직 이 유형의 KEEP이 없어요.</div>';
-  _sayuRevealMore(feed);
-}
-// ── 노트 → 공명 공유 (1b) ──
-const SAYU_PAL = [['#D7B8EC','#A985C9'],['#A9D9C0','#6FB592'],['#9DB8E8','#6B86C9'],['#E8A9C4','#C9719B'],['#E8B27A','#C97C3B'],['#B8A9E8','#8169C9']];
-let _sayuShareNoteId = null;
-let _sayuSharePending = null;
-function sayuGetNick(){ try{ return localStorage.getItem('read.sayu.nick')||''; }catch(e){ return ''; } }
-const SAYU_SHARED_KEY='read.sayu.sharedNotes', SAYU_LOG_KEY='read.sayu.shareLog', SAYU_DAILY_LIMIT=3;
-function _sayuKstDate(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'}); }catch(e){ return new Date().toISOString().slice(0,10); } }
-function sayuSharedSet(){ try{ return new Set(JSON.parse(localStorage.getItem(SAYU_SHARED_KEY)||'[]')); }catch(e){ return new Set(); } }
-function sayuIsNoteShared(noteId){ return sayuSharedSet().has(noteId); }
-const SAYU_NOTEPOST_KEY='read.sayu.notePostMap';
-function _sayuNotePostMap(){ try{ return JSON.parse(localStorage.getItem(SAYU_NOTEPOST_KEY)||'{}')||{}; }catch(e){ return {}; } }
-function _sayuLinkNotePost(noteId, postId){ if(!postId) return; try{ var m=_sayuNotePostMap(); m[postId]=noteId; localStorage.setItem(SAYU_NOTEPOST_KEY, JSON.stringify(m)); }catch(e){} }
-function _sayuUnlinkPost(postId){ try{ var m=_sayuNotePostMap(); if(Object.prototype.hasOwnProperty.call(m,postId)){ var nid=m[postId]; delete m[postId]; localStorage.setItem(SAYU_NOTEPOST_KEY, JSON.stringify(m)); return nid; } }catch(e){} return null; }
-function _sayuUnshareNote(noteId){
-  try{ var st=sayuSharedSet(); st.delete(noteId); localStorage.setItem(SAYU_SHARED_KEY, JSON.stringify([...st])); }catch(e){}
-  var nb=document.querySelector('[data-action="note-sayu-share"][data-note-id="'+noteId+'"]');
-  if(nb){ nb.classList.remove('shared-done'); nb.removeAttribute('disabled'); nb.setAttribute('aria-label','KEEP에 공유'); nb.textContent='+ KEEP'; }
-}
-function sayuDailyCount(){ try{ var l=JSON.parse(localStorage.getItem(SAYU_LOG_KEY)||'null'); return (l && l.date===_sayuKstDate()) ? (l.count||0) : 0; }catch(e){ return 0; } }
-function _sayuRecordShare(noteId){ try{ var s=sayuSharedSet(); s.add(noteId); localStorage.setItem(SAYU_SHARED_KEY, JSON.stringify([...s])); }catch(e){} try{ localStorage.setItem(SAYU_LOG_KEY, JSON.stringify({date:_sayuKstDate(), count:sayuDailyCount()+1})); }catch(e){} }
-function openSayuLimitModal(){ document.getElementById('sayuLimitBackdrop').classList.add('open'); document.getElementById('sayuLimitModal').classList.add('open'); }
-function closeSayuLimitModal(){ document.getElementById('sayuLimitModal').classList.remove('open'); document.getElementById('sayuLimitBackdrop').classList.remove('open'); }
-// ── 글 상세 + 댓글 (1c) ──
-let _pvPostId = null;
-function _pvFind(id){ return (typeof SAYU_POSTS!=='undefined') ? SAYU_POSTS.find(function(x){ return x.id===id; }) : null; }
-function pvPostHTML(p){
-  var tag = p.type==='quote' ? ('인용구' + (p.page ? ' · p.'+p.page : '')) : '감상';
-  var ci = p.book.coverInit || '';
-  var body = p.type==='quote' ? ('<div class="sayu-quote">'+sayuEsc(p.text)+'</div>') : ('<div class="pv-review">'+sayuEsc(p.text)+'</div>');
-  return '<div class="pv-post">'
-    + '<div class="sayu-top"><div class="sayu-av" style="background:linear-gradient(135deg,'+p.av[0]+','+p.av[1]+')">'+p.av[2]+'</div><div class="sayu-name">'+sayuEsc(p.name)+'</div><div class="sayu-time">· '+sayuEsc(p.time)+'</div><span class="sayu-tag">'+tag+'</span></div>'
-    + body
-    + '<div class="sayu-bookchip" style="cursor:default"><div class="sayu-cover" style="background:linear-gradient(135deg,'+p.book.cover[0]+','+p.book.cover[1]+')">'+ci+'</div><div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
-    + '<div class="pv-post-foot"><button class="sayu-keep'+(p.kept?' on':'')+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button></div>'
-    + '</div>';
-}
-function pvCommentHTML(c, i){ var av=c.av||['#B8A9E8','#8169C9',(c.name||'?').charAt(0)]; var head='<div class="pv-cmt-line"><span class="pv-cmt-name">'+sayuEsc(c.name)+'</span><span class="pv-cmt-time">'+sayuEsc(c.time||'')+'</span></div>'; var content; if(i===_editingCmt){ content='<div class="pv-cmt-editwrap"><input class="pv-cmt-edit-input" value="'+sayuEsc(c.text)+'" maxlength="150" onkeydown="if(event.key===\'Enter\')saveEditComment('+i+')"><div class="pv-cmt-editbtns"><button class="pv-cmt-act" onclick="cancelEditComment()">취소</button><button class="pv-cmt-act save" onclick="saveEditComment('+i+')">저장</button></div></div>'; } else { content='<div class="pv-cmt-text">'+sayuEsc(c.text)+'</div>'+(c.own?('<div class="pv-cmt-actions"><button class="pv-cmt-act" onclick="editComment('+i+')">수정</button><button class="pv-cmt-act" onclick="deleteComment('+i+')">삭제</button></div>'):''); } return '<div class="pv-cmt" data-i="'+i+'"><div class="pv-cmt-av" style="background:linear-gradient(135deg,'+av[0]+','+av[1]+')">'+sayuEsc(av[2])+'</div><div class="pv-cmt-body">'+head+content+'</div></div>'; }
-function renderPostView(){ var p=_pvFind(_pvPostId); if(!p) return; document.getElementById('pvPost').innerHTML = pvPostHTML(p); document.getElementById('pvCmtHead').textContent = '댓글 '+p.comments.length; var list=document.getElementById('pvComments'); list.innerHTML = p.comments.length ? p.comments.map(pvCommentHTML).join('') : '<div class="pv-cmt-empty">첫 댓글을 남겨보세요.</div>'; }
-async function openPostView(id){
-  _pvPostId=id; _editingCmt=-1;
-  var v=document.getElementById('sayuPostView'); v.classList.add('open'); v.setAttribute('aria-hidden','false'); document.body.classList.add('sayu-book-open');
-  var sc=document.getElementById('pvScroll'); if(sc) sc.scrollTop=0;
-  if(_pvFind(id)) renderPostView();
-  try {
-    var r=await keepApi('GET','/keep/post/'+encodeURIComponent(id));
-    if(r.ok && r.data && r.data.post){
-      var ap=_sayuFromApi(r.data.post);
-      var idx=SAYU_POSTS.findIndex(function(x){return x.id===id;});
-      if(idx>=0) SAYU_POSTS[idx]=ap; else SAYU_POSTS.push(ap);
-      if(_pvPostId===id) renderPostView();
-    } else if(!_pvFind(id)){
-      closePostView(); if(typeof showToast==='function') showToast('글을 불러올 수 없어요.');
-    }
-  } catch(e){}
-}
-function closePostView(){ var v=document.getElementById('sayuPostView'); v.classList.remove('open'); v.setAttribute('aria-hidden','true'); document.body.classList.remove('sayu-book-open'); _pvPostId=null; }
-let _pendingComment = null;
-let _editingCmt = -1;
-async function _postComment(p, t){
-  var r=await keepApi('POST','/keep/post/'+encodeURIComponent(p.id)+'/comment', { text:t });
-  if(!r.ok){
-    if(r.data && r.data.error==='nick_required'){ _pendingComment={postId:p.id,text:t}; openNickModal(); return; }
-    if(typeof showToast==='function') showToast('댓글 작성에 실패했어요.'); return;
-  }
-  if(r.data && r.data.comment) p.comments.push(_sayuCommentFromApi(r.data.comment));
-  if(r.data && typeof r.data.commentCount==='number') p._commentCount=r.data.commentCount;
-  _editingCmt=-1; renderPostView();
-  var cc=document.querySelector('#sayuFeed .sayu-card[data-id="'+p.id+'"] .sayu-cmt');
-  if(cc) cc.innerHTML = SAYU_IC.cmt + (p._commentCount!=null?p._commentCount:p.comments.length);
-  var sc=document.getElementById('pvScroll'); if(sc) sc.scrollTop=sc.scrollHeight;
-}
-function submitComment(){ if(!sayuNeedLogin()) return; var inp=document.getElementById('pvInput'); var t=(inp.value||'').trim(); if(!t) return; var p=_pvFind(_pvPostId); if(!p) return; if(!sayuGetNick()){ _pendingComment={ postId:_pvPostId, text:t }; openNickModal(); return; } _postComment(p, t); inp.value=''; }
-function editComment(i){ _editingCmt=i; renderPostView(); var inp=document.querySelector('.pv-cmt[data-i="'+i+'"] .pv-cmt-edit-input'); if(inp){ inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){} } }
-function cancelEditComment(){ _editingCmt=-1; renderPostView(); }
-async function saveEditComment(i){
-  var w=document.querySelector('.pv-cmt[data-i="'+i+'"] .pv-cmt-edit-input');
-  var p=_pvFind(_pvPostId);
-  if(w && p && p.comments[i]){
-    var t=(w.value||'').trim();
-    if(t && t!==p.comments[i].text){
-      var cid=p.comments[i].id;
-      if(cid){ var r=await keepApi('PATCH','/keep/comment/'+encodeURIComponent(cid), { text:t }); if(r.ok){ p.comments[i].text=t; } else if(typeof showToast==='function'){ showToast('수정에 실패했어요.'); } }
-      else { p.comments[i].text=t; }
-    }
-  }
-  _editingCmt=-1; renderPostView();
-}
-async function deleteComment(i){
-  var p=_pvFind(_pvPostId); if(!p || !p.comments[i]) return;
-  var cid=p.comments[i].id;
-  if(cid){ var r=await keepApi('DELETE','/keep/comment/'+encodeURIComponent(cid)); if(!r.ok){ if(typeof showToast==='function') showToast('삭제에 실패했어요.'); return; } if(r.data && typeof r.data.commentCount==='number') p._commentCount=r.data.commentCount; }
-  p.comments.splice(i,1); _editingCmt=-1; renderPostView();
-  var cc=document.querySelector('#sayuFeed .sayu-card[data-id="'+_pvPostId+'"] .sayu-cmt');
-  if(cc) cc.innerHTML = SAYU_IC.cmt + (p._commentCount!=null?p._commentCount:p.comments.length);
-}
-// ── ··· 신고/숨김 (1c) ──
-let _dotsPostId = null;
-function openDotsSheet(id){ _dotsPostId=id; document.getElementById('dsMain').style.display=''; document.getElementById('dsReport').style.display='none'; var dc=document.getElementById('dsDeleteConfirm'); if(dc) dc.style.display='none';
-  var p=_pvFind(id); var myId=_keepMyId(); var mine=!!(p && myId && p._authorId===myId);
-  var del=document.getElementById('dsDelete'), rep=document.getElementById('dsReportBtn'), hid=document.getElementById('dsHideBtn');
-  if(del) del.style.display=mine?'':'none';
-  if(rep) rep.style.display=mine?'none':'';
-  if(hid) hid.style.display=mine?'none':'';
-  document.getElementById('sayuDotsBackdrop').classList.add('open'); document.getElementById('sayuDotsSheet').classList.add('open'); }
-function _keepMyId(){ try{ var t=(typeof READ_AUTH!=='undefined')?READ_AUTH.getToken():null; if(!t) return ''; var seg=t.split('.')[1]; if(!seg) return ''; var j=JSON.parse(atob(seg.replace(/-/g,'+').replace(/_/g,'/'))); return j.sub||''; }catch(e){ return ''; } }
-function dotsDeleteAsk(){ document.getElementById('dsMain').style.display='none'; var dc=document.getElementById('dsDeleteConfirm'); if(dc) dc.style.display=''; }
-function confirmDeletePost(){ var id=_dotsPostId; closeDotsSheet(); if(id==null) return;
-  keepApi('DELETE','/keep/post/'+encodeURIComponent(id)).then(function(r){
-    if(r.status===423 && r.data && r.data.error==='delete_locked'){ openDelLockModal(r.data.message); return; }
-    if(!r.ok){ if(typeof showToast==='function') showToast('삭제에 실패했어요.'); return; }
-    try{ SAYU_POSTS = SAYU_POSTS.filter(function(x){ return x.id!==id; }); }catch(e){}
-    try{ var _nid=_sayuUnlinkPost(id); if(_nid!=null) _sayuUnshareNote(_nid); }catch(e){}
-    try{ if(typeof _pvPostId!=='undefined' && _pvPostId===id && typeof closePostView==='function') closePostView(); }catch(e){}
-    try{ var mv=document.getElementById('sayuMyView'); if(mv && mv.classList.contains('open')) renderMyView(); }catch(e){}
-    try{ renderSayuFeed(); }catch(e){}
-    if(typeof showToast==='function') showToast('글을 삭제했어요');
-  });
-}
-function openDelLockModal(msg){ var d=document.getElementById('dlMsg'); if(d && msg) d.textContent=msg; document.getElementById('sayuDelLockBackdrop').classList.add('open'); document.getElementById('sayuDelLockModal').classList.add('open'); }
-function closeDelLockModal(){ document.getElementById('sayuDelLockModal').classList.remove('open'); document.getElementById('sayuDelLockBackdrop').classList.remove('open'); }
-function closeDotsSheet(){ document.getElementById('sayuDotsSheet').classList.remove('open'); document.getElementById('sayuDotsBackdrop').classList.remove('open'); _dotsPostId=null; }
-function dotsReport(){ if(!sayuLoggedIn()){ closeDotsSheet(); openSayuLoginModal(); return; } document.getElementById('dsMain').style.display='none'; document.getElementById('dsReport').style.display=''; }
-function _sayuHidePost(id){ try{ var s=sayuHiddenSet(); s.add(id); localStorage.setItem('read.sayu.hidden', JSON.stringify([...s])); }catch(e){} keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/hide'); renderSayuFeed(); if(typeof _pvPostId!=='undefined' && _pvPostId===id && typeof closePostView==='function') closePostView(); }
-function dotsHide(){ var id=_dotsPostId; closeDotsSheet(); if(id!=null){ _sayuHidePost(id); showUndoBar(id, '이 글을 숨겼어요'); } }
-function submitReport(reason){ var id=_dotsPostId; closeDotsSheet(); if(id!=null){ keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/report', { reason: reason||'기타' }); _sayuHidePost(id); showUndoBar(id, '신고가 접수됐어요'); } }
-let _undoHideId = null, _undoTimer = null;
-function showUndoBar(id, msg){ _undoHideId=id; var bar=document.getElementById('sayuUndoBar'); document.getElementById('ubMsg').textContent = msg || '이 글을 숨겼어요'; bar.classList.add('show'); bar.setAttribute('aria-hidden','false'); clearTimeout(_undoTimer); _undoTimer=setTimeout(hideUndoBar, 5000); }
-function hideUndoBar(){ var bar=document.getElementById('sayuUndoBar'); bar.classList.remove('show'); bar.setAttribute('aria-hidden','true'); _undoHideId=null; }
-function undoHide(){ var id=_undoHideId; if(id!=null){ try{ var st=sayuHiddenSet(); st.delete(id); localStorage.setItem('read.sayu.hidden', JSON.stringify([...st])); }catch(e){} keepApi('DELETE','/keep/post/'+encodeURIComponent(id)+'/hide'); renderSayuFeed(); } clearTimeout(_undoTimer); hideUndoBar(); if(typeof showToast==='function') showToast('숨김을 취소했어요'); }
-// ── 내 KEEP (1d) ──
-let _myTab = 'kept';
-function myProfileHTML(){ var nick=sayuGetNick(); if(nick){ return '<div class="my-profile"><div class="my-av">'+sayuEsc(nick.charAt(0))+'</div><div class="my-pinfo"><div class="my-nick">'+sayuEsc(nick)+'</div><button class="my-editnick" onclick="openNickModal()">이름 바꾸기</button></div></div>'; } return '<div class="my-profile"><div class="my-av my-av-empty">?</div><div class="my-pinfo"><div class="my-nick my-nick-empty">이름 미설정</div><button class="my-editnick" onclick="openNickModal()">이름 설정하기</button></div></div>'; }
-function _myKeptPosts(){ return SAYU_POSTS.filter(function(p){ return p.kept; }); }
-function _myHiddenPosts(){ var h=sayuHiddenSet(); return SAYU_POSTS.filter(function(p){ return h.has(p.id); }); }
-function myHiddenRowHTML(p){ var full=p.text||''; var snip=full.slice(0,40); return '<div class="my-hidden-row"><div class="mh-body"><div class="mh-name">'+sayuEsc(p.name)+' · '+sayuEsc(p.book.title)+'</div><div class="mh-text">'+sayuEsc(snip)+(full.length>40?'…':'')+'</div></div><button class="mh-restore" onclick="unhidePost(\''+p.id+'\')">복구</button></div>'; }
-async function renderMyView(){
-  var pe=document.getElementById('myProfile'); if(!pe) return;
-  pe.innerHTML=myProfileHTML();
-  var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts');
-  if(segK) segK.classList.toggle('on', _myTab==='kept');
-  if(segH) segH.classList.toggle('on', _myTab==='hidden');
-  if(segP) segP.classList.toggle('on', _myTab==='posts');
-  var el=document.getElementById('myContent'); if(!el) return;
-  var tab=_myTab;
-  el.innerHTML='<div class="my-empty">불러오는 중…</div>';
-  var r=await keepApi('GET','/keep/mine?tab='+tab);
-  if(_myTab!==tab) return;
-  var posts=(r.ok && r.data && Array.isArray(r.data.posts)) ? r.data.posts.map(_sayuFromApi) : [];
-  try{ var _byId={}; SAYU_POSTS.forEach(function(x){ _byId[x.id]=x; }); posts.forEach(function(x){ _byId[x.id]=x; }); SAYU_POSTS=Object.keys(_byId).map(function(k){ return _byId[k]; }); }catch(e){}
-  if(tab==='hidden'){
-    el.innerHTML = posts.length ? posts.map(myHiddenRowHTML).join('') : '<div class="my-empty">숨긴 글이 없어요.</div>';
-  } else if(tab==='posts'){
-    el.innerHTML = posts.length ? ('<div class="sayu-feed">'+posts.map(sayuCardHTML).join('')+'</div>') : '<div class="my-empty">아직 쓴 글이 없어요.<br>노트를 KEEP에 공유해보세요.</div>';
-  } else {
-    el.innerHTML = posts.length ? ('<div class="sayu-feed">'+posts.map(sayuCardHTML).join('')+'</div>') : '<div class="my-empty">아직 KEEP한 글이 없어요.<br>마음에 드는 글에 KEEP을 눌러보세요.</div>';
-  }
-  _sayuRevealMore(el);
-}
-function switchMyTab(t){ _myTab=t; renderMyView(); var sc=document.getElementById('myScroll'); if(sc) sc.scrollTop=0; }
-function openMyView(){ if(!sayuNeedLogin()) return; _myTab='kept'; renderMyView(); var v=document.getElementById('sayuMyView'); v.classList.add('open'); v.setAttribute('aria-hidden','false'); document.body.classList.add('sayu-book-open'); var sc=document.getElementById('myScroll'); if(sc) sc.scrollTop=0; _keepMarkSeen(); }
-function closeMyView(){ var v=document.getElementById('sayuMyView'); v.classList.remove('open'); v.setAttribute('aria-hidden','true'); document.body.classList.remove('sayu-book-open'); }
-function unhidePost(id){ try{ var s=sayuHiddenSet(); s.delete(id); localStorage.setItem('read.sayu.hidden', JSON.stringify([...s])); }catch(e){} keepApi('DELETE','/keep/post/'+encodeURIComponent(id)+'/hide').then(function(){ renderMyView(); }); renderSayuFeed(); renderMyView(); if(typeof showToast==='function') showToast('숨김을 해제했어요'); }
-function openNickModal(){ if(!sayuNeedLogin()) return; document.getElementById('nmInput').value=sayuGetNick(); updateNickUI();
-  var _h=document.querySelector('#sayuNickModal .nm-hint'); if(_h){ _h.textContent='한 번 정하면 KEEP 글·댓글에 모두 적용돼요 · 최대 12자'; _h.classList.remove('nm-err'); }
-  document.getElementById('sayuNickBackdrop').classList.add('open'); document.getElementById('sayuNickModal').classList.add('open');
-  setTimeout(function(){ try{document.getElementById('nmInput').focus();}catch(e){} },60);
-  _nickCheckCooldown();
-}
-function _nickCheckCooldown(){
-  keepApi('GET','/keep/me').then(function(r){
-    if(!(r && r.ok && r.data)) return;
-    var nx=r.data.nextNickChangeAt||0;
-    if(nx>Date.now()){
-      var h=document.querySelector('#sayuNickModal .nm-hint');
-      if(h){ try{ var d=new Date(nx); h.textContent='이 닉네임은 '+(d.getMonth()+1)+'월 '+d.getDate()+'일부터 바꿀 수 있어요 (한 달에 한 번)'; }catch(e){ h.textContent='닉네임은 한 달에 한 번만 바꿀 수 있어요.'; } h.classList.add('nm-err'); }
-    }
-  });
-}
-function closeNickModal(){ document.getElementById('sayuNickModal').classList.remove('open'); document.getElementById('sayuNickBackdrop').classList.remove('open'); _sayuSharePending=null; _pendingComment=null; }
-function updateNickUI(){ document.getElementById('nmOk').disabled = document.getElementById('nmInput').value.trim().length===0; }
-async function saveNick(){
-  var v=document.getElementById('nmInput').value.trim(); if(!v) return;
-  var btn=document.getElementById('nmSave'); if(btn){ btn.disabled=true; }
-  var r = await keepApi('POST','/keep/nick', { nick:v });
-  if(btn){ btn.disabled=false; }
-  if(!r.ok){
-    var msg = (r.data && r.data.error==='nick_taken') ? '이미 쓰는 닉네임이에요. 다른 이름으로 해주세요.'
-            : (r.data && r.data.error==='nick_change_locked') ? (r.data.message || '닉네임은 한 달에 한 번만 바꿀 수 있어요.')
-            : (r.status===401) ? '로그인이 필요해요.'
-            : '닉네임 저장에 실패했어요. 잠시 후 다시 해주세요.';
-    if(r.data && r.data.error==='nick_change_locked' && r.data.nextChangeAt){ try{ var _dt=new Date(r.data.nextChangeAt); msg += ' ('+(_dt.getMonth()+1)+'월 '+_dt.getDate()+'일 이후 가능)'; }catch(e){} }
-    var hint=document.querySelector('#sayuNickModal .nm-hint');
-    if(hint){ hint.textContent=msg; hint.classList.add('nm-err'); }
-    else if(typeof showToast==='function') showToast(msg);
-    return;
-  }
-  try{ localStorage.setItem('read.sayu.nick', (r.data&&r.data.nick)||v); }catch(e){}
-  document.getElementById('sayuNickModal').classList.remove('open');
-  document.getElementById('sayuNickBackdrop').classList.remove('open');
-  if(_sayuSharePending!=null){ var pid=_sayuSharePending; _sayuSharePending=null; openSayuShareConfirm(pid); }
-  else if(_pendingComment!=null){ var pc=_pendingComment; _pendingComment=null; var p=_pvFind(pc.postId); if(p){ _postComment(p, pc.text); var inp=document.getElementById('pvInput'); if(inp) inp.value=''; } }
-  try{ var mv=document.getElementById('sayuMyView'); if(mv && mv.classList.contains('open')) renderMyView(); }catch(e){}
-}
-function _sayuNoteBody(note){ var t=String(note.body||''); if(note.type==='quote') t=t.replace(/^[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+|[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+$/g,''); return t; }
-function _sayuBookCover(book){ var fb=[['#C9A66B','#7A5E3B'],['#7BA7C9','#3B5E7A'],['#9C8AB8','#5E4A78'],['#E8B8C4','#C97C9B'],['#7AC9C0','#3B7A78'],['#C9A66B','#A9824A']]; var key=String(book.id||book.title||''); var h=0; for(var i=0;i<key.length;i++){ h=(h*31+key.charCodeAt(i))>>>0; } return fb[h % fb.length]; }
-function shareNoteToSayu(noteId){ if(!sayuNeedLogin()) return; if(sayuIsNoteShared(noteId)) return; if(!sayuGetNick()){ _sayuSharePending=noteId; openNickModal(); } else openSayuShareConfirm(noteId); }
-function openSayuShareConfirm(noteId){
-  var note = NOTES.find(function(n){ return n.id===noteId; }); if(!note) return;
-  var book = BOOKS.find(function(b){ return b.id===note.bookId; }); if(!book) return;
-  _sayuShareNoteId = noteId;
-  var isQuote = note.type==='quote';
-  var tp=document.getElementById('scPreviewType');
-  tp.textContent = isQuote ? '인용구' : '감상';
-  tp.className = 'sc-ptype ' + (isQuote ? 'quote' : 'review');
-  document.getElementById('scPreviewBody').textContent = _sayuNoteBody(note);
-  document.getElementById('scPreviewBook').textContent = book.title + (book.author ? ' · '+book.author : '') + (isQuote && note.page ? ' · p.'+note.page : '');
-  document.getElementById('sayuShareBackdrop').classList.add('open');
-  document.getElementById('sayuShareSheet').classList.add('open');
-}
-function closeSayuShareConfirm(){ document.getElementById('sayuShareSheet').classList.remove('open'); document.getElementById('sayuShareBackdrop').classList.remove('open'); _sayuShareNoteId=null; }
-async function confirmShareToSayu(){
-  var noteId=_sayuShareNoteId; if(noteId==null) return;
-  var note = NOTES.find(function(n){ return n.id===noteId; }); if(!note){ closeSayuShareConfirm(); return; }
-  var book = BOOKS.find(function(b){ return b.id===note.bookId; }); if(!book){ closeSayuShareConfirm(); return; }
-  var isQuote = note.type==='quote';
-  var btn=document.getElementById('scConfirm'); if(btn){ btn.disabled=true; }
-  var payload = {
-    type: isQuote ? 'quote' : 'review',
-    page: isQuote ? (note.page||null) : null,
-    text: _sayuNoteBody(note),
-    book: {
-      isbn: book.isbn || ('bk_'+book.id),
-      title: book.title || '',
-      author: book.author || '',
-      cover: _sayuBookCover(book)
-    }
-  };
-  var r = await keepApi('POST','/keep/share', payload);
-  if(btn){ btn.disabled=false; }
-  if(!r.ok){
-    closeSayuShareConfirm();
-    if(r.data && r.data.error==='daily_limit'){ openSayuLimitModal(); return; }
-    if(r.data && r.data.error==='nick_required'){ _sayuSharePending=noteId; openNickModal(); return; }
-    if(typeof showToast==='function') showToast('공유에 실패했어요. 잠시 후 다시 해주세요.');
-    return;
-  }
-  _sayuRecordShare(noteId);
-  _sayuLinkNotePost(noteId, (r.data && r.data.id) || '');
-  var _b=document.querySelector('[data-action="note-sayu-share"][data-note-id="'+noteId+'"]');
-  if(_b){ _b.classList.add('shared-done'); _b.setAttribute('disabled',''); _b.setAttribute('aria-label','이미 KEEP에 공유됨'); _b.textContent='✓ KEEP'; }
-  closeSayuShareConfirm();
-  if(typeof showToast==='function') showToast('KEEP에 공유했어요');
-  try{ await renderSayuFeed(); }catch(e){}
-}
-(function(){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sayuApplyGate); else sayuApplyGate(); })();
+const TAB_ORDER = ['library', 'stats', 'goals', 'notes'];
 const TAB_COUNT = TAB_ORDER.length;
 const track   = document.getElementById('paneTrack');
 const viewport = track?.parentElement;
@@ -26948,8 +26186,6 @@ function snapToTab(idx) {
   // 탭 바 active와 pane 클래스도 동기화 (기존 CSS 혹시 참조 케이스 대비)
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
-  document.body.classList.toggle('sayu-active', TAB_ORDER[idx] === 'sayu');
-  if (TAB_ORDER[idx] === 'sayu') sayuApplyGate();
   positionTabThumb();
 }
 
@@ -32203,7 +31439,6 @@ const NA = {
     }
     STORE.set(DEMO_CLEANUP_KEY, true);
   }
-
   // v1.6.0 — dropped 마이그레이션 (안전 기본값)
   BOOKS.forEach(b => {
     if (b.status === 'dropped' && (!b.dropped || typeof b.dropped !== 'object')) {
@@ -43752,7 +42987,6 @@ function renderNoteCard(n) {
   const coverHasImg = _noteCoverHasImg(book);
   const coverStyle = _noteCoverStyle(book);
   const pageStr = n.page ? ' · p.' + n.page : '';
-  const noteShared = typeof sayuIsNoteShared === 'function' && sayuIsNoteShared(n.id);
   const authorStr = book.author ? esc(book.author) + ' · ' : '';
 
   // v1.0.4 — review(한줄평)은 sage 색 pill + 💬 머리
@@ -43768,6 +43002,7 @@ function renderNoteCard(n) {
         ? `<div class="note-quote-mark">"</div>`
         : `<div class="note-thought-tag"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-pen"/></svg><span>내 메모</span></div>`);
 
+  const favBtnClass = n.favorite ? 'note-meta-btn fav-on' : 'note-meta-btn';
   const favIcon = n.favorite
     ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
     : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
@@ -43775,7 +43010,6 @@ function renderNoteCard(n) {
   return `
     <div class="note-card ${esc(n.type)} palette-${palette}" data-note-id="${n.id}">
       ${labelHtml}
-      <button class="note-fav-corner${n.favorite ? ' fav-on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
       ${headHtml}
       <div class="note-body${isLong ? ' collapsed' : ''}">${esc(bodyText)}</div>
       ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
@@ -43787,7 +43021,7 @@ function renderNoteCard(n) {
           <div class="note-meta-sub">${authorStr}${timeAgo(n.createdAt)}</div>
         </div>
         <div class="note-meta-actions">
-          <button class="note-keep-btn${noteShared ? ' shared-done' : ''}" data-action="note-sayu-share" data-note-id="${n.id}" aria-label="${noteShared ? '이미 KEEP에 공유됨' : 'KEEP에 공유'}"${noteShared ? ' disabled' : ''}>${noteShared ? '✓ KEEP' : '+ KEEP'}</button>
+          <button class="${favBtnClass}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
           <button class="note-meta-btn" data-action="note-share" data-note-id="${n.id}" aria-label="공유">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
@@ -44148,13 +43382,6 @@ function _noteCardClickHandler(e) {
     e.stopPropagation();
     const id = parseInt(favBtn.dataset.noteId, 10);
     toggleNoteFavorite(id);
-    return;
-  }
-  const sayuShareBtn = e.target.closest('[data-action="note-sayu-share"]');
-  if (sayuShareBtn) {
-    e.stopPropagation();
-    const id = parseInt(sayuShareBtn.dataset.noteId, 10);
-    shareNoteToSayu(id);
     return;
   }
   const shareBtn = e.target.closest('[data-action="note-share"]');
@@ -49749,7 +48976,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '1.4.0';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v9_1';
@@ -50028,11 +49255,8 @@ window.kbmOpenWelcome = kbmOpenWelcome;
   if (later) later.addEventListener('click', closeWhatsNew);
   if (backdrop) backdrop.addEventListener('click', closeWhatsNew);
   if (goStats) {
-    // v2.0.0 — KEEP 보러가기 (닫고 KEEP 탭으로 이동)
-    goStats.addEventListener('click', function(){
-      closeWhatsNew();
-      try { var _i = (typeof TAB_ORDER !== 'undefined') ? TAB_ORDER.indexOf('sayu') : -1; if (_i >= 0 && typeof switchTab === 'function') switchTab(_i); } catch(e){}
-    });
+    // v1.6.1 — 단순 닫기 (확인했어요)
+    goStats.addEventListener('click', closeWhatsNew);
   }
 })();
 
