@@ -21673,7 +21673,7 @@ body.cn-locked {
   <div class="pv-bar"><button class="pv-back" onclick="closeMyView()" aria-label="닫기">←</button><span class="pv-bartitle">내 KEEP</span></div>
   <div class="pv-scroll" id="myScroll">
     <div id="myProfile"></div>
-    <div class="my-seg"><button class="my-seg-btn" id="mySegKept" onclick="switchMyTab('kept')">MY KEEP</button><button class="my-seg-btn" id="mySegPosts" onclick="switchMyTab('posts')">내가 쓴 글</button></div>
+    <div class="my-seg"><button class="my-seg-btn" id="mySegNotif" onclick="switchMyTab('notif')">알림</button><button class="my-seg-btn" id="mySegKept" onclick="switchMyTab('kept')">MY KEEP</button><button class="my-seg-btn" id="mySegPosts" onclick="switchMyTab('posts')">내가 쓴 글</button></div>
     <div id="myContent"></div>
   </div>
 </div>
@@ -21813,6 +21813,21 @@ body.cn-locked {
 .my-seg-btn{ flex:1; border:none; background:none; font-family:inherit; font-size:13px; font-weight:700; color:#766A92; padding:9px; border-radius:9px; cursor:pointer; }
 .my-seg-btn.on{ background:#fff; color:#41385C; box-shadow:0 2px 8px rgba(40,30,70,.08); }
 .my-empty{ text-align:center; color:#9A8FB5; font-size:13px; line-height:1.7; padding:40px 0; }
+.notif-sec{ font-size:12px; font-weight:700; color:#8478A0; margin:6px 2px 8px; }
+#myContent .notif-sec:not(:first-child){ margin-top:22px; }
+.notif-row{ position:relative; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); border-radius:12px; padding:11px 13px; margin-bottom:8px; cursor:pointer; }
+.notif-row:active{ opacity:.7; }
+.notif-dot{ position:absolute; top:13px; right:13px; width:7px; height:7px; border-radius:50%; background:#FF3B30; }
+.notif-main{ font-size:13px; color:#574C76; line-height:1.5; padding-right:12px; }
+.notif-who{ font-weight:700; color:#41385C; }
+.notif-on{ color:#6F5AC8; font-weight:600; }
+.notif-time{ color:#A99FBA; font-size:11.5px; }
+.notif-text{ font-size:13.5px; color:#3A3352; margin-top:4px; line-height:1.5; word-break:break-word; }
+.notif-keep{ font-size:12.5px; color:#7C6B96; margin-top:4px; }
+[data-theme="midnight"] .notif-row{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1); }
+[data-theme="midnight"] .notif-main{ color:#C9BFE0; }
+[data-theme="midnight"] .notif-who{ color:#F2EDF8; }
+[data-theme="midnight"] .notif-text{ color:#E5DEF2; }
 .my-hidden-row{ display:flex; align-items:center; gap:12px; padding:13px 14px; background:rgba(255,255,255,.5); border-radius:13px; margin-bottom:8px; }
 .mh-body{ flex:1; min-width:0; }
 .mh-name{ font-size:12px; color:#8A7FA3; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -26848,16 +26863,48 @@ function myProfileHTML(){ var nick=sayuGetNick(); if(nick){ return '<div class="
 function _myKeptPosts(){ return SAYU_POSTS.filter(function(p){ return p.kept; }); }
 function _myHiddenPosts(){ var h=sayuHiddenSet(); return SAYU_POSTS.filter(function(p){ return h.has(p.id); }); }
 function myHiddenRowHTML(p){ var full=p.text||''; var snip=full.slice(0,40); return '<div class="my-hidden-row"><div class="mh-body"><div class="mh-name">'+sayuEsc(p.name)+' · '+sayuEsc(p.book.title)+'</div><div class="mh-text">'+sayuEsc(snip)+(full.length>40?'…':'')+'</div></div><button class="mh-restore" onclick="unhidePost(\''+p.id+'\')">복구</button></div>'; }
+// KEEP 알림 탭 렌더 헬퍼 (내 KEEP 뷰의 '알림' 탭)
+async function _renderNotif(el, tab){
+  var r; try{ r=await keepApi('GET','/keep/notifications'); }catch(e){ r=null; }
+  if(_myTab!==tab) return;
+  if(!(r && r.ok && r.data)){ el.innerHTML='<div class="my-empty">알림을 불러올 수 없어요.</div>'; return; }
+  var comments=Array.isArray(r.data.comments)?r.data.comments:[];
+  var posts=Array.isArray(r.data.posts)?r.data.posts:[];
+  var keeps=posts.filter(function(p){ return (p.keepCount||0)>0; });
+  var seenAt=0; try{ seenAt=parseInt(localStorage.getItem('read.sayu.notifSeenAt')||'0',10)||0; }catch(e){}
+  var h='<div class="notif-sec">댓글</div>';
+  h+= comments.length ? comments.map(function(c){ return notifCommentHTML(c, seenAt); }).join('') : '<div class="my-empty" style="padding:22px 0">내 글에 달린 댓글이 아직 없어요.</div>';
+  h+='<div class="notif-sec">KEEP</div>';
+  h+= keeps.length ? keeps.map(notifKeepHTML).join('') : '<div class="my-empty" style="padding:22px 0">아직 KEEP된 글이 없어요.</div>';
+  el.innerHTML=h;
+  try{ localStorage.setItem('read.sayu.notifSeenAt', String(Date.now())); }catch(e){}
+}
+function _notifLabel(t){ t=(t||'').replace(/\s+/g,' ').trim(); return t.length>22 ? t.slice(0,22)+'…' : (t||'(제목 없음)'); }
+function notifCommentHTML(c, seenAt){
+  var isNew=(c.createdAt||0) > (seenAt||0);
+  var who=sayuEsc((c.author&&c.author.nick)||'익명');
+  var on=sayuEsc(_notifLabel(c.postTitle));
+  var txt=sayuEsc(c.text||'');
+  var time=(typeof timeAgo==='function')?sayuEsc(timeAgo(c.createdAt)):'';
+  return '<div class="notif-row" onclick="openPostView(\''+c.postId+'\')">'+(isNew?'<span class="notif-dot"></span>':'')+'<div class="notif-main"><span class="notif-who">'+who+'</span>님이 <span class="notif-on">‘'+on+'’</span>에 댓글<span class="notif-time"> · '+time+'</span></div><div class="notif-text">'+txt+'</div></div>';
+}
+function notifKeepHTML(p){
+  var on=sayuEsc(_notifLabel(p.title||p.text));
+  return '<div class="notif-row" onclick="openPostView(\''+p.id+'\')"><div class="notif-main"><span class="notif-on">‘'+on+'’</span></div><div class="notif-keep">'+(p.keepCount||0)+'명이 KEEP · 댓글 '+(p.commentCount||0)+'</div></div>';
+}
+
 async function renderMyView(){
   var pe=document.getElementById('myProfile'); if(!pe) return;
   pe.innerHTML=myProfileHTML();
-  var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts');
+  var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts'), segN=document.getElementById('mySegNotif');
   if(segK) segK.classList.toggle('on', _myTab==='kept');
   if(segH) segH.classList.toggle('on', _myTab==='hidden');
   if(segP) segP.classList.toggle('on', _myTab==='posts');
+  if(segN) segN.classList.toggle('on', _myTab==='notif');
   var el=document.getElementById('myContent'); if(!el) return;
   var tab=_myTab;
   el.innerHTML='<div class="my-empty">불러오는 중…</div>';
+  if(tab==='notif'){ await _renderNotif(el, tab); return; }
   var r=await keepApi('GET','/keep/mine?tab='+tab);
   if(_myTab!==tab) return;
   var posts=(r.ok && r.data && Array.isArray(r.data.posts)) ? r.data.posts.map(_sayuFromApi) : [];
@@ -26872,7 +26919,7 @@ async function renderMyView(){
   _sayuRevealMore(el);
 }
 function switchMyTab(t){ _myTab=t; renderMyView(); var sc=document.getElementById('myScroll'); if(sc) sc.scrollTop=0; }
-function openMyView(){ if(!sayuNeedLogin()) return; _myTab='kept'; renderMyView(); var v=document.getElementById('sayuMyView'); v.classList.add('open'); v.setAttribute('aria-hidden','false'); document.body.classList.add('sayu-book-open'); var sc=document.getElementById('myScroll'); if(sc) sc.scrollTop=0; _keepMarkSeen(); }
+function openMyView(){ if(!sayuNeedLogin()) return; _myTab='notif'; renderMyView(); var v=document.getElementById('sayuMyView'); v.classList.add('open'); v.setAttribute('aria-hidden','false'); document.body.classList.add('sayu-book-open'); var sc=document.getElementById('myScroll'); if(sc) sc.scrollTop=0; _keepMarkSeen(); }
 function closeMyView(){ var v=document.getElementById('sayuMyView'); v.classList.remove('open'); v.setAttribute('aria-hidden','true'); document.body.classList.remove('sayu-book-open'); }
 function unhidePost(id){ try{ var s=sayuHiddenSet(); s.delete(id); localStorage.setItem('read.sayu.hidden', JSON.stringify([...s])); }catch(e){} keepApi('DELETE','/keep/post/'+encodeURIComponent(id)+'/hide').then(function(){ renderMyView(); }); renderSayuFeed(); renderMyView(); if(typeof showToast==='function') showToast('숨김을 해제했어요'); }
 function openNickModal(){ if(!sayuNeedLogin()) return; document.getElementById('nmInput').value=sayuGetNick(); updateNickUI();
