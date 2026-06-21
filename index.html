@@ -26561,7 +26561,7 @@ function _sayuCoverParts(book){
   var grad='linear-gradient(135deg,'+c0+','+c1+')';
   var url=book.coverUrl||'';
   if(url){
-    var prox=(typeof ALADIN_PROXY_URL!=='undefined'&&ALADIN_PROXY_URL)?(ALADIN_PROXY_URL+'/img?url='+encodeURIComponent(url)):url;
+    var prox=(String(url).indexOf('data:')===0)?url:((typeof ALADIN_PROXY_URL!=='undefined'&&ALADIN_PROXY_URL)?(ALADIN_PROXY_URL+'/img?url='+encodeURIComponent(url)):url);
     return { bg:"url('"+prox+"') center/cover no-repeat, "+grad, init:'' };
   }
   return { bg:grad, init:(book.coverInit||'') };
@@ -26899,7 +26899,6 @@ async function saveNick(){
   try{ var mv=document.getElementById('sayuMyView'); if(mv && mv.classList.contains('open')) renderMyView(); }catch(e){}
 }
 function _sayuNoteBody(note){ var t=String(note.body||''); if(note.type==='quote') t=t.replace(/^[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+|[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+$/g,''); return t; }
-function _sayuBookCover(book){ return { u:(book.coverUrl||''), g:_sayuGradKey(book.id||book.title||'') }; }
 async function shareNoteToSayu(noteId){ if(!sayuNeedLogin()) return; if(sayuIsNoteShared(noteId)) return; if(!sayuGetNick()){ await sayuSyncNick(); } if(!sayuGetNick()){ _sayuSharePending=noteId; openNickModal(); } else openSayuShareConfirm(noteId); }
 function openSayuShareConfirm(noteId){
   var note = NOTES.find(function(n){ return n.id===noteId; }); if(!note) return;
@@ -26921,6 +26920,9 @@ async function confirmShareToSayu(){
   var book = BOOKS.find(function(b){ return b.id===note.bookId; }); if(!book){ closeSayuShareConfirm(); return; }
   var isQuote = note.type==='quote';
   var btn=document.getElementById('scConfirm'); if(btn){ btn.disabled=true; }
+  // 공유용 공개 표지 URL 확보: http면 그대로, data:/idb:/빈값이면 ISBN으로 재조회
+  var pubCoverUrl = (book.coverUrl && String(book.coverUrl).indexOf('http')===0) ? book.coverUrl : '';
+  if(!pubCoverUrl && book.isbn){ try{ var _fb = await _fetchBookByIsbnForScan(book.isbn); if(_fb && _fb.cover && String(_fb.cover).indexOf('http')===0) pubCoverUrl = _fb.cover; }catch(e){} }
   var payload = {
     type: isQuote ? 'quote' : 'review',
     page: isQuote ? (note.page||null) : null,
@@ -26929,7 +26931,7 @@ async function confirmShareToSayu(){
       isbn: book.isbn || ('bk_'+book.id),
       title: book.title || '',
       author: book.author || '',
-      cover: _sayuBookCover(book)
+      cover: { u: pubCoverUrl, g: _sayuGradKey(book.id||book.title||'') }
     }
   };
   var r = await keepApi('POST','/keep/share', payload);
