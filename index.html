@@ -26546,6 +26546,19 @@ document.addEventListener('keydown', (e) => {
 const tabBtns = document.querySelectorAll('.tab-btn');
 const panes   = document.querySelectorAll('.pane');
 const TAB_ORDER = ['library', 'stats', 'goals', 'notes', 'sayu'];
+// KEEP 토글 응답이 권위적이지 않을 때(서버 오류 등) 그 글의 실제 상태를 다시 읽어 화면을 맞춤 (self-heal)
+function _keepReconcile(id, btn, n, onUnhealed){
+  keepApi('GET','/keep/post/'+encodeURIComponent(id)).then(function(r){
+    if(r && r.ok && r.data && r.data.post){
+      var kept=!!r.data.post.kept;
+      var cnt=(typeof r.data.post.keepCount==='number')?r.data.post.keepCount:(parseInt(n.textContent,10)||0);
+      if(btn) btn.classList.toggle('on', kept);
+      if(n) n.textContent=cnt;
+      try{ var k=SAYU_POSTS.find(function(x){return x.id===id;}); if(k){ k.kept=kept; k.keep=cnt; } }catch(e){}
+      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
+    } else if(typeof onUnhealed==='function'){ onUnhealed(); }
+  }).catch(function(){ if(typeof onUnhealed==='function') onUnhealed(); });
+}
 function toggleKeep(btn, id){
   if(!sayuNeedLogin()) return;
   const on = btn.classList.toggle('on');
@@ -26555,18 +26568,22 @@ function toggleKeep(btn, id){
   try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
   if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
-    if(!r.ok){
+    // 서버가 권위 응답(kept)을 주면 그대로 반영
+    if(r.ok && r.data && typeof r.data.kept==='boolean'){
+      btn.classList.toggle('on', r.data.kept);
+      if(typeof r.data.count==='number') n.textContent=r.data.count;
+      try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3){ k3.kept=r.data.kept; if(typeof r.data.count==='number') k3.keep=r.data.count; } }catch(e){}
+      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept' && r.data.kept===false){ renderMyView(); } }catch(e){}
+      return;
+    }
+    // 권위 응답이 없으면(서버 오류 등) 무작정 -1 되돌리지 말고 실제 상태를 다시 읽어 맞춤.
+    // 재조회까지 실패하면 그때 진짜 실패로 보고 롤백 + 안내.
+    _keepReconcile(id, btn, n, function(){
       var back = btn.classList.toggle('on');
       var c2 = parseInt(n.textContent,10)||0; n.textContent = c2 + (back?1:-1);
       try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2){ k2.kept=back; k2.keep=c2+(back?1:-1);} }catch(e){}
       if(typeof showToast==='function') showToast('처리에 실패했어요.');
-      return;
-    }
-    if(r.data){
-      if(typeof r.data.kept==='boolean') btn.classList.toggle('on', r.data.kept);
-      if(typeof r.data.count==='number'){ n.textContent=r.data.count; try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3){ k3.kept=!!r.data.kept; k3.keep=r.data.count; } }catch(e){} }
-      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept' && r.data.kept===false){ renderMyView(); } }catch(e){}
-    }
+    });
   });
 }
 
