@@ -21666,6 +21666,7 @@ body.cn-locked {
 <div id="sayuPostView" aria-hidden="true">
   <div class="pv-bar"><button class="pv-back" onclick="closePostView()" aria-label="닫기">←</button><span class="pv-bartitle">댓글</span></div>
   <div class="pv-scroll" id="pvScroll"><div id="pvPost"></div><div class="pv-cmt-head" id="pvCmtHead">댓글</div><div id="pvComments"></div></div>
+  <div class="pv-replychip" id="pvReplyChip" hidden><span id="pvReplyChipText"></span><button class="pv-replychip-x" onclick="cancelReply()" aria-label="답글 취소">✕</button></div>
   <div class="pv-inputbar"><input id="pvInput" class="pv-input" placeholder="댓글 달기…" maxlength="150" onkeydown="if(event.key==='Enter')submitComment()"><button class="pv-send" onclick="submitComment()">등록</button></div>
 </div>
 <div id="sayuMyView" aria-hidden="true">
@@ -21909,6 +21910,14 @@ body.sayu-book-open{ overflow:hidden; }
 .pv-cmt-text{ font-size:13.5px; color:#3A3352; line-height:1.5; margin-top:2px; word-break:break-word; }
 .pv-cmt-empty{ text-align:center; color:#9A8FB5; font-size:13px; padding:26px 0; }
 .pv-cmt-actions{ display:flex; gap:12px; margin-top:5px; }
+.pv-cmt-act.reply{ color:#8169C9; }
+.pv-replies{ margin-left:40px; border-left:2px solid rgba(129,105,201,.14); padding-left:6px; margin-top:2px; }
+.pv-replychip{ flex:none; display:flex; align-items:center; gap:8px; padding:7px 16px; background:#F0EBFA; border-top:1px solid rgba(120,100,160,.1); font-size:12.5px; color:#6F5AC8; }
+.pv-replychip #pvReplyChipText{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pv-replychip-x{ background:none; border:none; color:#8169C9; font-size:13px; cursor:pointer; padding:2px 6px; line-height:1; }
+[data-theme="midnight"] .pv-replychip{ background:#241F30; border-top-color:rgba(255,255,255,.06); color:#C5B6F2; }
+[data-theme="midnight"] .pv-replychip-x{ color:#C5B6F2; }
+[data-theme="midnight"] .pv-replies{ border-left-color:rgba(197,182,242,.16); }
 .pv-cmt-act{ border:none; background:none; font-family:inherit; font-size:11.5px; color:#9A8FB5; cursor:pointer; padding:2px 0; }
 .pv-cmt-act.save{ color:#6F5AC8; font-weight:700; }
 .pv-cmt-editwrap{ margin-top:5px; }
@@ -26593,7 +26602,7 @@ function _sayuFromApi(p){
 }
 function _sayuCommentFromApi(c){
   var nick=(c.author&&c.author.nick)||'익명';
-  return { id:c.id, name:nick, av:_sayuAvatar(nick), text:c.text||'', time:(typeof timeAgo==='function')?timeAgo(c.createdAt):'', own:!!c.own };
+  return { id:c.id, name:nick, av:_sayuAvatar(nick), text:c.text||'', time:(typeof timeAgo==='function')?timeAgo(c.createdAt):'', own:!!c.own, parentId:(c.parentId||null) };
 }
 function sayuEsc(t){ return String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function sayuCardHTML(p){
@@ -26731,8 +26740,14 @@ function pvPostHTML(p){
     + '<div class="pv-post-foot"><button class="sayu-keep'+(p.kept?' on':'')+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button></div>'
     + '</div>';
 }
-function pvCommentHTML(c, i){ var av=c.av||['#B8A9E8','#8169C9',(c.name||'?').charAt(0)]; var head='<div class="pv-cmt-line"><span class="pv-cmt-name">'+sayuEsc(c.name)+'</span><span class="pv-cmt-time">'+sayuEsc(c.time||'')+'</span></div>'; var content; if(i===_editingCmt){ content='<div class="pv-cmt-editwrap"><input class="pv-cmt-edit-input" value="'+sayuEsc(c.text)+'" maxlength="150" onkeydown="if(event.key===\'Enter\')saveEditComment('+i+')"><div class="pv-cmt-editbtns"><button class="pv-cmt-act" onclick="cancelEditComment()">취소</button><button class="pv-cmt-act save" onclick="saveEditComment('+i+')">저장</button></div></div>'; } else { content='<div class="pv-cmt-text">'+sayuEsc(c.text)+'</div>'+(c.own?('<div class="pv-cmt-actions"><button class="pv-cmt-act" onclick="editComment('+i+')">수정</button><button class="pv-cmt-act" onclick="deleteComment('+i+')">삭제</button></div>'):''); } return '<div class="pv-cmt" data-i="'+i+'"><div class="pv-cmt-av" style="background:linear-gradient(135deg,'+av[0]+','+av[1]+')">'+sayuEsc(av[2])+'</div><div class="pv-cmt-body">'+head+content+'</div></div>'; }
-function renderPostView(){ var p=_pvFind(_pvPostId); if(!p) return; document.getElementById('pvPost').innerHTML = pvPostHTML(p); document.getElementById('pvCmtHead').textContent = '댓글 '+p.comments.length; var list=document.getElementById('pvComments'); list.innerHTML = p.comments.length ? p.comments.map(pvCommentHTML).join('') : '<div class="pv-cmt-empty">첫 댓글을 남겨보세요.</div>'; }
+function pvCommentHTML(c, i){ var av=c.av||['#B8A9E8','#8169C9',(c.name||'?').charAt(0)]; var head='<div class="pv-cmt-line"><span class="pv-cmt-name">'+sayuEsc(c.name)+'</span><span class="pv-cmt-time">'+sayuEsc(c.time||'')+'</span></div>'; var content; if(i===_editingCmt){ content='<div class="pv-cmt-editwrap"><input class="pv-cmt-edit-input" value="'+sayuEsc(c.text)+'" maxlength="150" onkeydown="if(event.key===\'Enter\')saveEditComment('+i+')"><div class="pv-cmt-editbtns"><button class="pv-cmt-act" onclick="cancelEditComment()">취소</button><button class="pv-cmt-act save" onclick="saveEditComment('+i+')">저장</button></div></div>'; } else { content='<div class="pv-cmt-text">'+sayuEsc(c.text)+'</div><div class="pv-cmt-actions"><button class="pv-cmt-act reply" onclick="replyToComment('+i+')">답글</button>'+(c.own?('<button class="pv-cmt-act" onclick="editComment('+i+')">수정</button><button class="pv-cmt-act" onclick="deleteComment('+i+')">삭제</button>'):'')+'</div>'; } return '<div class="pv-cmt" data-i="'+i+'"><div class="pv-cmt-av" style="background:linear-gradient(135deg,'+av[0]+','+av[1]+')">'+sayuEsc(av[2])+'</div><div class="pv-cmt-body">'+head+content+'</div></div>'; }
+function renderPostView(){ var p=_pvFind(_pvPostId); if(!p) return; document.getElementById('pvPost').innerHTML = pvPostHTML(p); document.getElementById('pvCmtHead').textContent = '댓글 '+p.comments.length; var list=document.getElementById('pvComments');
+  if(!p.comments.length){ list.innerHTML='<div class="pv-cmt-empty">첫 댓글을 남겨보세요.</div>'; return; }
+  var hasId={}; p.comments.forEach(function(c){ hasId[c.id]=true; });
+  var byParent={}, tops=[];
+  p.comments.forEach(function(c,i){ var pid=(c.parentId && hasId[c.parentId])?c.parentId:null; if(pid){ (byParent[pid]=byParent[pid]||[]).push(i); } else { tops.push(i); } });
+  list.innerHTML = tops.map(function(ti){ var sH=pvCommentHTML(p.comments[ti], ti); var reps=byParent[p.comments[ti].id]; if(reps && reps.length){ sH+='<div class="pv-replies">'+reps.map(function(ri){ return pvCommentHTML(p.comments[ri], ri); }).join('')+'</div>'; } return sH; }).join('');
+}
 async function openPostView(id){
   _pvPostId=id; _editingCmt=-1;
   var v=document.getElementById('sayuPostView'); v.classList.add('open'); v.setAttribute('aria-hidden','false'); document.body.classList.add('sayu-book-open');
@@ -26753,8 +26768,11 @@ async function openPostView(id){
 function closePostView(){ var v=document.getElementById('sayuPostView'); v.classList.remove('open'); v.setAttribute('aria-hidden','true'); document.body.classList.remove('sayu-book-open'); _pvPostId=null; }
 let _pendingComment = null;
 let _editingCmt = -1;
-async function _postComment(p, t){
-  var r=await keepApi('POST','/keep/post/'+encodeURIComponent(p.id)+'/comment', { text:t });
+let _replyTarget = null;
+function replyToComment(i){ if(!sayuNeedLogin()) return; var p=_pvFind(_pvPostId); if(!p||!p.comments[i]) return; var c=p.comments[i]; _replyTarget={ parentId:(c.parentId||c.id), nick:c.name }; var txt=document.getElementById('pvReplyChipText'); if(txt) txt.textContent=c.name+'님에게 답글'; var chip=document.getElementById('pvReplyChip'); if(chip) chip.hidden=false; var inp=document.getElementById('pvInput'); if(inp) inp.focus(); }
+function cancelReply(){ _replyTarget=null; var chip=document.getElementById('pvReplyChip'); if(chip) chip.hidden=true; }
+async function _postComment(p, t, parentId){
+  var r=await keepApi('POST','/keep/post/'+encodeURIComponent(p.id)+'/comment', { text:t, parentId:(parentId||null) });
   if(!r.ok){
     if(r.data && r.data.error==='nick_required'){ _pendingComment={postId:p.id,text:t}; openNickModal(); return; }
     if(typeof showToast==='function') showToast('댓글 작성에 실패했어요.'); return;
@@ -26766,7 +26784,7 @@ async function _postComment(p, t){
   if(cc) cc.innerHTML = SAYU_IC.cmt + (p._commentCount!=null?p._commentCount:p.comments.length);
   var sc=document.getElementById('pvScroll'); if(sc) sc.scrollTop=sc.scrollHeight;
 }
-function submitComment(){ if(!sayuNeedLogin()) return; var inp=document.getElementById('pvInput'); var t=(inp.value||'').trim(); if(!t) return; var p=_pvFind(_pvPostId); if(!p) return; if(!sayuGetNick()){ _pendingComment={ postId:_pvPostId, text:t }; openNickModal(); return; } _postComment(p, t); inp.value=''; }
+function submitComment(){ if(!sayuNeedLogin()) return; var inp=document.getElementById('pvInput'); var t=(inp.value||'').trim(); if(!t) return; var p=_pvFind(_pvPostId); if(!p) return; var par=(_replyTarget&&_replyTarget.parentId)||null; if(!sayuGetNick()){ _pendingComment={ postId:_pvPostId, text:t, parentId:par }; openNickModal(); return; } _postComment(p, t, par); inp.value=''; cancelReply(); }
 function editComment(i){ _editingCmt=i; renderPostView(); var inp=document.querySelector('.pv-cmt[data-i="'+i+'"] .pv-cmt-edit-input'); if(inp){ inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){} } }
 function cancelEditComment(){ _editingCmt=-1; renderPostView(); }
 async function saveEditComment(i){
@@ -26895,7 +26913,7 @@ async function saveNick(){
   document.getElementById('sayuNickModal').classList.remove('open');
   document.getElementById('sayuNickBackdrop').classList.remove('open');
   if(_sayuSharePending!=null){ var pid=_sayuSharePending; _sayuSharePending=null; openSayuShareConfirm(pid); }
-  else if(_pendingComment!=null){ var pc=_pendingComment; _pendingComment=null; var p=_pvFind(pc.postId); if(p){ _postComment(p, pc.text); var inp=document.getElementById('pvInput'); if(inp) inp.value=''; } }
+  else if(_pendingComment!=null){ var pc=_pendingComment; _pendingComment=null; var p=_pvFind(pc.postId); if(p){ _postComment(p, pc.text, pc.parentId||null); var inp=document.getElementById('pvInput'); if(inp) inp.value=''; cancelReply(); } }
   try{ var mv=document.getElementById('sayuMyView'); if(mv && mv.classList.contains('open')) renderMyView(); }catch(e){}
 }
 function _sayuNoteBody(note){ var t=String(note.body||''); if(note.type==='quote') t=t.replace(/^[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+|[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+$/g,''); return t; }
