@@ -21737,6 +21737,8 @@ body.cn-locked {
 </div>
 <div class="main-wrap">
 
+  <div class="keep-topblur" aria-hidden="true"><div class="ktb-l1"></div><div class="ktb-l2"></div><div class="ktb-l3"></div><div class="ktb-l4"></div></div>
+
   <!-- ═══════════ 헤더 ═══════════ -->
   <header class="app-header" id="appHeader">
     <button class="header-menu-btn" aria-label="메뉴" onclick="openKbMenu()">
@@ -22004,6 +22006,14 @@ body{ --keep-bg:radial-gradient(48% 34% at 86% 30%, rgba(165,172,238,.5), transp
 body.sayu-active #sayuBackdrop{ opacity:1; }
 [data-theme="midnight"] body{ --keep-bg:radial-gradient(48% 34% at 86% 30%, rgba(92,98,152,.32), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(82,74,132,.28), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(112,86,138,.22), transparent 72%), linear-gradient(180deg,#16141F 0px,#16141F 300px,#1C1A28 640px,#211E30 100%); }
 body.sayu-active{ background:#DDD5EE; }
+/* KEEP 상단 점진적 블러 (위로 갈수록 강하게, 아래로 페이드) — 피드 위·헤더 아래(z:5) */
+.keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:0; transition:opacity .35s ease; }
+body.sayu-active .keep-topblur{ opacity:1; }
+.keep-topblur > div{ position:absolute; inset:0; }
+.keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 14%,transparent 40%); mask-image:linear-gradient(to bottom,#000 0%,#000 14%,transparent 40%); }
+.keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); -webkit-mask-image:linear-gradient(to bottom,transparent 8%,#000 26%,transparent 54%); mask-image:linear-gradient(to bottom,transparent 8%,#000 26%,transparent 54%); }
+.keep-topblur .ktb-l3{ -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); -webkit-mask-image:linear-gradient(to bottom,transparent 30%,#000 50%,transparent 76%); mask-image:linear-gradient(to bottom,transparent 30%,#000 50%,transparent 76%); }
+.keep-topblur .ktb-l4{ -webkit-backdrop-filter:blur(2.5px); backdrop-filter:blur(2.5px); -webkit-mask-image:linear-gradient(to bottom,transparent 54%,#000 74%,transparent 100%); mask-image:linear-gradient(to bottom,transparent 54%,#000 74%,transparent 100%); }
 /* KEEP 배경 테마 5종 (라이트 테마 한정 — 카드/텍스트 가독성 유지) */
 html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-bg:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-bg:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
