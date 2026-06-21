@@ -21857,7 +21857,7 @@ body.cn-locked {
 body.sayu-book-open{ overflow:hidden; }
 #sayuBookView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:200; background:#E4DEF1; transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); overflow-y:auto; visibility:hidden; -webkit-overflow-scrolling:touch; }
 #sayuBookView.open{ transform:translate(-50%,0); visibility:visible; }
-.bv-bar{ position:sticky; top:0; display:flex; align-items:center; gap:8px; padding:14px 16px 10px; background:#E4DEF1; z-index:2; }
+.bv-bar{ position:sticky; top:0; display:flex; align-items:center; gap:8px; padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 10px; background:#E4DEF1; z-index:2; }
 .bv-back{ width:34px; height:34px; border:none; background:rgba(255,255,255,.6); border-radius:50%; font-size:19px; color:#41385C; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .bv-bartitle{ font-size:14px; font-weight:700; color:#41385C; }
 .bv-hero{ display:flex; gap:14px; align-items:center; padding:6px 18px 16px; }
@@ -21982,11 +21982,11 @@ body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:
 body.sayu-active #pane-sayu{ background:transparent; }
 [data-theme="midnight"] body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
 [data-theme="midnight"] body.sayu-active #pane-sayu{ background:transparent; }
-body.sayu-active .app-header{ background:#DDD5EE; }
-body.sayu-active .tab-bar{ background:#DDD5EE; }
+body.sayu-active .app-header{ background:transparent; }
+body.sayu-active .tab-bar{ background:transparent; }
 [data-theme="midnight"] body::before{ background:#16141F; }
-[data-theme="midnight"] body.sayu-active .app-header{ background:#16141F; }
-[data-theme="midnight"] body.sayu-active .tab-bar{ background:#16141F; }
+[data-theme="midnight"] body.sayu-active .app-header{ background:transparent; }
+[data-theme="midnight"] body.sayu-active .tab-bar{ background:transparent; }
 [data-theme="midnight"] .sayu-head .sayu-title{ color:#F2EDF8; }
 [data-theme="midnight"] .sayu-head .sayu-title .sayu-title-ko{ color:#CABFE2; }
 [data-theme="midnight"] .sayu-head .sayu-desc{ color:#9387AE; }
