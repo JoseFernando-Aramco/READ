@@ -26571,22 +26571,23 @@ function toggleKeep(btn, id){
   try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
   if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
-    // 서버가 권위 응답(kept)을 주면 그대로 반영
-    if(r.ok && r.data && typeof r.data.kept==='boolean'){
-      btn.classList.toggle('on', r.data.kept);
-      if(typeof r.data.count==='number') n.textContent=r.data.count;
-      try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3){ k3.kept=r.data.kept; if(typeof r.data.count==='number') k3.keep=r.data.count; } }catch(e){}
-      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept' && r.data.kept===false){ renderMyView(); } }catch(e){}
+    // 2xx면 저장 성공 — 낙관 상태(눌림) 그대로 두고 서버 count만 반영. 버튼을 다시 끄지 않음(깜빡임 방지).
+    if(r.ok){
+      if(r.data && typeof r.data.count==='number'){
+        n.textContent=r.data.count;
+        try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3) k3.keep=r.data.count; }catch(e){}
+      }
+      // 서버 kept이 낙관과 다를 때만(드묾) 서버 우선
+      if(r.data && typeof r.data.kept==='boolean' && r.data.kept!==on){
+        btn.classList.toggle('on', r.data.kept);
+        try{ var k4=SAYU_POSTS.find(function(x){return x.id===id;}); if(k4) k4.kept=r.data.kept; }catch(e){}
+      }
+      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
       return;
     }
-    // 권위 응답이 없으면(서버 오류 등) 무작정 -1 되돌리지 말고 실제 상태를 다시 읽어 맞춤.
-    // 재조회까지 실패하면 그때 진짜 실패로 보고 롤백 + 안내.
-    _keepReconcile(id, btn, n, function(){
-      var back = btn.classList.toggle('on');
-      var c2 = parseInt(n.textContent,10)||0; n.textContent = c2 + (back?1:-1);
-      try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2){ k2.kept=back; k2.keep=c2+(back?1:-1);} }catch(e){}
-      if(typeof showToast==='function') showToast('처리에 실패했어요.');
-    });
+    // 비-2xx: 서버가 저장해놓고도 오류를 줄 수 있어 즉시 되돌리지 않음.
+    // 쓰기 전파 시간을 준 뒤 실제 상태로 1회만 조용히 보정(저장됐으면 눌림 유지, 진짜 실패면 해제).
+    setTimeout(function(){ _keepReconcile(id, btn, n, null); }, 700);
   });
 }
 
