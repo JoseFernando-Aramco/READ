@@ -45223,8 +45223,8 @@ function attachSwipeDown(sheet, closeFn, options = {}) {
   // v1.x — acq-sheet 추가 (소유 기록 시트)
   // v1.3.0 — qn-sheet 추가 (한줄평 시트). body는 textarea라 swipe 영역 제외 (입력 방해 회피)
   const grip = sheet.querySelector('.bas-grip, .settings-grip, .acq-sheet-handle, .qn-grip');
-  const head = sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head, .na-head, .acq-sheet-head, .qn-head');
-  const body = sheet.querySelector('.bas-body, .bd-body, .dd-body, .tm-body, .na-body, .settings-body, .acq-sheet-body');
+  const head = sheet.querySelector('.bas-head, .bd-head, .dd-head, .tm-head, .settings-head, .na-head, .acq-sheet-head, .qn-head, .pv-bar');
+  const body = sheet.querySelector('.bas-body, .bd-body, .dd-body, .tm-body, .na-body, .settings-body, .acq-sheet-body, .pv-scroll');
 
   let startY = 0;
   let currentY = 0;
@@ -45341,6 +45341,9 @@ attachSwipeDown(document.getElementById('naSheet'),       closeNoteSheet);
 attachSwipeDown(document.getElementById('qnSheet'),       closeQuickNote);
 // v1.10.4 — 타이머 세션 편집 시트
 attachSwipeDown(document.getElementById('tsSheet'),       closeTimerSessionEdit);
+// v2.0.0 — KEEP 상세창·내 KEEP 쓸어내려 닫기
+attachSwipeDown(document.getElementById('sayuPostView'), closePostView);
+attachSwipeDown(document.getElementById('sayuMyView'),   closeMyView);
 
 /* ═══════════════════════════════════════════════════════════
    독서 알림 — 매일 저녁 9시
