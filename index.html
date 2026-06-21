@@ -26547,9 +26547,24 @@ function _sayuAvatar(nick){
   return [pal[0], pal[1], n.charAt(0)];
 }
 // 서버 cover([색1,색2] 또는 URL문자열) → 화면용
+var _SAYU_PAL=[['#C9A66B','#7A5E3B'],['#7BA7C9','#3B5E7A'],['#9C8AB8','#5E4A78'],['#E8B8C4','#C97C9B'],['#7AC9C0','#3B7A78'],['#C9A66B','#A9824A']];
+function _sayuGradKey(key){ key=String(key||''); var h=0; for(var i=0;i<key.length;i++){ h=(h*31+key.charCodeAt(i))>>>0; } return _SAYU_PAL[h % _SAYU_PAL.length]; }
 function _sayuCover(cover){
   if (Array.isArray(cover) && cover.length>=2) return cover;
-  return ['#9C8AB8','#5E4A78']; // URL 표지는 추후 처리, 일단 기본 그라데이션
+  if (cover && typeof cover==='object' && Array.isArray(cover.g) && cover.g.length>=2) return cover.g;
+  return ['#9C8AB8','#5E4A78'];
+}
+function _sayuCoverUrl(cover){ return (cover && typeof cover==='object' && !Array.isArray(cover) && typeof cover.u==='string') ? cover.u : ''; }
+// 표지 렌더 공용: 실제 표지 이미지(/img 프록시) 위에 그라데이션 폴백. 이미지 있으면 이니셜 숨김
+function _sayuCoverParts(book){
+  var c0=(book.cover&&book.cover[0])||'#9C8AB8', c1=(book.cover&&book.cover[1])||'#5E4A78';
+  var grad='linear-gradient(135deg,'+c0+','+c1+')';
+  var url=book.coverUrl||'';
+  if(url){
+    var prox=(typeof ALADIN_PROXY_URL!=='undefined'&&ALADIN_PROXY_URL)?(ALADIN_PROXY_URL+'/img?url='+encodeURIComponent(url)):url;
+    return { bg:"url('"+prox+"') center/cover no-repeat, "+grad, init:'' };
+  }
+  return { bg:grad, init:(book.coverInit||'') };
 }
 function _sayuFromApi(p){
   var nick = (p.author && p.author.nick) || '익명';
@@ -26562,12 +26577,14 @@ function _sayuFromApi(p){
     type: p.type,
     page: p.page || 0,
     text: p.text || '',
-    book: {
-      isbn: (p.book && p.book.isbn) || '',
-      title: (p.book && p.book.title) || '',
-      author: (p.book && p.book.author) || '',
-      cover: _sayuCover(p.book && p.book.cover)
-    },
+    book: (function(){ var b=p.book||{}; var t=(b.title||''); return {
+      isbn: b.isbn || '',
+      title: t,
+      author: b.author || '',
+      cover: _sayuCover(b.cover),
+      coverUrl: _sayuCoverUrl(b.cover),
+      coverInit: t ? t.trim().charAt(0) : ''
+    }; })(),
     keep: p.keepCount || 0,
     kept: !!p.kept,
     comments: Array.isArray(p.comments) ? p.comments.map(_sayuCommentFromApi) : [],
@@ -26591,7 +26608,7 @@ function sayuCardHTML(p){
     + '<span class="sayu-tag">'+tag+'</span></div>'
     + body
     + '<div class="sayu-bookchip" role="button" tabindex="0" onclick="openBookSayu(\''+p.book.isbn+'\')">'
-    + '<div class="sayu-cover" style="background:linear-gradient(135deg,'+p.book.cover[0]+','+p.book.cover[1]+')">'+ci+'</div>'
+    + (function(){ var cp=_sayuCoverParts(p.book); return '<div class="sayu-cover" style="background:'+cp.bg+'">'+cp.init+'</div>'; })()
     + '<div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
     + '<div class="sayu-foot">'
     + '<button class="sayu-keep'+(p.kept?' on':'')+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button>'
@@ -26664,8 +26681,7 @@ function renderBookView(){
   if(!all.length) return;
   const book = all[0].book;
   const cov=document.getElementById('bvCover');
-  cov.style.background='linear-gradient(135deg,'+book.cover[0]+','+book.cover[1]+')';
-  cov.textContent = book.coverInit||'';
+  (function(){ var cp=_sayuCoverParts(book); cov.style.background=cp.bg; cov.textContent=cp.init; })();
   document.getElementById('bvTitle').textContent = book.title;
   document.getElementById('bvAuthor').textContent = book.author;
   document.getElementById('bvCount').textContent = all.length + '개의 KEEP';
@@ -26711,7 +26727,7 @@ function pvPostHTML(p){
   return '<div class="pv-post">'
     + '<div class="sayu-top"><div class="sayu-av" style="background:linear-gradient(135deg,'+p.av[0]+','+p.av[1]+')">'+p.av[2]+'</div><div class="sayu-name">'+sayuEsc(p.name)+'</div><div class="sayu-time">· '+sayuEsc(p.time)+'</div><span class="sayu-tag">'+tag+'</span></div>'
     + body
-    + '<div class="sayu-bookchip" style="cursor:default"><div class="sayu-cover" style="background:linear-gradient(135deg,'+p.book.cover[0]+','+p.book.cover[1]+')">'+ci+'</div><div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
+    + '<div class="sayu-bookchip" style="cursor:default">'+(function(){ var cp=_sayuCoverParts(p.book); return '<div class="sayu-cover" style="background:'+cp.bg+'">'+cp.init+'</div>'; })()+'<div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
     + '<div class="pv-post-foot"><button class="sayu-keep'+(p.kept?' on':'')+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button></div>'
     + '</div>';
 }
@@ -26883,7 +26899,7 @@ async function saveNick(){
   try{ var mv=document.getElementById('sayuMyView'); if(mv && mv.classList.contains('open')) renderMyView(); }catch(e){}
 }
 function _sayuNoteBody(note){ var t=String(note.body||''); if(note.type==='quote') t=t.replace(/^[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+|[\s"'\u201C\u201D\u2018\u2019\u300D\u300F]+$/g,''); return t; }
-function _sayuBookCover(book){ var fb=[['#C9A66B','#7A5E3B'],['#7BA7C9','#3B5E7A'],['#9C8AB8','#5E4A78'],['#E8B8C4','#C97C9B'],['#7AC9C0','#3B7A78'],['#C9A66B','#A9824A']]; var key=String(book.id||book.title||''); var h=0; for(var i=0;i<key.length;i++){ h=(h*31+key.charCodeAt(i))>>>0; } return fb[h % fb.length]; }
+function _sayuBookCover(book){ return { u:(book.coverUrl||''), g:_sayuGradKey(book.id||book.title||'') }; }
 async function shareNoteToSayu(noteId){ if(!sayuNeedLogin()) return; if(sayuIsNoteShared(noteId)) return; if(!sayuGetNick()){ await sayuSyncNick(); } if(!sayuGetNick()){ _sayuSharePending=noteId; openNickModal(); } else openSayuShareConfirm(noteId); }
 function openSayuShareConfirm(noteId){
   var note = NOTES.find(function(n){ return n.id===noteId; }); if(!note) return;
