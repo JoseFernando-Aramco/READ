@@ -21673,6 +21673,7 @@ body.cn-locked {
   <div class="pv-bar"><button class="pv-back" onclick="closeMyView()" aria-label="닫기">←</button><span class="pv-bartitle">내 KEEP</span></div>
   <div class="pv-scroll" id="myScroll">
     <div id="myProfile"></div>
+    <div id="myThemes" class="my-themes"></div>
     <div class="my-seg"><button class="my-seg-btn" id="mySegNotif" onclick="switchMyTab('notif')">알림</button><button class="my-seg-btn" id="mySegKept" onclick="switchMyTab('kept')">MY KEEP</button><button class="my-seg-btn" id="mySegPosts" onclick="switchMyTab('posts')">내가 쓴 글</button></div>
     <div id="myContent"></div>
   </div>
@@ -22002,6 +22003,25 @@ body.sayu-active::before{ opacity:1; }
 body.sayu-active #sayuBackdrop{ opacity:1; }
 [data-theme="midnight"] #sayuBackdrop{ background:radial-gradient(48% 34% at 86% 30%, rgba(92,98,152,.32), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(82,74,132,.28), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(112,86,138,.22), transparent 72%), linear-gradient(180deg,#16141F 0px,#16141F 300px,#1C1A28 640px,#211E30 100%); }
 body.sayu-active{ background:#DDD5EE; }
+/* KEEP 배경 테마 5종 (라이트 테마 한정 — 카드/텍스트 가독성 유지) */
+body:not([data-theme="midnight"])[data-keepbg="sunset"] #sayuBackdrop{ background:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
+body:not([data-theme="midnight"])[data-keepbg="mist"] #sayuBackdrop{ background:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
+body:not([data-theme="midnight"])[data-keepbg="deepsea"] #sayuBackdrop{ background:radial-gradient(50% 36% at 78% 12%, rgba(118,180,200,.48), transparent 72%), radial-gradient(54% 40% at 18% 44%, rgba(108,150,196,.44), transparent 72%), radial-gradient(46% 32% at 90% 84%, rgba(150,192,206,.4), transparent 72%), linear-gradient(180deg,#DEE9ED 0px,#D4E2E9 300px,#C6D9E3 640px,#B8CEDD 100%); }
+body:not([data-theme="midnight"])[data-keepbg="dawn"] #sayuBackdrop{ background:radial-gradient(50% 34% at 12% 16%, rgba(214,190,232,.46), transparent 72%), radial-gradient(52% 38% at 84% 40%, rgba(248,208,198,.44), transparent 72%), radial-gradient(48% 30% at 50% 96%, rgba(245,224,178,.42), transparent 72%), linear-gradient(180deg,#F4ECF2 0px,#F4ECF2 300px,#F0E4EC 640px,#ECDDE3 100%); }
+body:not([data-theme="midnight"])[data-keepbg="amethyst"] #sayuBackdrop{ background:radial-gradient(52% 36% at 86% 24%, rgba(178,148,222,.5), transparent 72%), radial-gradient(54% 40% at 10% 70%, rgba(202,148,200,.44), transparent 72%), radial-gradient(46% 30% at 60% 8%, rgba(150,138,212,.42), transparent 72%), linear-gradient(180deg,#E9E1F1 0px,#E3D9ED 300px,#D6CAE5 640px,#C9BCDE 100%); }
+/* 배경 테마 피커 */
+.my-themes-lbl{ font-size:12px; font-weight:700; color:#8478A0; margin:0 2px 8px; }
+.my-themes-row{ display:flex; gap:12px; overflow-x:auto; padding:1px 1px 4px; margin:0 0 16px; -webkit-overflow-scrolling:touch; }
+.my-themes-row::-webkit-scrollbar{ display:none; }
+.bg-sw{ flex:none; background:none; border:none; padding:0; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; }
+.bg-sw-dot{ width:40px; height:40px; border-radius:50%; border:2px solid rgba(255,255,255,.7); box-shadow:0 2px 7px rgba(80,60,120,.16); transition:transform .15s ease; }
+.bg-sw:active .bg-sw-dot{ transform:scale(.92); }
+.bg-sw.on .bg-sw-dot{ border-color:#6F5AC8; box-shadow:0 0 0 2px rgba(111,90,200,.3), 0 2px 7px rgba(80,60,120,.18); }
+.bg-sw-name{ font-size:11px; color:#8478A0; }
+.bg-sw.on .bg-sw-name{ color:#41385C; font-weight:700; }
+[data-theme="midnight"] .my-themes-lbl{ color:#9387AE; }
+[data-theme="midnight"] .bg-sw-name{ color:#9387AE; }
+[data-theme="midnight"] .bg-sw.on .bg-sw-name{ color:#F2EDF8; }
 body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
 body.sayu-active #pane-sayu{ background:transparent; }
 [data-theme="midnight"] body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
@@ -26893,9 +26913,36 @@ function notifKeepHTML(p){
   return '<div class="notif-row" onclick="openPostView(\''+p.id+'\')"><div class="notif-main"><span class="notif-on">‘'+on+'’</span></div><div class="notif-keep">'+(p.keepCount||0)+'명이 KEEP · 댓글 '+(p.commentCount||0)+'</div></div>';
 }
 
+// KEEP 배경 테마 (라벤더 기본 + 5종). 색·패턴 다른 몽환/차분/신비 무드
+var KEEP_BG_THEMES=[
+  {id:'lavender', name:'라벤더', sw:'linear-gradient(135deg,#C9BCE8,#9A88D2)'},
+  {id:'sunset',   name:'노을',   sw:'linear-gradient(135deg,#FAD6C2,#EFA8BE)'},
+  {id:'mist',     name:'물안개', sw:'linear-gradient(135deg,#BFDBCE,#AAC4D2)'},
+  {id:'deepsea',  name:'심해',   sw:'linear-gradient(135deg,#A4CEDA,#7AA6C6)'},
+  {id:'dawn',     name:'여명',   sw:'linear-gradient(135deg,#D8C2E8,#F2D0BC)'},
+  {id:'amethyst', name:'자수정', sw:'linear-gradient(135deg,#BFA2E0,#988AD0)'}
+];
+function _keepBgGet(){ try{ return localStorage.getItem('read.sayu.bgTheme')||'lavender'; }catch(e){ return 'lavender'; } }
+function applyKeepBg(id){
+  if(!id || id==='lavender'){ document.body.removeAttribute('data-keepbg'); id='lavender'; }
+  else { document.body.setAttribute('data-keepbg', id); }
+  try{ localStorage.setItem('read.sayu.bgTheme', id); }catch(e){}
+  var c=document.getElementById('myThemes'); if(c) c.innerHTML=keepThemesHTML();
+}
+function keepThemesHTML(){
+  var cur=_keepBgGet();
+  return '<div class="my-themes-lbl">배경 테마</div><div class="my-themes-row">'+KEEP_BG_THEMES.map(function(t){
+    return '<button class="bg-sw'+(t.id===cur?' on':'')+'" onclick="applyKeepBg(\''+t.id+'\')" aria-label="'+t.name+'"><span class="bg-sw-dot" style="background:'+t.sw+'"></span><span class="bg-sw-name">'+t.name+'</span></button>';
+  }).join('')+'</div>';
+}
+(function(){ function _ap(){ try{ var v=localStorage.getItem('read.sayu.bgTheme'); if(v && v!=='lavender') document.body.setAttribute('data-keepbg', v); }catch(e){} }
+  if(document.body){ _ap(); } else { document.addEventListener('DOMContentLoaded', _ap); }
+})();
+
 async function renderMyView(){
   var pe=document.getElementById('myProfile'); if(!pe) return;
   pe.innerHTML=myProfileHTML();
+  var te=document.getElementById('myThemes'); if(te) te.innerHTML=keepThemesHTML();
   var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts'), segN=document.getElementById('mySegNotif');
   if(segK) segK.classList.toggle('on', _myTab==='kept');
   if(segH) segH.classList.toggle('on', _myTab==='hidden');
