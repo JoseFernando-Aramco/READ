@@ -26566,11 +26566,23 @@ function _keepReconcile(id, btn, n, onUnhealed){
 // iOS Safari: 상단 backdrop-filter(블러)와 겹친 스크롤 영역은 스크롤 전까지 JS DOM 변경을 리페인트하지 않음.
 // 사용자가 '살짝 스크롤'하면 갱신되는 것과 동일하게, 보이지 않는 1px 미세 스크롤로 컴포지터를 강제로 깨움.
 function _kbRepaint(){
+  // iOS Safari: 상단 backdrop-filter와 겹친 합성 레이어가 스크롤/드래그 전까지 DOM 변경을 리페인트하지 않음.
+  // 탭 슬라이더(#paneTrack, will-change:transform)의 transform을 1px 가로로 살짝 흔들었다 되돌려,
+  // 사용자가 '좌우로 살짝 움직이는' 것과 동일하게 컴포지터를 깨움(transition을 잠깐 꺼 눈엔 안 보임).
   try{
-    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
-    var d = y > 0 ? -1 : 1;
-    window.scrollTo(0, y + d);
-    requestAnimationFrame(function(){ window.scrollTo(0, y); });
+    var track = document.getElementById('paneTrack');
+    if(!track) return;
+    var prev = track.style.transform || '';
+    var hadDrag = track.classList.contains('is-dragging');
+    track.classList.add('is-dragging');
+    track.style.transform = (prev ? prev + ' ' : '') + 'translateX(1px)';
+    void track.offsetHeight;
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        track.style.transform = prev;
+        if(!hadDrag) track.classList.remove('is-dragging');
+      });
+    });
   }catch(e){}
 }
 // iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
