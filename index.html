@@ -21812,10 +21812,10 @@ body.cn-locked {
 .my-profile{ display:flex; align-items:center; gap:14px; padding:12px 4px 18px; }
 .my-av{ width:54px; height:54px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:22px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .my-av-empty{ background:linear-gradient(135deg,#CFC6DD,#A99FBA); }
-.my-pinfo{ flex:1; min-width:0; }
+.my-pinfo{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .my-nick{ font-size:18px; font-weight:800; color:#352D4E; }
 .my-nick-empty{ color:#9A8FB5; font-weight:700; font-size:16px; }
-.my-editnick{ margin-top:5px; border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; cursor:pointer; }
+.my-editnick{ border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; cursor:pointer; }
 .my-seg{ display:flex; gap:6px; background:rgba(255,255,255,.5); border-radius:12px; padding:4px; margin:0 0 14px; }
 .my-seg-btn{ flex:1; border:none; background:none; font-family:inherit; font-size:13px; font-weight:700; color:#766A92; padding:9px; border-radius:9px; cursor:pointer; }
 .my-seg-btn.on{ background:#fff; color:#41385C; box-shadow:0 2px 8px rgba(40,30,70,.08); }
@@ -22037,10 +22037,10 @@ html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-bg:radial-gra
 html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-bg:radial-gradient(52% 36% at 86% 24%, rgba(178,148,222,.5), transparent 72%), radial-gradient(54% 40% at 10% 70%, rgba(202,148,200,.44), transparent 72%), radial-gradient(46% 30% at 60% 8%, rgba(150,138,212,.42), transparent 72%), linear-gradient(180deg,#E9E1F1 0px,#E3D9ED 300px,#D6CAE5 640px,#C9BCDE 100%); }
 /* 배경 테마 피커 */
 .my-themes-lbl{ font-size:12px; font-weight:700; color:#8478A0; margin:0 2px 8px; }
-.my-themes-row{ display:flex; gap:12px; overflow-x:auto; padding:1px 1px 4px; margin:0 0 16px; -webkit-overflow-scrolling:touch; }
+.my-themes-row{ display:flex; gap:16px; overflow-x:auto; padding:2px 14px 6px 2px; margin:0 0 16px; -webkit-overflow-scrolling:touch; }
 .my-themes-row::-webkit-scrollbar{ display:none; }
 .bg-sw{ flex:none; background:none; border:none; padding:0; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; }
-.bg-sw-dot{ width:40px; height:40px; border-radius:50%; border:2px solid rgba(255,255,255,.7); box-shadow:0 2px 7px rgba(80,60,120,.16); transition:transform .15s ease; }
+.bg-sw-dot{ width:48px; height:48px; border-radius:50%; border:2px solid rgba(255,255,255,.7); box-shadow:0 2px 7px rgba(80,60,120,.16); transition:transform .15s ease; }
 .bg-sw:active .bg-sw-dot{ transform:scale(.92); }
 .bg-sw.on .bg-sw-dot{ border-color:#6F5AC8; box-shadow:0 0 0 2px rgba(111,90,200,.3), 0 2px 7px rgba(80,60,120,.18); }
 .bg-sw-name{ font-size:11px; color:#8478A0; }
@@ -27001,7 +27001,7 @@ function applyKeepBg(id){
 function keepThemesHTML(){
   var cur=_keepBgGet();
   return '<div class="my-themes-lbl">배경 테마</div><div class="my-themes-row">'+KEEP_BG_THEMES.map(function(t){
-    return '<button class="bg-sw'+(t.id===cur?' on':'')+'" onclick="applyKeepBg(\''+t.id+'\')" aria-label="'+t.name+'"><span class="bg-sw-dot" style="background:'+t.sw+'"></span><span class="bg-sw-name">'+t.name+'</span></button>';
+    return '<button class="bg-sw'+(t.id===cur?' on':'')+'" onclick="applyKeepBg(\''+t.id+'\')" aria-label="'+t.name+'"><span class="bg-sw-dot" style="background:'+t.sw+'"></span></button>';
   }).join('')+'</div>';
 }
 (function(){ function _ap(){ try{ var v=localStorage.getItem('read.sayu.bgTheme'); if(v && v!=='lavender') document.body.setAttribute('data-keepbg', v); }catch(e){} }
