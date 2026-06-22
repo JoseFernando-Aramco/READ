@@ -21672,8 +21672,10 @@ body.cn-locked {
 <div id="sayuMyView" aria-hidden="true">
   <div class="pv-bar"><button class="pv-back" onclick="closeMyView()" aria-label="닫기">←</button><span class="pv-bartitle">내 KEEP</span></div>
   <div class="pv-scroll" id="myScroll">
+    <div class="my-head-row">
     <div id="myProfile"></div>
     <div id="myThemes" class="my-themes"></div>
+    </div>
     <div class="my-seg"><button class="my-seg-btn" id="mySegNotif" onclick="switchMyTab('notif')">알림</button><button class="my-seg-btn" id="mySegKept" onclick="switchMyTab('kept')">MY KEEP</button><button class="my-seg-btn" id="mySegPosts" onclick="switchMyTab('posts')">내가 쓴 글</button></div>
     <div id="myContent"></div>
   </div>
@@ -21809,11 +21811,11 @@ body.cn-locked {
 [data-theme="midnight"] .sg-desc{ color:#9387AE; }
 #sayuMyView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:195; background:var(--keep-bg); transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); visibility:hidden; display:flex; flex-direction:column; }
 #sayuMyView.open{ transform:translate(-50%,0); visibility:visible; }
-.my-profile{ display:flex; align-items:center; gap:14px; padding:12px 4px 18px; }
-.my-av{ width:54px; height:54px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:22px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.my-profile{ display:flex; align-items:center; gap:11px; flex:none; padding:0; }
+.my-av{ width:48px; height:48px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:19px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .my-av-empty{ background:linear-gradient(135deg,#CFC6DD,#A99FBA); }
-.my-pinfo{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.my-nick{ font-size:18px; font-weight:800; color:#352D4E; }
+.my-pinfo{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:7px; }
+.my-nick{ font-size:16px; font-weight:800; color:#352D4E; white-space:nowrap; }
 .my-nick-empty{ color:#9A8FB5; font-weight:700; font-size:16px; }
 .my-editnick{ border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; cursor:pointer; }
 .my-seg{ display:flex; gap:6px; background:rgba(255,255,255,.5); border-radius:12px; padding:4px; margin:0 0 14px; }
@@ -22021,7 +22023,6 @@ html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-solid:#E9
 /* KEEP 상단 점진적 블러 (위로 갈수록 강하게, 아래로 페이드) — 피드 위·헤더 아래(z:5) */
 .keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
   --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
-body.sayu-active .keep-topblur{ --b1:2px; --b2:4px; --b3:8px; --b4:13px; --b5:18px; --b6:24px; }
 .keep-topblur > div{ position:absolute; inset:0; }
 .keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); }
 .keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); }
@@ -22046,6 +22047,23 @@ html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-bg:radial
 .bg-sw-name{ font-size:11px; color:#8478A0; }
 .bg-sw.on .bg-sw-name{ color:#41385C; font-weight:700; }
 [data-theme="midnight"] .my-themes-lbl{ color:#9387AE; }
+.my-head-row{ display:flex; align-items:center; gap:12px; padding:14px 4px 18px; }
+.my-head-row > #myProfile{ flex:none; }
+.my-head-row > #myThemes{ flex:1; min-width:0; }
+.kbg-card{ width:100%; box-sizing:border-box; background:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.6); border-radius:18px; padding:11px 8px 10px; }
+.kbg-head{ display:flex; align-items:baseline; justify-content:space-between; gap:6px; margin:0 6px 8px; }
+.kbg-lbl{ font-size:11.5px; font-weight:700; color:#7A6E98; }
+.kbg-cur{ font-size:12.5px; font-weight:700; color:#5B49B8; white-space:nowrap; }
+.kbg-carwrap{ position:relative; }
+.kbg-ring{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; border:2.5px solid #6F5AC8; box-shadow:0 0 0 4px rgba(111,90,200,.16); pointer-events:none; z-index:3; }
+.kbg-car{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:13px; padding:7px 0; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.kbg-car::-webkit-scrollbar{ display:none; }
+.kbg-chip{ scroll-snap-align:center; flex:none; width:46px; height:46px; border-radius:50%; border:2px solid rgba(255,255,255,.78); padding:0; cursor:pointer; opacity:.38; transform:scale(.72); }
+[data-theme="midnight"] .kbg-card{ background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.12); }
+[data-theme="midnight"] .kbg-lbl{ color:#9387AE; }
+[data-theme="midnight"] .kbg-cur{ color:#C5B6F2; }
+[data-theme="midnight"] .kbg-ring{ border-color:#B49AEB; box-shadow:0 0 0 4px rgba(180,154,235,.18); }
+[data-theme="midnight"] .kbg-chip{ border-color:rgba(255,255,255,.3); }
 [data-theme="midnight"] .bg-sw-name{ color:#9387AE; }
 [data-theme="midnight"] .bg-sw.on .bg-sw-name{ color:#F2EDF8; }
 body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
@@ -22054,8 +22072,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 [data-theme="midnight"] body.sayu-active #pane-sayu{ background:transparent; }
 .app-header{ background:transparent; }
 .tab-bar{ background:transparent; }
-/* iOS26 Safari는 상단 sticky 헤더 배경색을 상태바 색으로 샘플링 → KEEP에선 헤더를 솔리드(--keep-solid)로 줘서 상단까지 통일 (블러는 헤더 아래로 유지) */
-body.sayu-active .app-header{ background:var(--keep-solid); }
+/* KEEP 상단도 다른 탭과 동일하게 투명 헤더 + keep-topblur 블러 사용 */
 [data-theme="midnight"] body::before{ background:#16141F; }
 [data-theme="midnight"] .app-header{ background:transparent; }
 [data-theme="midnight"] .tab-bar{ background:transparent; }
@@ -26991,18 +27008,47 @@ var KEEP_BG_THEMES=[
   {id:'amethyst', name:'자수정', sw:'linear-gradient(135deg,#BFA2E0,#988AD0)'}
 ];
 function _keepBgGet(){ try{ return localStorage.getItem('read.sayu.bgTheme')||'lavender'; }catch(e){ return 'lavender'; } }
-function applyKeepBg(id){
+function _applyKeepBgCore(id){
   if(!id || id==='lavender'){ document.body.removeAttribute('data-keepbg'); id='lavender'; }
   else { document.body.setAttribute('data-keepbg', id); }
   try{ localStorage.setItem('read.sayu.bgTheme', id); }catch(e){}
   try{ if(document.body.classList.contains('sayu-active')){ var _m=document.querySelector('meta[name="theme-color"]'); var _k=getComputedStyle(document.body).getPropertyValue('--keep-solid').trim(); if(_m && _k) _m.setAttribute('content', _k); } }catch(e){}
-  var c=document.getElementById('myThemes'); if(c) c.innerHTML=keepThemesHTML();
 }
+function applyKeepBg(id){ _applyKeepBgCore(id); var c=document.getElementById('myThemes'); if(c){ c.innerHTML=keepThemesHTML(); _kbgInitCarousel(); } }
 function keepThemesHTML(){
   var cur=_keepBgGet();
-  return '<div class="my-themes-lbl">배경 테마</div><div class="my-themes-row">'+KEEP_BG_THEMES.map(function(t){
-    return '<button class="bg-sw'+(t.id===cur?' on':'')+'" onclick="applyKeepBg(\''+t.id+'\')" aria-label="'+t.name+'"><span class="bg-sw-dot" style="background:'+t.sw+'"></span></button>';
-  }).join('')+'</div>';
+  var curName='라벤더';
+  for(var i=0;i<KEEP_BG_THEMES.length;i++){ if(KEEP_BG_THEMES[i].id===cur){ curName=KEEP_BG_THEMES[i].name; break; } }
+  var chips=KEEP_BG_THEMES.map(function(t){
+    return '<button class="kbg-chip" data-id="'+t.id+'" data-name="'+t.name+'" aria-label="'+t.name+'" style="background:'+t.sw+'"></button>';
+  }).join('');
+  return '<div class="kbg-card"><div class="kbg-head"><span class="kbg-lbl">배경 테마</span><span class="kbg-cur" id="kbgCur">'+curName+'</span></div><div class="kbg-carwrap"><div class="kbg-ring" aria-hidden="true"></div><div class="kbg-car" id="kbgCar">'+chips+'</div></div></div>';
+}
+function _kbgInitCarousel(){
+  var car=document.getElementById('kbgCar'); if(!car) return;
+  var curEl=document.getElementById('kbgCur');
+  var chips=Array.prototype.slice.call(car.querySelectorAll('.kbg-chip'));
+  if(!chips.length) return;
+  var activeId=_keepBgGet();
+  function pad(){ var p=Math.max(0, car.clientWidth/2 - 23); car.style.paddingLeft=p+'px'; car.style.paddingRight=p+'px'; }
+  function update(commit){
+    var center=car.scrollLeft+car.clientWidth/2, best=chips[0], bd=1e9;
+    chips.forEach(function(c){
+      var cx=c.offsetLeft+c.offsetWidth/2, d=Math.abs(cx-center);
+      var t=Math.min(1, d/76);
+      c.style.opacity=(1-t*0.64).toFixed(3);
+      c.style.transform='scale('+(1-t*0.28).toFixed(3)+')';
+      if(d<bd){ bd=d; best=c; }
+    });
+    if(curEl) curEl.textContent=best.getAttribute('data-name');
+    var id=best.getAttribute('data-id');
+    if(commit && id!==activeId){ activeId=id; _applyKeepBgCore(id); }
+  }
+  var raf=null;
+  car.addEventListener('scroll',function(){ if(raf) return; raf=requestAnimationFrame(function(){ raf=null; update(true); }); });
+  chips.forEach(function(c){ c.addEventListener('click',function(){ car.scrollTo({left:Math.max(0,c.offsetLeft-(car.clientWidth/2-c.offsetWidth/2)), behavior:'smooth'}); }); });
+  function init(){ if(!car.clientWidth){ requestAnimationFrame(init); return; } pad(); var idx=0; for(var i=0;i<chips.length;i++){ if(chips[i].getAttribute('data-id')===activeId){ idx=i; break; } } var s=chips[idx]; car.scrollLeft=Math.max(0, s.offsetLeft-(car.clientWidth/2-s.offsetWidth/2)); update(false); }
+  requestAnimationFrame(function(){ requestAnimationFrame(init); });
 }
 (function(){ function _ap(){ try{ var v=localStorage.getItem('read.sayu.bgTheme'); if(v && v!=='lavender') document.body.setAttribute('data-keepbg', v); }catch(e){} }
   if(document.body){ _ap(); } else { document.addEventListener('DOMContentLoaded', _ap); }
@@ -27011,7 +27057,7 @@ function keepThemesHTML(){
 async function renderMyView(){
   var pe=document.getElementById('myProfile'); if(!pe) return;
   pe.innerHTML=myProfileHTML();
-  var te=document.getElementById('myThemes'); if(te) te.innerHTML=keepThemesHTML();
+  var te=document.getElementById('myThemes'); if(te){ te.innerHTML=keepThemesHTML(); _kbgInitCarousel(); }
   var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts'), segN=document.getElementById('mySegNotif');
   if(segK) segK.classList.toggle('on', _myTab==='kept');
   if(segH) segH.classList.toggle('on', _myTab==='hidden');
