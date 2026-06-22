@@ -26580,15 +26580,16 @@ function _kbDebug(msg){
   }catch(e){}
 }
 function _kbRepaint(el){
-  // iOS Safari: 합성 레이어에 갇힌 요소는 DOM 변경 후에도 스크롤/터치 전까지 리페인트되지 않음.
-  // 요소를 한 순간 display:none 했다가 되돌려 렌더 객체를 파기/재생성 → 새 페인트 강제(레이어 갇힘과 무관).
-  // 동기적으로 토글하므로 중간 프레임이 그려지지 않아 눈에는 안 보임.
+  // iOS Safari: #paneTrack은 will-change:transform 으로 합성 레이어(캐시 텍스처)라
+  // 내부 텍스트(KEEP 카운트) 변경이 텍스처에 재래스터되지 않음(스와이프 때만 다시 그려짐).
+  // will-change를 잠깐 해제(auto)했다 복원해 레이어를 폐기/재생성 → 현재 DOM으로 강제 재래스터.
   try{
-    if(!el) return;
-    var prev = el.style.display;
-    el.style.display = 'none';
-    void el.offsetHeight;
-    el.style.display = prev || '';
+    var track=document.getElementById('paneTrack');
+    if(!track) return;
+    var pwc=track.style.willChange;
+    track.style.willChange='auto';
+    void track.offsetHeight;
+    track.style.willChange=pwc||'';
   }catch(e){}
 }
 // iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
