@@ -22010,8 +22010,6 @@ body.sayu-active{ background:#DDD5EE; }
 .keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
   --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
 body.sayu-active .keep-topblur{ --b1:2px; --b2:4px; --b3:8px; --b4:13px; --b5:18px; --b6:24px; }
-/* [진단] KEEP 탭에서 상단 블러 끄기 — keep 버튼 리페인트 버그가 블러 때문인지 확인용. 확인 후 이 줄 제거 예정. */
-body.sayu-active .keep-topblur{ display:none !important; }
 .keep-topblur > div{ position:absolute; inset:0; }
 .keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); }
 .keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); }
@@ -26554,6 +26552,7 @@ const TAB_ORDER = ['library', 'stats', 'goals', 'notes', 'sayu'];
 // KEEP 토글 응답이 권위적이지 않을 때(서버 오류 등) 그 글의 실제 상태를 다시 읽어 화면을 맞춤 (self-heal)
 function _keepReconcile(id, btn, n, onUnhealed){
   keepApi('GET','/keep/post/'+encodeURIComponent(id)).then(function(r){
+    _kbDebug('RECON ok='+(r&&r.ok)+' post='+JSON.stringify(r&&r.data&&r.data.post));
     if(r && r.ok && r.data && r.data.post){
       var kept=!!r.data.post.kept;
       var cnt=(typeof r.data.post.keepCount==='number')?r.data.post.keepCount:(parseInt(n.textContent,10)||0);
@@ -26567,6 +26566,19 @@ function _keepReconcile(id, btn, n, onUnhealed){
 }
 // iOS Safari: 상단 backdrop-filter(블러)와 겹친 스크롤 영역은 스크롤 전까지 JS DOM 변경을 리페인트하지 않음.
 // 사용자가 '살짝 스크롤'하면 갱신되는 것과 동일하게, 보이지 않는 1px 미세 스크롤로 컴포지터를 강제로 깨움.
+function _kbDebug(msg){
+  try{
+    var d=document.getElementById('kbDebug');
+    if(!d){
+      d=document.createElement('div'); d.id='kbDebug';
+      d.style.cssText='position:fixed;left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:99999;background:rgba(0,0,0,.86);color:#5f5;font:11px/1.45 monospace;padding:8px 10px;border-radius:10px;max-height:42vh;overflow:auto;white-space:pre-wrap;';
+      var h=document.createElement('div'); h.textContent='\u25cf KEEP \ub514\ubc84\uadf8 (\uc5ec\uae30 \ud0ed\ud558\uba74 \uc9c0\uc6c0)'; h.style.color='#9cf'; d.appendChild(h);
+      d.addEventListener('click',function(){ var hh=d.firstChild; d.innerHTML=''; d.appendChild(hh); });
+      document.body.appendChild(d);
+    }
+    var line=document.createElement('div'); var t=new Date(); line.textContent=('0'+t.getMinutes()).slice(-2)+':'+('0'+t.getSeconds()).slice(-2)+'.'+('00'+t.getMilliseconds()).slice(-3)+'  '+msg; d.appendChild(line); d.scrollTop=d.scrollHeight;
+  }catch(e){}
+}
 function _kbRepaint(el){
   // iOS Safari: 합성 레이어에 갇힌 요소는 DOM 변경 후에도 스크롤/터치 전까지 리페인트되지 않음.
   // 요소를 한 순간 display:none 했다가 되돌려 렌더 객체를 파기/재생성 → 새 페인트 강제(레이어 갇힘과 무관).
@@ -26593,8 +26605,10 @@ function toggleKeep(btn, id){
   n.textContent = c + (on ? 1 : -1);
   try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
   _kbRepaint(btn);
+  _kbDebug('TAP id='+id+' on='+on+' optDOM='+n.textContent);
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
     // 2xx면 저장 성공 — 낙관 상태(눌림) 그대로 두고 서버 count만 반영. 버튼을 다시 끄지 않음(깜빡임 방지).
+    _kbDebug('RESP ok='+r.ok+' status='+r.status+' data='+JSON.stringify(r.data));
     if(r.ok){
       if(r.data && typeof r.data.count==='number'){
         n.textContent=r.data.count;
@@ -26607,8 +26621,10 @@ function toggleKeep(btn, id){
       }
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
       _kbRepaint(btn);
+      _kbDebug('AFTER-OK finalDOM='+n.textContent+' on='+btn.classList.contains('on'));
       return;
     }
+    _kbDebug('NON-2xx \u2192 700ms \ud6c4 reconcile');
     // 비-2xx: 서버가 저장해놓고도 오류를 줄 수 있어 즉시 되돌리지 않음.
     // 쓰기 전파 시간을 준 뒤 실제 상태로 1회만 조용히 보정(저장됐으면 눌림 유지, 진짜 실패면 해제).
     setTimeout(function(){ _keepReconcile(id, btn, n, null); }, 700);
