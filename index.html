@@ -22050,6 +22050,8 @@ body.sayu-active #pane-sayu{ background:transparent; }
 [data-theme="midnight"] body.sayu-active #pane-sayu{ background:transparent; }
 .app-header{ background:transparent; }
 .tab-bar{ background:transparent; }
+/* iOS26 Safari는 상단 sticky 헤더 배경색을 상태바 색으로 샘플링 → KEEP에선 헤더를 솔리드(--keep-solid)로 줘서 상단까지 통일 (블러는 헤더 아래로 유지) */
+body.sayu-active .app-header{ background:var(--keep-solid); }
 [data-theme="midnight"] body::before{ background:#16141F; }
 [data-theme="midnight"] .app-header{ background:transparent; }
 [data-theme="midnight"] .tab-bar{ background:transparent; }
