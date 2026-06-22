@@ -748,10 +748,11 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   width: 100%;
   /* 스프링 느낌 (iOS처럼 살짝 오버슈트 없이 자연스럽게 감속) */
   transition: transform 0.36s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
   /* 세로는 브라우저 네이티브, 가로만 JS에서 캡처 */
   touch-action: pan-y;
 }
-.pane-track.is-dragging { transition: none; will-change: transform; }
+.pane-track.is-dragging { transition: none; }
 .pane {
   flex: 0 0 100%;
   width: 100%;
@@ -22020,12 +22021,6 @@ body.sayu-active .keep-topblur{ --b1:2px; --b2:4px; --b3:8px; --b4:13px; --b5:18
 html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-bg:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-bg:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-bg:radial-gradient(50% 36% at 78% 12%, rgba(118,180,200,.48), transparent 72%), radial-gradient(54% 40% at 18% 44%, rgba(108,150,196,.44), transparent 72%), radial-gradient(46% 32% at 90% 84%, rgba(150,192,206,.4), transparent 72%), linear-gradient(180deg,#DEE9ED 0px,#D4E2E9 300px,#C6D9E3 640px,#B8CEDD 100%); }
-/* KEEP 탭 상태바/툴바(theme-color) 동기화용 — 각 배경의 최상단 색 */
-body{ --keep-topcolor:#DDD5EE; }
-[data-theme="midnight"] body{ --keep-topcolor:#16141F; }
-html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-topcolor:#FBEDE4; }
-html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-topcolor:#E7EFEB; }
-html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-topcolor:#DEE9ED; }
 html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-bg:radial-gradient(50% 34% at 12% 16%, rgba(214,190,232,.46), transparent 72%), radial-gradient(52% 38% at 84% 40%, rgba(248,208,198,.44), transparent 72%), radial-gradient(48% 30% at 50% 96%, rgba(245,224,178,.42), transparent 72%), linear-gradient(180deg,#F4ECF2 0px,#F4ECF2 300px,#F0E4EC 640px,#ECDDE3 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-bg:radial-gradient(52% 36% at 86% 24%, rgba(178,148,222,.5), transparent 72%), radial-gradient(54% 40% at 10% 70%, rgba(202,148,200,.44), transparent 72%), radial-gradient(46% 30% at 60% 8%, rgba(150,138,212,.42), transparent 72%), linear-gradient(180deg,#E9E1F1 0px,#E3D9ED 300px,#D6CAE5 640px,#C9BCDE 100%); }
 /* 배경 테마 피커 */
@@ -26555,46 +26550,27 @@ const tabBtns = document.querySelectorAll('.tab-btn');
 const panes   = document.querySelectorAll('.pane');
 const TAB_ORDER = ['library', 'stats', 'goals', 'notes', 'sayu'];
 // KEEP 토글 응답이 권위적이지 않을 때(서버 오류 등) 그 글의 실제 상태를 다시 읽어 화면을 맞춤 (self-heal)
-function _keepReconcile(id, btn, n, onUnhealed){
-  keepApi('GET','/keep/post/'+encodeURIComponent(id)).then(function(r){
-    if(r && r.ok && r.data && r.data.post){
-      var kept=!!r.data.post.kept;
-      var cnt=(typeof r.data.post.keepCount==='number')?r.data.post.keepCount:(parseInt((n||{}).textContent,10)||0);
-      if(btn) btn.classList.toggle('on', kept);
-      if(n) n.textContent=cnt;
-      try{ var k=SAYU_POSTS.find(function(x){return x.id===id;}); if(k){ k.kept=kept; k.keep=cnt; } }catch(e){}
-      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
-    } else if(typeof onUnhealed==='function'){ onUnhealed(); }
-  }).catch(function(){ if(typeof onUnhealed==='function') onUnhealed(); });
-}
-// iOS Safari: 상단 backdrop-filter(블러)와 겹친 스크롤 영역은 스크롤 전까지 JS DOM 변경을 리페인트하지 않음.
-// 사용자가 '살짝 스크롤'하면 갱신되는 것과 동일하게, 보이지 않는 1px 미세 스크롤로 컴포지터를 강제로 깨움.
-
-
-
-
-// iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
-// 같은 글에 대한 토글을 짧은 간격(450ms) 내에는 한 번만 처리. (의도적 토글은 그보다 느려 영향 없음)
-var _keepTapGuard = Object.create(null);
 function toggleKeep(btn, id){
   if(!sayuNeedLogin()) return;
-  var _kt = Date.now();
-  if(_keepTapGuard[id] && (_kt - _keepTapGuard[id]) < 450) return;
-  _keepTapGuard[id] = _kt;
-  var on = btn.classList.toggle('on');
-  var n = btn.querySelector('.n');
-  var c = parseInt(n.textContent, 10) || 0;
-  var nc = c + (on ? 1 : -1); if(nc < 0) nc = 0;
-  n.textContent = nc;
-  try{ var _kp = (typeof SAYU_POSTS!=='undefined') ? SAYU_POSTS.find(function(x){ return x.id===id; }) : null; if(_kp){ _kp.kept=on; _kp.keep=nc; } }catch(e){}
+  const on = btn.classList.toggle('on');
+  const n = btn.querySelector('.n');
+  const c = parseInt(n.textContent, 10) || 0;
+  n.textContent = c + (on ? 1 : -1);
+  try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
+  if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
-    if(r.ok){
-      if(r.data && typeof r.data.count==='number'){ n.textContent=r.data.count; try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2) k2.keep=r.data.count; }catch(e){} }
-      if(r.data && typeof r.data.kept==='boolean' && r.data.kept!==on){ btn.classList.toggle('on', r.data.kept); try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3) k3.kept=r.data.kept; }catch(e){} }
-      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
+    if(!r.ok){
+      var back = btn.classList.toggle('on');
+      var c2 = parseInt(n.textContent,10)||0; n.textContent = c2 + (back?1:-1);
+      try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2){ k2.kept=back; k2.keep=c2+(back?1:-1);} }catch(e){}
+      if(typeof showToast==='function') showToast('처리에 실패했어요.');
       return;
     }
-    setTimeout(function(){ _keepReconcile(id, btn, n, null); }, 700);
+    if(r.data){
+      if(typeof r.data.kept==='boolean') btn.classList.toggle('on', r.data.kept);
+      if(typeof r.data.count==='number'){ n.textContent=r.data.count; try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3){ k3.kept=!!r.data.kept; k3.keep=r.data.count; } }catch(e){} }
+      try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept' && r.data.kept===false){ renderMyView(); } }catch(e){}
+    }
   });
 }
 
@@ -27116,7 +27092,7 @@ function setTrackX(px, { instant = false } = {}) {
   if (!track) return;
   if (instant) track.classList.add('is-dragging');
   else         track.classList.remove('is-dragging');
-  track.style.transform = `translateX(${px}px)`;
+  track.style.transform = `translate3d(${px}px, 0, 0)`;
 }
 
 function snapToTab(idx) {
@@ -27126,19 +27102,6 @@ function snapToTab(idx) {
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
   document.body.classList.toggle('sayu-active', TAB_ORDER[idx] === 'sayu');
-  // KEEP 탭은 라벤더 배경에 맞춰 iOS 상태바/툴바(theme-color) 색 동기화, 그 외엔 테마 액센트로 복원
-  try{
-    var _mtc=document.querySelector('meta[name="theme-color"]');
-    if(_mtc){
-      if(TAB_ORDER[idx]==='sayu'){
-        var _tc=getComputedStyle(document.body).getPropertyValue('--keep-topcolor').trim();
-        _mtc.setAttribute('content', _tc || '#DDD5EE');
-      } else {
-        var _mc=getComputedStyle(document.documentElement).getPropertyValue('--c-terra-900').trim();
-        _mtc.setAttribute('content', _mc || '#7c2d12');
-      }
-    }
-  }catch(e){}
   if (TAB_ORDER[idx] === 'sayu') sayuApplyGate();
   positionTabThumb();
 }
