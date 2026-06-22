@@ -21998,14 +21998,22 @@ body.sayu-book-open{ overflow:hidden; }
 /* ─── midnight(다크) = 박명 무드 ─── */
 [data-theme="midnight"] #pane-sayu{ background:transparent; }
 /* ── 사유 탭 활성 시 화면 전체를 몽환 톤으로 ── */
-body::before{ content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0; transition:opacity .6s ease; background:#DDD5EE; }
+body::before{ content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0; transition:opacity .6s ease; background:var(--keep-solid); }
 .app-header, .tab-bar { transition: background .6s ease; }
 body.sayu-active::before{ opacity:1; }
 body{ --keep-bg:radial-gradient(48% 34% at 86% 30%, rgba(165,172,238,.5), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(160,148,228,.46), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(198,172,224,.4), transparent 72%), linear-gradient(180deg,#DDD5EE 0px,#DDD5EE 300px,#D5CDE8 640px,#CCC5E3 100%); }
 #sayuBackdrop{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .5s ease; background:var(--keep-bg); }
 body.sayu-active #sayuBackdrop{ opacity:1; }
 [data-theme="midnight"] body{ --keep-bg:radial-gradient(48% 34% at 86% 30%, rgba(92,98,152,.32), transparent 72%), radial-gradient(52% 36% at 6% 62%, rgba(82,74,132,.28), transparent 72%), radial-gradient(46% 30% at 72% 96%, rgba(112,86,138,.22), transparent 72%), linear-gradient(180deg,#16141F 0px,#16141F 300px,#1C1A28 640px,#211E30 100%); }
-body.sayu-active{ background:#DDD5EE; }
+body.sayu-active{ background:var(--keep-solid); }
+/* iOS 상태바/툴바는 body background-color를 샘플링 → 솔리드 베이스를 KEEP 배경 테마에 맞춰 safe-area 색 일치 */
+body{ --keep-solid:#DDD5EE; }
+[data-theme="midnight"] body{ --keep-solid:#16141F; }
+html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-solid:#FBEDE4; }
+html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-solid:#E7EFEB; }
+html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-solid:#DEE9ED; }
+html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-solid:#F4ECF2; }
+html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-solid:#E9E1F1; }
 /* KEEP 상단 점진적 블러 (위로 갈수록 강하게, 아래로 페이드) — 피드 위·헤더 아래(z:5) */
 .keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
   --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
@@ -26942,6 +26950,7 @@ function applyKeepBg(id){
   if(!id || id==='lavender'){ document.body.removeAttribute('data-keepbg'); id='lavender'; }
   else { document.body.setAttribute('data-keepbg', id); }
   try{ localStorage.setItem('read.sayu.bgTheme', id); }catch(e){}
+  try{ if(document.body.classList.contains('sayu-active')){ var _m=document.querySelector('meta[name="theme-color"]'); var _k=getComputedStyle(document.body).getPropertyValue('--keep-solid').trim(); if(_m && _k) _m.setAttribute('content', _k); } }catch(e){}
   var c=document.getElementById('myThemes'); if(c) c.innerHTML=keepThemesHTML();
 }
 function keepThemesHTML(){
@@ -27102,6 +27111,19 @@ function snapToTab(idx) {
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
   document.body.classList.toggle('sayu-active', TAB_ORDER[idx] === 'sayu');
+  // KEEP 탭: iOS Safari 크롬(theme-color)을 KEEP 배경 솔리드 색에 맞춤. 그 외 탭: 앱 테마색 복원
+  try{
+    var _mtc=document.querySelector('meta[name="theme-color"]');
+    if(_mtc){
+      if(TAB_ORDER[idx]==='sayu'){
+        var _ks=getComputedStyle(document.body).getPropertyValue('--keep-solid').trim();
+        if(_ks) _mtc.setAttribute('content', _ks);
+      } else {
+        var _mc=getComputedStyle(document.documentElement).getPropertyValue('--c-terra-900').trim();
+        _mtc.setAttribute('content', _mc || '#7c2d12');
+      }
+    }
+  }catch(e){}
   if (TAB_ORDER[idx] === 'sayu') sayuApplyGate();
   positionTabThumb();
 }
