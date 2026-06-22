@@ -22020,6 +22020,12 @@ body.sayu-active .keep-topblur{ --b1:2px; --b2:4px; --b3:8px; --b4:13px; --b5:18
 html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-bg:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-bg:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-bg:radial-gradient(50% 36% at 78% 12%, rgba(118,180,200,.48), transparent 72%), radial-gradient(54% 40% at 18% 44%, rgba(108,150,196,.44), transparent 72%), radial-gradient(46% 32% at 90% 84%, rgba(150,192,206,.4), transparent 72%), linear-gradient(180deg,#DEE9ED 0px,#D4E2E9 300px,#C6D9E3 640px,#B8CEDD 100%); }
+/* KEEP 탭 상태바/툴바(theme-color) 동기화용 — 각 배경의 최상단 색 */
+body{ --keep-topcolor:#DDD5EE; }
+[data-theme="midnight"] body{ --keep-topcolor:#16141F; }
+html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-topcolor:#FBEDE4; }
+html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-topcolor:#E7EFEB; }
+html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-topcolor:#DEE9ED; }
 html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-bg:radial-gradient(50% 34% at 12% 16%, rgba(214,190,232,.46), transparent 72%), radial-gradient(52% 38% at 84% 40%, rgba(248,208,198,.44), transparent 72%), radial-gradient(48% 30% at 50% 96%, rgba(245,224,178,.42), transparent 72%), linear-gradient(180deg,#F4ECF2 0px,#F4ECF2 300px,#F0E4EC 640px,#ECDDE3 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-bg:radial-gradient(52% 36% at 86% 24%, rgba(178,148,222,.5), transparent 72%), radial-gradient(54% 40% at 10% 70%, rgba(202,148,200,.44), transparent 72%), radial-gradient(46% 30% at 60% 8%, rgba(150,138,212,.42), transparent 72%), linear-gradient(180deg,#E9E1F1 0px,#E3D9ED 300px,#D6CAE5 640px,#C9BCDE 100%); }
 /* 배경 테마 피커 */
@@ -27120,6 +27126,19 @@ function snapToTab(idx) {
   panes.forEach((p, i) => p.classList.toggle('active', i === idx));
   updateFabLabel(TAB_ORDER[idx]);
   document.body.classList.toggle('sayu-active', TAB_ORDER[idx] === 'sayu');
+  // KEEP 탭은 라벤더 배경에 맞춰 iOS 상태바/툴바(theme-color) 색 동기화, 그 외엔 테마 액센트로 복원
+  try{
+    var _mtc=document.querySelector('meta[name="theme-color"]');
+    if(_mtc){
+      if(TAB_ORDER[idx]==='sayu'){
+        var _tc=getComputedStyle(document.body).getPropertyValue('--keep-topcolor').trim();
+        _mtc.setAttribute('content', _tc || '#DDD5EE');
+      } else {
+        var _mc=getComputedStyle(document.documentElement).getPropertyValue('--c-terra-900').trim();
+        _mtc.setAttribute('content', _mc || '#7c2d12');
+      }
+    }
+  }catch(e){}
   if (TAB_ORDER[idx] === 'sayu') sayuApplyGate();
   positionTabThumb();
 }
