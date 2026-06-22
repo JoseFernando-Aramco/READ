@@ -26559,30 +26559,22 @@ function _keepReconcile(id, btn, n, onUnhealed){
       if(n) n.textContent=cnt;
       try{ var k=SAYU_POSTS.find(function(x){return x.id===id;}); if(k){ k.kept=kept; k.keep=cnt; } }catch(e){}
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
-      _kbRepaint();
+      _kbRepaint(btn);
     } else if(typeof onUnhealed==='function'){ onUnhealed(); }
   }).catch(function(){ if(typeof onUnhealed==='function') onUnhealed(); });
 }
 // iOS Safari: 상단 backdrop-filter(블러)와 겹친 스크롤 영역은 스크롤 전까지 JS DOM 변경을 리페인트하지 않음.
 // 사용자가 '살짝 스크롤'하면 갱신되는 것과 동일하게, 보이지 않는 1px 미세 스크롤로 컴포지터를 강제로 깨움.
-function _kbRepaint(){
-  // iOS Safari: 상단 backdrop-filter와 겹친 합성 레이어가 스크롤/드래그 전까지 DOM 변경을 리페인트하지 않음.
-  // 탭 슬라이더(#paneTrack, will-change:transform)의 transform을 1px 가로로 살짝 흔들었다 되돌려,
-  // 사용자가 '좌우로 살짝 움직이는' 것과 동일하게 컴포지터를 깨움(transition을 잠깐 꺼 눈엔 안 보임).
+function _kbRepaint(el){
+  // iOS Safari: 합성 레이어에 갇힌 요소는 DOM 변경 후에도 스크롤/터치 전까지 리페인트되지 않음.
+  // 요소를 한 순간 display:none 했다가 되돌려 렌더 객체를 파기/재생성 → 새 페인트 강제(레이어 갇힘과 무관).
+  // 동기적으로 토글하므로 중간 프레임이 그려지지 않아 눈에는 안 보임.
   try{
-    var track = document.getElementById('paneTrack');
-    if(!track) return;
-    var prev = track.style.transform || '';
-    var hadDrag = track.classList.contains('is-dragging');
-    track.classList.add('is-dragging');
-    track.style.transform = (prev ? prev + ' ' : '') + 'translateX(1px)';
-    void track.offsetHeight;
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){
-        track.style.transform = prev;
-        if(!hadDrag) track.classList.remove('is-dragging');
-      });
-    });
+    if(!el) return;
+    var prev = el.style.display;
+    el.style.display = 'none';
+    void el.offsetHeight;
+    el.style.display = prev || '';
   }catch(e){}
 }
 // iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
@@ -26598,8 +26590,7 @@ function toggleKeep(btn, id){
   const c = parseInt(n.textContent, 10) || 0;
   n.textContent = c + (on ? 1 : -1);
   try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
-  if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
-  _kbRepaint();
+  _kbRepaint(btn);
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
     // 2xx면 저장 성공 — 낙관 상태(눌림) 그대로 두고 서버 count만 반영. 버튼을 다시 끄지 않음(깜빡임 방지).
     if(r.ok){
@@ -26613,7 +26604,7 @@ function toggleKeep(btn, id){
         try{ var k4=SAYU_POSTS.find(function(x){return x.id===id;}); if(k4) k4.kept=r.data.kept; }catch(e){}
       }
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
-      _kbRepaint();
+      _kbRepaint(btn);
       return;
     }
     // 비-2xx: 서버가 저장해놓고도 오류를 줄 수 있어 즉시 되돌리지 않음.
