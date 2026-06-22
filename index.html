@@ -22010,6 +22010,8 @@ body.sayu-active{ background:#DDD5EE; }
 .keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
   --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
 body.sayu-active .keep-topblur{ --b1:2px; --b2:4px; --b3:8px; --b4:13px; --b5:18px; --b6:24px; }
+/* [진단] KEEP 탭에서 상단 블러 끄기 — keep 버튼 리페인트 버그가 블러 때문인지 확인용. 확인 후 이 줄 제거 예정. */
+body.sayu-active .keep-topblur{ display:none !important; }
 .keep-topblur > div{ position:absolute; inset:0; }
 .keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); }
 .keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); }
