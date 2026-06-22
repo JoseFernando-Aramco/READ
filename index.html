@@ -26559,8 +26559,19 @@ function _keepReconcile(id, btn, n, onUnhealed){
       if(n) n.textContent=cnt;
       try{ var k=SAYU_POSTS.find(function(x){return x.id===id;}); if(k){ k.kept=kept; k.keep=cnt; } }catch(e){}
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
+      _kbRepaint();
     } else if(typeof onUnhealed==='function'){ onUnhealed(); }
   }).catch(function(){ if(typeof onUnhealed==='function') onUnhealed(); });
+}
+// iOS Safari: 상단 backdrop-filter(블러)와 겹친 스크롤 영역은 스크롤 전까지 JS DOM 변경을 리페인트하지 않음.
+// 사용자가 '살짝 스크롤'하면 갱신되는 것과 동일하게, 보이지 않는 1px 미세 스크롤로 컴포지터를 강제로 깨움.
+function _kbRepaint(){
+  try{
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var d = y > 0 ? -1 : 1;
+    window.scrollTo(0, y + d);
+    requestAnimationFrame(function(){ window.scrollTo(0, y); });
+  }catch(e){}
 }
 // iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
 // 같은 글에 대한 토글을 짧은 간격(450ms) 내에는 한 번만 처리. (의도적 토글은 그보다 느려 영향 없음)
@@ -26576,6 +26587,7 @@ function toggleKeep(btn, id){
   n.textContent = c + (on ? 1 : -1);
   try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
   if (btn.animate) btn.animate([{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}], {duration:220, easing:'ease-out'});
+  _kbRepaint();
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
     // 2xx면 저장 성공 — 낙관 상태(눌림) 그대로 두고 서버 count만 반영. 버튼을 다시 끄지 않음(깜빡임 방지).
     if(r.ok){
@@ -26589,6 +26601,7 @@ function toggleKeep(btn, id){
         try{ var k4=SAYU_POSTS.find(function(x){return x.id===id;}); if(k4) k4.kept=r.data.kept; }catch(e){}
       }
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
+      _kbRepaint();
       return;
     }
     // 비-2xx: 서버가 저장해놓고도 오류를 줄 수 있어 즉시 되돌리지 않음.
