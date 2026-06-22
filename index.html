@@ -21794,6 +21794,10 @@ body.cn-locked {
 .sayu-ptr.spin .sayu-ptr-spin{ animation:sayuPtrSpin .7s linear infinite; }
 @keyframes sayuPtrSpin{ to{ transform:rotate(360deg); } }
 [data-theme="midnight"] .sayu-ptr-spin{ border-color:rgba(180,150,235,.25); border-top-color:#B49AEB; }
+.sayu-more-loader{ display:flex; justify-content:center; align-items:center; padding:16px 0 30px; }
+.sayu-more-loader[hidden]{ display:none !important; }
+.sayu-more-loader .sayu-ptr-spin{ width:24px; height:24px; animation:sayuPtrSpin .7s linear infinite; }
+#sayuFeedSentinel{ height:1px; }
 .sayu-gate{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:60px 28px 40px; }
 .sg-icon{ width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,.55); color:#8169C9; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
 .sg-title{ font-size:17px; font-weight:800; color:#352D4E; }
@@ -22504,6 +22508,8 @@ body.sayu-active .app-header{ background:var(--keep-solid); }
     </div>
     <div class="sayu-feed" id="sayuFeed">
     </div>
+    <div class="sayu-more-loader" id="sayuMoreLoader" hidden aria-hidden="true"><div class="sayu-ptr-spin"></div></div>
+    <div id="sayuFeedSentinel" aria-hidden="true"></div>
     <div class="sayu-ptr" id="sayuPtr"><div class="sayu-ptr-spin"></div></div>
     <div class="swo" id="sayuWelcome" hidden>
       <div class="swo-mark">&#10077;</div>
@@ -26594,6 +26600,8 @@ const SAYU_IC = {
 let SAYU_POSTS = [];
 let _sayuFeedCursor = null;
 let _sayuFeedLoaded = false;
+let _sayuFeedLoading = false;
+let _sayuFeedIO = null;
 
 // KEEP API 호출 (토큰 자동 첨부) → { ok, status, data }
 async function keepApi(method, path, body){
@@ -26696,6 +26704,40 @@ function _sayuRevealMore(root){
   }catch(e){}
 }
 function sayuHiddenSet(){ try{ return new Set(JSON.parse(localStorage.getItem('read.sayu.hidden')||'[]')); }catch(e){ return new Set(); } }
+// ── KEEP 무한스크롤: 바닥 근처에서 다음 페이지 자동 로드 (커서 기반) ──
+function _sayuMoreLoader(on){ var l=document.getElementById('sayuMoreLoader'); if(l){ if(on) l.removeAttribute('hidden'); else l.setAttribute('hidden',''); } }
+async function loadMoreSayuFeed(){
+  if(_sayuFeedLoading || !_sayuFeedCursor) return;
+  _sayuFeedLoading = true; _sayuMoreLoader(true);
+  try{
+    var r = await keepApi('GET','/keep/feed?cursor='+encodeURIComponent(_sayuFeedCursor));
+    if(r.ok && r.data && Array.isArray(r.data.posts)){
+      var fresh = r.data.posts.map(_sayuFromApi);
+      var seen={}; SAYU_POSTS.forEach(function(p){ seen[p.id]=1; });
+      var added = fresh.filter(function(p){ return !seen[p.id]; });
+      SAYU_POSTS = SAYU_POSTS.concat(added);
+      _sayuFeedCursor = r.data.nextCursor || null;
+      var el=document.getElementById('sayuFeed');
+      if(el && added.length){
+        var hid=sayuHiddenSet();
+        var html=added.filter(function(p){ return !hid.has(p.id); }).map(sayuCardHTML).join('');
+        if(html){ el.insertAdjacentHTML('beforeend', html); _sayuRevealMore(el); }
+      }
+    }
+  }catch(e){ /* 네트워크 오류 시 커서 유지 → 다음 스크롤에 재시도 */ }
+  _sayuFeedLoading = false; _sayuMoreLoader(false);
+  if(!_sayuFeedCursor) _sayuTeardownFeedIO();
+}
+function _sayuSetupFeedIO(){
+  _sayuTeardownFeedIO();
+  var sent=document.getElementById('sayuFeedSentinel');
+  if(!sent || !_sayuFeedCursor || typeof IntersectionObserver==='undefined') return;
+  _sayuFeedIO = new IntersectionObserver(function(entries){
+    for(var i=0;i<entries.length;i++){ if(entries[i].isIntersecting){ loadMoreSayuFeed(); break; } }
+  }, { root:null, rootMargin:'500px 0px' });
+  _sayuFeedIO.observe(sent);
+}
+function _sayuTeardownFeedIO(){ if(_sayuFeedIO){ try{ _sayuFeedIO.disconnect(); }catch(e){} _sayuFeedIO=null; } }
 async function renderSayuFeed(){
   const el=document.getElementById('sayuFeed'); if(!el) return;
   try {
@@ -26709,6 +26751,7 @@ async function renderSayuFeed(){
   var hid=sayuHiddenSet();
   el.innerHTML = SAYU_POSTS.filter(function(p){ return !hid.has(p.id); }).map(sayuCardHTML).join('');
   _sayuRevealMore(el);
+  _sayuSetupFeedIO();
 }
 function sayuLoggedIn(){ return (typeof READ_AUTH!=='undefined') && READ_AUTH.isLoggedIn(); }
 function sayuStartLogin(){ try{ sessionStorage.setItem('read.sayu.loginIntent','1'); }catch(e){} if(typeof READ_AUTH!=='undefined' && typeof READ_AUTH.startKakaoLogin==='function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }
