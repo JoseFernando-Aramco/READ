@@ -26555,12 +26555,10 @@ function _keepReconcile(id, btn, n, onUnhealed){
     _kbDebug('RECON ok='+(r&&r.ok)+' post='+JSON.stringify(r&&r.data&&r.data.post));
     if(r && r.ok && r.data && r.data.post){
       var kept=!!r.data.post.kept;
-      var cnt=(typeof r.data.post.keepCount==='number')?r.data.post.keepCount:(parseInt(n.textContent,10)||0);
-      if(btn) btn.classList.toggle('on', kept);
-      if(n) n.textContent=cnt;
+      var cnt=(typeof r.data.post.keepCount==='number')?r.data.post.keepCount:(parseInt((n||{}).textContent,10)||0);
       try{ var k=SAYU_POSTS.find(function(x){return x.id===id;}); if(k){ k.kept=kept; k.keep=cnt; } }catch(e){}
+      _kbSwapKeepBtn(btn, id, kept, cnt);
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
-      _kbRepaint(btn);
     } else if(typeof onUnhealed==='function'){ onUnhealed(); }
   }).catch(function(){ if(typeof onUnhealed==='function') onUnhealed(); });
 }
@@ -26579,18 +26577,17 @@ function _kbDebug(msg){
     var line=document.createElement('div'); var t=new Date(); line.textContent=('0'+t.getMinutes()).slice(-2)+':'+('0'+t.getSeconds()).slice(-2)+'.'+('00'+t.getMilliseconds()).slice(-3)+'  '+msg; d.appendChild(line); d.scrollTop=d.scrollHeight;
   }catch(e){}
 }
-function _kbRepaint(el){
-  // iOS Safari: #paneTrack은 will-change:transform 으로 합성 레이어(캐시 텍스처)라
-  // 내부 텍스트(KEEP 카운트) 변경이 텍스처에 재래스터되지 않음(스와이프 때만 다시 그려짐).
-  // will-change를 잠깐 해제(auto)했다 복원해 레이어를 폐기/재생성 → 현재 DOM으로 강제 재래스터.
+function _kbSwapKeepBtn(oldBtn, id, on, count){
+  // iOS Safari는 같은 DOM 노드의 페인트를 캐시 → in-place 변경(textContent 등)이 다시 그려지지 않음.
+  // keep 버튼을 새 노드로 통째 교체하면(innerHTML/새 노드와 동일) 강제로 새로 그려짐.
   try{
-    var track=document.getElementById('paneTrack');
-    if(!track) return;
-    var pwc=track.style.willChange;
-    track.style.willChange='auto';
-    void track.offsetHeight;
-    track.style.willChange=pwc||'';
-  }catch(e){}
+    if(!oldBtn || !oldBtn.parentNode) return oldBtn;
+    var tmp=document.createElement('div');
+    tmp.innerHTML='<button class="sayu-keep'+(on?' on':'')+'" onclick="toggleKeep(this,\''+id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+count+'</span></button>';
+    var fresh=tmp.firstElementChild;
+    oldBtn.parentNode.replaceChild(fresh, oldBtn);
+    return fresh;
+  }catch(e){ return oldBtn; }
 }
 // iOS Safari/PWA 첫 탭 고스트 클릭(touch→synthetic click 중복 발火) 방지:
 // 같은 글에 대한 토글을 짧은 간격(450ms) 내에는 한 번만 처리. (의도적 토글은 그보다 느려 영향 없음)
@@ -26600,35 +26597,30 @@ function toggleKeep(btn, id){
   var _kt = Date.now();
   if(_keepTapGuard[id] && (_kt - _keepTapGuard[id]) < 450) return;
   _keepTapGuard[id] = _kt;
-  const on = btn.classList.toggle('on');
-  const n = btn.querySelector('.n');
-  const c = parseInt(n.textContent, 10) || 0;
-  n.textContent = c + (on ? 1 : -1);
-  try { var _kp = (typeof SAYU_POSTS !== 'undefined') && SAYU_POSTS.find(function(x){ return x.id === id; }); if (_kp) { _kp.kept = on; _kp.keep = c + (on ? 1 : -1); } } catch (e) {}
-  _kbRepaint(btn);
-  _kbDebug('TAP id='+id+' on='+on+' optDOM='+n.textContent);
+  var post = (typeof SAYU_POSTS !== 'undefined') ? SAYU_POSTS.find(function(x){ return x.id === id; }) : null;
+  var wasOn = btn.classList.contains('on');
+  var on = !wasOn;
+  var nEl = btn.querySelector('.n');
+  var cur = parseInt(nEl ? nEl.textContent : '0', 10) || 0;
+  var newCount = cur + (on ? 1 : -1); if(newCount < 0) newCount = 0;
+  if(post){ post.kept = on; post.keep = newCount; }
+  // 새 노드로 교체 → iOS 페인트 캐시 우회(즉시 정상 표시)
+  var cbtn = _kbSwapKeepBtn(btn, id, on, newCount);
+  _kbDebug('TAP id='+id+' on='+on+' optDOM='+newCount);
   keepApi('POST','/keep/post/'+encodeURIComponent(id)+'/keep').then(function(r){
-    // 2xx면 저장 성공 — 낙관 상태(눌림) 그대로 두고 서버 count만 반영. 버튼을 다시 끄지 않음(깜빡임 방지).
     _kbDebug('RESP ok='+r.ok+' status='+r.status+' data='+JSON.stringify(r.data));
     if(r.ok){
-      if(r.data && typeof r.data.count==='number'){
-        n.textContent=r.data.count;
-        try{ var k3=SAYU_POSTS.find(function(x){return x.id===id;}); if(k3) k3.keep=r.data.count; }catch(e){}
-      }
-      // 서버 kept이 낙관과 다를 때만(드묾) 서버 우선
-      if(r.data && typeof r.data.kept==='boolean' && r.data.kept!==on){
-        btn.classList.toggle('on', r.data.kept);
-        try{ var k4=SAYU_POSTS.find(function(x){return x.id===id;}); if(k4) k4.kept=r.data.kept; }catch(e){}
-      }
+      var fOn = on, fCount = newCount;
+      if(r.data && typeof r.data.kept==='boolean') fOn = r.data.kept;
+      if(r.data && typeof r.data.count==='number') fCount = r.data.count;
+      if(post){ post.kept = fOn; post.keep = fCount; }
+      cbtn = _kbSwapKeepBtn(cbtn, id, fOn, fCount);
+      _kbDebug('AFTER-OK finalDOM='+fCount+' on='+fOn);
       try{ var _mv=document.getElementById('sayuMyView'); if(_mv && _mv.classList.contains('open') && _myTab==='kept'){ renderMyView(); } }catch(e){}
-      _kbRepaint(btn);
-      _kbDebug('AFTER-OK finalDOM='+n.textContent+' on='+btn.classList.contains('on'));
       return;
     }
     _kbDebug('NON-2xx \u2192 700ms \ud6c4 reconcile');
-    // 비-2xx: 서버가 저장해놓고도 오류를 줄 수 있어 즉시 되돌리지 않음.
-    // 쓰기 전파 시간을 준 뒤 실제 상태로 1회만 조용히 보정(저장됐으면 눌림 유지, 진짜 실패면 해제).
-    setTimeout(function(){ _keepReconcile(id, btn, n, null); }, 700);
+    setTimeout(function(){ _keepReconcile(id, cbtn, (cbtn?cbtn.querySelector('.n'):null), null); }, 700);
   });
 }
 
