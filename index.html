@@ -23866,7 +23866,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div id="blkStars" style="display:flex; gap:5px; font-size:27px; line-height:1;"></div>
   </div>
   <div style="padding:8px 20px 0;">
-    <input type="text" id="blkMemo" maxlength="40" placeholder="한줄평 (선택) — 전체에 같은 문구" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
+    <textarea id="blkMemo" rows="3" placeholder="한줄평 (선택) — 전체에 같은 문구" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit; line-height:1.5; min-height:76px; max-height:260px; resize:none; field-sizing:content; overflow-y:auto;"></textarea>
   </div>
   <label style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 20px 0; padding:11px 13px; background:var(--c-border-2); border-radius:10px; cursor:pointer;">
     <span style="font-size:13px; color:var(--c-terra-700);">이미 입력된 책은 건너뛰기</span>
@@ -27260,6 +27260,11 @@ window.addEventListener('load', positionTabThumb);
 window.addEventListener('resize', positionTabThumb);
 requestAnimationFrame(positionTabThumb);
 
+function _closeOverlaysForNav(){
+  var fns=['closeBookDetail','closeBookAdd','closeCatEditSheet','closeTagEditSheet','closeBulkSheet','closeQuickNote','closeAcqSheet','closeDotsSheet','closeMonthReport','closeDropdown','closeKbMenu','closeAvatarSheet','closeLtModal','closeSettings','closeLibSearch','closeDelLockModal','closeNickModal','closePostView','closeMyView'];
+  for(var i=0;i<fns.length;i++){ var fn=window[fns[i]]; if(typeof fn==='function'){ try{ fn(); }catch(e){} } }
+  try{ document.querySelectorAll('.bd-backdrop.open, .modal-backdrop.open').forEach(function(el){ try{ el.click(); }catch(e){} }); }catch(e){}
+}
 function switchTab(nextIdx, opts = {}) {
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
   if (nextIdx === currentTabIdx) {
@@ -27268,6 +27273,7 @@ function switchTab(nextIdx, opts = {}) {
     return;
   }
   currentTabIdx = nextIdx;
+  _closeOverlaysForNav();
   snapToTab(currentTabIdx);
   if (opts.scrollTop !== false) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -35320,6 +35326,19 @@ function openBulkSheet(){
   _blkRating = 0;
   _blkRenderStars();
   const memo = document.getElementById('blkMemo'); if(memo) memo.value='';
+  if(memo && !memo._agSet){
+    memo._agSet = true;
+    var _blkFsOK = (typeof CSS!=='undefined') && CSS.supports && CSS.supports('field-sizing','content');
+    var _blkComposing = false, _blkRaf = null;
+    memo._blkGrow = function(){
+      if(_blkFsOK || _blkComposing || _blkRaf) return;
+      _blkRaf = requestAnimationFrame(function(){ _blkRaf=null; memo.style.height='auto'; memo.style.height=Math.min(memo.scrollHeight,260)+'px'; });
+    };
+    memo.addEventListener('compositionstart', function(){ _blkComposing=true; });
+    memo.addEventListener('compositionend', function(){ _blkComposing=false; memo._blkGrow(); });
+    memo.addEventListener('input', memo._blkGrow);
+  }
+  if(memo){ memo.style.height=''; if(memo._blkGrow) memo._blkGrow(); }
   const skip = document.getElementById('blkSkip'); if(skip) skip.checked = true;
   const ttl = document.getElementById('blkHeadTtl'); if(ttl) ttl.textContent = '선택한 ' + _libEdit.selected.size + '권에 일괄 입력';
   _blkUpdatePreview();
