@@ -23855,6 +23855,35 @@ body.sayu-active #pane-sayu{ background:transparent; }
   </div>
 </aside>
 
+<!-- v2.x — 묶음/선택 일괄 별점·한줄평 입력 시트 -->
+<div class="qn-backdrop" id="blkBackdrop"></div>
+<aside class="qn-sheet" id="blkSheet" aria-hidden="true">
+  <div class="qn-grip"></div>
+  <div class="qn-head">
+    <div class="qn-head-info">
+      <div class="qn-head-ttl" id="blkHeadTtl">선택한 책에 일괄 입력</div>
+      <div class="qn-head-meta">별점과 한줄평을 한 번에 적용해요</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 20px 2px;">
+    <span style="font-size:14px; color:var(--c-terra-700);">별점</span>
+    <div id="blkStars" style="display:flex; gap:5px; font-size:27px; line-height:1;"></div>
+  </div>
+  <div style="padding:8px 20px 0;">
+    <input type="text" id="blkMemo" maxlength="40" placeholder="한줄평 (선택) — 전체에 같은 문구" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
+  </div>
+  <label style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 20px 0; padding:11px 13px; background:var(--c-border-2); border-radius:10px; cursor:pointer;">
+    <span style="font-size:13px; color:var(--c-terra-700);">이미 입력된 책은 건너뛰기</span>
+    <input type="checkbox" id="blkSkip" checked style="width:18px; height:18px;" />
+  </label>
+  <div id="blkPreview" style="font-size:12px; color:var(--c-terra-400); text-align:center; margin:10px 20px 0;"></div>
+  <div class="qn-actions">
+    <button class="qn-btn secondary" id="blkCancel">취소</button>
+    <button class="qn-btn primary" id="blkApply">적용</button>
+  </div>
+</aside>
+
+
 <!-- v1.5.x — 태그 수정 시트 (이름·이모지 변경, 사용자 태그 전용) -->
 <div class="qn-backdrop" id="tagEditBackdrop"></div>
 <aside class="qn-sheet tag-edit-sheet" id="tagEditSheet" aria-hidden="true">
@@ -35056,6 +35085,10 @@ function _libMountEditBar(activeCat) {
     삭제
   </button>`;
 
+  const bulkBtn = activeCat === 'done' ? `<button class="lib-edit-bar-action lib-action-bulk" data-action="lib-bulk">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+    일괄 입력
+  </button>` : '';
   const bar = document.createElement('div');
   bar.id = 'libEditBar';
   bar.className = 'lib-edit-bar';
@@ -35069,6 +35102,7 @@ function _libMountEditBar(activeCat) {
     </div>
     <div class="lib-edit-bar-actions lib-edit-bar-actions-bottom">
       ${groupBtn}
+      ${bulkBtn}
       ${deleteBtn}
     </div>
   `;
@@ -35076,13 +35110,18 @@ function _libMountEditBar(activeCat) {
 
   // 카운트 0이면 이동/삭제 비활성 (묶기는 위에서 별도 처리)
   if (cnt === 0) {
-    bar.querySelectorAll('[data-move-to], [data-action="lib-delete"]').forEach(b => b.disabled = true);
+    bar.querySelectorAll('[data-move-to], [data-action="lib-delete"], [data-action="lib-bulk"]').forEach(b => b.disabled = true);
   }
 
   // body에 마운트했으니 클릭 위임이 안 닿음 → 자체 핸들러 부착
   bar.addEventListener('click', (e) => {
     if (e.target.closest('[data-action="lib-edit-cancel"]')) {
       _libEditCancel();
+      return;
+    }
+    if (e.target.closest('[data-action="lib-bulk"]')) {
+      const btn = e.target.closest('[data-action="lib-bulk"]');
+      if (!btn.disabled) openBulkSheet();
       return;
     }
     if (e.target.closest('[data-action="lib-delete"]')) {
@@ -35259,6 +35298,100 @@ function _libEditApplyGroup() {
   try { renderHallOfFame && renderHallOfFame(); } catch(e){}
   try { renderNotesTab && renderNotesTab(); } catch(e){}
 }
+
+/* ── v2.x — 묶음/선택 일괄 별점·한줄평 입력 ── */
+let _blkRating = 0;
+function _blkRenderStars(){
+  const el = document.getElementById('blkStars'); if(!el) return;
+  let h='';
+  for(let i=1;i<=5;i++){ h += '<span data-v="'+i+'" style="cursor:pointer;color:'+(i<=_blkRating?'#E8A13C':'var(--c-terra-400)')+'">'+(i<=_blkRating?'★':'☆')+'</span>'; }
+  el.innerHTML = h;
+}
+function _blkSelected(){ return [...BOOKS].filter(b => _libEdit.selected.has(b.id)); }
+function _blkHasRecord(b){ return (b.rating > 0) || !!findReviewNote(b.id); }
+function _blkUpdatePreview(){
+  const skip = document.getElementById('blkSkip');
+  const prev = document.getElementById('blkPreview');
+  if(!prev) return;
+  const sel = _blkSelected();
+  const empties = sel.filter(b => !_blkHasRecord(b)).length;
+  const keep = sel.length - empties;
+  if(skip && skip.checked){
+    prev.textContent = '빈 ' + empties + '권에 적용 · ' + keep + '권은 그대로 유지';
+    prev.style.color = 'var(--c-terra-400)';
+  } else {
+    prev.textContent = '⚠ ' + sel.length + '권 전체 덮어쓰기 (기존 별점 바뀜)';
+    prev.style.color = '#C2691E';
+  }
+}
+function openBulkSheet(){
+  if(!_libEdit || !_libEdit.selected || _libEdit.selected.size < 1){ if(typeof showToast==='function') showToast('책을 선택하세요'); return; }
+  _blkRating = 0;
+  _blkRenderStars();
+  const memo = document.getElementById('blkMemo'); if(memo) memo.value='';
+  const skip = document.getElementById('blkSkip'); if(skip) skip.checked = true;
+  const ttl = document.getElementById('blkHeadTtl'); if(ttl) ttl.textContent = '선택한 ' + _libEdit.selected.size + '권에 일괄 입력';
+  _blkUpdatePreview();
+  const sheet=document.getElementById('blkSheet'), bd=document.getElementById('blkBackdrop');
+  if(bd) bd.classList.add('is-open');
+  if(sheet){ sheet.classList.add('is-open'); sheet.setAttribute('aria-hidden','false'); }
+  if(typeof lockBodyScroll==='function') lockBodyScroll();
+}
+function closeBulkSheet(){
+  const sheet=document.getElementById('blkSheet'), bd=document.getElementById('blkBackdrop');
+  if(sheet){ sheet.classList.remove('is-open'); sheet.setAttribute('aria-hidden','true'); }
+  if(bd) bd.classList.remove('is-open');
+  if(typeof unlockBodyScroll==='function') unlockBodyScroll();
+}
+function _blkUpsertReview(bookId, text){
+  const trimmed=(text||'').trim(); if(!trimmed) return;
+  const existing = findReviewNote(bookId);
+  if(existing){ existing.body = trimmed; }
+  else {
+    const newId = NOTES.length ? Math.max(...NOTES.map(n=>n.id))+1 : 1;
+    NOTES.push({ id:newId, bookId:bookId, type:'review', page:null, body:trimmed, favorite:false, createdAt:new Date().toISOString() });
+  }
+}
+function _libEditApplyBulk(){
+  const sel = _blkSelected();
+  const skipEl = document.getElementById('blkSkip');
+  const skip = !skipEl || skipEl.checked;
+  const memoRaw = (document.getElementById('blkMemo')||{}).value || '';
+  const memo = memoRaw.trim();
+  const rating = _blkRating;
+  if(!(rating >= 1) && !memo){ if(typeof showToast==='function') showToast('별점이나 한줄평을 입력해주세요'); return; }
+  const targets = skip ? sel.filter(b => !_blkHasRecord(b)) : sel;
+  if(!targets.length){ if(typeof showToast==='function') showToast('적용할 책이 없어요'); return; }
+  if(rating >= 1){
+    targets.forEach(b => { b.rating = rating; });
+    try{ STORE.set('books', BOOKS); }catch(e){}
+  }
+  if(memo){
+    targets.forEach(b => { _blkUpsertReview(b.id, memo); });
+    try{ STORE.set('notes', NOTES); }catch(e){}
+  }
+  closeBulkSheet();
+  _libEdit.active=false; _libEdit.cat=null; _libEdit.selected.clear(); _libEdit.pendingMove=null; _libEdit.pendingDelete=false;
+  try{ renderLibraryCards(); }catch(e){}
+  try{ renderLogList && renderLogList(); }catch(e){}
+  try{ renderAllStats && renderAllStats(); }catch(e){}
+  try{ renderTagRadar && renderTagRadar(); }catch(e){}
+  try{ renderHallOfFame && renderHallOfFame(); }catch(e){}
+  try{ renderNotesTab && renderNotesTab(); }catch(e){}
+  if(typeof showToast==='function') showToast('📚 ' + targets.length + '권에 적용했어요');
+}
+(function wireBulkSheet(){
+  const stars=document.getElementById('blkStars');
+  const skip=document.getElementById('blkSkip');
+  const cancel=document.getElementById('blkCancel');
+  const apply=document.getElementById('blkApply');
+  const bd=document.getElementById('blkBackdrop');
+  if(stars) stars.addEventListener('click', (e)=>{ const v=e.target&&e.target.getAttribute('data-v'); if(v){ _blkRating=parseInt(v,10); _blkRenderStars(); } });
+  if(skip) skip.addEventListener('change', _blkUpdatePreview);
+  if(cancel) cancel.addEventListener('click', closeBulkSheet);
+  if(apply) apply.addEventListener('click', _libEditApplyBulk);
+  if(bd) bd.addEventListener('click', closeBulkSheet);
+})();
 
 /* v1.11.0 — 묶음 카드 다중 토글. 묶음 안 모든 책 id를 selected에 추가/제거. */
 function _libEditToggleGroup(groupId) {
