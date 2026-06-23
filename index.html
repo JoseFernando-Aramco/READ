@@ -21811,13 +21811,12 @@ body.cn-locked {
 [data-theme="midnight"] .sg-desc{ color:#9387AE; }
 #sayuMyView{ position:fixed; top:0; bottom:0; left:50%; width:100%; max-width:480px; z-index:195; background:var(--keep-bg); transform:translate(-50%,100%); transition:transform .3s cubic-bezier(.4,0,.2,1); visibility:hidden; display:flex; flex-direction:column; }
 #sayuMyView.open{ transform:translate(-50%,0); visibility:visible; }
-.my-profile{ display:flex; align-items:center; gap:11px; flex:none; padding:0; }
-.my-av{ width:48px; height:48px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:19px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.my-profile{ display:flex; align-items:center; gap:11px; padding:0; }
+.my-av{ width:46px; height:46px; border-radius:50%; flex:none; background:linear-gradient(135deg,#B8A9E8,#8169C9); color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .my-av-empty{ background:linear-gradient(135deg,#CFC6DD,#A99FBA); }
-.my-pinfo{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:7px; }
-.my-nick{ font-size:16px; font-weight:800; color:#352D4E; white-space:nowrap; }
+.my-nick{ font-size:17px; font-weight:800; color:#352D4E; white-space:nowrap; }
 .my-nick-empty{ color:#9A8FB5; font-weight:700; font-size:16px; }
-.my-editnick{ border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; cursor:pointer; }
+.my-editnick{ margin-left:auto; border:none; background:rgba(111,90,200,.1); color:#6F5AC8; font-family:inherit; font-size:11px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; white-space:nowrap; }
 .my-seg{ display:flex; gap:6px; background:rgba(255,255,255,.5); border-radius:12px; padding:4px; margin:0 0 14px; }
 .my-seg-btn{ flex:1; border:none; background:none; font-family:inherit; font-size:13px; font-weight:700; color:#766A92; padding:9px; border-radius:9px; cursor:pointer; }
 .my-seg-btn.on{ background:#fff; color:#41385C; box-shadow:0 2px 8px rgba(40,30,70,.08); }
@@ -22047,23 +22046,20 @@ html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-bg:radial
 .bg-sw-name{ font-size:11px; color:#8478A0; }
 .bg-sw.on .bg-sw-name{ color:#41385C; font-weight:700; }
 [data-theme="midnight"] .my-themes-lbl{ color:#9387AE; }
-.my-head-row{ display:flex; align-items:center; gap:12px; padding:14px 4px 18px; }
-.my-head-row > #myProfile{ flex:none; }
-.my-head-row > #myThemes{ flex:1; min-width:0; }
-.kbg-card{ width:100%; box-sizing:border-box; background:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.6); border-radius:18px; padding:11px 8px 10px; }
-.kbg-head{ display:flex; align-items:baseline; justify-content:space-between; gap:6px; margin:0 6px 8px; }
+.my-head-row{ display:flex; flex-direction:column; gap:14px; padding:14px 4px 18px; }
+.my-head-row > #myProfile, .my-head-row > #myThemes{ width:100%; }
+.kbg-card{ width:100%; box-sizing:border-box; background:rgba(255,255,255,.4); border:1px solid rgba(255,255,255,.6); border-radius:18px; padding:11px 14px 13px; }
+.kbg-head{ display:flex; align-items:baseline; justify-content:space-between; gap:6px; margin:0 0 11px; }
 .kbg-lbl{ font-size:11.5px; font-weight:700; color:#7A6E98; }
 .kbg-cur{ font-size:12.5px; font-weight:700; color:#5B49B8; white-space:nowrap; }
-.kbg-carwrap{ position:relative; }
-.kbg-ring{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; border:2.5px solid #6F5AC8; box-shadow:0 0 0 4px rgba(111,90,200,.16); pointer-events:none; z-index:3; }
-.kbg-car{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:13px; padding:7px 0; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-.kbg-car::-webkit-scrollbar{ display:none; }
-.kbg-chip{ scroll-snap-align:center; flex:none; width:46px; height:46px; border-radius:50%; border:2px solid rgba(255,255,255,.78); padding:0; cursor:pointer; opacity:.38; transform:scale(.72); }
+.kbg-row{ display:flex; justify-content:space-between; align-items:center; }
+.kbg-sw{ width:40px; height:40px; border-radius:50%; border:2px solid rgba(255,255,255,.8); padding:0; cursor:pointer; transition:box-shadow .15s ease; }
+.kbg-sw.on{ box-shadow:0 0 0 3px rgba(255,255,255,.9), 0 0 0 5.5px #6F5AC8; }
 [data-theme="midnight"] .kbg-card{ background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.12); }
 [data-theme="midnight"] .kbg-lbl{ color:#9387AE; }
 [data-theme="midnight"] .kbg-cur{ color:#C5B6F2; }
-[data-theme="midnight"] .kbg-ring{ border-color:#B49AEB; box-shadow:0 0 0 4px rgba(180,154,235,.18); }
-[data-theme="midnight"] .kbg-chip{ border-color:rgba(255,255,255,.3); }
+[data-theme="midnight"] .kbg-sw{ border-color:rgba(255,255,255,.3); }
+[data-theme="midnight"] .kbg-sw.on{ box-shadow:0 0 0 3px rgba(34,30,47,.92), 0 0 0 5.5px #B49AEB; }
 [data-theme="midnight"] .bg-sw-name{ color:#9387AE; }
 [data-theme="midnight"] .bg-sw.on .bg-sw-name{ color:#F2EDF8; }
 body.sayu-active .main-wrap{ background:transparent; position:relative; z-index:1; }
@@ -26993,7 +26989,7 @@ function hideUndoBar(){ var bar=document.getElementById('sayuUndoBar'); bar.clas
 function undoHide(){ var id=_undoHideId; if(id!=null){ try{ var st=sayuHiddenSet(); st.delete(id); localStorage.setItem('read.sayu.hidden', JSON.stringify([...st])); }catch(e){} keepApi('DELETE','/keep/post/'+encodeURIComponent(id)+'/hide'); renderSayuFeed(); } clearTimeout(_undoTimer); hideUndoBar(); if(typeof showToast==='function') showToast('숨김을 취소했어요'); }
 // ── 내 KEEP (1d) ──
 let _myTab = 'kept';
-function myProfileHTML(){ var nick=sayuGetNick(); if(nick){ return '<div class="my-profile"><div class="my-av">'+sayuEsc(nick.charAt(0))+'</div><div class="my-pinfo"><div class="my-nick">'+sayuEsc(nick)+'</div><button class="my-editnick" onclick="openNickModal()">이름 바꾸기</button></div></div>'; } return '<div class="my-profile"><div class="my-av my-av-empty">?</div><div class="my-pinfo"><div class="my-nick my-nick-empty">이름 미설정</div><button class="my-editnick" onclick="openNickModal()">이름 설정하기</button></div></div>'; }
+function myProfileHTML(){ var nick=sayuGetNick(); if(nick){ return '<div class="my-profile"><div class="my-av">'+sayuEsc(nick.charAt(0))+'</div><div class="my-nick">'+sayuEsc(nick)+'</div><button class="my-editnick" onclick="openNickModal()">이름 바꾸기</button></div>'; } return '<div class="my-profile"><div class="my-av my-av-empty">?</div><div class="my-nick my-nick-empty">이름 미설정</div><button class="my-editnick" onclick="openNickModal()">이름 설정하기</button></div>'; }
 function _myKeptPosts(){ return SAYU_POSTS.filter(function(p){ return p.kept; }); }
 function _myHiddenPosts(){ var h=sayuHiddenSet(); return SAYU_POSTS.filter(function(p){ return h.has(p.id); }); }
 function myHiddenRowHTML(p){ var full=p.text||''; var snip=full.slice(0,40); return '<div class="my-hidden-row"><div class="mh-body"><div class="mh-name">'+sayuEsc(p.name)+' · '+sayuEsc(p.book.title)+'</div><div class="mh-text">'+sayuEsc(snip)+(full.length>40?'…':'')+'</div></div><button class="mh-restore" onclick="unhidePost(\''+p.id+'\')">복구</button></div>'; }
@@ -27043,41 +27039,28 @@ function _applyKeepBgCore(id){
   try{ localStorage.setItem('read.sayu.bgTheme', id); }catch(e){}
   try{ if(document.body.classList.contains('sayu-active')){ var _m=document.querySelector('meta[name="theme-color"]'); var _k=getComputedStyle(document.body).getPropertyValue('--keep-solid').trim(); if(_m && _k) _m.setAttribute('content', _k); } }catch(e){}
 }
-function applyKeepBg(id){ _applyKeepBgCore(id); var c=document.getElementById('myThemes'); if(c){ c.innerHTML=keepThemesHTML(); _kbgInitCarousel(); } }
+function applyKeepBg(id){ _applyKeepBgCore(id); var c=document.getElementById('myThemes'); if(c){ c.innerHTML=keepThemesHTML(); _kbgInitRow(); } }
 function keepThemesHTML(){
   var cur=_keepBgGet();
   var curName='라벤더';
   for(var i=0;i<KEEP_BG_THEMES.length;i++){ if(KEEP_BG_THEMES[i].id===cur){ curName=KEEP_BG_THEMES[i].name; break; } }
-  var chips=KEEP_BG_THEMES.map(function(t){
-    return '<button class="kbg-chip" data-id="'+t.id+'" data-name="'+t.name+'" aria-label="'+t.name+'" style="background:'+t.sw+'"></button>';
+  var sws=KEEP_BG_THEMES.map(function(t){
+    return '<button class="kbg-sw'+(t.id===cur?' on':'')+'" data-id="'+t.id+'" data-name="'+t.name+'" aria-label="'+t.name+'" style="background:'+t.sw+'"></button>';
   }).join('');
-  return '<div class="kbg-card"><div class="kbg-head"><span class="kbg-lbl">배경 테마</span><span class="kbg-cur" id="kbgCur">'+curName+'</span></div><div class="kbg-carwrap"><div class="kbg-ring" aria-hidden="true"></div><div class="kbg-car" id="kbgCar">'+chips+'</div></div></div>';
+  return '<div class="kbg-card"><div class="kbg-head"><span class="kbg-lbl">배경 테마</span><span class="kbg-cur" id="kbgCur">'+curName+'</span></div><div class="kbg-row" id="kbgRow">'+sws+'</div></div>';
 }
-function _kbgInitCarousel(){
-  var car=document.getElementById('kbgCar'); if(!car) return;
+function _kbgInitRow(){
+  var row=document.getElementById('kbgRow'); if(!row) return;
   var curEl=document.getElementById('kbgCur');
-  var chips=Array.prototype.slice.call(car.querySelectorAll('.kbg-chip'));
-  if(!chips.length) return;
-  var activeId=_keepBgGet();
-  function pad(){ var p=Math.max(0, car.clientWidth/2 - 23); car.style.paddingLeft=p+'px'; car.style.paddingRight=p+'px'; }
-  function update(commit){
-    var center=car.scrollLeft+car.clientWidth/2, best=chips[0], bd=1e9;
-    chips.forEach(function(c){
-      var cx=c.offsetLeft+c.offsetWidth/2, d=Math.abs(cx-center);
-      var t=Math.min(1, d/76);
-      c.style.opacity=(1-t*0.64).toFixed(3);
-      c.style.transform='scale('+(1-t*0.28).toFixed(3)+')';
-      if(d<bd){ bd=d; best=c; }
+  var sws=Array.prototype.slice.call(row.querySelectorAll('.kbg-sw'));
+  sws.forEach(function(s){
+    s.addEventListener('click', function(){
+      sws.forEach(function(x){ x.classList.remove('on'); });
+      s.classList.add('on');
+      if(curEl) curEl.textContent=s.getAttribute('data-name');
+      _applyKeepBgCore(s.getAttribute('data-id'));
     });
-    if(curEl) curEl.textContent=best.getAttribute('data-name');
-    var id=best.getAttribute('data-id');
-    if(commit && id!==activeId){ activeId=id; _applyKeepBgCore(id); }
-  }
-  var raf=null;
-  car.addEventListener('scroll',function(){ if(raf) return; raf=requestAnimationFrame(function(){ raf=null; update(true); }); });
-  chips.forEach(function(c){ c.addEventListener('click',function(){ car.scrollTo({left:Math.max(0,c.offsetLeft-(car.clientWidth/2-c.offsetWidth/2)), behavior:'smooth'}); }); });
-  function init(){ if(!car.clientWidth){ requestAnimationFrame(init); return; } pad(); var idx=0; for(var i=0;i<chips.length;i++){ if(chips[i].getAttribute('data-id')===activeId){ idx=i; break; } } var s=chips[idx]; car.scrollLeft=Math.max(0, s.offsetLeft-(car.clientWidth/2-s.offsetWidth/2)); update(false); }
-  requestAnimationFrame(function(){ requestAnimationFrame(init); });
+  });
 }
 (function(){ function _ap(){ try{ var v=localStorage.getItem('read.sayu.bgTheme'); if(v && v!=='lavender') document.body.setAttribute('data-keepbg', v); }catch(e){} }
   if(document.body){ _ap(); } else { document.addEventListener('DOMContentLoaded', _ap); }
@@ -27086,7 +27069,7 @@ function _kbgInitCarousel(){
 async function renderMyView(){
   var pe=document.getElementById('myProfile'); if(!pe) return;
   pe.innerHTML=myProfileHTML();
-  var te=document.getElementById('myThemes'); if(te){ te.innerHTML=keepThemesHTML(); _kbgInitCarousel(); }
+  var te=document.getElementById('myThemes'); if(te){ te.innerHTML=keepThemesHTML(); _kbgInitRow(); }
   var segK=document.getElementById('mySegKept'), segH=document.getElementById('mySegHidden'), segP=document.getElementById('mySegPosts'), segN=document.getElementById('mySegNotif');
   if(segK) segK.classList.toggle('on', _myTab==='kept');
   if(segH) segH.classList.toggle('on', _myTab==='hidden');
