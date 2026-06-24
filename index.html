@@ -27261,9 +27261,11 @@ window.addEventListener('resize', positionTabThumb);
 requestAnimationFrame(positionTabThumb);
 
 function _closeOverlaysForNav(){
-  var fns=['closeBookDetail','closeBookAdd','closeCatEditSheet','closeTagEditSheet','closeBulkSheet','closeQuickNote','closeAcqSheet','closeDotsSheet','closeMonthReport','closeDropdown','closeKbMenu','closeAvatarSheet','closeLtModal','closeSettings','closeLibSearch','closeDelLockModal','closeNickModal','closePostView','closeMyView'];
+  var fns=['closeBookDetail','closeBookAdd','closeCatEditSheet','closeTagEditSheet','closeBulkSheet','closeQuickNote','closeAcqSheet','closeDotsSheet','closeKbMenu','closeAvatarSheet','closeLtModal','closeSettings','closeLibSearch','closeDelLockModal','closeNickModal','closePostView','closeMyView','closeDrillDown','closeDropSheet','closeExportModal','closeNoteBookSheet','closeNoteSheet','closeQuickReadConfirm','closeRetryDialog','closeSpendModal','closeTimerSessionEdit','closeTimerStop','closeBookSayu','closeSayuLimitModal','closeSayuLoginModal','closeSayuShareConfirm','closeAboutModal','closeContactModal'];
   for(var i=0;i<fns.length;i++){ var fn=window[fns[i]]; if(typeof fn==='function'){ try{ fn(); }catch(e){} } }
-  try{ document.querySelectorAll('.bd-backdrop.open, .modal-backdrop.open').forEach(function(el){ try{ el.click(); }catch(e){} }); }catch(e){}
+  try{ if(typeof closeMonthReport==='function') closeMonthReport(); }catch(e){}
+  try{ if(typeof closeDropdown==='function') closeDropdown(); }catch(e){}
+  try{ document.querySelectorAll('[class*=backdrop].is-open, [class*=backdrop].open, .modal-backdrop.open, .bd-backdrop.open').forEach(function(el){ try{ el.click(); }catch(e){} }); }catch(e){}
 }
 function switchTab(nextIdx, opts = {}) {
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
@@ -27274,6 +27276,7 @@ function switchTab(nextIdx, opts = {}) {
   }
   currentTabIdx = nextIdx;
   _closeOverlaysForNav();
+  if (typeof window._libExitEdit === 'function') { try { window._libExitEdit(); } catch(e){} }
   snapToTab(currentTabIdx);
   if (opts.scrollTop !== false) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -34886,6 +34889,8 @@ function _libEditCancel() {
   _libEdit.lastClickedId = null;
   renderLibraryCards();
 }
+// 탭/홈 이동 시 편집 모드 종료 (goHome이 호출하던 미정의 함수를 여기서 정의)
+window._libExitEdit = function(){ if (_libEdit && _libEdit.active) _libEditCancel(); };
 /* 경고 카드에서 "취소" — 편집 모드는 유지하고 경고만 닫음 */
 function _libEditCancelPending() {
   _libEdit.pendingMove = null;
