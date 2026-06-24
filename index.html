@@ -22113,8 +22113,8 @@ body.sayu-active #pane-sayu{ background:transparent; }
 [data-theme="midnight"] .sayu-cmt{ color:#B9AECF; }
 [data-theme="midnight"] .sayu-more{ color:#9387AE; }
 .sayu-tab-label{ position:relative; }
-.sayu-new-dot{ position:absolute; top:-3px; right:-9px; width:6px; height:6px; border-radius:50%; background:#C3A4E6; box-shadow:0 0 5px 1px rgba(195,164,230,.85); animation:sayuTwinkle 1.8s ease-in-out infinite; pointer-events:none; }
-@keyframes sayuTwinkle{ 0%,100%{ opacity:.5; transform:scale(.82); box-shadow:0 0 3px 0 rgba(195,164,230,.45); } 50%{ opacity:1; transform:scale(1.18); box-shadow:0 0 8px 2px rgba(195,164,230,.95); } }
+.sayu-new-dot{ position:absolute; top:-3px; right:-9px; width:6px; height:6px; border-radius:50%; background:#FF3B30; box-shadow:0 0 4px 1px rgba(255,59,48,.75); animation:sayuPop 1.9s ease-in-out infinite; pointer-events:none; }
+@keyframes sayuPop{ 0%,58%,100%{ transform:scale(1); } 72%{ transform:scale(1.45); } 82%{ transform:scale(.86); } 90%{ transform:scale(1.08); } }
 @media (prefers-reduced-motion:reduce){ .sayu-new-dot{ animation:none; opacity:.9; } }
 </style>
   <nav class="tab-bar">
