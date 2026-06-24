@@ -21859,6 +21859,8 @@ body.cn-locked {
 .sayu-av{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; flex-shrink:0; }
 .sayu-name{ font-size:13px; font-weight:500; color:#41385C; }
 .sayu-time{ font-size:11px; color:#9A8FB0; }
+/* 공개 피드·포스트 상세에서만 시간 숨김 (늘 '지금' 같은 감상). 내 KEEP은 삭제시한 확인 위해 유지 */
+#sayuFeed .sayu-time, #sayuPostView .sayu-time, #sayuPostView .pv-cmt-time{ display:none; }
 .sayu-tag{ margin-left:auto; font-size:10.5px; padding:2px 9px; border-radius:999px; background:rgba(167,133,201,.16); color:#7C6B96; white-space:nowrap; }
 .sayu-quote{ font-family:'Noto Serif KR',serif; font-size:14px; line-height:1.65; color:#352E4A; padding-left:12px; border-left:2px solid rgba(167,133,201,.55); }
 .sayu-review{ font-family:'Noto Serif KR',serif; font-size:14px; line-height:1.65; color:#352E4A; }
