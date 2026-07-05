@@ -9306,6 +9306,17 @@ body:has(.lib-edit-bar) .library-cards {
   grid-template-columns: repeat(4, 1fr);
   gap: 14px 8px;
 }
+/* v2.x — #3a-A(D안): 연필 편집 토글 + 표지 오버레이 상태 버튼 */
+.grp-sheet-edit { position: relative; background: transparent; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--c-muted); flex-shrink: 0; }
+.grp-edit-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: #FF3B30; box-shadow: 0 0 4px 1px rgba(255,59,48,.75); animation: sayuPop 1.9s ease-in-out infinite; pointer-events: none; }
+@media (prefers-reduced-motion:reduce){ .grp-edit-dot{ animation:none; opacity:.9; } }
+.grp-sheet.grp-editing .grp-sheet-edit { color: var(--c-terra-700); background: var(--c-border-2); }
+.grp-vol-wrap { position: relative; min-width: 0; }
+.grp-vol-ov { display: none; }
+.grp-sheet.grp-editing .grp-vol-ov { display: flex; position: absolute; inset: 0; z-index: 2; flex-direction: column; align-items: stretch; justify-content: center; gap: 5px; padding: 8px 7px; background: rgba(30, 24, 16, 0.45); border-radius: 10px; }
+.grp-vol-ovbtn { border: none; border-radius: 8px; background: rgba(255, 253, 249, 0.94); color: var(--c-terra-700); font-family: inherit; font-size: 11px; font-weight: 800; padding: 8px 0; cursor: pointer; }
+.grp-vol-ovbtn.on { background: var(--c-terra-700); color: #fff; }
+.lib-warn-subhint { font-size: 10.5px; opacity: .75; margin-top: 3px; font-weight: 400; }
 .grp-sheet-footer {
   padding: 12px 4px 0;
   border-top: 1px solid var(--c-border);
@@ -23231,7 +23242,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
           <button class="tag-new-btn" id="tagNewBtn">+ 추가</button>
         </div>
         <div class="tag-new-cat-row" id="tagNewCatRow">
-          <span class="tnc-label">📂 어느 카테고리에?</span>
+          <span class="tnc-label">📂 이 태그를 어느 분류에?</span>
           <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
           <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
           <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
@@ -23860,17 +23871,79 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="qn-head">
     <div class="qn-head-info">
       <div class="qn-head-ttl" id="blkHeadTtl">선택한 책에 일괄 입력</div>
-      <div class="qn-head-meta">별점과 한줄평을 한 번에 적용해요</div>
+      <div class="qn-head-meta" id="blkHeadSub">별점과 한줄평을 한 번에 적용해요</div>
     </div>
   </div>
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 20px 2px;">
+  <div id="blkRatingRow" style="display:flex; align-items:center; justify-content:space-between; padding:8px 20px 2px;">
     <span style="font-size:14px; color:var(--c-terra-700);">별점</span>
-    <div id="blkStars" style="display:flex; gap:5px; font-size:27px; line-height:1;"></div>
+    <div class="bd-stars" id="blkStars">
+      <button class="bd-star-btn" type="button">★</button>
+      <button class="bd-star-btn" type="button">★</button>
+      <button class="bd-star-btn" type="button">★</button>
+      <button class="bd-star-btn" type="button">★</button>
+      <button class="bd-star-btn" type="button">★</button>
+      <span class="bd-stars-val"></span>
+    </div>
   </div>
-  <div style="padding:8px 20px 0;">
+  <div id="blkMemoWrap" style="padding:8px 20px 0;">
     <textarea id="blkMemo" rows="3" placeholder="한줄평 (선택) — 전체에 같은 문구" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit; line-height:1.5; min-height:76px; max-height:260px; resize:none; field-sizing:content; overflow-y:auto;"></textarea>
   </div>
-  <label style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 20px 0; padding:11px 13px; background:var(--c-border-2); border-radius:10px; cursor:pointer;">
+  <!-- v2.x — 일괄 태그·매체 (카페 제안 #1+#3b, opt-in: 켠 섹션만 적용) -->
+  <style>
+    /* 섹션 추가로 시트가 길어질 수 있어 시트 자체에 스크롤 허용 */
+    #blkSheet{ max-height:92dvh; overflow-y:auto; }
+    /* 스킵·미리보기가 숨는 탭에서도 버튼 위 여백 보장 */
+    #blkSheet .qn-actions{ margin-top:14px; }
+    /* 인라인 display:flex를 보존하기 위해 숨김은 클래스로 처리 */
+    #blkSheet .blk-hidden{ display:none !important; }
+    .blkx-sec{ padding:12px 20px 0; }
+    .blkx-head{ display:flex; align-items:center; justify-content:space-between; }
+    .blkx-lbl{ font-size:14px; color:var(--c-terra-700); }
+    .blkx-lbl .m{ font-size:11px; color:var(--c-terra-400); margin-left:5px; }
+    .blkx-tg{ width:38px; height:22px; border-radius:12px; background:var(--c-border-2); position:relative; cursor:pointer; transition:background .18s; flex:none; }
+    .blkx-tg.on{ background:var(--primary, #6F5AC8); }
+    .blkx-tg::after{ content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .18s; }
+    .blkx-tg.on::after{ left:18px; }
+    .blkx-body{ margin-top:9px; }
+    .blkx-body.off{ display:none; }
+    .blkx-seg{ display:inline-flex; background:var(--c-border-2); border-radius:8px; padding:2px; margin-bottom:8px; }
+    .blkx-seg button{ border:none; background:transparent; font-family:inherit; font-size:11px; font-weight:600; color:var(--c-terra-400); padding:4px 10px; border-radius:6px; cursor:pointer; }
+    .blkx-seg button.on{ background:var(--c-surface); color:var(--c-terra-700); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+    .blkx-chips{ display:flex; flex-wrap:wrap; gap:7px; max-height:118px; overflow-y:auto; }
+    .blkx-chip{ border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-terra-700); font-family:inherit; font-size:12px; font-weight:600; padding:6px 11px; border-radius:16px; cursor:pointer; }
+    .blkx-chip.sel{ background:var(--primary, #6F5AC8); border-color:var(--primary, #6F5AC8); color:#fff; }
+    .blkx-pills{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+    .blkx-pill{ border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-terra-700); font-family:inherit; font-size:11px; font-weight:600; padding:9px 0; border-radius:10px; cursor:pointer; text-align:center; }
+    .blkx-pill.on{ background:var(--primary, #6F5AC8); border-color:var(--primary, #6F5AC8); color:#fff; }
+  </style>
+  <div class="blkx-sec">
+    <div class="blkx-head">
+      <span class="blkx-lbl">태그<span class="m">선택 권에 적용</span></span>
+      <div class="blkx-tg" id="blkTagOn" role="switch" aria-checked="false" aria-label="태그 일괄 적용"></div>
+    </div>
+    <div class="blkx-body off" id="blkTagBody">
+      <div class="blkx-seg" id="blkTagMode">
+        <button type="button" data-mode="add" class="on">기존에 추가</button>
+        <button type="button" data-mode="replace">전부 교체</button>
+      </div>
+      <div class="blkx-chips" id="blkTagChips"></div>
+    </div>
+  </div>
+  <div class="blkx-sec">
+    <div class="blkx-head">
+      <span class="blkx-lbl">매체<span class="m">선택 권에 적용</span></span>
+      <div class="blkx-tg" id="blkFmtOn" role="switch" aria-checked="false" aria-label="매체 일괄 적용"></div>
+    </div>
+    <div class="blkx-body off" id="blkFmtBody">
+      <div class="blkx-pills" id="blkFmtPills">
+        <button type="button" class="blkx-pill" data-fmt="paper">📕 종이책</button>
+        <button type="button" class="blkx-pill" data-fmt="ebook">📱 전자책</button>
+        <button type="button" class="blkx-pill" data-fmt="audio">🎧 오디오북</button>
+        <button type="button" class="blkx-pill" data-fmt="webnovel">🌐 웹소설</button>
+      </div>
+    </div>
+  </div>
+  <label id="blkSkipRow" style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 20px 0; padding:11px 13px; background:var(--c-border-2); border-radius:10px; cursor:pointer;">
     <span style="font-size:13px; color:var(--c-terra-700);">이미 입력된 책은 건너뛰기</span>
     <input type="checkbox" id="blkSkip" checked style="width:18px; height:18px;" />
   </label>
@@ -30912,7 +30985,7 @@ function renderTagNewCatRow(scope) {
   if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory)) {
     state.newTagCategory = getTagCategoriesSorted()[0]?.id || 'genre';
   }
-  let html = `<span class="tnc-label">📂 어느 카테고리에?</span>`;
+  let html = `<span class="tnc-label">📂 이 태그를 어느 분류에?</span>`;
   html += getTagCategoriesSorted().map(c =>
     `<button type="button" class="tnc-chip${state.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`
   ).join('');
@@ -34988,6 +35061,14 @@ function _libMountEditBar(activeCat) {
     const backupNote = hasDoneOrigin
       ? `<div class="lib-warn-note">'다시 읽기' 기록엔 그대로 남아있어요</div>`
       : '';
+    // v2.x — #3a-B: 손실 항목 없이 묶음만으로 확인이 뜨는 경우 헤딩 대체 + 묶음 안내 줄
+    const grpInfo = _libGetGroupMoveInfo(books);
+    const warnHeading = items.length > 0 ? `잠깐, ${itemsText}이 사라져요` : `${targetLabelShort}로 이동할까요?`;
+    const grpNote = grpInfo.groups.length > 0
+      ? `<div class="lib-warn-note">📚 ${grpInfo.groups.length === 1
+            ? `'${esc(grpInfo.groups[0].name)}' 묶음 ${grpInfo.groups[0].cnt}권 전체가 함께 ${targetLabelShort}로 이동해요`
+            : `묶음 ${grpInfo.groups.length}개(총 ${grpInfo.total}권)가 함께 ${targetLabelShort}로 이동해요`}<div class="lib-warn-subhint">일부 권만 바꾸려면 취소 후, 묶음 카드를 탭해 펼친 다음 권별로 변경하세요</div></div>`
+      : '';
 
     const bar = document.createElement('div');
     bar.id = 'libEditBar';
@@ -35002,8 +35083,8 @@ function _libMountEditBar(activeCat) {
           </svg>
         </div>
         <div class="lib-warn-text">
-          <strong>잠깐, ${itemsText}이 사라져요</strong>
-          ${backupNote}
+          <strong>${warnHeading}</strong>
+          ${backupNote}${grpNote}
         </div>
       </div>
       <div class="lib-edit-bar-actions">
@@ -35089,10 +35170,10 @@ function _libMountEditBar(activeCat) {
     삭제
   </button>`;
 
-  const bulkBtn = activeCat === 'done' ? `<button class="lib-edit-bar-action lib-action-bulk" data-action="lib-bulk">
+  const bulkBtn = `<button class="lib-edit-bar-action lib-action-bulk" data-action="lib-bulk">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
     일괄 입력
-  </button>` : '';
+  </button>`;
   const bar = document.createElement('div');
   bar.id = 'libEditBar';
   bar.className = 'lib-edit-bar';
@@ -35149,6 +35230,18 @@ function _libMountEditBar(activeCat) {
 }
 
 /* 다중 상태 변경 — _applyStatusChange의 핵심 로직만 빌려와서 batch 처리 */
+/* v2.x — #3a-B: 선택 안 묶음 정보 (편집모드 이동 확인용) */
+function _libGetGroupMoveInfo(books) {
+  const map = new Map();
+  books.forEach(b => { if (b.groupId) map.set(b.groupId, (map.get(b.groupId) || 0) + 1); });
+  const groups = [...map.entries()].map(([gid, cnt]) => {
+    const g = _grpFindById(gid);
+    const first = BOOKS.find(x => x.groupId === gid);
+    return { name: (g && g.name) || (first && first.title) || '묶음', cnt };
+  });
+  return { groups, total: groups.reduce((sum, g) => sum + g.cnt, 0) };
+}
+
 function _libEditApplyMove(newStatus) {
   if (_libEdit.selected.size === 0) return;
 
@@ -35156,7 +35249,9 @@ function _libEditApplyMove(newStatus) {
   if (_libEdit.pendingMove !== newStatus) {
     const books = [...BOOKS].filter(b => _libEdit.selected.has(b.id));
     const { items, affectedCount } = _libGetMoveWarnings(books, newStatus);
-    if (items.length > 0 && affectedCount > 0) {
+    // v2.x — #3a-B: 묶음이 포함되면 데이터 손실이 없어도 확인 단계를 거침 (전체 이동 안내)
+    const grpMove = _libGetGroupMoveInfo(books);
+    if ((items.length > 0 && affectedCount > 0) || grpMove.groups.length > 0) {
       _libEdit.pendingMove = newStatus;
       _libMountEditBar(_libEdit.cat);
       return;
@@ -35307,9 +35402,9 @@ function _libEditApplyGroup() {
 let _blkRating = 0;
 function _blkRenderStars(){
   const el = document.getElementById('blkStars'); if(!el) return;
-  let h='';
-  for(let i=1;i<=5;i++){ h += '<span data-v="'+i+'" style="cursor:pointer;color:'+(i<=_blkRating?'#E8A13C':'var(--c-terra-400)')+'">'+(i<=_blkRating?'★':'☆')+'</span>'; }
-  el.innerHTML = h;
+  // v2.x — 상세와 동일한 0.5단위 드래그·탭 별점 (기존 _wireDragRating 재사용)
+  const ctl = _wireDragRating(el, { initial: _blkRating, onCommit: function(v){ _blkRating = v; } });
+  if(ctl) ctl.setValue(_blkRating);
 }
 function _blkSelected(){ return [...BOOKS].filter(b => _libEdit.selected.has(b.id)); }
 function _blkHasRecord(b){ return (b.rating > 0) || !!findReviewNote(b.id); }
@@ -35347,6 +35442,12 @@ function openBulkSheet(){
   }
   if(memo){ memo.style.height=''; if(memo._blkGrow) memo._blkGrow(); }
   const skip = document.getElementById('blkSkip'); if(skip) skip.checked = true;
+  _blkResetExtras();
+  // v2.x — A2: 별점·한줄평은 완독 기록이므로 완독 탭에서만 노출, 그 외 탭은 태그·매체만
+  const _blkDoneCat = !_libEdit || !_libEdit.cat || _libEdit.cat === 'done';
+  ['blkRatingRow','blkMemoWrap','blkSkipRow','blkPreview'].forEach(function(id){ const el=document.getElementById(id); if(el) el.classList.toggle('blk-hidden', !_blkDoneCat); });
+  const _blkSub = document.getElementById('blkHeadSub');
+  if(_blkSub) _blkSub.textContent = _blkDoneCat ? '별점과 한줄평을 한 번에 적용해요' : '태그와 매체를 한 번에 적용해요';
   const ttl = document.getElementById('blkHeadTtl'); if(ttl) ttl.textContent = '선택한 ' + _libEdit.selected.size + '권에 일괄 입력';
   _blkUpdatePreview();
   const sheet=document.getElementById('blkSheet'), bd=document.getElementById('blkBackdrop');
@@ -35376,17 +35477,34 @@ function _libEditApplyBulk(){
   const memoRaw = (document.getElementById('blkMemo')||{}).value || '';
   const memo = memoRaw.trim();
   const rating = _blkRating;
-  if(!(rating >= 1) && !memo){ if(typeof showToast==='function') showToast('별점이나 한줄평을 입력해주세요'); return; }
+  const wantTags = _blkTagOn && _blkTags.size > 0;
+  const wantFmt = _blkFmtOn && !!_blkFormat;
+  if(!(rating >= 0.5) && !memo && !wantTags && !wantFmt){ if(typeof showToast==='function') showToast('적용할 내용을 입력해주세요'); return; }
+  // 스킵(이미 입력된 책)은 별점·한줄평 기록 기준 — 태그·매체는 선택 전체에 적용
   const targets = skip ? sel.filter(b => !_blkHasRecord(b)) : sel;
-  if(!targets.length){ if(typeof showToast==='function') showToast('적용할 책이 없어요'); return; }
-  if(rating >= 1){
+  if((rating >= 0.5 || memo) && !targets.length && !wantTags && !wantFmt){ if(typeof showToast==='function') showToast('적용할 책이 없어요'); return; }
+  let booksChanged = false;
+  if(rating >= 0.5 && targets.length){
     targets.forEach(b => { b.rating = rating; });
-    try{ STORE.set('books', BOOKS); }catch(e){}
+    booksChanged = true;
   }
-  if(memo){
+  if(memo && targets.length){
     targets.forEach(b => { _blkUpsertReview(b.id, memo); });
     try{ STORE.set('notes', NOTES); }catch(e){}
   }
+  if(wantTags){
+    const picked = [..._blkTags];
+    sel.forEach(b => {
+      if(_blkTagMode === 'replace'){ b.tags = [...picked]; }
+      else { const cur = Array.isArray(b.tags) ? b.tags : []; b.tags = [...new Set([...cur, ...picked])]; }
+    });
+    booksChanged = true;
+  }
+  if(wantFmt){
+    sel.forEach(b => { b.format = _blkFormat; });
+    booksChanged = true;
+  }
+  if(booksChanged){ try{ STORE.set('books', BOOKS); }catch(e){} }
   closeBulkSheet();
   _libEdit.active=false; _libEdit.cat=null; _libEdit.selected.clear(); _libEdit.pendingMove=null; _libEdit.pendingDelete=false;
   try{ renderLibraryCards(); }catch(e){}
@@ -35395,19 +35513,66 @@ function _libEditApplyBulk(){
   try{ renderTagRadar && renderTagRadar(); }catch(e){}
   try{ renderHallOfFame && renderHallOfFame(); }catch(e){}
   try{ renderNotesTab && renderNotesTab(); }catch(e){}
-  if(typeof showToast==='function') showToast('📚 ' + targets.length + '권에 적용했어요');
+  if(typeof showToast==='function') showToast('📚 ' + ((wantTags || wantFmt) ? sel.length : targets.length) + '권에 적용했어요');
 }
 (function wireBulkSheet(){
-  const stars=document.getElementById('blkStars');
   const skip=document.getElementById('blkSkip');
   const cancel=document.getElementById('blkCancel');
   const apply=document.getElementById('blkApply');
   const bd=document.getElementById('blkBackdrop');
-  if(stars) stars.addEventListener('click', (e)=>{ const v=e.target&&e.target.getAttribute('data-v'); if(v){ _blkRating=parseInt(v,10); _blkRenderStars(); } });
   if(skip) skip.addEventListener('change', _blkUpdatePreview);
   if(cancel) cancel.addEventListener('click', closeBulkSheet);
   if(apply) apply.addEventListener('click', _libEditApplyBulk);
   if(bd) bd.addEventListener('click', closeBulkSheet);
+})();
+
+/* v2.x — 일괄 태그·매체 상태 (카페 제안 #1+#3b) */
+let _blkTagOn = false, _blkTagMode = 'add', _blkFmtOn = false, _blkFormat = null;
+const _blkTags = new Set();
+function _blkRenderTagChips(){
+  const box = document.getElementById('blkTagChips'); if(!box) return;
+  let items = [];
+  try{ items = getTagCategoriesSorted().flatMap(c => _getTagsByCategory(c.id)); }catch(e){}
+  box.innerHTML = items.map(t =>
+    '<button type="button" class="blkx-chip' + (_blkTags.has(t.name) ? ' sel' : '') + '" data-tag="' + esc(t.name) + '">' + (t.emoji ? t.emoji + ' ' : '') + esc(t.name) + '</button>'
+  ).join('');
+}
+function _blkResetExtras(){
+  _blkTagOn = false; _blkTagMode = 'add'; _blkFmtOn = false; _blkFormat = null; _blkTags.clear();
+  const tg = document.getElementById('blkTagOn'); if(tg){ tg.classList.remove('on'); tg.setAttribute('aria-checked','false'); }
+  const tb = document.getElementById('blkTagBody'); if(tb) tb.classList.add('off');
+  const fg = document.getElementById('blkFmtOn'); if(fg){ fg.classList.remove('on'); fg.setAttribute('aria-checked','false'); }
+  const fb = document.getElementById('blkFmtBody'); if(fb) fb.classList.add('off');
+  const seg = document.getElementById('blkTagMode');
+  if(seg) seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mode === 'add'));
+  const pills = document.getElementById('blkFmtPills');
+  if(pills) pills.querySelectorAll('.blkx-pill').forEach(p => p.classList.remove('on'));
+  _blkRenderTagChips();
+}
+(function wireBulkExtras(){
+  const tg = document.getElementById('blkTagOn'), tb = document.getElementById('blkTagBody');
+  const fg = document.getElementById('blkFmtOn'), fb = document.getElementById('blkFmtBody');
+  if(tg) tg.addEventListener('click', function(){ _blkTagOn = !_blkTagOn; tg.classList.toggle('on', _blkTagOn); tg.setAttribute('aria-checked', String(_blkTagOn)); if(tb) tb.classList.toggle('off', !_blkTagOn); });
+  if(fg) fg.addEventListener('click', function(){ _blkFmtOn = !_blkFmtOn; fg.classList.toggle('on', _blkFmtOn); fg.setAttribute('aria-checked', String(_blkFmtOn)); if(fb) fb.classList.toggle('off', !_blkFmtOn); });
+  const seg = document.getElementById('blkTagMode');
+  if(seg) seg.addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-mode]'); if(!btn) return;
+    _blkTagMode = btn.dataset.mode;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+  });
+  const chips = document.getElementById('blkTagChips');
+  if(chips) chips.addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-tag]'); if(!btn) return;
+    const name = btn.dataset.tag;
+    if(_blkTags.has(name)) _blkTags.delete(name); else _blkTags.add(name);
+    btn.classList.toggle('sel', _blkTags.has(name));
+  });
+  const pills = document.getElementById('blkFmtPills');
+  if(pills) pills.addEventListener('click', function(e){
+    const btn = e.target.closest('.blkx-pill'); if(!btn) return;
+    _blkFormat = btn.dataset.fmt;
+    pills.querySelectorAll('.blkx-pill').forEach(p => p.classList.toggle('on', p === btn));
+  });
 })();
 
 /* v1.11.0 — 묶음 카드 다중 토글. 묶음 안 모든 책 id를 selected에 추가/제거. */
@@ -35425,6 +35590,24 @@ function _libEditToggleGroup(groupId) {
 
 /* v1.11.0 — 묶음 펼침 시트 (일반 모드에서 묶음 카드 탭 시 노출)
    v1.3.0 — categoryFilter 추가. 위시 탭에서 묶음 펼치면 위시 책만, 독서중 탭이면 독서중 책만 표시 */
+/* v2.x — #3a-A(D안): 묶음 펼침 시트 볼륨 카드(기존 카드 + 표지 오버레이 상태 버튼) */
+function _grpVolCardHTML(b, i) {
+  const btn = (v, lbl) => '<button type="button" class="grp-vol-ovbtn' + (b.status === v ? ' on' : '') + '" data-vol-id="' + b.id + '" data-st="' + v + '">' + lbl + '</button>';
+  return '<div class="grp-vol-wrap">' + renderBookCard(b, i) + '<div class="grp-vol-ov">' + btn('reading', '독서중') + btn('done', '완독') + btn('dropped', '하차') + '</div></div>';
+}
+/* v2.x — #3a-A: 볼륨 단위 상태 변경. 하차는 기존 사유 시트로 연결 */
+function _grpVolSetStatus(bookId, newStatus) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b || b.status === newStatus) return;
+  if (newStatus === 'dropped') { if (typeof openDropSheet === 'function') openDropSheet(bookId); return; }
+  const update = _libBuildStatusUpdate(b, newStatus, todayStr());
+  const idx = BOOKS.findIndex(x => x.id === bookId);
+  if (idx >= 0) { BOOKS[idx] = { ...BOOKS[idx], ...update }; try { STORE.set('books', BOOKS); } catch(e){} }
+  try { renderLibraryCards(); } catch(e){}
+  try { _grpRefreshOpenSheetIfAny(); } catch(e){}
+  if (typeof showToast === 'function') showToast(newStatus === 'done' ? '완독으로 바꿨어요' : '독서중으로 바꿨어요');
+}
+
 function _grpExpandSheet(groupId, categoryFilter) {
   const grp = _grpFindById(groupId);
   if (!grp) return;
@@ -35452,13 +35635,18 @@ function _grpExpandSheet(groupId, categoryFilter) {
         <div class="grp-sheet-title">${esc(grp.name)}</div>
         <div class="grp-sheet-sub">묶음 ${books.length}권</div>
       </div>
-      <button class="grp-sheet-close" data-action="grp-sheet-close" aria-label="닫기">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
+        <button class="grp-sheet-edit" data-action="grp-sheet-edit" aria-label="상태 편집" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>${(function(){ try { return localStorage.getItem('read.grpEditHintSeen.v1') ? '' : '<i class="grp-edit-dot" aria-hidden="true"></i>'; } catch(e){ return ''; } })()}
+        </button>
+        <button class="grp-sheet-close" data-action="grp-sheet-close" aria-label="닫기">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
     </div>
     <div class="grp-sheet-body">
       <div class="grp-sheet-grid">
-        ${books.map((b, i) => renderBookCard(b, i)).join('')}
+        ${books.map((b, i) => _grpVolCardHTML(b, i)).join('')}
       </div>
     </div>
     <div class="grp-sheet-footer">
@@ -35476,6 +35664,18 @@ function _grpExpandSheet(groupId, categoryFilter) {
 
   // 시트 핸들러
   sheet.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('[data-action="grp-sheet-edit"]');
+    if (editBtn) {
+      const on = sheet.classList.toggle('grp-editing');
+      editBtn.setAttribute('aria-pressed', String(on));
+      // 첫 사용 시 강조 점 제거 (재노출 안 함)
+      const hintDot = editBtn.querySelector('.grp-edit-dot');
+      if (hintDot) { hintDot.remove(); try { localStorage.setItem('read.grpEditHintSeen.v1', '1'); } catch(e){} }
+      return;
+    }
+    const ovBtn = e.target.closest('.grp-vol-ovbtn');
+    if (ovBtn) { _grpVolSetStatus(parseInt(ovBtn.dataset.volId, 10), ovBtn.dataset.st); return; }
+    if (e.target.closest('.grp-vol-ov')) return; // 편집 중 표지 탭은 상세로 안 넘어감
     if (e.target.closest('[data-action="grp-sheet-close"]')) {
       _grpCloseSheet();
       return;
@@ -37880,7 +38080,7 @@ function _grpRefreshOpenSheetIfAny() {
   const grid = sheet.querySelector('.grp-sheet-grid');
   const subEl = sheet.querySelector('.grp-sheet-sub');
   if (grid) {
-    grid.innerHTML = booksInGrp.map((b, i) => renderBookCard(b, i)).join('');
+    grid.innerHTML = booksInGrp.map((b, i) => _grpVolCardHTML(b, i)).join('');
     // v1.5.x — 갱신된 카드에 lazy 옵저버 재부착
     try { _attachCoverLazyObserver(grid); } catch(e){}
   }
@@ -38354,7 +38554,7 @@ function renderBookDetail() {
         <button class="tag-new-btn" id="bdTagNewBtn">+ 추가</button>
       </div>
       <div class="tag-new-cat-row" id="bdTagNewCatRow">
-        <span class="tnc-label">📂 어느 카테고리에?</span>
+        <span class="tnc-label">📂 이 태그를 어느 분류에?</span>
         <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
         <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
         <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
@@ -50726,6 +50926,7 @@ function commitDrop() {
 
   closeDropSheet();
   if (typeof renderLibraryCards === 'function') renderLibraryCards();
+  try { _grpRefreshOpenSheetIfAny(); } catch(e){}
   if (typeof renderBookDetail === 'function' && typeof BD !== 'undefined' && BD && BD.book && BD.book.id === bookId) {
     BD.book = BOOKS.find(b => b.id === bookId);
     renderBookDetail();
