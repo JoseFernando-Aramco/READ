@@ -19544,7 +19544,6 @@ body.cn-locked {
   color: #b89968;
   font-weight: 700;
   letter-spacing: 1.5px;
-  text-transform: uppercase;
   margin-bottom: 8px;
 }
 .bfp-equiv-body {
@@ -19577,6 +19576,41 @@ body.cn-locked {
   color: var(--c-text, #1c1c1c);
   font-feature-settings: 'tnum';
 }
+
+/* v2.x — 나쁜 소비 치환 카드(A안) 추가 스타일 */
+.bfp-equiv-item .bfsw-strike { text-decoration: line-through; color: var(--c-terra-400); }
+.bfp-equiv-item .bfsw-ok { color: #5B7355; font-weight: 800; }
+.bfsw-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--c-border); font-size: 12px; color: var(--c-terra-700); line-height: 1.6; }
+
+/* v2.x — 장르(대표 태그)별 지출 카드 (환산 카드 위) */
+.bfp-genre {
+  margin: 0 20px 18px;
+  background: linear-gradient(135deg, #fff 0%, #f7f0e5 100%);
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e5e3d8);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.bfg-lbl {
+  font-size: 10px;
+  color: #b89968;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.bfg-row { margin-bottom: 11px; }
+.bfg-rh { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+.bfg-nm { font-size: 12.5px; font-weight: 700; color: var(--c-text, #1c1c1c); }
+.bfg-cnt { font-size: 10px; font-weight: 600; color: #b4a88f; margin-left: 5px; }
+.bfg-amt { font-size: 12.5px; font-weight: 800; color: var(--c-text, #1c1c1c); font-feature-settings: 'tnum'; letter-spacing: -0.02em; }
+.bfg-tr { height: 8px; background: #eee9de; border-radius: 5px; overflow: hidden; }
+.bfg-fl { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #c9a96a, #b08a45); }
+.bfg-etc .bfg-fl { background: #d5cdbe; }
+.bfg-rest { display: none; }
+.bfp-genre.open .bfg-rest { display: block; }
+.bfg-more { display: block; width: 100%; margin-top: 4px; border: none; background: transparent; color: #a89d8c; font-family: inherit; font-size: 11px; font-weight: 700; padding: 8px 0 2px; cursor: pointer; }
 
 .sp-hero {
   margin: 0 20px 18px;
@@ -32509,6 +32543,25 @@ const NA = {
   if (_libMigrated > 0) {
     try { STORE.set('books', BOOKS); } catch(e){}
   }
+  // v2.x — 취득 이력 다중화: 기존 단일 acquisition → acquisitions 배열로 1회 마이그레이션
+  let _acqMigrated = 0;
+  BOOKS.forEach(b => {
+    if (b && b.acquisition && !Array.isArray(b.acquisitions)) {
+      b.acquisitions = [{
+        id: 'aq_mig_' + b.id,
+        type: b.acquisition,
+        date: b.acqDate || null,
+        place: b.acqPlace || null,
+        price: (typeof b.acqPrice === 'number' && b.acqPrice > 0) ? b.acqPrice : null,
+        returnDate: b.acqReturnDate || null,
+        memo: b.acqMemo || null,
+      }];
+      _acqMigrated++;
+    }
+  });
+  if (_acqMigrated > 0) {
+    try { STORE.set('books', BOOKS); } catch(e){}
+  }
   const savedTags = STORE.get('tags', null);
   if (savedTags && typeof savedTags === 'object') {
     // 저장본이 있으면 저장본이 진실 — 사용자가 삭제한 기본 태그는 다시 살리지 않는다.
@@ -41175,6 +41228,40 @@ window._goToRentStatCard = function() {
 /* v1.x — 책 상세 메타 row "소유" HTML
    - acquisition 없으면 "기록하기" 버튼
    - 있으면 요약 + D-N 표시 (대여만), 탭하면 편집 시트 */
+/* v2.x — 취득 이력 다중화 헬퍼: 배열 접근/새 id/최신 이력 미러 */
+function _acqList(b) { return (b && Array.isArray(b.acquisitions)) ? b.acquisitions : []; }
+function _acqNewId() { return 'aq_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+function _acqMirrorOf(list) {
+  const cur = list[list.length - 1];
+  return {
+    acquisition: cur.type,
+    acqDate: cur.date || null,
+    acqPlace: cur.place || null,
+    acqPrice: (typeof cur.price === 'number' && cur.price > 0) ? cur.price : null,
+    acqReturnDate: cur.returnDate || null,
+    acqMemo: cur.memo || null,
+  };
+}
+function _acqSyncMirror(b) {
+  const list = _acqList(b);
+  if (!list.length) {
+    delete b.acquisitions;
+    delete b.acquisition; delete b.acqDate; delete b.acqPlace;
+    delete b.acqPrice; delete b.acqReturnDate; delete b.acqMemo;
+    return;
+  }
+  Object.assign(b, _acqMirrorOf(list));
+}
+/* 이력 한 줄 요약 (리스트 행용) */
+function _acqRecSummary(rec) {
+  const parts = [];
+  if (rec.date) parts.push(rec.date.replace(/-/g, '.'));
+  if (rec.type === 'rent' && rec.returnDate) parts.push('~' + rec.returnDate.replace(/-/g, '.').slice(5));
+  if (rec.place) parts.push(esc(rec.place));
+  if (rec.type === 'purchase' && rec.price) parts.push(Number(rec.price).toLocaleString('ko-KR') + '원');
+  return parts.join(' · ');
+}
+
 function renderAcqMetaRow(b) {
   if (!b.acquisition) {
     return `<div class="bd-meta-row bd-meta-acq-empty" onclick="openAcqSheet(${b.id})">
@@ -41221,6 +41308,8 @@ function renderAcqMetaRow(b) {
     if (parts.length > 0) valHtml += ` · ${parts.join(' · ')}`;
   }
   
+  const _histN = _acqList(b).length;
+  if (_histN > 1) valHtml += ` <span style="color:var(--c-muted);">외 ${_histN - 1}건</span>`;
   return `<div class="bd-meta-row" onclick="openAcqSheet(${b.id})" style="cursor:pointer;">
     <span class="bd-meta-dot bd-meta-dot-acq ${sevClass}"></span>
     <span class="bd-meta-lbl">소유</span>
@@ -41251,6 +41340,7 @@ function openAcqSheet(bookId) {
   sheet.id = 'acqSheet';
   sheet.className = 'acq-sheet';
   sheet.dataset.bookId = String(bookId);
+  _acqMode = { view: _acqList(b).length ? 'list' : 'form', editId: null };
   sheet.innerHTML = _acqSheetHtml(b);
   document.body.appendChild(sheet);
   
@@ -41267,21 +41357,26 @@ function openAcqSheet(bookId) {
   // 이벤트
   backdrop.onclick = closeAcqSheet;
   
-  // 라디오 변경 시 폼 토글
+  _acqWireForm(sheet, b);
+  
+  // v1.11.3 — input[type=date] 네이티브 피커는 자동으로 닫히므로 별도 dp 닫기 불필요
+  
+  // 쓸어내려 닫기
+  if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
+}
+
+/* v2.x — 취득 시트 모드 상태 (list=이력 목록, form=추가/수정) */
+let _acqMode = null;
+function _acqWireForm(sheet, b) {
   sheet.querySelectorAll('input[name="acqType"]').forEach(r => {
     r.addEventListener('change', () => _acqUpdateFormView(r.value));
   });
-  
-  // v1.x — 초기 상태: 책에 기록 있으면 해당 폼, 없으면 '구매'로 기본 선택
-  const initType = b.acquisition || 'purchase';
+  const rec = (_acqMode && _acqMode.editId) ? _acqList(b).find(x => x.id === _acqMode.editId) : null;
+  const initType = (rec && rec.type) || 'purchase';
   const initRadio = sheet.querySelector(`input[name="acqType"][value="${initType}"]`);
   if (initRadio) initRadio.checked = true;
   _acqUpdateFormView(initType);
-  
-  // v1.x — DatePicker 초기화 (모든 .dp-wrap 이벤트 바인딩)
   initDatePickers(sheet);
-  
-  // v1.x — 대여 기간 자동 계산 — dp:change 이벤트 기반
   const dateWrap = sheet.querySelector('.dp-wrap[data-dp-id="acqDateR"]');
   const retWrap = sheet.querySelector('.dp-wrap[data-dp-id="acqReturnDateR"]');
   const durEl = sheet.querySelector('#acqDurationLbl');
@@ -41302,11 +41397,35 @@ function openAcqSheet(bookId) {
   if (dateWrap) dateWrap.addEventListener('dp:change', updateDur);
   if (retWrap) retWrap.addEventListener('dp:change', updateDur);
   updateDur();
-  
-  // v1.11.3 — input[type=date] 네이티브 피커는 자동으로 닫히므로 별도 dp 닫기 불필요
-  
-  // 쓸어내려 닫기
-  if (typeof attachSwipeDown === 'function') attachSwipeDown(sheet, closeAcqSheet);
+}
+function _acqRerender() {
+  const sheet = document.getElementById('acqSheet'); if (!sheet) return;
+  const b = BOOKS.find(x => x.id === parseInt(sheet.dataset.bookId, 10)); if (!b) return;
+  sheet.innerHTML = _acqSheetHtml(b);
+  _acqWireForm(sheet, b);
+}
+function _acqOpenForm(editId) {
+  _acqMode = { view: 'form', editId: editId || null };
+  _acqRerender();
+}
+function _acqCancelForm() {
+  const sheet = document.getElementById('acqSheet'); if (!sheet) return;
+  const b = BOOKS.find(x => x.id === parseInt(sheet.dataset.bookId, 10));
+  if (b && _acqList(b).length) { _acqMode = { view: 'list', editId: null }; _acqRerender(); }
+  else closeAcqSheet();
+}
+function _acqDeleteRec(bookId, recId) {
+  const b = BOOKS.find(x => x.id === bookId); if (!b) return;
+  if (!confirm('이 이력을 삭제할까요?')) return;
+  b.acquisitions = _acqList(b).filter(r => r.id !== recId);
+  _acqSyncMirror(b);
+  try { STORE.set('books', BOOKS); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+  try { renderLibraryCards(); } catch(e){}
+  try { if (typeof renderBookDetail === 'function' && BD.book) renderBookDetail(BD.book); } catch(e){}
+  _acqMode = { view: _acqList(b).length ? 'list' : 'form', editId: null };
+  _acqRerender();
+  try { showToast('이력이 삭제되었어요'); } catch(e){}
 }
 
 function closeAcqSheet() {
@@ -41375,16 +41494,52 @@ function getDatePickerValue(root, dpId) {
 }
 
 function _acqSheetHtml(b) {
-  const acq = b.acquisition || '';
+  const list = _acqList(b);
+  const mode = _acqMode || { view: list.length ? 'list' : 'form', editId: null };
+  const editRec = mode.editId ? list.find(r => r.id === mode.editId) : null;
+  const _v = editRec || {};
+  const acq = _v.type || '';
   const escVal = (v) => v ? esc(String(v)) : '';
   const today = _todayStr();
+  const showForm = mode.view === 'form';
+  const rows = list.slice().reverse().map((r, ri) => {
+    const t = ACQ_TYPES[r.type] || { icon: '📦', label: r.type };
+    const cur = ri === 0 ? '<span class="acq-hist-cur">현재</span>' : '';
+    const sum = _acqRecSummary(r);
+    return `<div class="acq-hist-row">
+      <span class="acq-hist-ic">${t.icon}</span>
+      <span class="acq-hist-in"><span class="acq-hist-tt">${t.label}${cur}</span>${sum ? `<span class="acq-hist-sub">${sum}</span>` : ''}</span>
+      <span class="acq-hist-act">
+        <button type="button" class="acq-hist-btn" onclick="_acqOpenForm('${r.id}')" aria-label="이력 수정">✎</button>
+        <button type="button" class="acq-hist-btn" onclick="_acqDeleteRec(${b.id}, '${r.id}')" aria-label="이력 삭제">🗑</button>
+      </span>
+    </div>`;
+  }).join('');
   return `
+    <style>
+      .acq-hist-row{ display:flex; align-items:center; gap:9px; padding:10px 2px; border-bottom:1px solid var(--c-border); }
+      .acq-hist-ic{ width:32px; height:32px; border-radius:9px; background:var(--c-border-2); display:flex; align-items:center; justify-content:center; font-size:15px; flex:none; }
+      .acq-hist-in{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+      .acq-hist-tt{ font-size:13px; font-weight:700; color:var(--c-terra-700); }
+      .acq-hist-cur{ font-size:9.5px; font-weight:700; color:var(--primary, #6F5AC8); background:var(--c-border-2); border-radius:5px; padding:1.5px 5px; margin-left:5px; vertical-align:1px; }
+      .acq-hist-sub{ font-size:11px; color:var(--c-terra-400); }
+      .acq-hist-act{ display:flex; gap:4px; flex:none; }
+      .acq-hist-btn{ width:28px; height:28px; border-radius:7px; border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-terra-400); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+      .acq-hist-add{ margin-top:10px; width:100%; text-align:center; border:1.5px dashed var(--c-border-2); border-radius:11px; background:transparent; color:var(--c-terra-400); font-family:inherit; font-size:12.5px; font-weight:700; padding:11px 0; cursor:pointer; }
+      .acq-form-title{ font-size:12px; font-weight:700; color:var(--c-terra-400); margin-bottom:8px; }
+    </style>
     <div class="acq-sheet-handle"></div>
     <div class="acq-sheet-head">
       <div class="acq-sheet-title">소유 기록</div>
       <button class="acq-sheet-close" onclick="closeAcqSheet()" aria-label="닫기">✕</button>
     </div>
     <div class="acq-sheet-body">
+      ${list.length ? `<div class="acq-hist" id="acqHistSec" style="${showForm ? 'display:none;' : ''}">
+        ${rows}
+        <button type="button" class="acq-hist-add" onclick="_acqOpenForm(null)">＋ 이력 추가</button>
+      </div>` : ''}
+      <div id="acqFormWrap" style="${showForm ? '' : 'display:none;'}">
+      ${list.length ? `<div class="acq-form-title">${editRec ? '이력 수정' : '새 이력'}</div>` : ''}
       <!-- 타입 라디오 -->
       <div class="acq-type-grid">
         <label class="acq-type-opt"><input type="radio" name="acqType" value="purchase" ${acq==='purchase'?'checked':''}><span>🛒 구매</span></label>
@@ -41396,15 +41551,15 @@ function _acqSheetHtml(b) {
       <div class="acq-form" id="acqForm-purchase" style="display:none;">
         <div class="acq-field">
           <span class="acq-field-lbl">구매일</span>
-          ${renderDatePicker({ id: 'acqDateP', value: b.acqDate || '', max: today, placeholder: '날짜 선택' })}
+          ${renderDatePicker({ id: 'acqDateP', value: _v.date || '', max: today, placeholder: '날짜 선택' })}
         </div>
         <label class="acq-field">
           <span class="acq-field-lbl">구매처</span>
-          <input type="text" class="acq-input" id="acqPlaceInputP" value="${escVal(b.acqPlace)}" placeholder="예: 교보문고 광화문점" maxlength="40">
+          <input type="text" class="acq-input" id="acqPlaceInputP" value="${escVal(_v.place)}" placeholder="예: 교보문고 광화문점" maxlength="40">
         </label>
         <label class="acq-field">
           <span class="acq-field-lbl">가격 (원)</span>
-          <input type="number" class="acq-input" id="acqPriceInput" value="${b.acqPrice || ''}" placeholder="18000" min="0" max="9999999" inputmode="numeric">
+          <input type="number" class="acq-input" id="acqPriceInput" value="${_v.price || ''}" placeholder="18000" min="0" max="9999999" inputmode="numeric">
         </label>
       </div>
       
@@ -41412,16 +41567,16 @@ function _acqSheetHtml(b) {
       <div class="acq-form" id="acqForm-rent" style="display:none;">
         <div class="acq-field">
           <span class="acq-field-lbl">대여일</span>
-          ${renderDatePicker({ id: 'acqDateR', value: b.acqDate || '', placeholder: '날짜 선택' })}
+          ${renderDatePicker({ id: 'acqDateR', value: _v.date || '', placeholder: '날짜 선택' })}
         </div>
         <div class="acq-field">
           <span class="acq-field-lbl">반납 예정일</span>
-          ${renderDatePicker({ id: 'acqReturnDateR', value: b.acqReturnDate || '', placeholder: '날짜 선택' })}
+          ${renderDatePicker({ id: 'acqReturnDateR', value: _v.returnDate || '', placeholder: '날짜 선택' })}
         </div>
         <div class="acq-duration-lbl" id="acqDurationLbl" style="display:none;"></div>
         <label class="acq-field">
           <span class="acq-field-lbl">대여처</span>
-          <input type="text" class="acq-input" id="acqPlaceInputR" value="${escVal(b.acqPlace)}" placeholder="예: 광화문 도서관" maxlength="40">
+          <input type="text" class="acq-input" id="acqPlaceInputR" value="${escVal(_v.place)}" placeholder="예: 광화문 도서관" maxlength="40">
         </label>
       </div>
       
@@ -41429,23 +41584,24 @@ function _acqSheetHtml(b) {
       <div class="acq-form" id="acqForm-own" style="display:none;">
         <div class="acq-field">
           <span class="acq-field-lbl">소장일 (선택)</span>
-          ${renderDatePicker({ id: 'acqDateO', value: b.acqDate || '', max: today, placeholder: '날짜 선택' })}
+          ${renderDatePicker({ id: 'acqDateO', value: _v.date || '', max: today, placeholder: '날짜 선택' })}
         </div>
         <label class="acq-field">
           <span class="acq-field-lbl">출처 (선택)</span>
-          <input type="text" class="acq-input" id="acqPlaceInputO" value="${escVal(b.acqPlace)}" placeholder="예: 선물 받음" maxlength="40">
+          <input type="text" class="acq-input" id="acqPlaceInputO" value="${escVal(_v.place)}" placeholder="예: 선물 받음" maxlength="40">
         </label>
       </div>
       
       <!-- 메모 (공통) -->
       <label class="acq-field acq-field-memo">
         <span class="acq-field-lbl">메모 (선택)</span>
-        <textarea class="acq-input acq-textarea" id="acqMemoInput" rows="2" maxlength="120" placeholder="예: 선물 받음 · 사인본">${escVal(b.acqMemo)}</textarea>
+        <textarea class="acq-input acq-textarea" id="acqMemoInput" rows="2" maxlength="120" placeholder="예: 선물 받음 · 사인본">${escVal(_v.memo)}</textarea>
       </label>
+      </div>
     </div>
     
-    <div class="acq-sheet-footer">
-      ${acq ? `<button class="acq-btn acq-btn-clear" onclick="clearAcq(${b.id})">기록 삭제</button>` : '<div></div>'}
+    <div class="acq-sheet-footer" style="${showForm ? '' : 'display:none;'}">
+      ${list.length ? `<button class="acq-btn acq-btn-clear" onclick="_acqCancelForm()">취소</button>` : '<div></div>'}
       <button class="acq-btn acq-btn-save" onclick="saveAcq(${b.id})">저장</button>
     </div>
   `;
@@ -41498,15 +41654,14 @@ function saveAcq(bookId) {
   
   const acqMemo = (sheet.querySelector('#acqMemoInput')?.value || '').trim();
   
-  // 책 업데이트 — updateBook 사용 (BD.book 참조 자동 갱신 + 모든 렌더 호출)
-  updateBook(bookId, {
-    acquisition: type,
-    acqDate: acqDate || null,
-    acqPlace: acqPlace || null,
-    acqPrice: acqPrice,
-    acqReturnDate: acqReturnDate || null,
-    acqMemo: acqMemo || null,
-  });
+  // v2.x — 취득 이력 다중화: 배열 갱신, 평면 필드는 최신 이력 미러 (updateBook이 렌더까지 담당)
+  const bRef = BOOKS.find(x => x.id === bookId);
+  const list = _acqList(bRef).slice();
+  const recId = (_acqMode && _acqMode.editId) || _acqNewId();
+  const rec = { id: recId, type, date: acqDate || null, place: acqPlace || null, price: acqPrice, returnDate: acqReturnDate || null, memo: acqMemo || null };
+  const ei = list.findIndex(r => r.id === recId);
+  if (ei >= 0) list[ei] = rec; else list.push(rec);
+  updateBook(bookId, { acquisitions: list, ..._acqMirrorOf(list) });
   
   // 책 상세 모달 갱신 (열려있으면)
   try {
@@ -41518,33 +41673,6 @@ function saveAcq(bookId) {
   try { showToast('소유 기록이 저장되었어요'); } catch(e){}
   closeAcqSheet();
 }
-
-function clearAcq(bookId) {
-  const b = BOOKS.find(x => x.id === bookId);
-  if (!b) return;
-  if (!confirm('소유 기록을 삭제할까요?')) return;
-  
-  // updateBook은 partial merge라 null로 덮어쓰면 키는 남음 — 직접 제거 + STORE 갱신
-  delete b.acquisition;
-  delete b.acqDate;
-  delete b.acqPlace;
-  delete b.acqPrice;
-  delete b.acqReturnDate;
-  delete b.acqMemo;
-  
-  try { STORE.set('books', BOOKS); } catch(e){}
-  try { renderAllStats(); } catch(e){}
-  try { renderLibraryCards(); } catch(e){}
-  try {
-    if (typeof renderBookDetail === 'function' && BD.book) {
-      renderBookDetail(BD.book);
-    }
-  } catch(e){}
-  
-  try { showToast('기록이 삭제되었어요'); } catch(e){}
-  closeAcqSheet();
-}
-
 
 /* 올해/이번달 완독 수 계산 (renderAnnualLedger 패턴 재사용) */
 function countFinishedThisYear() {
@@ -46223,40 +46351,60 @@ function _bfCollectorTier(amount) {
   return '북 시작';
 }
 
-const BF_EQUIV_ITEMS = {
-  small: [
-    { ic:'\u2615', name:'카페 아메리카노',     unit:4585,    suffix:'잔' },
-    { ic:'\uD83C\uDF54', name:'맥도날드 빅맥세트', unit:7500, suffix:'세트' },
-    { ic:'\uD83C\uDFAC', name:'영화관 관람',     unit:15000,   suffix:'회' },
-  ],
-  medium: [
-    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000, suffix:'대' },
-    { ic:'\u2615', name:'카페 아메리카노',        unit:4585,   suffix:'잔' },
-    { ic:'\uD83C\uDFAC', name:'영화관 관람',      unit:15000,  suffix:'회' },
-  ],
-  large: [
-    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000,  suffix:'대' },
-    { ic:'\uD83D\uDCBB', name:'맥북 에어',         unit:1500000, suffix:'대' },
-    { ic:'\u2708\uFE0F', name:'도쿄 왕복 항공권',  unit:280000,  suffix:'회' },
-  ],
-  xlarge: [
-    { ic:'\uD83D\uDCD6', name:'킨들 페이퍼화이트', unit:200000,  suffix:'대' },
-    { ic:'\uD83D\uDCBB', name:'맥북 에어',         unit:1500000, suffix:'대' },
-    { ic:'\uD83D\uDE97', name:'경차 한 대',         unit:9000000, suffix:'대' },
-  ],
-};
+const BF_SWAP_ITEMS = [
+  { ic:'\uD83C\uDF7A', unit:50000, strike:(n)=>'술자리 '+n+'번',   swap:(n)=>'숙취 0번' },
+  { ic:'\uD83C\uDF57', unit:25000, strike:(n)=>'야식 배달 '+n+'번', swap:(n)=>'밤샘 독서 '+n+'번' },
+  { ic:'\uD83D\uDC8E', unit:11000, strike:(n)=>'게임 현질 '+n+'회', swap:(n)=>'시즌 초기화 0번' },
+  { ic:'\uD83C\uDFB0', unit:1000,  strike:(n)=>'인형뽑기 '+n+'회', swap:(n)=>'빈손 0번' },
+];
+function _bfCalcSwaps(amount) {
+  return BF_SWAP_ITEMS
+    .map(it => ({ it, count: Math.floor(amount / it.unit) }))
+    .filter(x => x.count > 0)
+    .slice(0, 3)
+    .map(x => {
+      const n = x.count.toLocaleString('ko-KR');
+      return { ic: x.it.ic, strike: x.it.strike(n), swap: x.it.swap(n) };
+    });
+}
 
-function _bfCalcEquivalents(amount) {
-  let items;
-  if (amount >= 10000000) items = BF_EQUIV_ITEMS.xlarge;
-  else if (amount >= 1000000) items = BF_EQUIV_ITEMS.large;
-  else if (amount >= 300000) items = BF_EQUIV_ITEMS.medium;
-  else items = BF_EQUIV_ITEMS.small;
+function _spendByRepTag(year) {
+  let catOrder = [];
+  try { catOrder = getTagCategoriesSorted().map(c => c.id); } catch(e){}
+  const rankOf = (name) => {
+    const t = TAGS[name];
+    if (!t) return 998;
+    const i = catOrder.indexOf(t.category);
+    return i < 0 ? 997 : i;
+  };
+  const buckets = new Map();
+  (BOOKS || []).forEach(b => {
+    const yset = _spendYearsSetOf(b);
+    if (!yset.size) return;
+    if (year != null && !yset.has(year)) return;
+    const amt = _bookSpendAmt(b, year);
+    if (amt <= 0) return;
+    const tags = Array.isArray(b.tags) ? b.tags : [];
+    let rep = null, best = Infinity;
+    tags.forEach((nm, i) => {
+      const r = rankOf(nm) * 1000 + i;
+      if (r < best) { best = r; rep = nm; }
+    });
+    const key = rep || '미분류';
+    const cur = buckets.get(key) || { name: key, amt: 0, count: 0 };
+    cur.amt += amt;
+    cur.count += 1;
+    buckets.set(key, cur);
+  });
+  return [...buckets.values()].sort((a, b) => b.amt - a.amt);
+}
 
-  return items.map(it => ({
-    ...it,
-    count: Math.floor(amount / it.unit),
-  })).filter(it => it.count > 0);
+/* 장르 카드 접기/펼치기 (6번째 이후 행 토글) */
+function _bfgToggleMore(btn, total) {
+  const card = btn.closest('.bfp-genre');
+  if (!card) return;
+  const open = card.classList.toggle('open');
+  btn.textContent = open ? '접기 ↑' : ('전체 ' + total + '개 장르 보기 ›');
 }
 
 /* v1.x — 책의 "실효 가격" 헬퍼 (Bookflex 등 책장 가치 계산에 사용)
@@ -46292,13 +46440,42 @@ function _spendTsOf(b) {
   return isNaN(t) ? null : t;
 }
 
+/* v2.x — 취득 이력 다중화(b안): 구매 이력별 지출 항목 [{price, year}] (이력 날짜 → 그 연도, 없으면 완독일 연도) */
+function _acqSpendRecs(b) {
+  return _acqList(b)
+    .filter(r => r.type === 'purchase' && typeof r.price === 'number' && r.price > 0)
+    .map(r => {
+      let y = null;
+      if (r.date) { const yy = new Date(r.date).getFullYear(); y = isNaN(yy) ? null : yy; }
+      if (y == null && b.status === 'done' && b.dateEnd) { const yy = new Date(b.dateEnd).getFullYear(); y = isNaN(yy) ? null : yy; }
+      return { price: r.price, year: y };
+    });
+}
+/* 책이 지출 귀속되는 연도 집합 — 구매 이력 연도들, 이력 없으면 기존 단일 규칙 */
+function _spendYearsSetOf(b) {
+  const set = new Set();
+  _acqSpendRecs(b).forEach(r => { if (r.year != null) set.add(r.year); });
+  if (set.size === 0) { const y = _spendYearOf(b); if (y != null) set.add(y); }
+  return set;
+}
+/* 책의 (연도 필터 기준) 지출액 — 구매 이력 있으면 합산, 없으면 기존 실효가 */
+function _bookSpendAmt(b, year) {
+  const recs = _acqSpendRecs(b);
+  if (recs.length) {
+    const use = (year == null) ? recs : recs.filter(r => r.year === year);
+    return use.reduce((sum, r) => sum + r.price, 0);
+  }
+  return getEffectivePrice(b);
+}
+
 function _calcSpend(year) {
   // v1.x — year 파라미터: null/undefined면 전체, 숫자면 그 연도에 dateEnd 있는 책만
   // v1.x — 지출 귀속: 구매일 있으면 그 연도(완독 무관), 없으면 완독한 책만 완독일 연도
-  const eligibleAll = (BOOKS || []).filter(b => _spendYearOf(b) != null);
+  // v2.x — b안: 구매 이력 연도 집합 기준 (재구매가 각자의 연도에 귀속)
+  const eligibleAll = (BOOKS || []).filter(b => _spendYearsSetOf(b).size > 0);
   const all = (year == null)
     ? eligibleAll
-    : eligibleAll.filter(b => _spendYearOf(b) === year);
+    : eligibleAll.filter(b => _spendYearsSetOf(b).has(year));
   const byFormat = { paper: [], ebook: [], audio: [] };
   all.forEach(b => {
     const f = (typeof getBookFormat === 'function') ? getBookFormat(b) : (b.format || 'paper');
@@ -46306,10 +46483,10 @@ function _calcSpend(year) {
   });
 
   function aggregate(books) {
-    // v1.x — acqPrice 우선, priceSales fallback (getEffectivePrice)
-    const withPrice = books.filter(hasEffectivePrice);
-    const total = withPrice.reduce((s, b) => s + getEffectivePrice(b), 0);
-    return { count: books.length, registered: withPrice.length, total };
+    // v2.x — b안: 구매 이력 합산 (이력 없으면 기존 실효가 fallback)
+    const priced = books.map(b => ({ b, amt: _bookSpendAmt(b, year) })).filter(x => x.amt > 0);
+    const total = priced.reduce((sum, x) => sum + x.amt, 0);
+    return { count: books.length, registered: priced.length, total };
   }
 
   const paper = aggregate(byFormat.paper);
@@ -46349,8 +46526,7 @@ function _calcSpend(year) {
 function _getSpendYears() {
   const years = new Set();
   (BOOKS || []).forEach(b => {
-    const y = _spendYearOf(b);
-    if (y != null) years.add(y);
+    _spendYearsSetOf(b).forEach(y => years.add(y));
   });
   return Array.from(years).sort((a, b) => b - a);  // 최신순
 }
@@ -46598,7 +46774,7 @@ function _renderSpendModal() {
   if (s.highest) {
     highestHtml =
       '<div class="sp-detail-card">' +
-        '<div class="sp-detail-card-label">가장 두꺼웠던</div>' +
+        '<div class="sp-detail-card-label">최고가Bookflex</div>' +
         '<div class="sp-detail-card-val">\u20A9' + getEffectivePrice(s.highest).toLocaleString('ko-KR') + '</div>' +
         '<div class="sp-detail-card-sub">' + _spEsc(s.highest.title) + '</div>' +
       '</div>';
@@ -46606,7 +46782,7 @@ function _renderSpendModal() {
   if (s.lowest && s.lowest !== s.highest) {
     lowestHtml =
       '<div class="sp-detail-card">' +
-        '<div class="sp-detail-card-label">가장 가벼웠던</div>' +
+        '<div class="sp-detail-card-label">최저가Bookflex</div>' +
         '<div class="sp-detail-card-val">\u20A9' + getEffectivePrice(s.lowest).toLocaleString('ko-KR') + '</div>' +
         '<div class="sp-detail-card-sub">' + _spEsc(s.lowest.title) + '</div>' +
       '</div>';
@@ -46634,29 +46810,48 @@ function _renderSpendModal() {
 
   // v1.10.0 — Bookflex 4+ 시안 적용: '내 서재의 가치' + 페블(등급) + 메타 3개 + 환산 카드
   const tier = _bfCollectorTier(s.grandTotal);
-  const equivList = _bfCalcEquivalents(s.grandTotal);
   const fmtN = (n) => '\u20A9' + n.toLocaleString('ko-KR');
 
   const heroMissingNote = (s.grandRegistered < s.grandCount)
     ? '<br>가격을 비워둔 <b>' + (s.grandCount - s.grandRegistered) + '권</b>은 제외.'
     : '';
 
-  const equivHeadlineHtml = equivList.length > 0
-    ? (isYearMode ? viewYear + '년에' : '\uC9C0\uAE08\uAE4C\uC9C0') + ' \uCC45\uC5D0 \uB4E4\uC778 \uB3C8\uC73C\uB85C <b>' + equivList[0].name + ' ' + equivList[0].count + equivList[0].suffix + '</b>\uB97C<br>\uC0B4 \uC218 \uC788\uB294 \uC148\uC774\uC5D0\uC694.'
-    : '\uC11C\uC7AC\uC758 \uAC00\uCE58\uB97C \uACC4\uC0B0 \uC911\uC774\uC5D0\uC694.';
-
-  const equivItemsHtml = equivList.map(it =>
+  // v2.x — 나쁜 소비 치환 카드 (A안: 이 돈으로 벌어질 뻔한 일들)
+  const swapList = _bfCalcSwaps(s.grandTotal);
+  const swapBooksN = (s.grandCount || 0).toLocaleString('ko-KR');
+  const swapItemsHtml = swapList.map(it =>
     '<div class="bfp-equiv-item">' +
       '<div class="ic">' + it.ic + '</div>' +
-      '<div>' + it.name + ' <span class="num">' + it.count.toLocaleString('ko-KR') + it.suffix + '</span></div>' +
+      '<div><span class="bfsw-strike">' + it.strike + '</span> \u2192 <span class="bfsw-ok">' + it.swap + '</span></div>' +
     '</div>'
   ).join('');
-
-  const equivCardHtml = (s.grandTotal > 0 && equivList.length > 0)
+  const equivCardHtml = (s.grandTotal > 0 && swapList.length > 0)
     ? '<div class="bfp-equiv">' +
-        '<div class="bfp-equiv-lbl">\uB0B4 \uC11C\uC7AC\uC640 \uBC14\uAFC0 \uC218 \uC788\uB294 \uAC83</div>' +
-        '<div class="bfp-equiv-body">' + equivHeadlineHtml + '</div>' +
-        '<div class="bfp-equiv-list">' + equivItemsHtml + '</div>' +
+        '<div class="bfp-equiv-lbl">당신의 Bookflex, 그 가치는?</div>' +
+        '<div class="bfp-equiv-list">' + swapItemsHtml + '</div>' +
+        '<div class="bfsw-foot">\uC804\uBD80 \uCC38\uACE0 <b>\uCC45 ' + swapBooksN + '\uAD8C</b>\uC744 \uACE8\uB790\uC5B4\uC694. \uC798\uD588\uC5B4\uC694, \uC9C4\uC9DC\uB85C.</div>' +
+      '</div>'
+    : '';
+
+  // v2.x — 장르(대표 태그)별 지출 카드 (연도 칩과 동일 필터)
+  const genreRows = _spendByRepTag(_SPEND_VIEW_YEAR);
+  const _bfgRowHtml = (g, i, maxAmt) => {
+    const t = TAGS[g.name];
+    const em = (t && t.emoji) ? t.emoji : '📦';
+    const pct = maxAmt > 0 ? Math.max(3, Math.round(g.amt / maxAmt * 100)) : 0;
+    return '<div class="bfg-row' + (i >= 5 ? ' bfg-rest' : '') + (g.name === '미분류' ? ' bfg-etc' : '') + '">' +
+      '<div class="bfg-rh"><span class="bfg-nm">' + em + ' ' + esc(g.name) + '<span class="bfg-cnt">' + g.count + '권</span></span>' +
+      '<span class="bfg-amt">' + fmtN(g.amt) + '</span></div>' +
+      '<div class="bfg-tr"><div class="bfg-fl" style="width:' + pct + '%"></div></div>' +
+    '</div>';
+  };
+  const genreCardHtml = (s.grandTotal > 0 && genreRows.length > 0)
+    ? '<div class="bfp-genre">' +
+        '<div class="bfg-lbl">이 장르에 이만큼 썼어요</div>' +
+        genreRows.map((g, i) => _bfgRowHtml(g, i, genreRows[0].amt)).join('') +
+        (genreRows.length > 5
+          ? '<button type="button" class="bfg-more" onclick="_bfgToggleMore(this, ' + genreRows.length + ')">전체 ' + genreRows.length + '개 장르 보기 ›</button>'
+          : '') +
       '</div>'
     : '';
 
@@ -46692,6 +46887,7 @@ function _renderSpendModal() {
       '</div>' +
     '</div>' +
 
+    genreCardHtml +
     equivCardHtml +
 
     // v1.x — 마일스톤은 전체 모드 전용 (연도별 누적과 마일스톤 개념 불일치)
