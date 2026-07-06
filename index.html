@@ -8934,6 +8934,9 @@ body:has(.lib-edit-bar) .library-cards {
 /* v1.5.x — 묶음 시트(z 300/301) 위에 겹쳐 띄울 때 */
 .bd-backdrop.bd-above-grp { z-index: 320; }
 .bd-sheet.bd-above-grp { z-index: 321; }
+/* v2.x — 묶음 컨텍스트에서 연 노트 시트는 상세(321) 위로 (버그: 노트가 최하단에 깔림) */
+.na-backdrop.na-above-grp { z-index: 322; }
+.na-sheet.na-above-grp { z-index: 323; }
 
 .bd-sheet {
   position: fixed;
@@ -45673,6 +45676,11 @@ function openNoteAdd(prefillBookId = null) {
   }
   resetNA({ bookId: defaultBookId, type: 'quote', bookLocked: !!prefillBookId });
   renderNA();
+  // v2.x — 묶음 펼침 시트 위에서 열렸으면 상세보다 위 레이어로
+  if (document.querySelector('.grp-sheet')) {
+    document.getElementById('naBackdrop').classList.add('na-above-grp');
+    document.getElementById('naSheet').classList.add('na-above-grp');
+  }
   document.getElementById('naBackdrop').classList.add('open');
   const sheet = document.getElementById('naSheet');
   sheet.classList.add('open');
@@ -45692,6 +45700,11 @@ function openNoteEdit(id) {
     favorite: note.favorite,
   });
   renderNA();
+  // v2.x — 묶음 펼침 시트 위에서 열렸으면 상세보다 위 레이어로
+  if (document.querySelector('.grp-sheet')) {
+    document.getElementById('naBackdrop').classList.add('na-above-grp');
+    document.getElementById('naSheet').classList.add('na-above-grp');
+  }
   document.getElementById('naBackdrop').classList.add('open');
   const sheet = document.getElementById('naSheet');
   sheet.classList.add('open');
@@ -45700,9 +45713,12 @@ function openNoteEdit(id) {
 }
 
 function closeNoteSheet() {
-  document.getElementById('naBackdrop').classList.remove('open');
+  const naBd = document.getElementById('naBackdrop');
+  naBd.classList.remove('open');
+  naBd.classList.remove('na-above-grp');
   const sheet = document.getElementById('naSheet');
   sheet.classList.remove('open');
+  sheet.classList.remove('na-above-grp');
   sheet.setAttribute('aria-hidden', 'true');
   unlockBodyScroll();
 }
