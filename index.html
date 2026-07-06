@@ -19577,6 +19577,23 @@ body.cn-locked {
   font-feature-settings: 'tnum';
 }
 
+/* ═══════════ 미드나잇 다크모드 · Bookflex 보정 (하드코딩 라이트 색 오버라이드) ═══════════ */
+[data-theme="midnight"] .bfp-hero { background: var(--c-surface); }
+[data-theme="midnight"] .bfp-pebble { background: linear-gradient(135deg, var(--c-surface-2) 0%, #2A3040 100%); }
+[data-theme="midnight"] .bfp-genre,
+[data-theme="midnight"] .bfp-equiv { background: linear-gradient(135deg, var(--c-surface) 0%, #20242F 100%); }
+[data-theme="midnight"] .bfg-tr { background: var(--c-border); }
+[data-theme="midnight"] .bfg-etc .bfg-fl { background: var(--c-border-2); }
+[data-theme="midnight"] .bfm-step { background: var(--c-surface-2); border-color: var(--c-border); }
+[data-theme="midnight"] .bfm-progress { background: var(--c-border); }
+[data-theme="midnight"] .media-rows { background: var(--c-surface); }
+[data-theme="midnight"] .media-row + .media-row { border-top-color: var(--c-border); }
+[data-theme="midnight"] .bfsw-ok { color: #8FBF88; }
+/* 미드나잇 · Bookflex 진입 카드(햄버거 메뉴) 텍스트 대비 보정 — 라이트용 다크 브라운이 다크에서 저대비 */
+[data-theme="midnight"] .kbm-bookflex .kbm-item-ttl { color: #F0D89A; }
+[data-theme="midnight"] .kbm-bookflex .kbm-item-sub { color: #CBAE6E; opacity: 1; }
+[data-theme="midnight"] .kbm-bookflex .kbm-item-arrow { color: #CBAE6E; }
+
 /* v2.x — 나쁜 소비 치환 카드(A안) 추가 스타일 */
 .bfp-equiv-item .bfsw-strike { text-decoration: line-through; color: var(--c-terra-400); }
 .bfp-equiv-item .bfsw-ok { color: #5B7355; font-weight: 800; }
@@ -50749,8 +50766,10 @@ function _versionLower(a, b) {
       try { localStorage.setItem(LAST_SEEN_VERSION_KEY, APP_VERSION); } catch(e){}
       return;
     }
+    // v2.x — 자동 노출 내림 (설정 > 최신 업데이트의 수동 열람은 유지, 신규 마킹도 유지)
+    const WN_AUTO_LIVE = false;
     const lastSeen = localStorage.getItem(LAST_SEEN_VERSION_KEY);
-    if (_versionLower(lastSeen, APP_VERSION)) {
+    if (WN_AUTO_LIVE && _versionLower(lastSeen, APP_VERSION)) {
       // 0.6초 딜레이 → 앱 로드 후 자연스럽게
       setTimeout(() => openWhatsNew(), 600);
     }
@@ -50768,7 +50787,7 @@ function _versionLower(a, b) {
    ⚠️ WELCOME_LIVE = true — 환영 모달 활성화 상태.
       비활성화하려면 이 상수만 false로 바꾸면 자동 트리거/진입점 모두 차단됨.
    ─────────────────────────────────────────────────────────── */
-const WELCOME_LIVE = true;
+const WELCOME_LIVE = false; // v2.x — 도메인 이전 안내 종료로 내림 (데이터 손실 복원 가이드 강제 노출도 함께 꺼짐)
 
 const WEL_KEYS = {
   shown: 'read.welcome.shown',  // 환영 모달 노출 마킹 (한 번만 노출)
