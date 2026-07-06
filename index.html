@@ -6009,6 +6009,23 @@ body:has(.lib-edit-bar) .library-cards {
   padding: 16px;
   margin-top: 8px;
 }
+/* v2.x — 독서 유형(시간대) 카드. 색은 전부 변수 → 미드나잇 자동 대응 */
+.rtype-card { background: var(--c-surface); border: 0.5px solid var(--c-border-2); border-radius: 10px; padding: 16px; margin-top: 12px; }
+.rtype-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.rtype-bar { width: 3px; height: 14px; background: var(--primary); border-radius: 2px; }
+.rtype-ttl { font-size: 14px; font-weight: 700; color: var(--c-text); }
+.rtype-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.rtype-emoji { font-size: 34px; line-height: 1; flex: 0 0 auto; }
+.rtype-name { font-size: 18px; font-weight: 800; color: var(--c-text); letter-spacing: -0.2px; }
+.rtype-desc { font-size: 12px; color: var(--c-text-2); margin-top: 3px; }
+.rtype-dist { display: flex; gap: 4px; height: 8px; margin-bottom: 8px; }
+.rtype-seg { height: 100%; background: var(--c-border-2); border-radius: 4px; min-width: 3px; }
+.rtype-seg.on { background: var(--primary); }
+.rtype-legend { display: flex; justify-content: space-between; font-size: 10px; color: var(--c-text-2); opacity: 0.75; }
+.rtype-legend span.on { color: var(--primary); font-weight: 700; opacity: 1; }
+.rtype-foot { font-size: 12px; color: var(--c-text-2); margin-top: 12px; line-height: 1.55; }
+.rtype-foot strong { color: var(--c-text); font-weight: 700; }
+.rtype-empty { font-size: 13px; color: var(--c-text-2); text-align: center; padding: 10px 0; line-height: 1.6; }
 .stat-card-v2:first-of-type {
   margin-top: 12px;
 }
@@ -22321,6 +22338,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="al-report">
         <button class="al-report-link" id="mrEnterBtn" role="button" tabindex="0" aria-label="월간 독서 리포트 보기">월간 독서 리포트 보기 →</button>
       </div>
+    </div>
+
+    <!-- ═══ v2.x — 독서 유형(시간대) ═══ -->
+    <div class="rtype-card" id="rtypeCard">
+      <div class="rtype-head">
+        <div class="rtype-bar"></div>
+        <div class="rtype-ttl">독서 유형</div>
+      </div>
+      <div id="rtypeBody"></div>
     </div>
 
     <!-- ═══ 명예의 전당 링크 ═══ -->
@@ -41012,6 +41038,87 @@ function renderWeekdayChart() {
   }
 }
 
+/* v2.x — 독서 유형(시간대) 분류: 세션 start(HH:MM) 기준 주시간대 판정
+   구간(B안): 새벽05–08 / 아침08–12 / 점심12–17 / 저녁17–22 / 올빼미22–05
+   올데이: 최다 시간대 비중 < 40% */
+const RTYPE_BANDS = [
+  { name: '새벽형',   emoji: '🌅', short: '새벽',   desc: '조용한 새벽에 책장을 넘기는 사람' },
+  { name: '아침형',   emoji: '☀️', short: '아침',   desc: '하루를 독서로 여는 사람' },
+  { name: '점심형',   emoji: '🍚', short: '점심',   desc: '한낮의 여백을 책으로 채우는 사람' },
+  { name: '저녁형',   emoji: '🌆', short: '저녁',   desc: '하루를 정리하며 읽는 사람' },
+  { name: '올빼미형', emoji: '🦉', short: '올빼미', desc: '깊은 밤에 몰입해 읽는 사람' },
+];
+const RTYPE_ALLDAY = { name: '올데이형', emoji: '🌈', desc: '하루 어느 때나 책을 여는 사람' };
+const RTYPE_MIN_SESSIONS = 3;      // 이보다 적으면 유형 판정 보류
+const RTYPE_ALLDAY_THRESHOLD = 0.40;
+
+function _rtypeBandOf(hour) {
+  if (hour >= 5 && hour < 8) return 0;    // 새벽
+  if (hour >= 8 && hour < 12) return 1;   // 아침
+  if (hour >= 12 && hour < 17) return 2;  // 점심
+  if (hour >= 17 && hour < 22) return 3;  // 저녁
+  return 4;                               // 올빼미 (22–23, 0–4)
+}
+
+function computeReadingTypeStats() {
+  const counts = [0, 0, 0, 0, 0];
+  let total = 0;
+  (Array.isArray(BOOKS) ? BOOKS : []).forEach(b => {
+    (b && Array.isArray(b.readingSessions) ? b.readingSessions : []).forEach(s => {
+      if (!s || typeof s.start !== 'string') return;
+      const m = /^(\d{1,2}):(\d{2})$/.exec(s.start.trim());
+      if (!m) return;
+      const hour = parseInt(m[1], 10);
+      if (isNaN(hour) || hour < 0 || hour > 23) return;
+      counts[_rtypeBandOf(hour)] += 1;
+      total += 1;
+    });
+  });
+  let peak = 0;
+  for (let i = 1; i < 5; i++) if (counts[i] > counts[peak]) peak = i;
+  const share = total ? counts[peak] / total : 0;
+  const isAllday = total > 0 && share < RTYPE_ALLDAY_THRESHOLD;
+  return { counts, total, peak, share, isAllday };
+}
+
+function renderReadingTypeCard() {
+  const body = document.getElementById('rtypeBody');
+  if (!body) return;
+  const st = computeReadingTypeStats();
+
+  if (st.total < RTYPE_MIN_SESSIONS) {
+    body.innerHTML = '<div class="rtype-empty">독서 시각이 ' + RTYPE_MIN_SESSIONS + '회 이상 기록되면<br>나의 독서 유형이 나타나요 🕰️</div>';
+    return;
+  }
+
+  const type = st.isAllday ? RTYPE_ALLDAY : RTYPE_BANDS[st.peak];
+  const pct = Math.round(st.share * 100);
+
+  const dist = RTYPE_BANDS.map((b, i) => {
+    const on = !st.isAllday && i === st.peak;
+    return '<div class="rtype-seg' + (on ? ' on' : '') + '" style="flex-grow:' + st.counts[i] + '"></div>';
+  }).join('');
+
+  const legend = RTYPE_BANDS.map((b, i) => {
+    const on = !st.isAllday && i === st.peak;
+    return '<span class="' + (on ? 'on' : '') + '">' + b.short + '</span>';
+  }).join('');
+
+  const foot = st.isAllday
+    ? '전체 <strong>' + st.total + '회</strong> 중 어느 시간대도 40%를 넘지 않아요. 하루 곳곳에서 읽는 <strong>올데이형</strong>이에요.'
+    : '전체 <strong>' + st.total + '회</strong> 중 <strong>' + RTYPE_BANDS[st.peak].short + '</strong> 시간대가 <strong>' + st.counts[st.peak] + '회(' + pct + '%)</strong>로 가장 많아요.';
+
+  body.innerHTML =
+    '<div class="rtype-hero">' +
+      '<div class="rtype-emoji">' + type.emoji + '</div>' +
+      '<div><div class="rtype-name">' + type.name + '</div>' +
+      '<div class="rtype-desc">' + type.desc + '</div></div>' +
+    '</div>' +
+    '<div class="rtype-dist">' + dist + '</div>' +
+    '<div class="rtype-legend">' + legend + '</div>' +
+    '<div class="rtype-foot">' + foot + '</div>';
+}
+
 /* ─── ③ 독서 페이스 ─── */
 function computePaceStats() {
   const sessions = allReadSessions();
@@ -43423,6 +43530,7 @@ function renderAllStats() {
   try { renderAnnualLedger();  } catch(e) { console.error('[annual]', e); }
   try { renderLifebookCard(); } catch(e) { console.error('[lifebook]', e); }
   try { renderWeekdayChart(); } catch(e) { console.error('[weekday]', e); }
+  try { renderReadingTypeCard(); } catch(e) { console.error('[rtype]', e); }
   try { renderPaceCard();     } catch(e) { console.error('[pace]', e); }
   // 기존 4개 카드 동적화
   try { renderMonthlyStatCard();  } catch(e) { console.error('[monthly]', e); }
