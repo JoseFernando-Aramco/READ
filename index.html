@@ -51793,14 +51793,14 @@ function openKbMenu() {
   var b = document.getElementById('kbmBackdrop');
   if (p) p.classList.add('open');
   if (b) b.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  if (typeof lockBodyScroll === 'function') lockBodyScroll(); else document.body.style.overflow = 'hidden';
 }
 function closeKbMenu() {
   var p = document.getElementById('kbmPanel');
   var b = document.getElementById('kbmBackdrop');
   if (p) p.classList.remove('open');
   if (b) b.classList.remove('open');
-  document.body.style.overflow = '';
+  if (typeof unlockBodyScroll === 'function') unlockBodyScroll(); else document.body.style.overflow = '';
 }
 function kbmOpenSettings() {
   __kbmReturnAfterSettings = true;
