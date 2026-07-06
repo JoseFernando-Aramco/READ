@@ -11378,6 +11378,15 @@ body:has(.lib-edit-bar) .library-cards {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+.tm-sess-time {
+  display: block;
+  font-size: 9.5px;
+  color: var(--c-terra-400);
+  font-weight: 600;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.ts-optional { font-size: 9.5px; font-weight: 500; color: var(--c-terra-400); }
 .tm-sess-date .wd {
   font-size: 9px;
   font-weight: 500;
@@ -19596,6 +19605,10 @@ body.cn-locked {
 [data-theme="midnight"] .kbm-bookflex .kbm-item-ttl { color: #F0D89A; }
 [data-theme="midnight"] .kbm-bookflex .kbm-item-sub { color: #CBAE6E; opacity: 1; }
 [data-theme="midnight"] .kbm-bookflex .kbm-item-arrow { color: #CBAE6E; }
+/* 미드나잇 · Bookflex 연도 칩 — 선택 칩이 밝은 알약(--c-text)이라 흰 글자가 안 보임 */
+[data-theme="midnight"] .spend-year-chips button.active { color: var(--c-surface); }
+/* 미드나잇 · 세션 수정 시트 — 네이티브 date/time 피커 아이콘을 다크 렌더로 */
+[data-theme="midnight"] .ts-input { color-scheme: dark; }
 
 /* v2.x — 나쁜 소비 치환 카드(A안) 추가 스타일 */
 .bfp-equiv-item .bfsw-strike { text-decoration: line-through; color: var(--c-terra-400); }
@@ -23592,6 +23605,18 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="ts-field">
     <label>날짜</label>
     <input type="date" class="ts-input" id="tsDate">
+  </div>
+
+  <!-- v2.x — 시작·종료 시각 (선택, 카페 제안) -->
+  <div class="ts-row">
+    <div class="ts-field">
+      <label>시작 시간 <span class="ts-optional">(선택)</span></label>
+      <input type="time" class="ts-input" id="tsStart">
+    </div>
+    <div class="ts-field">
+      <label>종료 시간 <span class="ts-optional">(선택)</span></label>
+      <input type="time" class="ts-input" id="tsEnd">
+    </div>
   </div>
 
   <div class="ts-info">
@@ -37255,11 +37280,16 @@ function saveTimerSession() {
   const pagesRead = Math.max(0, validNewPage - oldPage);
 
   const sessions = [...(book.readingSessions || [])];
-  sessions.push({
+  // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
+  const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const _sessRec = {
     date: new Date().toISOString().slice(0, 10),
     minutes,
     pages: pagesRead,
-  });
+    end: _hm(new Date()),
+  };
+  if (TIMER.startTime) _sessRec.start = _hm(new Date(TIMER.startTime));
+  sessions.push(_sessRec);
 
   updateBook(TIMER.bookId, {
     readingSessions: sessions,
@@ -37323,6 +37353,19 @@ document.getElementById('tmDiscard').addEventListener('click', discardTimerSessi
 /* 타이머 세션 편집 시트 이벤트 바인딩 (v1.10.4) */
 document.getElementById('tsBackdrop').addEventListener('click', closeTimerSessionEdit);
 document.getElementById('tsCancelBtn').addEventListener('click', closeTimerSessionEdit);
+/* v2.x — 시작·종료 시각 입력 시 분 자동 계산 (종료<시작이면 자정 넘김 +24h) */
+function _tsCalcMinsFromTimes() {
+  const sv = document.getElementById('tsStart').value;
+  const ev = document.getElementById('tsEnd').value;
+  if (!sv || !ev) return;
+  const [sh, sm] = sv.split(':').map(Number);
+  const [eh, em] = ev.split(':').map(Number);
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff < 0) diff += 24 * 60;
+  document.getElementById('tsMins').value = Math.min(600, diff);
+}
+document.getElementById('tsStart').addEventListener('change', _tsCalcMinsFromTimes);
+document.getElementById('tsEnd').addEventListener('change', _tsCalcMinsFromTimes);
 document.getElementById('tsSaveBtn').addEventListener('click', saveTimerSessionEdit);
 document.getElementById('tsDeleteBtn').addEventListener('click', deleteTimerSession);
 // 전자/오디오 % 입력 시 환산 페이지 실시간 갱신
@@ -37876,11 +37919,16 @@ function autoSaveTimerSession(opts) {
   const pagesRead = Math.max(0, validNewPage - oldPage);
 
   const sessions = [...(book.readingSessions || [])];
-  sessions.push({
+  // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
+  const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const _sessRec = {
     date: new Date().toISOString().slice(0, 10),
     minutes,
     pages: pagesRead,
-  });
+    end: _hm(new Date()),
+  };
+  if (TIMER.startTime) _sessRec.start = _hm(new Date(TIMER.startTime));
+  sessions.push(_sessRec);
 
   // 페이지가 변경됐으면 currentPage도 갱신
   const update = { readingSessions: sessions };
@@ -38439,7 +38487,7 @@ function renderBookDetail() {
               const sessKey = `${s.date || ''}|${s.minutes || 0}|${s.pages || 0}|${origIdx}`;
               return `
                 <div class="tm-sess-row ${todayCls}" data-tm-sess-key="${esc(sessKey)}">
-                  <div class="tm-sess-date">${formatTimerSessDate(s.date)}</div>
+                  <div class="tm-sess-date">${formatTimerSessDate(s.date)}${(s.start && s.end) ? `<span class="tm-sess-time">${esc(s.start)}\u2013${esc(s.end)}</span>` : ''}</div>
                   <div class="tm-sess-inc ${(s.pages || 0) === 0 ? 'empty' : ''}">${formatTimerSessInc(s, b)}</div>
                   <div class="tm-sess-mins">${s.minutes || 0}분</div>
                   <div class="tm-sess-edit-icn">›</div>
@@ -39752,6 +39800,8 @@ function openTimerSessionEdit(sessKey) {
   const curInfo = document.getElementById('tsCurInfo');
 
   document.getElementById('tsMins').value = s.minutes || 0;
+  document.getElementById('tsStart').value = s.start || '';
+  document.getElementById('tsEnd').value = s.end || '';
   document.getElementById('tsDate').value = s.date || todayStr();
 
   // 부제 — "2026년 5월 25일 월요일"
@@ -39840,6 +39890,11 @@ function saveTimerSessionEdit() {
     minutes: newMins,
     pages: newPages,
   };
+  // v2.x — 시작·종료 시각 (선택). 비우면 필드 제거
+  const newStart = document.getElementById('tsStart').value;
+  const newEnd = document.getElementById('tsEnd').value;
+  if (newStart) sess[origIdx].start = newStart; else delete sess[origIdx].start;
+  if (newEnd) sess[origIdx].end = newEnd; else delete sess[origIdx].end;
 
   updateBook(b.id, { readingSessions: sess });
   // BD.book 참조 갱신
