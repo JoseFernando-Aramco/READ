@@ -19644,7 +19644,18 @@ body.cn-locked {
 /* v2.x — 나쁜 소비 치환 카드(A안) 추가 스타일 */
 .bfp-equiv-item .bfsw-strike { text-decoration: line-through; color: var(--c-terra-400); }
 .bfp-equiv-item .bfsw-ok { color: #5B7355; font-weight: 800; }
-.bfsw-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--c-border); font-size: 12px; color: var(--c-terra-700); line-height: 1.6; }
+.bfsw-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--c-border); font-size: 13px; color: var(--c-terra-700); line-height: 1.6; }
+[data-theme="midnight"] .bfsw-foot { color: var(--c-text-2); }
+/* v2.x — 대여로 아낀 돈 카드 (컨테이너·라벨·각주는 bfp-equiv/bfsw-foot 재사용) */
+.bfp-rentsave .bfrs-hero { display: flex; align-items: baseline; gap: 7px; margin-bottom: 8px; }
+.bfp-rentsave .bfrs-amt { font-size: 24px; font-weight: 800; color: #0F6E56; }
+.bfp-rentsave .bfrs-n { font-size: 12px; color: var(--c-muted); }
+.bfp-rentsave .bfrs-list { border-top: 1px solid var(--c-border, #e5e3d8); padding-top: 8px; }
+.bfp-rentsave .bfrs-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; padding: 3px 0; }
+.bfp-rentsave .bfrs-ttl { color: var(--c-text, #1c1c1c); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bfp-rentsave .bfrs-val { color: #0F6E56; font-weight: 600; flex-shrink: 0; }
+.bfp-rentsave .bfrs-row.rest .bfrs-ttl, .bfp-rentsave .bfrs-row.rest .bfrs-val { color: var(--c-muted); font-weight: 400; }
+[data-theme="midnight"] .bfp-rentsave .bfrs-amt, [data-theme="midnight"] .bfp-rentsave .bfrs-val { color: #5DCAA5; }
 
 /* v2.x — 장르(대표 태그)별 지출 카드 (환산 카드 위) */
 .bfp-genre {
@@ -46687,6 +46698,59 @@ function _bookSpendAmt(b, year) {
   return getEffectivePrice(b);
 }
 
+/* v2.x — 대여로 아낀 돈: rent 이력만 있는 책(구매 이력 있으면 제외)의 판매가 합. 대여료 차감 없음 */
+function _rentBookPrice(b) {
+  if (typeof b.priceSales === 'number' && b.priceSales > 0) return b.priceSales;
+  if (typeof b.priceList === 'number' && b.priceList > 0) return b.priceList;
+  return 0;
+}
+function _rentYearsSetOf(b) {
+  const set = new Set();
+  _acqList(b).forEach(r => {
+    if (r.type !== 'rent') return;
+    let y = null;
+    if (r.date) { const yy = new Date(r.date).getFullYear(); y = isNaN(yy) ? null : yy; }
+    if (y == null && b.status === 'done' && b.dateEnd) { const yy = new Date(b.dateEnd).getFullYear(); y = isNaN(yy) ? null : yy; }
+    if (y != null) set.add(y);
+  });
+  return set;
+}
+function _calcRentSaved(year) {
+  const rented = (BOOKS || []).filter(b => {
+    const list = _acqList(b);
+    if (!list.some(r => r.type === 'rent')) return false;
+    if (list.some(r => r.type === 'purchase')) return false;
+    if (year == null) return true;
+    return _rentYearsSetOf(b).has(year);
+  });
+  const items = rented.map(b => ({ b, amt: _rentBookPrice(b) }));
+  const priced = items.filter(x => x.amt > 0).sort((a, c) => c.amt - a.amt);
+  const total = priced.reduce((sum, x) => sum + x.amt, 0);
+  return { total, count: rented.length, priced, noPriceCount: rented.length - priced.length };
+}
+/* v2.x — 아낀 돈 카드 HTML (시안 B: 총액 + top 3 + 그 외). 대여 0권/전부 가격 미상이면 빈 문자열 */
+function _rentSavedCardHtml(year) {
+  const rs = _calcRentSaved(year);
+  if (rs.count === 0 || rs.total === 0) return '';
+  const fmt = (n) => '\u20A9' + n.toLocaleString('ko-KR');
+  const top = rs.priced.slice(0, 3);
+  const rest = rs.priced.slice(3);
+  let rows = top.map(x =>
+    '<div class="bfrs-row"><span class="bfrs-ttl">' + _spEsc(x.b.title) + '</span><span class="bfrs-val">' + fmt(x.amt) + '</span></div>'
+  ).join('');
+  if (rest.length > 0) {
+    const restSum = rest.reduce((sum, x) => sum + x.amt, 0);
+    rows += '<div class="bfrs-row rest"><span class="bfrs-ttl">그 외 ' + rest.length + '권</span><span class="bfrs-val">' + fmt(restSum) + '</span></div>';
+  }
+  const foot = '대여로 읽은 책, 이만큼 아꼈어요!' +
+    (rs.noPriceCount > 0 ? ' 가격 정보 없는 <b>' + rs.noPriceCount + '권</b>은 뺐어요.' : '');
+  return '<div class="bfp-equiv bfp-rentsave">' +
+    '<div class="bfp-equiv-lbl">대여로 아낀 돈</div>' +
+    '<div class="bfrs-hero"><span class="bfrs-amt">' + fmt(rs.total) + '</span><span class="bfrs-n">' + rs.priced.length + '권</span></div>' +
+    '<div class="bfrs-list">' + rows + '</div>' +
+    '<div class="bfsw-foot">' + foot + '</div>' +
+  '</div>';
+}
 function _calcSpend(year) {
   // v1.x — year 파라미터: null/undefined면 전체, 숫자면 그 연도에 dateEnd 있는 책만
   // v1.x — 지출 귀속: 구매일 있으면 그 연도(완독 무관), 없으면 완독한 책만 완독일 연도
@@ -46935,6 +46999,7 @@ function _renderSpendModal() {
   // v1.x — 칩 렌더 + 연도별 데이터
   _renderSpendYearChips();
   const s = _calcSpend(_SPEND_VIEW_YEAR);
+  const rentSavedCardHtml = _rentSavedCardHtml(_SPEND_VIEW_YEAR);
   const isYearMode = _SPEND_VIEW_YEAR != null;
   const viewYear = _SPEND_VIEW_YEAR;
   const year = new Date().getFullYear();
@@ -46946,7 +47011,7 @@ function _renderSpendModal() {
       '<div class="sp-empty">' +
         '<b>' + (isYearMode ? viewYear + '년 지출 기록이 없어요' : '아직 지출 기록이 없어요') + '</b>' +
         '완독한 책의 종이값이 여기 쌓여요.' +
-      '</div>';
+      '</div>' + rentSavedCardHtml;
     return;
   }
   if (s.grandRegistered === 0) {
@@ -46955,7 +47020,7 @@ function _renderSpendModal() {
         '<b>아직 입력된 종이값이 없어요</b>' +
         '책 상세에서 종이값을 입력하시면 여기 쌓여요.<br>' +
         '검색으로 추가하신 책은 알라딘 가격이 자동 입력돼요.' +
-      '</div>';
+      '</div>' + rentSavedCardHtml;
     return;
   }
 
@@ -47108,6 +47173,7 @@ function _renderSpendModal() {
 
     genreCardHtml +
     equivCardHtml +
+    rentSavedCardHtml +
 
     // v1.x — 마일스톤은 전체 모드 전용 (연도별 누적과 마일스톤 개념 불일치)
     (isYearMode ? '' :
