@@ -27090,7 +27090,7 @@ function pvPostHTML(p){
   return '<div class="pv-post">'
     + '<div class="sayu-top"><div class="sayu-av" style="background:linear-gradient(135deg,'+p.av[0]+','+p.av[1]+')">'+p.av[2]+'</div><div class="sayu-name">'+sayuEsc(p.name)+'</div><div class="sayu-time">· '+sayuEsc(p.time)+'</div><span class="sayu-tag">'+tag+'</span></div>'
     + body
-    + '<div class="sayu-bookchip" style="cursor:default">'+(function(){ var cp=_sayuCoverParts(p.book); return '<div class="sayu-cover" style="background:'+cp.bg+'">'+cp.init+'</div>'; })()+'<div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
+    + '<div class="sayu-bookchip" role="button" tabindex="0" onclick="pvOpenBook(\''+p.book.isbn+'\')">'+(function(){ var cp=_sayuCoverParts(p.book); return '<div class="sayu-cover" style="background:'+cp.bg+'">'+cp.init+'</div>'; })()+'<div class="sayu-bookmeta">'+sayuEsc(p.book.title)+' <span class="sub">· '+sayuEsc(p.book.author)+'</span></div></div>'
     + '<div class="pv-post-foot"><button class="sayu-keep'+(p.kept?' on':'')+'" data-pid="'+p.id+'" onclick="toggleKeep(this,\''+p.id+'\')">'+SAYU_IC.keep+'<b>KEEP</b><span class="n">'+p.keep+'</span></button></div>'
     + '</div>';
 }
@@ -27120,6 +27120,8 @@ async function openPostView(id){
   } catch(e){}
 }
 function closePostView(){ var v=document.getElementById('sayuPostView'); v.classList.remove('open'); v.setAttribute('aria-hidden','true'); document.body.classList.remove('sayu-book-open'); _pvPostId=null; }
+/* 글 상세에서 책칩 탭 → 상세 닫고 해당 책 KEEP 모아보기 열기 */
+function pvOpenBook(isbn){ if(!isbn) return; closePostView(); openBookSayu(isbn); }
 let _pendingComment = null;
 let _editingCmt = -1;
 let _replyTarget = null;
