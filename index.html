@@ -22862,6 +22862,11 @@ body.sayu-active #pane-sayu{ background:transparent; }
     </button>
 
     <div class="kbm-section-lbl">More</div>
+    <button class="kbm-item" onclick="kbmCall('openManualSheet', '매뉴얼 준비 중')">
+      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      <div class="kbm-item-main"><div class="kbm-item-ttl">keepbook 매뉴얼</div><div class="kbm-item-sub">기능 · 조작 · 데이터 안내</div></div>
+      <span class="kbm-item-arrow">›</span>
+    </button>
     <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
       <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div></div>
@@ -51358,13 +51363,10 @@ window.kbmOpenWelcome = kbmOpenWelcome;
   list.appendChild(row);
 })();
 
-/* 설정 시트에 "사용 설명서" 행 + 인앱 매뉴얼 시트 (manual.html iframe, 첫 열기 때만 로드) */
-(function wireManualInSettings() {
-  const aboutRow = document.getElementById('aboutRow');
-  const list = aboutRow?.closest('.settings-list');
-  if (!list) return;
-  if (list.querySelector('[data-manual]')) return;
-
+/* keepbook 매뉴얼 — 햄버거 메뉴 More 최상단에서 여는 인앱 시트 (manual.html iframe, 첫 열기 때 생성·로드) */
+let _manualSheetEl = null;
+function _ensureManualSheet() {
+  if (_manualSheetEl) return _manualSheetEl;
   const sheet = document.createElement('div');
   sheet.id = 'manualSheet';
   sheet.className = 'manual-sheet';
@@ -51377,41 +51379,27 @@ window.kbmOpenWelcome = kbmOpenWelcome;
     <iframe class="manual-frame" id="manualFrame" title="keepbook 사용 설명서"></iframe>
   `;
   document.body.appendChild(sheet);
-
-  function ensureManualSrc(frame) {
-    if (!frame.getAttribute('src')) frame.setAttribute('src', 'manual.html');
-    return frame.getAttribute('src');
-  }
-  function openManualSheet() {
-    ensureManualSrc(document.getElementById('manualFrame'));
-    sheet.classList.add('open');
-    sheet.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('manual-open');
-  }
-  function closeManualSheet() {
-    sheet.classList.remove('open');
-    sheet.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('manual-open');
-  }
   sheet.querySelector('.manual-close').addEventListener('click', closeManualSheet);
-
-  const row = document.createElement('button');
-  row.className = 'settings-row';
-  row.dataset.manual = '1';
-  row.innerHTML = `
-    <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-book-open"/></svg></div>
-    <div class="settings-row-main">
-      <div class="settings-row-ttl">사용 설명서</div>
-      <div class="settings-row-sub">기능·조작·데이터 안내</div>
-    </div>
-    <div class="settings-row-right arrow">›</div>
-  `;
-  row.addEventListener('click', () => {
-    closeSettings();
-    setTimeout(() => openManualSheet(), 280);
-  });
-  list.appendChild(row);
-})();
+  _manualSheetEl = sheet;
+  return sheet;
+}
+function ensureManualSrc(frame) {
+  if (!frame.getAttribute('src')) frame.setAttribute('src', 'manual.html');
+  return frame.getAttribute('src');
+}
+function openManualSheet() {
+  const sheet = _ensureManualSheet();
+  ensureManualSrc(sheet.querySelector('#manualFrame'));
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('manual-open');
+}
+function closeManualSheet() {
+  if (!_manualSheetEl) return;
+  _manualSheetEl.classList.remove('open');
+  _manualSheetEl.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('manual-open');
+}
 
 /* ═══════════════════════════════════════════════════════════
    v1.6.0 — 하차(dropped) 책 관리 시스템
