@@ -9197,6 +9197,14 @@ body:has(.lib-edit-bar) .library-cards {
 .pause-drawer .pause-row .book-card-cover { opacity: .55; filter: grayscale(35%); }
 .bd-pause-banner { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 2px; padding: 9px 12px; background: var(--c-surface); border: 1px dashed var(--c-border); border-radius: 10px; font-size: 12.5px; color: var(--c-text-2); }
 .bd-pause-resume { background: var(--c-text); color: var(--c-surface); border: none; border-radius: 100px; padding: 5px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+/* ═══ 사용 설명서 시트 — manual.html을 iframe으로 (설정 → 사용 설명서) ═══ */
+.manual-sheet { position: fixed; inset: 0; z-index: var(--z-modal); background: var(--c-bg, #faf7f0); display: none; flex-direction: column; }
+.manual-sheet.open { display: flex; }
+.manual-head { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 10px; border-bottom: 1px solid var(--c-border); background: var(--c-surface); flex: none; }
+.manual-head-ttl { font-size: 15px; font-weight: 700; color: var(--c-text); }
+.manual-close { background: none; border: none; font-size: 21px; line-height: 1; color: var(--c-text-2); padding: 4px 8px; cursor: pointer; }
+.manual-frame { flex: 1; width: 100%; border: none; background: #faf7f0; }
+body.manual-open { overflow: hidden; }
 .wish-rec-badge {
   position: absolute;
   top: 6px;
@@ -51346,6 +51354,61 @@ window.kbmOpenWelcome = kbmOpenWelcome;
   row.addEventListener('click', () => {
     closeSettings();
     setTimeout(() => openOnboarding(), 280);
+  });
+  list.appendChild(row);
+})();
+
+/* 설정 시트에 "사용 설명서" 행 + 인앱 매뉴얼 시트 (manual.html iframe, 첫 열기 때만 로드) */
+(function wireManualInSettings() {
+  const aboutRow = document.getElementById('aboutRow');
+  const list = aboutRow?.closest('.settings-list');
+  if (!list) return;
+  if (list.querySelector('[data-manual]')) return;
+
+  const sheet = document.createElement('div');
+  sheet.id = 'manualSheet';
+  sheet.className = 'manual-sheet';
+  sheet.setAttribute('aria-hidden', 'true');
+  sheet.innerHTML = `
+    <div class="manual-head">
+      <div class="manual-head-ttl">keepbook 사용 설명서</div>
+      <button type="button" class="manual-close" aria-label="닫기">✕</button>
+    </div>
+    <iframe class="manual-frame" id="manualFrame" title="keepbook 사용 설명서"></iframe>
+  `;
+  document.body.appendChild(sheet);
+
+  function ensureManualSrc(frame) {
+    if (!frame.getAttribute('src')) frame.setAttribute('src', 'manual.html');
+    return frame.getAttribute('src');
+  }
+  function openManualSheet() {
+    ensureManualSrc(document.getElementById('manualFrame'));
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('manual-open');
+  }
+  function closeManualSheet() {
+    sheet.classList.remove('open');
+    sheet.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('manual-open');
+  }
+  sheet.querySelector('.manual-close').addEventListener('click', closeManualSheet);
+
+  const row = document.createElement('button');
+  row.className = 'settings-row';
+  row.dataset.manual = '1';
+  row.innerHTML = `
+    <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-book-open"/></svg></div>
+    <div class="settings-row-main">
+      <div class="settings-row-ttl">사용 설명서</div>
+      <div class="settings-row-sub">기능·조작·데이터 안내</div>
+    </div>
+    <div class="settings-row-right arrow">›</div>
+  `;
+  row.addEventListener('click', () => {
+    closeSettings();
+    setTimeout(() => openManualSheet(), 280);
   });
   list.appendChild(row);
 })();
