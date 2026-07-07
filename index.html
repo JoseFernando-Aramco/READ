@@ -22226,6 +22226,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 .sayu-tab-label{ position:relative; }
 .sayu-new-dot{ position:absolute; top:-3px; right:-9px; width:6px; height:6px; border-radius:50%; background:#FF3B30; box-shadow:0 0 4px 1px rgba(255,59,48,.75); animation:sayuPop 1.9s ease-in-out infinite; pointer-events:none; }
 @keyframes sayuPop{ 0%,58%,100%{ transform:scale(1); } 72%{ transform:scale(1.45); } 82%{ transform:scale(.86); } 90%{ transform:scale(1.08); } }
+.sayu-new-dot[hidden]{ display:none; }
 @media (prefers-reduced-motion:reduce){ .sayu-new-dot{ animation:none; opacity:.9; } }
 </style>
   <nav class="tab-bar">
@@ -22244,7 +22245,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <span class="tab-icon">✍️</span><span>노트</span>
       </button>
       <button class="tab-btn" data-tab="sayu">
-        <span class="tab-icon">🌙</span><span class="sayu-tab-label">KEEP<i class="sayu-new-dot" aria-label="새 기능"></i></span>
+        <span class="tab-icon">🌙</span><span class="sayu-tab-label">KEEP<i class="sayu-new-dot" id="sayuTabDot" aria-label="새 글" hidden></i></span>
       </button>
     </div>
   </nav>
@@ -26996,12 +26997,18 @@ async function renderSayuFeed(){
   el.innerHTML = SAYU_POSTS.filter(function(p){ return !hid.has(p.id); }).map(sayuCardHTML).join('');
   _sayuRevealMore(el);
   _sayuSetupFeedIO();
+  _sayuDotSync();
 }
 function sayuLoggedIn(){ return (typeof READ_AUTH!=='undefined') && READ_AUTH.isLoggedIn(); }
 function sayuStartLogin(){ try{ sessionStorage.setItem('read.sayu.loginIntent','1'); }catch(e){} if(typeof READ_AUTH!=='undefined' && typeof READ_AUTH.startKakaoLogin==='function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }
 function sayuPostLoginNickCheck(){ try{ if(sessionStorage.getItem('read.sayu.loginIntent') && sayuLoggedIn()){ sessionStorage.removeItem('read.sayu.loginIntent'); sayuSyncNick().then(function(){ if(!sayuGetNick()){ setTimeout(function(){ openNickModal(); }, 600); } }); } }catch(e){} }
 async function sayuSyncNick(){ if(!sayuLoggedIn()) return; try{ var r=await keepApi('GET','/keep/me'); if(r && r.ok && r.data){ try{ if(r.data.nick) localStorage.setItem('read.sayu.nick', r.data.nick); else localStorage.removeItem('read.sayu.nick'); }catch(e){} } }catch(e){} }
 function sayuApplyGate(){ sayuSyncNick(); renderSayuFeed(); maybeShowSayuWelcome(); updateKeepBadge(); }
+/* KEEP 탭 새 글 점 — 피드 최신 글 id를 read.sayu.lastSeenPost와 비교. 저장값 없으면(첫 방문) 표시하여 NEW 마커 역할 겸함 */
+function _sayuLatestPostId(){ return (Array.isArray(SAYU_POSTS) && SAYU_POSTS.length) ? String(SAYU_POSTS[0].id) : null; }
+function updateSayuTabDot(){ var dot=document.getElementById('sayuTabDot'); if(!dot) return; var latest=_sayuLatestPostId(); if(latest==null){ dot.hidden=true; return; } var seen=null; try{ seen=localStorage.getItem('read.sayu.lastSeenPost'); }catch(e){} dot.hidden=(seen===latest); }
+function _sayuMarkFeedSeen(){ var latest=_sayuLatestPostId(); if(latest!=null){ try{ localStorage.setItem('read.sayu.lastSeenPost', latest); }catch(e){} } var dot=document.getElementById('sayuTabDot'); if(dot) dot.hidden=true; }
+function _sayuDotSync(){ if(document.body && document.body.classList.contains('sayu-active')) _sayuMarkFeedSeen(); else updateSayuTabDot(); }
 function maybeShowSayuWelcome(){ try{ if(localStorage.getItem('read.sayu.welcomeSeen')) return; }catch(e){} var el=document.getElementById('sayuWelcome'); if(el) el.hidden=false; }
 function dismissSayuWelcome(){ var el=document.getElementById('sayuWelcome'); if(el) el.hidden=true; try{ localStorage.setItem('read.sayu.welcomeSeen','1'); }catch(e){} }
 async function updateKeepBadge(){ var badge=document.getElementById('sayuProfileBadge'); if(!badge) return; if(!sayuLoggedIn()){ badge.hidden=true; return; } var r; try{ r=await keepApi('GET','/keep/mine?tab=posts'); }catch(e){ return; } if(!(r && r.ok && r.data && Array.isArray(r.data.posts))) return; var cur={}; r.data.posts.forEach(function(p){ cur[p.id]=(p.keepCount||0)+(p.commentCount||0); }); var snapRaw=null; try{ snapRaw=localStorage.getItem('read.sayu.seenCounts'); }catch(e){} if(snapRaw==null){ try{ localStorage.setItem('read.sayu.seenCounts', JSON.stringify(cur)); }catch(e){} badge.hidden=true; return; } var snap={}; try{ snap=JSON.parse(snapRaw)||{}; }catch(e){ snap={}; } var unseen=0; Object.keys(cur).forEach(function(id){ var d=cur[id]-(snap[id]||0); if(d>0) unseen+=d; }); if(unseen>0){ badge.textContent=unseen>99?'99+':String(unseen); badge.hidden=false; } else badge.hidden=true; }
