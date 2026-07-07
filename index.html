@@ -34532,11 +34532,16 @@ let _visibleNoteCount = 30;
 const NOTE_PAGE_SIZE = 30;
 const DONE_FULL_VIEW_THRESHOLD = 100;
 
-/* 위시리스트 정렬 모드 — 'recent' | 'rec' (취향순) */
-let _wishSortMode = 'recent';
-
-/* 완독 정렬 모드 — 'recent'(완독일 최신) | 'oldest'(완독일 오래된) | 'rating'(별점 높은 순) */
-let _doneSortMode = 'recent';
+/* 4탭 공통 정렬 상태 — 'date_desc'(최신) | 'date_asc'(오래된) | 'title'(가나다) + done 전용 'rating', wish 전용 'rec'(취향) */
+let _tabSortMode = { wish: 'date_desc', reading: 'date_desc', done: 'date_desc', dropped: 'date_desc' };
+/* 알약 탭 전이 — 날짜 알약 재탭은 방향 토글, 다른 모드에서 날짜로 오면 최신순 기본. 변화 없으면 null */
+function _libNextSortMode(cur, key) {
+  if (key === 'date') {
+    if (cur === 'date_desc') return 'date_asc';
+    return 'date_desc';
+  }
+  return cur === key ? null : key;
+}
 
 /* 쉼표 — 독서중에서 잠시 쉬는 책 (b.paused 플래그). 서랍 펼침 상태는 메모리만 유지 */
 let _pausedOpen = false;
@@ -34554,9 +34559,19 @@ function _setBooksPaused(ids, val) {
   if (n > 0) STORE.set('books', BOOKS);
   return n;
 }
-/* 완독 정렬 비교자 — 완독일 없는 책은 어느 모드든 맨 뒤, 별점 동점은 완독일 최신순 */
-function _doneSortCmp(mode) {
-  const t = (b) => b.dateEnd ? new Date(b.dateEnd).getTime() : NaN;
+/* 탭별 날짜 키 — wish는 날짜 필드가 없어 null (배열 등록순 사용) */
+function _libSortDateKey(tab, b) {
+  if (tab === 'done') return b.dateEnd || null;
+  if (tab === 'reading') return (typeof _lastActivityISO === 'function' ? _lastActivityISO(b) : null) || null;
+  if (tab === 'dropped') return (b.dropped && b.dropped.at) || null;
+  return null;
+}
+/* 통합 비교자 — 날짜 없는 책은 어느 모드든 맨 뒤, 별점 동점은 완독일 최신순 */
+function _libTabSortCmp(tab, mode) {
+  if (mode === 'title') {
+    return (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko');
+  }
+  const t = (b) => { const k = _libSortDateKey(tab, b); return k ? new Date(k).getTime() : NaN; };
   return (a, b) => {
     if (mode === 'rating') {
       const d = (b.rating || 0) - (a.rating || 0);
@@ -34567,8 +34582,38 @@ function _doneSortCmp(mode) {
     if (aBad && bBad) return 0;
     if (aBad) return 1;
     if (bBad) return -1;
-    return mode === 'oldest' ? ta - tb : tb - ta;
+    return mode === 'date_asc' ? ta - tb : tb - ta;
   };
+}
+/* 위시 정렬 적용 — 최신=등록순(unshift라 배열이 이미 최신 먼저), 오래된=역순, 가나다=정렬, rec은 섹션에서 재정렬 */
+function _wishSortApply(list, mode) {
+  if (mode === 'date_asc') return list.slice().reverse();
+  if (mode === 'title') return list.slice().sort(_libTabSortCmp('wish', 'title'));
+  return list;
+}
+/* 정렬 알약 공통 빌더 — 2권 이상일 때만. done은 별점순, wish는 취향순(showRec) 추가 */
+function _libSortPillsHtml(tab, count, showRec) {
+  if (!(count > 1)) return '';
+  const mode = _tabSortMode[tab];
+  const dateOn = mode === 'date_desc' || mode === 'date_asc';
+  const dateLabel = mode === 'date_asc' ? '오래된순 ↑' : '최신순 ↓';
+  let pills = `<button type="button" class="wish-sort-pill ${dateOn ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="date">${dateLabel}</button>`
+    + `<button type="button" class="wish-sort-pill ${mode === 'title' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="title">가나다순</button>`;
+  if (tab === 'done') {
+    pills += `<button type="button" class="wish-sort-pill ${mode === 'rating' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rating">별점순</button>`;
+  }
+  if (tab === 'wish' && showRec) {
+    pills += `<button type="button" class="wish-sort-pill ${mode === 'rec' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rec">취향순 ✨</button>`;
+  }
+  return `<div class="wish-sort-toggle">${pills}</div>`;
+}
+/* 서브라벨 단어 — 모드에 맞는 접두어 */
+function _libSortWord(mode) {
+  if (mode === 'date_asc') return '오래된순';
+  if (mode === 'title') return '가나다순';
+  if (mode === 'rating') return '별점 상위';
+  if (mode === 'rec') return '취향순';
+  return '최근';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -34581,7 +34626,7 @@ function renderWishlistSection(wish, trailing = '', subLabel = '', headerBtn = '
 
   let booksToRender = wish;
   let scoreMap = {};
-  if (_wishSortMode === 'rec' && hasLikedBooks) {
+  if (_tabSortMode.wish === 'rec' && hasLikedBooks) {
     const scored = getRecommendedWishlist();
     if (scored.length > 0) {
       scored.forEach(b => { scoreMap[b.id] = b._recScore; });
@@ -34589,12 +34634,7 @@ function renderWishlistSection(wish, trailing = '', subLabel = '', headerBtn = '
     }
   }
 
-  const sortToggle = hasLikedBooks ? `
-    <div class="wish-sort-toggle">
-      <button type="button" class="wish-sort-pill ${_wishSortMode === 'recent' ? 'on' : ''}" data-action="wish-sort" data-sort="recent">최근</button>
-      <button type="button" class="wish-sort-pill ${_wishSortMode === 'rec' ? 'on' : ''}" data-action="wish-sort" data-sort="rec">취향순 ✨</button>
-    </div>
-  ` : '';
+  const sortToggle = _libSortPillsHtml('wish', wish.length, hasLikedBooks);
 
   // v1.5.x — 다른 카테고리와 동일한 sub-label 형식: "30권 · 최근 30/155권"
   //   subLabel이 "최근 N/M권"이면 앞에 "${visibleCount}권 · " prefix 붙임
@@ -34624,7 +34664,7 @@ function renderWishlistSection(wish, trailing = '', subLabel = '', headerBtn = '
       <div class="book-row">
         ${booksToRender.map((b, i) => {
           const card = renderBookCard(b, i);
-          if (_wishSortMode === 'rec' && i < 3 && (scoreMap[b.id] || 0) > 0) {
+          if (_tabSortMode.wish === 'rec' && i < 3 && (scoreMap[b.id] || 0) > 0) {
             return card.replace(
               /^(<[^>]+class="book-card[^"]*"[^>]*>)/,
               `$1<span class="wish-rec-badge" aria-label="취향 매칭 ${scoreMap[b.id]}점">★ ${scoreMap[b.id]}</span>`
@@ -34654,20 +34694,16 @@ function renderLibraryCards() {
   const readingAllRaw = BOOKS.filter(b => b.status === 'reading');
   // 쉼표 — 활성 책만 기존 독서중 흐름(히어로·페이지네이션)에, 쉼표 책은 접힌 서랍으로
   const readingRaw = readingAllRaw.filter(b => !b.paused)
-                    .sort((a, b) => _lastActivityISO(b).localeCompare(_lastActivityISO(a)));
+                    .sort(_libTabSortCmp('reading', _tabSortMode.reading));
   const pausedRaw = readingAllRaw.filter(b => !!b.paused)
-                    .sort((a, b) => _lastActivityISO(b).localeCompare(_lastActivityISO(a)));
+                    .sort(_libTabSortCmp('reading', _tabSortMode.reading));
   // 완독 · 정렬 알약 모드 적용 (최신순/오래된순/별점순 — 기본 최신순은 기존과 동일)
   const doneAllRaw = BOOKS.filter(b => b.status === 'done')
-                    .sort(_doneSortCmp(_doneSortMode));
-  const wishRaw = BOOKS.filter(b => b.status === 'wish');
+                    .sort(_libTabSortCmp('done', _tabSortMode.done));
+  const wishRaw = _wishSortApply(BOOKS.filter(b => b.status === 'wish'), _tabSortMode.wish);
   // v1.6.0 — 하차 책 · 하차일 최근순
   const droppedRaw = BOOKS.filter(b => b.status === 'dropped')
-                    .sort((a, b) => {
-                      const da = (a.dropped && a.dropped.at) || '';
-                      const db = (b.dropped && b.dropped.at) || '';
-                      return db.localeCompare(da);
-                    });
+                    .sort(_libTabSortCmp('dropped', _tabSortMode.dropped));
 
   // v1.11.0 — 묶음 압축 (같은 그룹의 책들을 dominant 카테고리에 cover 카드 1개로)
   const reading = _libWrapByGroups(readingRaw, 'reading');
@@ -34727,17 +34763,11 @@ function renderLibraryCards() {
 
   // 완독 섹션 헤더 라벨 (v1.11.0 — raw 권수 기준, totalRaw 중복 회피)
   const doneVisibleRaw = _libEntriesRawCount(done);
-  const doneSortWord = _doneSortMode === 'oldest' ? '오래된순' : (_doneSortMode === 'rating' ? '별점 상위' : '최근');
   const doneSubLabel = doneAll.length > _visibleDoneCount
-    ? `${doneSortWord} ${doneVisibleRaw}/${doneAllRaw.length}권`
+    ? `${_libSortWord(_tabSortMode.done)} ${doneVisibleRaw}/${doneAllRaw.length}권`
     : '';
-  // 완독 정렬 알약 — 위시 토글과 동일 스타일 재사용
-  const doneSortToggle = doneAllRaw.length > 1 ? `
-    <div class="wish-sort-toggle">
-      <button type="button" class="wish-sort-pill ${_doneSortMode === 'recent' ? 'on' : ''}" data-action="done-sort" data-sort="recent">최신순</button>
-      <button type="button" class="wish-sort-pill ${_doneSortMode === 'oldest' ? 'on' : ''}" data-action="done-sort" data-sort="oldest">오래된순</button>
-      <button type="button" class="wish-sort-pill ${_doneSortMode === 'rating' ? 'on' : ''}" data-action="done-sort" data-sort="rating">별점순</button>
-    </div>` : '';
+  // 완독 정렬 알약 — 4탭 공통 빌더
+  const doneSortToggle = _libSortPillsHtml('done', doneAllRaw.length);
   // v1.5.x — 위시/독서중/하차도 동일 패턴 sub-label
   const wishVisibleRaw = _libEntriesRawCount(wish);
   const wishSubLabel = wishAll.length > _visibleWishCount
@@ -34745,7 +34775,7 @@ function renderLibraryCards() {
     : `${wishVisibleRaw}권`;
   const readingVisibleRaw = _libEntriesRawCount(readingVisible);
   const readingSubLabel = reading.length > _visibleReadingCount
-    ? `최근 ${readingVisibleRaw}/${readingRaw.length}권`
+    ? `${_libSortWord(_tabSortMode.reading)} ${readingVisibleRaw}/${readingRaw.length}권`
     : '';
   // 쉼표 서랍 — 기본 접힘, 펼치면 흐린 표지 그리드
   let pausedDrawerHtml = '';
@@ -34764,7 +34794,7 @@ function renderLibraryCards() {
   }
   const droppedVisibleRaw = _libEntriesRawCount(dropped);
   const droppedSubLabel = droppedAll.length > _visibleDroppedCount
-    ? `최근 ${droppedVisibleRaw}/${droppedRaw.length}권 책갈피 중`
+    ? `${_libSortWord(_tabSortMode.dropped)} ${droppedVisibleRaw}/${droppedRaw.length}권 책갈피 중`
     : `책갈피 중`;
 
   // ─── 카테고리 탭 [TEST 시안] ───
@@ -34831,13 +34861,13 @@ function renderLibraryCards() {
       ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel, editBtnHtml) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${activeCat === 'reading' ? ((reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml) : emptyPane('읽고 있는 책이 없어요')) + pausedDrawerHtml) : ''}
+      ${activeCat === 'reading' ? ((reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml, _libSortPillsHtml('reading', readingRaw.length)) : emptyPane('읽고 있는 책이 없어요')) + pausedDrawerHtml) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
       ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing, editBtnHtml, doneSortToggle) : emptyPane('완독한 책이 아직 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing, editBtnHtml) : emptyPane('하차한 책이 없어요')) : ''}
+      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing, editBtnHtml, _libSortPillsHtml('dropped', droppedRaw.length)) : emptyPane('하차한 책이 없어요')) : ''}
     </div>
   `;
 
@@ -36175,20 +36205,12 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
         openDrillDown('완독한 책 전체', `총 ${allDone.length}권`, allDone);
         return;
       }
-      // ─── 위시리스트 정렬 토글 ───
-      if (action === 'wish-sort') {
-        const newMode = actionBtn.dataset.sort;
-        if (newMode && newMode !== _wishSortMode) {
-          _wishSortMode = newMode;
-          renderLibraryCards();
-        }
-        return;
-      }
-      // ─── 완독 정렬 알약 ───
-      if (action === 'done-sort') {
-        const newMode = actionBtn.dataset.sort;
-        if (newMode && newMode !== _doneSortMode) {
-          _doneSortMode = newMode;
+      // ─── 탭 정렬 알약 (위시·독서중·완독·하차 공통) ───
+      if (action === 'tab-sort') {
+        const tab = actionBtn.dataset.tab;
+        const next = (tab in _tabSortMode) ? _libNextSortMode(_tabSortMode[tab], actionBtn.dataset.sort) : null;
+        if (next) {
+          _tabSortMode[tab] = next;
           renderLibraryCards();
         }
         return;
