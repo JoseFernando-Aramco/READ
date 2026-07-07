@@ -9187,6 +9187,16 @@ body:has(.lib-edit-bar) .library-cards {
   color: var(--c-surface);
   border-color: var(--c-text);
 }
+/* ═══ 쉼표 서랍 — 독서중에서 잠시 쉬는 책 ═══ */
+.pause-drawer { margin: 2px 0 16px; }
+.pause-drawer-head { width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: none; border-top: 1px dashed var(--c-border); padding: 11px 2px 9px; font-size: 13px; color: var(--c-muted); cursor: pointer; letter-spacing: -.2px; }
+.pause-drawer-head b { color: var(--c-text-2); font-weight: 700; }
+.pause-comma { font-size: 17px; font-weight: 800; line-height: 0; vertical-align: -1px; margin-right: 2px; }
+.pause-chevron { font-size: 12px; }
+.pause-drawer .pause-row { margin-top: 2px; }
+.pause-drawer .pause-row .book-card-cover { opacity: .55; filter: grayscale(35%); }
+.bd-pause-banner { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 2px; padding: 9px 12px; background: var(--c-surface); border: 1px dashed var(--c-border); border-radius: 10px; font-size: 12.5px; color: var(--c-text-2); }
+.bd-pause-resume { background: var(--c-text); color: var(--c-surface); border: none; border-radius: 100px; padding: 5px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
 .wish-rec-badge {
   position: absolute;
   top: 6px;
@@ -34514,6 +34524,23 @@ let _wishSortMode = 'recent';
 
 /* 완독 정렬 모드 — 'recent'(완독일 최신) | 'oldest'(완독일 오래된) | 'rating'(별점 높은 순) */
 let _doneSortMode = 'recent';
+
+/* 쉼표 — 독서중에서 잠시 쉬는 책 (b.paused 플래그). 서랍 펼침 상태는 메모리만 유지 */
+let _pausedOpen = false;
+function _setBooksPaused(ids, val) {
+  let n = 0;
+  ids.forEach(id => {
+    const idx = BOOKS.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const b = BOOKS[idx];
+    if (b.status !== 'reading') return;
+    if (!!b.paused === !!val) return;
+    BOOKS[idx] = { ...BOOKS[idx], paused: !!val };
+    n++;
+  });
+  if (n > 0) STORE.set('books', BOOKS);
+  return n;
+}
 /* 완독 정렬 비교자 — 완독일 없는 책은 어느 모드든 맨 뒤, 별점 동점은 완독일 최신순 */
 function _doneSortCmp(mode) {
   const t = (b) => b.dateEnd ? new Date(b.dateEnd).getTime() : NaN;
@@ -34611,7 +34638,11 @@ function renderLibraryCards() {
     }
     return maxDate || b.dateStart || '';
   };
-  const readingRaw = BOOKS.filter(b => b.status === 'reading')
+  const readingAllRaw = BOOKS.filter(b => b.status === 'reading');
+  // 쉼표 — 활성 책만 기존 독서중 흐름(히어로·페이지네이션)에, 쉼표 책은 접힌 서랍으로
+  const readingRaw = readingAllRaw.filter(b => !b.paused)
+                    .sort((a, b) => _lastActivityISO(b).localeCompare(_lastActivityISO(a)));
+  const pausedRaw = readingAllRaw.filter(b => !!b.paused)
                     .sort((a, b) => _lastActivityISO(b).localeCompare(_lastActivityISO(a)));
   // 완독 · 정렬 알약 모드 적용 (최신순/오래된순/별점순 — 기본 최신순은 기존과 동일)
   const doneAllRaw = BOOKS.filter(b => b.status === 'done')
@@ -34703,6 +34734,21 @@ function renderLibraryCards() {
   const readingSubLabel = reading.length > _visibleReadingCount
     ? `최근 ${readingVisibleRaw}/${readingRaw.length}권`
     : '';
+  // 쉼표 서랍 — 기본 접힘, 펼치면 흐린 표지 그리드
+  let pausedDrawerHtml = '';
+  if (pausedRaw.length > 0) {
+    const pausedCards = _pausedOpen
+      ? `<div class="book-row pause-row">${pausedRaw.map((b, i) => renderBookCard(b, i)).join('')}</div>`
+      : '';
+    pausedDrawerHtml = `
+      <div class="pause-drawer${_pausedOpen ? ' open' : ''}">
+        <button type="button" class="pause-drawer-head" data-action="pause-toggle" aria-expanded="${_pausedOpen ? 'true' : 'false'}">
+          <span><span class="pause-comma" aria-hidden="true">,</span> 쉼표 찍은 책 <b>${pausedRaw.length}권</b></span>
+          <span class="pause-chevron" aria-hidden="true">${_pausedOpen ? '▴' : '▾'}</span>
+        </button>
+        ${pausedCards}
+      </div>`;
+  }
   const droppedVisibleRaw = _libEntriesRawCount(dropped);
   const droppedSubLabel = droppedAll.length > _visibleDroppedCount
     ? `최근 ${droppedVisibleRaw}/${droppedRaw.length}권 책갈피 중`
@@ -34711,7 +34757,7 @@ function renderLibraryCards() {
   // ─── 카테고리 탭 [TEST 시안] ───
   // 활성 탭 복원 (localStorage). 기본 'reading'. 빈 카테고리면 첫 비어있지 않은 것으로 폴백.
   let activeCat = _libGetActiveCat();
-  const catCounts = { wish: wishRaw.length, reading: readingRaw.length, done: doneAllRaw.length, dropped: droppedRaw.length };
+  const catCounts = { wish: wishRaw.length, reading: readingAllRaw.length, done: doneAllRaw.length, dropped: droppedRaw.length };
   // 신규 사용자/첫 진입 케이스만 자동 폴백 (활성 탭 미저장 + 독서중이 비어있을 때)
   // 사용자가 직접 클릭한 빈 탭은 그대로 보여줌 (빈 placeholder)
   let isFreshSession = false;
@@ -34745,7 +34791,7 @@ function renderLibraryCards() {
     <div class="lib-cat-tabs-wrap">
       <div class="lib-cat-tabs" role="tablist">
         <button class="lib-cat-tab ${activeCat==='wish'?'active':''}" data-cat="wish" role="tab">위시 <span class="lib-cat-cnt">${wishRaw.length}</span></button>
-        <button class="lib-cat-tab ${activeCat==='reading'?'active':''}" data-cat="reading" role="tab">독서중 <span class="lib-cat-cnt">${readingRaw.length}</span></button>
+        <button class="lib-cat-tab ${activeCat==='reading'?'active':''}" data-cat="reading" role="tab">독서중 <span class="lib-cat-cnt">${readingAllRaw.length}</span></button>
         <button class="lib-cat-tab ${activeCat==='done'?'active':''}" data-cat="done" role="tab">완독 <span class="lib-cat-cnt">${doneAllRaw.length}</span></button>
         <button class="lib-cat-tab ${activeCat==='dropped'?'active':''}" data-cat="dropped" role="tab">하차 <span class="lib-cat-cnt">${droppedRaw.length}</span></button>
       </div>
@@ -34772,7 +34818,7 @@ function renderLibraryCards() {
       ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel, editBtnHtml) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${activeCat === 'reading' ? (reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml) : emptyPane('읽고 있는 책이 없어요')) : ''}
+      ${activeCat === 'reading' ? ((reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml) : emptyPane('읽고 있는 책이 없어요')) + pausedDrawerHtml) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
       ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing, editBtnHtml, doneSortToggle) : emptyPane('완독한 책이 아직 없어요')) : ''}
@@ -35360,6 +35406,11 @@ function _libMountEditBar(activeCat) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
     일괄 입력
   </button>`;
+  // 쉼표 캡슐 — 독서중 카테고리에서만 (선택한 책을 쉬는 책으로)
+  const pauseBtn = activeCat === 'reading' ? `<button class="lib-edit-bar-action lib-action-pause" data-action="lib-pause">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>
+    쉼표
+  </button>` : '';
   const bar = document.createElement('div');
   bar.id = 'libEditBar';
   bar.className = 'lib-edit-bar';
@@ -35372,6 +35423,7 @@ function _libMountEditBar(activeCat) {
       ${moveButtons.join('')}
     </div>
     <div class="lib-edit-bar-actions lib-edit-bar-actions-bottom">
+      ${pauseBtn}
       ${groupBtn}
       ${bulkBtn}
       ${deleteBtn}
@@ -35381,7 +35433,7 @@ function _libMountEditBar(activeCat) {
 
   // 카운트 0이면 이동/삭제 비활성 (묶기는 위에서 별도 처리)
   if (cnt === 0) {
-    bar.querySelectorAll('[data-move-to], [data-action="lib-delete"], [data-action="lib-bulk"]').forEach(b => b.disabled = true);
+    bar.querySelectorAll('[data-move-to], [data-action="lib-delete"], [data-action="lib-bulk"], [data-action="lib-pause"]').forEach(b => b.disabled = true);
   }
 
   // body에 마운트했으니 클릭 위임이 안 닿음 → 자체 핸들러 부착
@@ -35393,6 +35445,11 @@ function _libMountEditBar(activeCat) {
     if (e.target.closest('[data-action="lib-bulk"]')) {
       const btn = e.target.closest('[data-action="lib-bulk"]');
       if (!btn.disabled) openBulkSheet();
+      return;
+    }
+    if (e.target.closest('[data-action="lib-pause"]')) {
+      const btn = e.target.closest('[data-action="lib-pause"]');
+      if (!btn.disabled) _libEditApplyPause();
       return;
     }
     if (e.target.closest('[data-action="lib-delete"]')) {
@@ -35477,6 +35534,20 @@ function _libEditApplyMove(newStatus) {
   // 안전망: 다른 sub-view/탭에 머물러있다 돌아와도 stale 안 되게
   try { renderHallOfFame && renderHallOfFame(); } catch(e){}
   try { renderNotesTab && renderNotesTab(); } catch(e){}
+}
+
+/* 쉼표 일괄 적용 — 선택한 독서중 책을 쉬는 책으로 표시 후 편집 종료 */
+function _libEditApplyPause() {
+  if (_libEdit.selected.size === 0) return;
+  const n = _setBooksPaused([..._libEdit.selected], true);
+  if (typeof showToast === 'function') {
+    showToast(n > 0 ? `${n}권에 쉼표를 찍었어요` : '이미 쉼표를 찍어둔 책이에요');
+  }
+  _libEdit.active = false;
+  _libEdit.cat = null;
+  _libEdit.selected.clear();
+  _libEdit.pendingMove = null;
+  try { renderLibraryCards(); } catch(e){}
 }
 
 /* 다중 삭제 — 두 단계 확인 (1단계: 안내 카드, 2단계: 실제 삭제) */
@@ -35926,6 +35997,7 @@ function _grpCloseSheet() {
 /* _applyStatusChange의 update 객체 빌드 부분만 추출 — 다중 처리용 */
 function _libBuildStatusUpdate(b, newStatus, today) {
   const update = { status: newStatus };
+  update.paused = false; // 쉼표 — 상태가 바뀌면 항상 초기화
   update.stagePass = _mergeStagePass(b.stagePass, b.status, newStatus);
   if (newStatus === 'reading') {
     if (b.status === 'done' && b.dateEnd) {
@@ -36106,6 +36178,12 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
           _doneSortMode = newMode;
           renderLibraryCards();
         }
+        return;
+      }
+      // ─── 쉼표 서랍 접기/펼치기 ───
+      if (action === 'pause-toggle') {
+        _pausedOpen = !_pausedOpen;
+        renderLibraryCards();
         return;
       }
     }
@@ -38351,6 +38429,18 @@ function refreshTagSummary() {
   if (chipsEl) chipsEl.innerHTML = _renderWishTagChips(b.tags || []);
 }
 
+/* 쉼표 빼기 — 상세 배너에서 쉬는 책을 다시 활성 독서중으로 */
+function bdResumePaused() {
+  if (!BD || !BD.book) return;
+  const n = _setBooksPaused([BD.book.id], false);
+  if (n > 0) {
+    BD.book = BOOKS.find(x => x.id === BD.book.id) || BD.book;
+    if (typeof showToast === 'function') showToast('쉼표를 뺐어요. 다시 이어서 읽어요!');
+  }
+  try { renderBookDetail(); } catch(e){}
+  try { renderLibraryCards(); } catch(e){}
+}
+
 function renderBookDetail() {
   const b = BD.book;
   if (!b) return;
@@ -38461,6 +38551,11 @@ function renderBookDetail() {
           <button class="status-seg-btn" data-view="notes" id="bdNotesTabBtn"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 노트</button>
         </div>
       </div>
+      ${reading && b.paused ? `
+      <div class="bd-pause-banner">
+        <span><span class="pause-comma" aria-hidden="true">,</span> 쉼표를 찍어둔 책이에요</span>
+        <button type="button" class="bd-pause-resume" onclick="bdResumePaused()">쉼표 빼기</button>
+      </div>` : ''}
       ${reading ? (isWebnovel(b) ? `
       <!-- 진행률 (웹소설 — 회차/권 입력) -->
       <div class="bd-hero-prog">
@@ -38940,6 +39035,7 @@ function _statusChangeConfirmLabel(newStatus) {
 /* 실제 상태 변경 로직 — 확인 후 호출 */
 function _applyStatusChange(b, newStatus) {
   const update = { status: newStatus };
+  update.paused = false; // 쉼표 — 상태가 바뀌면 항상 초기화
   const today = todayStr();
 
   if (newStatus === 'reading') {
