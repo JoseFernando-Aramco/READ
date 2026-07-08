@@ -9205,6 +9205,20 @@ body:has(.lib-edit-bar) .library-cards {
 .manual-close { background: none; border: none; font-size: 21px; line-height: 1; color: var(--c-text-2); padding: 4px 8px; cursor: pointer; }
 .manual-frame { flex: 1; width: 100%; border: none; background: #faf7f0; }
 body.manual-open { overflow: hidden; }
+/* ═══ 로그인 만료 안내 모달 — 401 자동 감지 시 1회 ═══ */
+.authexp-backdrop { position: fixed; inset: 0; z-index: var(--z-modal); background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.authexp-modal { background: var(--c-surface, #fff); border-radius: 16px; padding: 22px 20px 16px; max-width: 320px; width: 100%; }
+.authexp-ttl { font-size: 16.5px; font-weight: 800; color: var(--c-text, #1c1c1c); margin-bottom: 10px; }
+.authexp-body { font-size: 13.5px; line-height: 1.7; color: var(--c-text-2, #5f5b52); margin: 0 0 16px; }
+.authexp-body b { color: var(--c-text, #1c1c1c); }
+.authexp-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.authexp-later { background: none; border: none; padding: 9px 12px; font-size: 13.5px; color: var(--c-muted, #9b968a); cursor: pointer; }
+.authexp-login { background: var(--c-text, #1c1c1c); color: var(--c-surface, #fff); border: none; border-radius: 100px; padding: 9px 16px; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+/* 안심 공지(B안) 체크리스트 — authexp 모달 컨테이너 재사용 */
+.rln-list { border: 1px solid var(--c-border, #e7e2d6); border-radius: 10px; padding: 11px 12px; display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+.rln-row { display: flex; gap: 8px; font-size: 12.5px; line-height: 1.5; color: var(--c-text, #1c1c1c); }
+.rln-check { color: #0F6E56; font-weight: 800; flex: none; }
+[data-theme="midnight"] .rln-check { color: #5DCAA5; }
 .wish-rec-badge {
   position: absolute;
   top: 6px;
@@ -25579,8 +25593,29 @@ const READ_AUTH = {
     try { if (typeof this.refreshUI === 'function') this.refreshUI(); } catch (e) {}
     if (!this._authExpiredNotified) {
       this._authExpiredNotified = true;
-      try { if (typeof showToast === 'function') showToast('로그인이 만료됐어요. 메뉴에서 다시 로그인해 주세요.'); } catch (e) {}
+      try { this._showAuthExpiredModal(); } catch (e) { try { if (typeof showToast === 'function') showToast('로그인이 만료됐어요. 메뉴에서 다시 로그인해 주세요.'); } catch (e2) {} }
     }
+  },
+
+  /* 만료 안내 모달 — 기록이 안전함을 명시하고 재로그인으로 바로 유도 (지난 대란의 교훈: 토스트 한 줄로는 부족) */
+  _showAuthExpiredModal() {
+    if (document.getElementById('authExpModal')) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'authExpModal';
+    wrap.className = 'authexp-backdrop';
+    wrap.innerHTML = `
+      <div class="authexp-modal" role="dialog" aria-modal="true" aria-labelledby="authExpTtl">
+        <div class="authexp-ttl" id="authExpTtl">로그인이 만료됐어요</div>
+        <p class="authexp-body">보안을 위해 로그인은 일정 기간이 지나면 풀려요.<br><b>책·노트 등 이 기기의 기록은 그대로 안전합니다.</b><br>KEEP과 클라우드 백업을 쓰시려면 다시 로그인해 주세요.</p>
+        <div class="authexp-btns">
+          <button type="button" class="authexp-later">나중에</button>
+          <button type="button" class="authexp-login">다시 로그인</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    const close = () => { try { wrap.remove(); } catch (e) {} };
+    wrap.querySelector('.authexp-later').addEventListener('click', close);
+    wrap.querySelector('.authexp-login').addEventListener('click', () => { close(); try { this.startKakaoLogin(); } catch (e) {} });
   },
 
   /* ═══════════════ 동기화 메서드 (Phase B) ═══════════════ */
@@ -25735,6 +25770,24 @@ const READ_AUTH = {
     }
   },
 
+  /* 복원 사고 되돌리기 — 마지막 복원 직전 스냅샷으로 로컬을 복구 (설정 진입점 없음 · 지원용) */
+  undoLastRestore() {
+    let snap = null;
+    try { snap = JSON.parse(localStorage.getItem('read.sync.preRestoreSnapshot') || 'null'); } catch (e) {}
+    if (!snap || !snap.data) {
+      if (typeof showToast === 'function') showToast('되돌릴 스냅샷이 없어요');
+      return { ok: false };
+    }
+    const d = snap.data;
+    if (Array.isArray(d.books)) { BOOKS.length = 0; BOOKS.push(...d.books); STORE.set('books', BOOKS); }
+    if (Array.isArray(d.notes)) { NOTES.length = 0; NOTES.push(...d.notes); STORE.set('notes', NOTES); }
+    if (d.tags && typeof d.tags === 'object') { Object.keys(TAGS).forEach(k => { delete TAGS[k]; }); Object.assign(TAGS, d.tags); STORE.set('tags', TAGS); }
+    if (Array.isArray(d.groups)) { try { STORE.set('groups.v1', d.groups); } catch (e) {} }
+    try { if (typeof renderLibraryCards === 'function') renderLibraryCards(); } catch (e) {}
+    if (typeof showToast === 'function') showToast('복원 직전 상태로 되돌렸어요 (' + (snap.at || '') + ' 시점)');
+    return { ok: true, at: snap.at };
+  },
+
   /* 클라우드에서 복원 (pull) */
   async restoreFromCloud() {
     if (!this.isLoggedIn()) {
@@ -25754,6 +25807,12 @@ const READ_AUTH = {
         if (typeof showToast === 'function') showToast('클라우드에 백업된 데이터가 없어요');
         return { ok: false, empty: true };
       }
+
+      // 안전망 — 덮어쓰기 직전 현재 로컬을 스냅샷으로 보관 (복원 사고 시 undoLastRestore()로 되돌림)
+      try {
+        const snap = this._buildSyncPayload().payload;
+        localStorage.setItem('read.sync.preRestoreSnapshot', JSON.stringify({ at: new Date().toISOString(), data: snap }));
+      } catch (e) { console.warn('[sync] snapshot save failed', e); }
 
       // 로컬 데이터 덮어쓰기
       const data = body.data;
@@ -51444,6 +51503,52 @@ function closeManualSheet() {
   _manualSheetEl.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('manual-open');
 }
+
+/* ═══ 로그인 풀림 안심 공지 (2026-07 사고 대응) — 기본 꺼짐. 카페 안심 공지 게시 후 Jason이 직접 true로 올려 배포 ═══ */
+const RELOGIN_NOTICE_LIVE = false;
+const RELOGIN_NOTICE_SEEN_KEY = 'read.notice.reloginSeen.v1';
+
+/* 노출 자격 — 스위치 on + 로그아웃 상태 + KEEP 사용 흔적(닉 캐시) + 미확인 */
+function _reloginNoticeEligible() {
+  if (!RELOGIN_NOTICE_LIVE) return false;
+  try {
+    if (typeof READ_AUTH !== 'undefined' && READ_AUTH.isLoggedIn()) return false;
+    if (!localStorage.getItem('read.sayu.nick')) return false;
+    if (localStorage.getItem(RELOGIN_NOTICE_SEEN_KEY)) return false;
+  } catch (e) { return false; }
+  return true;
+}
+function _markReloginNoticeSeen() { try { localStorage.setItem(RELOGIN_NOTICE_SEEN_KEY, '1'); } catch (e) {} }
+function maybeShowReloginNotice() {
+  if (!_reloginNoticeEligible()) return;
+  if (document.getElementById('reloginNotice')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'reloginNotice';
+  wrap.className = 'authexp-backdrop';
+  wrap.innerHTML = `
+    <div class="authexp-modal" role="dialog" aria-modal="true" aria-labelledby="rlnTtl">
+      <div class="authexp-ttl" id="rlnTtl">잠깐, 확인해 주세요</div>
+      <p class="authexp-body" style="margin-bottom:12px">오늘 일부 기기에서 로그인이 풀렸어요.<br>놀라게 해드려 죄송합니다.</p>
+      <div class="rln-list">
+        <div class="rln-row"><span class="rln-check">✓</span><span>책·노트 기록 — 이 기기에 그대로 있어요</span></div>
+        <div class="rln-row"><span class="rln-check">✓</span><span>KEEP 글·알림 — 서버에 그대로, 로그인하면 복귀</span></div>
+        <div class="rln-row"><span class="rln-check">✓</span><span>클라우드 백업 — 손대지 않았어요</span></div>
+      </div>
+      <div class="authexp-btns">
+        <button type="button" class="authexp-later">나중에</button>
+        <button type="button" class="authexp-login">다시 로그인</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const closeNotice = () => { _markReloginNoticeSeen(); try { wrap.remove(); } catch (e) {} };
+  wrap.querySelector('.authexp-later').addEventListener('click', closeNotice);
+  wrap.querySelector('.authexp-login').addEventListener('click', () => { closeNotice(); try { READ_AUTH.startKakaoLogin(); } catch (e) {} });
+}
+(function () {
+  const run = () => setTimeout(maybeShowReloginNotice, 800);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();
 
 /* ═══════════════════════════════════════════════════════════
    v1.6.0 — 하차(dropped) 책 관리 시스템
