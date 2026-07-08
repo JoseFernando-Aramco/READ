@@ -25567,7 +25567,20 @@ const READ_AUTH = {
     const token = this.getToken();
     const headers = Object.assign({}, opts.headers || {});
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    return fetch(url, Object.assign({}, opts, { headers }));
+    const res = await fetch(url, Object.assign({}, opts, { headers }));
+    // 만료 토큰 자동 정리 — 토큰을 보냈는데 401이면 유령 로그인 해제 (PWA는 사파리와 저장소 분리 → 컨테이너별 세션 만료)
+    if (res.status === 401 && token) this._onAuthExpired();
+    return res;
+  },
+
+  _authExpiredNotified: false,
+  _onAuthExpired() {
+    try { this.clearSession(); } catch (e) {}
+    try { if (typeof this.refreshUI === 'function') this.refreshUI(); } catch (e) {}
+    if (!this._authExpiredNotified) {
+      this._authExpiredNotified = true;
+      try { if (typeof showToast === 'function') showToast('로그인이 만료됐어요. 메뉴에서 다시 로그인해 주세요.'); } catch (e) {}
+    }
   },
 
   /* ═══════════════ 동기화 메서드 (Phase B) ═══════════════ */
@@ -26842,6 +26855,13 @@ function _keepSyncBtns(id, btn){
   var all=document.querySelectorAll('.sayu-keep[data-pid]');
   for(var i=0;i<all.length;i++){ var el=all[i]; if(el===btn || el.getAttribute('data-pid')!==id) continue; el.classList.toggle('on', on); var en=el.querySelector('.n'); if(en) en.textContent=cnt; }
 }
+/* 킵 실패 사유 → 사용자 메시지 (0=네트워크, 401=로그인 만료, 서버 message 우선, 폴백엔 상태 코드) */
+function _keepFailMsg(r){
+  if (r && r.status === 0) return '네트워크 오류 · 다시 시도해주세요';
+  if (r && r.status === 401) return '로그인이 만료됐어요. 메뉴에서 다시 로그인해 주세요.';
+  if (r && r.data && r.data.message) return r.data.message;
+  return '처리에 실패했어요. (오류 ' + (r && r.status != null ? r.status : '?') + ')';
+}
 function toggleKeep(btn, id){
   if(!sayuNeedLogin()) return;
   const on = btn.classList.toggle('on');
@@ -26857,7 +26877,9 @@ function toggleKeep(btn, id){
       var c2 = parseInt(n.textContent,10)||0; n.textContent = c2 + (back?1:-1);
       _keepSyncBtns(id, btn);
       try{ var k2=SAYU_POSTS.find(function(x){return x.id===id;}); if(k2){ k2.kept=back; k2.keep=c2+(back?1:-1);} }catch(e){}
-      if(typeof showToast==='function') showToast('처리에 실패했어요.');
+      try{ console.warn('[keep] toggle 실패', r.status, r.data); }catch(e){}
+      if(r.data && r.data.error==='nick_required'){ openNickModal(); return; }
+      if(typeof showToast==='function') showToast(_keepFailMsg(r));
       return;
     }
     if(r.data){
