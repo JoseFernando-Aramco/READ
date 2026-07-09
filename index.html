@@ -34334,7 +34334,26 @@ function renderMonthStrip() {
         return;
       }
       const file = new File([blob], _genFilename(), { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      const _canWebShareMr = navigator.canShare && navigator.canShare({ files: [file] });
+
+      // v2.x — 시트 경유 (iOS 제스처 만료 대응, 노트·시네마 티켓 공유와 동일 패턴)
+      if (_canWebShareMr && typeof _showShareChoice === 'function') {
+        _showShareChoice({
+          onSave: () => {
+            _triggerDownload(blob, _genFilename());
+            if (typeof showToast === 'function') showToast('이미지를 다운로드했어요');
+          },
+          onShare: async () => {
+            try {
+              await navigator.share({ files: [file], title: '월간 독서 리포트', text: 'keepbook 월간 리포트' });
+            } catch (e) {
+              if (e.name === 'AbortError') return;
+              _triggerDownload(blob, _genFilename());
+              if (typeof showToast === 'function') showToast('이미지를 다운로드했어요');
+            }
+          },
+        });
+      } else if (_canWebShareMr) {
         try {
           await navigator.share({ files: [file], title: '월간 독서 리포트', text: 'keepbook 월간 리포트' });
         } catch (e) {
@@ -40761,7 +40780,47 @@ async function shareTicket() {
     const file = new File([blob], filename, { type: 'image/png' });
 
     // Web Share Level 2 (files) 지원 여부 체크
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    const _canWebShareTk = navigator.canShare && navigator.canShare({ files: [file] });
+
+    // v2.x — 시트 경유: 렌더(html2canvas) 후 직접 share 호출은 iOS 탭 제스처 만료로
+    // 간헐 실패("일부 공유 방법만 표시됩니다") → 시트 버튼 탭(새 제스처)에서 호출 (노트 공유와 동일 패턴)
+    if (_canWebShareTk && typeof _showShareChoice === 'function') {
+      _showShareChoice({
+        onSave: () => {
+          const isIOSSv = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          if (isIOSSv) {
+            _showIOSSavePreview(canvas);
+          } else {
+            _downloadCanvas(canvas, filename);
+            showToast('갤러리 또는 다운로드 폴더에 저장됐어요');
+          }
+        },
+        onShare: async () => {
+          try {
+            await navigator.share({
+              files: [file],
+              title: '독서 기록',
+              text: 'keepbook 월별 티켓',
+            });
+          } catch (e) {
+            if (e.name === 'AbortError') return;
+            console.error('[shareTicket] share err:', e);
+            const isIOSFB = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isIOSFB) {
+              _showIOSSavePreview(canvas);
+            } else {
+              _downloadCanvas(canvas, filename);
+              showToast('공유가 지원되지 않아 다운로드했어요');
+            }
+          }
+        },
+      });
+      return;
+    }
+
+    if (_canWebShareTk) {
       try {
         await navigator.share({
           files: [file],
@@ -45711,11 +45770,13 @@ async function shareNoteCard(id, btnEl) {
     const filename = `keepbook-note-${safeTitle}-${id}.png`;
     const file = new File([blob], filename, { type: 'image/png' });
 
-    // v1.8.x — Android에서는 "사진에 저장 / 공유" 선택 시트 먼저
-    const _isAndroid = /Android/i.test(navigator.userAgent);
+    // v1.8.x — "사진에 저장 / 공유" 선택 시트 먼저
+    // v2.x — iOS도 시트 경유로 확대. 렌더(html2canvas)가 끝난 뒤 직접 navigator.share를
+    // 부르면 iOS에서 탭 제스처가 만료돼 간헐 실패("일부 공유 방법만 표시됩니다" 시스템 문구).
+    // 시트 버튼 탭 = 새 제스처라 share가 항상 유효한 컨텍스트에서 호출됨.
     const _canWebShare = navigator.canShare && navigator.canShare({ files: [file] });
 
-    if (_isAndroid && _canWebShare && typeof _showShareChoice === 'function') {
+    if (_canWebShare && typeof _showShareChoice === 'function') {
       _showShareChoice({
         onSave: () => {
           if (typeof _downloadCanvas === 'function') {
