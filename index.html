@@ -32187,6 +32187,7 @@ const DEFAULT_TAGS = {
   // 형식 6개
   '원서':        { emoji: '🌍', color: '#c2410c', category: 'format' },
   '그래픽노블':  { emoji: '📕', color: '#9333ea', category: 'format' },
+  '만화책':      { emoji: '💬', color: '#0d9488', category: 'format' },
   '입문서':      { emoji: '📖', color: '#0ea5e9', category: 'format' },
   '전공서':      { emoji: '🎓', color: '#1d4ed8', category: 'format' },
   '아동/청소년':{ emoji: '👶', color: '#ec4899', category: 'format' },
@@ -32341,7 +32342,7 @@ const ALADIN_CATEGORY_MAP = [
   { match: '청소년',          tags: ['아동/청소년'] },
   { match: '유아',            tags: ['아동/청소년'] },
   { match: '그래픽노블',      tags: ['그래픽노블'] },
-  { match: '만화',            tags: ['그래픽노블'] },
+  { match: '만화',            tags: ['만화책'] },
   { match: '대학교재',        tags: ['전공서'] },
   
   // 외국도서 = 원서
@@ -32789,6 +32790,8 @@ const NA = {
       '무협', '현대판타지', '정통판타지', '로맨스판타지', '게임판타지',
       '먼치킨', '회귀', '환생', '빙의', '사극·동양', '현대물', 'BL', '회사·재벌', '학원물',
     ]);
+    // v2.0.x — 만화책 태그 신설 (일본·한국 만화 자동 태그를 그래픽노블에서 분리)
+    const NEW_DEFAULT_TAGS_V2_0 = new Set(['만화책']);
     const existingCategories = new Set(Object.values(TAGS).map(t => t.category).filter(Boolean));
     // v1.5.x — 사용자가 개명한 기본 태그의 원본 이름은 부활시키지 않음
     const renamedDefaults = new Set(STORE.get('read.renamedDefaultTags', []) || []);
@@ -32798,7 +32801,7 @@ const NA = {
       const defTag = DEFAULT_TAGS[name];
       // (1) 신규 카테고리이거나 (2) v1.10.1 신규 태그면 보강
       const isNewCategory = !existingCategories.has(defTag.category);
-      const isNewTag = NEW_DEFAULT_TAGS_V1_10_1.has(name);
+      const isNewTag = NEW_DEFAULT_TAGS_V1_10_1.has(name) || NEW_DEFAULT_TAGS_V2_0.has(name);
       if (isNewCategory || isNewTag) {
         TAGS[name] = { ...defTag, source: 'default' };
       }
