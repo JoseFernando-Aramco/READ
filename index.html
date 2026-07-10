@@ -25423,6 +25423,7 @@ const READ_AUTH = {
       'client_id=' + encodeURIComponent(clientId) +
       '&redirect_uri=' + encodeURIComponent(redirectUri) +
       '&response_type=code';
+    try { _kbNavAway = true; } catch (e) {}  // 뒤로가기 가드의 히스토리 소비 억제 (Safari 이탈 취소 방지)
     window.location.href = url;
   },
 
@@ -25436,6 +25437,7 @@ const READ_AUTH = {
       '&response_type=code' +
       '&scope=' + encodeURIComponent('openid profile email') +
       '&state=google';
+    try { _kbNavAway = true; } catch (e) {}  // 뒤로가기 가드의 히스토리 소비 억제 (Safari 이탈 취소 방지)
     window.location.href = url;
   },
 
@@ -38377,6 +38379,12 @@ function _kbIsOverlayEl(el) {
 
 const _kbStack = [];      // [{ els: [Element,...] }] — 논리적 창 하나 = 히스토리 1장
 let _kbConsuming = 0;     // X버튼 닫기 동기화로 우리가 스스로 소비 중인 pop 수
+/* 페이지 이탈(로그인 리다이렉트 등) 직전엔 히스토리 자기 소비를 하면 안 된다 —
+   Safari는 진행 중인 페이지 이동을 history.go()가 취소해버린다 (카카오/구글 로그인 무반응 버그).
+   이탈 지점(start*Login)에서 이 플래그를 세우고, pagehide로도 보강한다. */
+let _kbNavAway = false;
+try { window.addEventListener('pagehide', () => { _kbNavAway = true; }); } catch (e) {}
+try { window.addEventListener('pageshow', () => { _kbNavAway = false; }); } catch (e) {}  // 로그인 취소 후 뒤로 복귀(bfcache) 시 리셋
 
 function _kbEntryOf(el) {
   for (let i = _kbStack.length - 1; i >= 0; i--) {
@@ -38395,6 +38403,9 @@ function _kbConsumeFrom(idx) {
   // 앱 코드(X버튼·배경 탭)로 닫힘 → 그 창부터 위의 히스토리를 스스로 소비해 어긋남 방지
   const steps = _kbStack.length - idx;
   _kbStack.length = idx;
+  // 페이지 이탈 중이면 소비 금지 (Safari가 이탈 내비게이션을 취소함) —
+  // 남는 항목은 이탈로 함께 사라지고, 이탈 실패 시엔 스테일 정리가 처리
+  if (_kbNavAway) return;
   _kbConsuming += steps;
   try { history.go(-steps); } catch (e) { _kbConsuming -= steps; }
 }
