@@ -29799,8 +29799,19 @@ function _findExistingBookFromSearch(item) {
   if (item.isbn) {
     const cleanIsbn = String(item.isbn).replace(/[-\s]/g, '');
     if (cleanIsbn) {
+      // 정기간행물(잡지) 예외 — 월간지는 모든 호가 같은 코드(ISSN 계열)를 공유한다.
+      // 바코드 977 접두(연속간행물 EAN) 또는 8자리(ISSN 원형)면 코드만으론 같은 책이라
+      // 단정할 수 없으므로 제목까지 일치해야 중복으로 본다 (6월호 완독 후 7월호 등록이
+      // "이미 완독"으로 막히던 버그). 일반 도서(978/979)는 기존대로 ISBN만으로 판정.
+      const isSerial = cleanIsbn.length === 8 || cleanIsbn.indexOf('977') === 0;
       const byIsbn = BOOKS.find(b => b.isbn && String(b.isbn).replace(/[-\s]/g, '') === cleanIsbn);
-      if (byIsbn) return byIsbn;
+      if (byIsbn) {
+        if (!isSerial) return byIsbn;
+        const ti = (item.title || '').trim().toLowerCase();
+        const tb = (byIsbn.title || '').trim().toLowerCase();
+        if (ti && tb && ti === tb) return byIsbn;
+        // 같은 ISSN·다른 호 → 다른 책으로 취급, 제목+저자 폴백으로 계속
+      }
     }
   }
   // 2순위: 제목 + 저자 정확 매치 (대소문자 무시)
