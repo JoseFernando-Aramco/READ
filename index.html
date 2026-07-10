@@ -38222,7 +38222,89 @@ const ModalStack = {
     }
   }
 };
-window.addEventListener('popstate', () => ModalStack._handlePop());
+/* ─── 시스템 뒤로가기 확장 — ModalStack 미등록 오버레이 폴백 + 보초(sentinel) ───
+   문제: ModalStack에 등록된 창(bd 등)이 아니면 뒤로가기가 곧장 앱 종료로 이어짐 (안드로이드 PWA 제보).
+   해법: 부팅 시 히스토리에 보초 1장을 깔고, popstate가 오면
+     ① 화면에 열린 미등록 오버레이가 있으면 z-index 최상단 하나를 닫고 보초 재장전
+     ② 없으면 기존 ModalStack 처리
+     ③ 그래도 닫은 게 없으면 실제 이탈(종료) 진행
+   iOS 엣지 스와이프 뒤로가기에도 동일하게 적용된다. */
+const _BACK_OVERLAYS = [
+  ['basBackdrop', 'closeBookAdd'],
+  ['catEditSheet', 'closeCatEditSheet'],
+  ['tagEditSheet', 'closeTagEditSheet'],
+  ['blkSheet', 'closeBulkSheet'],
+  ['qnSheet', 'closeQuickNote'],
+  ['acqSheet', 'closeAcqSheet'],
+  ['sayuDotsSheet', 'closeDotsSheet'],
+  ['kbmPanel', 'closeKbMenu'],
+  ['avSheetBd', 'closeAvatarSheet'],
+  ['ltModal', 'closeLtModal'],
+  ['settingsSheet', 'closeSettings'],
+  ['libSearchBackdrop', 'closeLibSearch'],
+  ['sayuDelLockModal', 'closeDelLockModal'],
+  ['sayuNickModal', 'closeNickModal'],
+  ['sayuPostView', 'closePostView'],
+  ['sayuMyView', 'closeMyView'],
+  ['ddBackdrop', 'closeDrillDown'],
+  ['dropSheetBackdrop', 'closeDropSheet'],
+  ['exBackdrop', 'closeExportModal'],
+  ['naBackdrop', 'closeNoteSheet'],
+  ['qrConfirmBackdrop', 'closeQuickReadConfirm'],
+  ['retryDialogBackdrop', 'closeRetryDialog'],
+  ['spendBackdrop', 'closeSpendModal'],
+  ['tsSheet', 'closeTimerSessionEdit'],
+  ['tmBackdrop', 'closeTimerStop'],
+  ['sayuBookView', 'closeBookSayu'],
+  ['sayuLimitModal', 'closeSayuLimitModal'],
+  ['sayuLoginModal', 'closeSayuLoginModal'],
+  ['sayuShareSheet', 'closeSayuShareConfirm'],
+  ['abBackdrop', 'closeAboutModal'],
+  ['ctBackdrop', 'closeContactModal'],
+  ['mrModal', 'closeMonthReport'],
+  ['manualSheet', 'closeManualSheet'],
+  ['loginSheet', 'closeLoginSheet'],
+];
+function _kbOverlayVisible(el) {
+  if (!el) return false;
+  // 이 앱의 오버레이 규약: 열림 = .open(.is-open) 클래스 + aria-hidden 해제.
+  // 닫힌 시트는 transform으로 화면 밖에 있을 뿐이라 표시 속성만으론 오탐한다.
+  if (el.getAttribute('aria-hidden') === 'true') return false;
+  if (!el.classList.contains('open') && !el.classList.contains('is-open')) return false;
+  const cs = getComputedStyle(el);
+  if (cs.display === 'none' || cs.visibility === 'hidden' || cs.pointerEvents === 'none') return false;
+  if (parseFloat(cs.opacity) === 0) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width <= 0 || r.height <= 0) return false;
+  if (r.bottom <= 0 || r.top >= (window.innerHeight || 99999)) return false;
+  return true;
+}
+function _closeTopOverlayForBack() {
+  let bestFn = null, bestZ = -1;
+  for (let i = 0; i < _BACK_OVERLAYS.length; i++) {
+    const el = document.getElementById(_BACK_OVERLAYS[i][0]);
+    if (!el || !_kbOverlayVisible(el)) continue;
+    const z = parseInt(getComputedStyle(el).zIndex, 10) || 0;
+    if (z >= bestZ) { bestZ = z; bestFn = _BACK_OVERLAYS[i][1]; }
+  }
+  if (!bestFn) return false;
+  const f = window[bestFn];
+  if (typeof f !== 'function') return false;
+  try { f(); } catch (e) { console.error('[backGuard]', bestFn, e); return false; }
+  return true;
+}
+window.addEventListener('popstate', () => {
+  if (_closeTopOverlayForBack()) {
+    try { history.pushState(Object.assign({}, history.state || {}, { modalDepth: ModalStack.stack.length, kbGuard: 1 }), ''); } catch (e) {}
+    return;
+  }
+  const beforeLen = ModalStack.stack.length;
+  ModalStack._handlePop();
+  if (ModalStack.stack.length !== beforeLen) return;
+  try { history.back(); } catch (e) {}
+});
+/* 보초 1장 — 첫 뒤로가기가 곧장 앱 종료로 이어지지 않게 */
+try { history.pushState(Object.assign({}, history.state || {}, { kbGuard: 1 }), ''); } catch (e) {}
 
 /* ─── 모달 열기/닫기 ─── */
 /* ═══════════════════════════════════════════════════════════
