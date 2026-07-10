@@ -30254,7 +30254,7 @@ function submitManualBundle() {
 
     const baseTitle = b.title;
     const n = BA.bundleCount;
-    const today = new Date().toISOString().slice(0, 10);  // (현재 미사용 — wish 상태이므로 dateStart 없음)
+    const today = todayStr();  // (현재 미사용 — wish 상태이므로 dateStart 없음)
     const isWebnov = b.format === 'webnovel';
     const baseTimestamp = Date.now();
 
@@ -30434,7 +30434,7 @@ function renderConfirm() {
   // v1.11.6 — 메타데이터 백그라운드 조회 완료 시 renderConfirm이 재호출되면
   //   사용자가 입력 중이던 날짜를 오늘로 덮어쓰는 버그 수정.
   //   이미 사용자 입력이 있으면 보존, 빈값일 때만 오늘 default.
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayStr();
   const dateStartEl = document.getElementById('dateStart');
   const dateEndEl = document.getElementById('dateEnd');
   if (dateStartEl && !dateStartEl.value) dateStartEl.value = today;
@@ -31669,7 +31669,7 @@ function confirmAddBook() {
   BA._submitting = true;
 
   const status = document.querySelector('#statusSeg .status-seg-btn.active')?.dataset.status || 'wish';
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayStr();
   const palette = pickPalette(b.title + b.author);
 
   // v1.5.x — 웹소설도 페이지 입력 허용 (회차와 병행 관리).
@@ -33286,7 +33286,14 @@ function formatReadDateRange(dateStart, dateEnd) {
   return `${startStr} – ${endStr}`;
 }
 const daysBetween = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 86400000));
-const todayStr = () => new Date().toISOString().slice(0, 10);
+/* 로컬(기기 시간대) 기준 YYYY-MM-DD.
+   toISOString()은 UTC라서 한국 기준 자정~오전 8시 59분의 기록이 전날 날짜로 밀린다
+   (통계 캘린더·스트릭은 로컬 축이라 아침 기록이 누락돼 보이는 버그의 원인). */
+const _localDateISO = (d) => {
+  const x = d || new Date();
+  return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+};
+const todayStr = () => _localDateISO(new Date());
 
 // 필터 상태
 let currentFilter = null;
@@ -33298,7 +33305,7 @@ function renderTagRadar() {
   // 최근 1년 컷오프 — 시작일 기준 365일 이내
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 365);
-  const cutoffStr = cutoff.toISOString().slice(0, 10); // YYYY-MM-DD
+  const cutoffStr = _localDateISO(cutoff); // YYYY-MM-DD (로컬 축)
 
   // 진행중 + 완독, 그리고 최근 1년 내 시작된 책만
   const counts = {};
@@ -37635,7 +37642,7 @@ function saveTimerSession() {
   // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
   const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const _sessRec = {
-    date: new Date().toISOString().slice(0, 10),
+    date: _localDateISO(new Date()),
     minutes,
     pages: pagesRead,
     end: _hm(new Date()),
@@ -38356,7 +38363,7 @@ function autoSaveTimerSession(opts) {
   // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
   const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const _sessRec = {
-    date: new Date().toISOString().slice(0, 10),
+    date: _localDateISO(new Date()),
     minutes,
     pages: pagesRead,
     end: _hm(new Date()),
@@ -46849,7 +46856,7 @@ function scheduleNextNotif() {
       new Notification(msg.title, {
         body: msg.body,
         icon: '/favicon.ico',
-        tag: 'read-daily-' + next.toISOString().slice(0,10),
+        tag: 'read-daily-' + _localDateISO(next),
       });
     } catch(e){}
     // 재예약 (다음 9시)
@@ -50891,7 +50898,7 @@ function exportDataAsJson() {
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayStr();
     const a = document.createElement('a');
     a.href = url;
     a.download = `read-backup-${today}.json`;
@@ -50913,7 +50920,7 @@ function exportDataAsJson() {
 /* PDF 내보내기 — 브라우저 인쇄 다이얼로그 활용 (사용자가 "PDF로 저장" 선택) */
 function exportDataAsPdf() {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayStr();
     const reading = BOOKS.filter(b => b.status === 'reading');
     const done = BOOKS.filter(b => b.status === 'done');
     const wish = BOOKS.filter(b => b.status === 'wish');
