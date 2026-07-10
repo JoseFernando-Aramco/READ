@@ -27647,6 +27647,7 @@ function switchTab(nextIdx, opts = {}) {
     return;
   }
   currentTabIdx = nextIdx;
+  if (typeof _kbTabSwitched === 'function') { try { _kbTabSwitched(nextIdx); } catch (e) {} }
   _closeOverlaysForNav();
   if (typeof window._libExitEdit === 'function') { try { window._libExitEdit(); } catch(e){} }
   snapToTab(currentTabIdx);
@@ -38383,6 +38384,17 @@ let _kbConsuming = 0;     // X버튼 닫기 동기화로 우리가 스스로 소
    Safari는 진행 중인 페이지 이동을 history.go()가 취소해버린다 (카카오/구글 로그인 무반응 버그).
    이탈 지점(start*Login)에서 이 플래그를 세우고, pagehide로도 보강한다. */
 let _kbNavAway = false;
+/* 뒤로가기 탭 정책 — 'home': 창이 없으면 서재(홈 탭)로 복귀, 서재에서 한 번 더 = 종료.
+   (향후 'trail'(방문 순서 되밟기) 모드를 붙일 분기점 — 설정화 시 이 값만 저장값으로 대체) */
+const KB_BACK_TAB_MODE = 'home';
+let _kbTabArmed = false;  // 비홈 탭 진입으로 히스토리 1장이 쌓여 있는가 (중복 push 방지)
+function _kbTabSwitched(nextIdx) {
+  if (KB_BACK_TAB_MODE !== 'home') return;
+  if (nextIdx !== 0 && !_kbTabArmed) {
+    _kbTabArmed = true;
+    try { history.pushState(Object.assign({}, history.state || {}, { kbTab: 1 }), ''); } catch (e) {}
+  }
+}
 try { window.addEventListener('pagehide', () => { _kbNavAway = true; }); } catch (e) {}
 try { window.addEventListener('pageshow', () => { _kbNavAway = false; }); } catch (e) {}  // 로그인 취소 후 뒤로 복귀(bfcache) 시 리셋
 
@@ -38479,8 +38491,18 @@ window.addEventListener('popstate', () => {
     try { history.pushState(Object.assign({}, history.state || {}, { kbOv: _kbStack.length }), ''); } catch (e) {}
     return;
   }
-  // 기존 등록형(ModalStack: 책 상세 등) 처리 — 닫을 게 없으면 자연히 아무 일 없음
+  // 기존 등록형(ModalStack: 책 상세 등) 처리
+  const _msBefore = ModalStack.stack.length;
   ModalStack._handlePop();
+  if (ModalStack.stack.length !== _msBefore) return;
+  // 창이 전부 닫혀 있으면 — B모드: 서재(홈 탭)로 복귀. 서재에서의 뒤로가기는 히스토리 바닥 = 자연 종료
+  if (KB_BACK_TAB_MODE === 'home' && _kbTabArmed) {
+    _kbTabArmed = false;
+    if (typeof currentTabIdx !== 'undefined' && currentTabIdx !== 0 && typeof switchTab === 'function') {
+      try { switchTab(0); } catch (e) {}
+    }
+    return;
+  }
 });
 
 /* ─── 모달 열기/닫기 ─── */
