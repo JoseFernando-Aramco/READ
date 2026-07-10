@@ -9219,6 +9219,22 @@ body.manual-open { overflow: hidden; }
 .rln-row { display: flex; gap: 8px; font-size: 12.5px; line-height: 1.5; color: var(--c-text, #1c1c1c); }
 .rln-check { color: #0F6E56; font-weight: 800; flex: none; }
 [data-theme="midnight"] .rln-check { color: #5DCAA5; }
+/* ═══ 로그인 선택 시트 ═══ */
+.lgs-backdrop { position: fixed; inset: 0; z-index: var(--z-modal); background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.lgs-backdrop.open { opacity: 1; pointer-events: auto; }
+.lgs-sheet { background: var(--c-surface, #fff); border-radius: 18px 18px 0 0; padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px)); width: 100%; max-width: 430px; transform: translateY(12px); transition: transform .2s ease; }
+.lgs-backdrop.open .lgs-sheet { transform: translateY(0); }
+.lgs-grip { width: 36px; height: 4px; border-radius: 2px; background: var(--c-border, #e7e2d6); margin: 0 auto 14px; }
+.lgs-ttl { font-size: 16.5px; font-weight: 800; color: var(--c-text, #1c1c1c); margin-bottom: 4px; }
+.lgs-sub { font-size: 12.5px; line-height: 1.6; color: var(--c-text-2, #5f5b52); margin: 0 0 14px; }
+.lgs-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border-radius: 12px; padding: 13px 0; font-size: 14px; font-weight: 700; cursor: pointer; }
+.lgs-btn + .lgs-btn { margin-top: 9px; }
+.lgs-kakao { background: #FEE500; border: none; color: #191919; }
+.lgs-google { background: var(--c-surface, #fff); border: 1px solid var(--c-border-strong, #d6d1c4); color: var(--c-text, #1c1c1c); }
+.lgs-ico { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex: none; }
+.lgs-ico-k { background: #191919; color: #FEE500; }
+.lgs-ico-g { border: 1px solid #d6d1c4; color: #185FA5; background: #fff; }
+.lgs-note { font-size: 11.5px; line-height: 1.6; color: var(--c-muted, #9b968a); margin: 12px 0 0; text-align: center; }
 .wish-rec-badge {
   position: absolute;
   top: 6px;
@@ -22855,7 +22871,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="kbm-login-name">로그인 안 됨</div>
         <div class="kbm-login-sub">기기에만 저장 중</div>
       </div>
-      <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
+      <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof openLoginSheet === 'function') openLoginSheet(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
     </div>
 
     <!-- Bookflex (눈에 띄게) -->
@@ -25389,6 +25405,19 @@ const READ_AUTH = {
     window.location.href = url;
   },
 
+  /* 구글 로그인 시작 — state=google로 콜백에서 프로바이더 구분 (client_id는 공개값) */
+  GOOGLE_CLIENT_ID: '685946886467-o02139el8jc1u3nrhpqao12sr2e2nnoc.apps.googleusercontent.com',
+  startGoogleLogin() {
+    const redirectUri = window.location.origin + window.location.pathname;
+    const url = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+      'client_id=' + encodeURIComponent(this.GOOGLE_CLIENT_ID) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&response_type=code' +
+      '&scope=' + encodeURIComponent('openid profile email') +
+      '&state=google';
+    window.location.href = url;
+  },
+
   /* 페이지 로드 시 자동 호출 — URL에 ?code= 있으면 토큰 교환 */
   async handleCallback() {
     const params = new URLSearchParams(window.location.search);
@@ -25412,7 +25441,9 @@ const READ_AUTH = {
 
     try {
       const redirectUri = window.location.origin + window.location.pathname;
-      const res = await fetch(ALADIN_PROXY_URL + '/auth/kakao', {
+      // state=google이면 구글 콜백 (카카오는 state 없이 돌아옴)
+      const authPath = (params.get('state') === 'google') ? '/auth/google' : '/auth/kakao';
+      const res = await fetch(ALADIN_PROXY_URL + authPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, redirect_uri: redirectUri }),
@@ -25615,7 +25646,7 @@ const READ_AUTH = {
     document.body.appendChild(wrap);
     const close = () => { try { wrap.remove(); } catch (e) {} };
     wrap.querySelector('.authexp-later').addEventListener('click', close);
-    wrap.querySelector('.authexp-login').addEventListener('click', () => { close(); try { this.startKakaoLogin(); } catch (e) {} });
+    wrap.querySelector('.authexp-login').addEventListener('click', () => { close(); try { openLoginSheet(); } catch (e) {} });
   },
 
   /* ═══════════════ 동기화 메서드 (Phase B) ═══════════════ */
@@ -26047,7 +26078,7 @@ const READ_AUTH = {
             <div class="kbm-login-name">로그인 안 됨</div>
             <div class="kbm-login-sub">기기에만 저장 중</div>
           </div>
-          <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof READ_AUTH !== 'undefined' && READ_AUTH && typeof READ_AUTH.startKakaoLogin === 'function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
+          <button class="kbm-login-btn" onclick="closeKbMenu(); setTimeout(function(){ if(typeof openLoginSheet === 'function') openLoginSheet(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }, 220)">로그인</button>
         `;
       }
     }
@@ -27115,7 +27146,7 @@ async function renderSayuFeed(){
   _sayuDotSync();
 }
 function sayuLoggedIn(){ return (typeof READ_AUTH!=='undefined') && READ_AUTH.isLoggedIn(); }
-function sayuStartLogin(){ try{ sessionStorage.setItem('read.sayu.loginIntent','1'); }catch(e){} if(typeof READ_AUTH!=='undefined' && typeof READ_AUTH.startKakaoLogin==='function') READ_AUTH.startKakaoLogin(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }
+function sayuStartLogin(){ try{ sessionStorage.setItem('read.sayu.loginIntent','1'); }catch(e){} if(typeof openLoginSheet==='function') openLoginSheet(); else if(typeof showToast==='function') showToast('로그인 준비 중'); }
 function sayuPostLoginNickCheck(){ try{ if(sessionStorage.getItem('read.sayu.loginIntent') && sayuLoggedIn()){ sessionStorage.removeItem('read.sayu.loginIntent'); sayuSyncNick().then(function(){ if(!sayuGetNick()){ setTimeout(function(){ openNickModal(); }, 600); } }); } }catch(e){} }
 async function sayuSyncNick(){ if(!sayuLoggedIn()) return; try{ var r=await keepApi('GET','/keep/me'); if(r && r.ok && r.data){ try{ if(r.data.nick) localStorage.setItem('read.sayu.nick', r.data.nick); else localStorage.removeItem('read.sayu.nick'); }catch(e){} } }catch(e){} }
 function sayuApplyGate(){ sayuSyncNick(); renderSayuFeed(); maybeShowSayuWelcome(); updateKeepBadge(); }
@@ -51568,6 +51599,47 @@ function closeManualSheet() {
   document.body.classList.remove('manual-open');
 }
 
+/* ═══ 로그인 선택 시트 — 카카오/구글 진입점 수렴 (지연 생성 싱글턴) ═══ */
+let _loginSheetEl = null;
+function _ensureLoginSheet() {
+  if (_loginSheetEl) return _loginSheetEl;
+  const wrap = document.createElement('div');
+  wrap.id = 'loginSheet';
+  wrap.className = 'lgs-backdrop';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML = `
+    <div class="lgs-sheet" role="dialog" aria-modal="true" aria-labelledby="lgsTtl">
+      <div class="lgs-grip"></div>
+      <div class="lgs-ttl" id="lgsTtl">keepbook 시작하기</div>
+      <p class="lgs-sub">로그인하면 KEEP과 클라우드 백업을 쓸 수 있어요.</p>
+      <button type="button" class="lgs-btn lgs-kakao"><span class="lgs-ico lgs-ico-k">K</span>카카오로 시작</button>
+      <button type="button" class="lgs-btn lgs-google"><span class="lgs-ico lgs-ico-g">G</span>Google로 시작</button>
+      <p class="lgs-note">카카오와 Google 계정은 서로 다른 keepbook 계정이 돼요</p>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) closeLoginSheet(); });
+  wrap.querySelector('.lgs-kakao').addEventListener('click', () => {
+    closeLoginSheet();
+    try { READ_AUTH.startKakaoLogin(); } catch (e) {}
+  });
+  wrap.querySelector('.lgs-google').addEventListener('click', () => {
+    closeLoginSheet();
+    try { READ_AUTH.startGoogleLogin(); } catch (e) {}
+  });
+  _loginSheetEl = wrap;
+  return wrap;
+}
+function openLoginSheet() {
+  const wrap = _ensureLoginSheet();
+  wrap.classList.add('open');
+  wrap.setAttribute('aria-hidden', 'false');
+}
+function closeLoginSheet() {
+  if (!_loginSheetEl) return;
+  _loginSheetEl.classList.remove('open');
+  _loginSheetEl.setAttribute('aria-hidden', 'true');
+}
+
 /* ═══ 로그인 풀림 안심 공지 (2026-07 사고 대응) — 기본 꺼짐. 카페 안심 공지 게시 후 Jason이 직접 true로 올려 배포 ═══ */
 const RELOGIN_NOTICE_LIVE = false;
 const RELOGIN_NOTICE_SEEN_KEY = 'read.notice.reloginSeen.v1';
@@ -51606,7 +51678,7 @@ function maybeShowReloginNotice() {
   document.body.appendChild(wrap);
   const closeNotice = () => { _markReloginNoticeSeen(); try { wrap.remove(); } catch (e) {} };
   wrap.querySelector('.authexp-later').addEventListener('click', closeNotice);
-  wrap.querySelector('.authexp-login').addEventListener('click', () => { closeNotice(); try { READ_AUTH.startKakaoLogin(); } catch (e) {} });
+  wrap.querySelector('.authexp-login').addEventListener('click', () => { closeNotice(); try { openLoginSheet(); } catch (e) {} });
 }
 (function () {
   const run = () => setTimeout(maybeShowReloginNotice, 800);
