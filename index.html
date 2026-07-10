@@ -7838,6 +7838,10 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* ─── Stage 1b: 직접 입력 ─── */
+.manual-price-row { display: flex; align-items: center; gap: 8px; }
+.manual-price-row .form-input { flex: 1; }
+.manual-price-won { font-size: 13.5px; color: var(--c-text-2, #5f5b52); flex: none; }
+.manual-price-hint { font-size: 11.5px; line-height: 1.55; color: var(--c-muted, #9b968a); margin-top: 6px; }
 .manual-form {
   display: flex; flex-direction: column; gap: 12px;
 }
@@ -23193,6 +23197,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
           <label class="form-label">출판사 (선택)</label>
           <input class="form-input" type="text" name="publisher" maxlength="60" placeholder="예: 민음사">
         </div>
+        <!-- v2.x — 구매 금액 (선택): 입력 시 오늘 날짜 구매 취득 기록 자동 생성 → 북플렉스 즉시 집계 (웹소설 제안 반영) -->
+        <div class="form-field" id="manualPriceField">
+          <label class="form-label" for="manualPriceInput">구매 금액 (선택)</label>
+          <div class="manual-price-row">
+            <input class="form-input" type="number" id="manualPriceInput" min="0" max="99999999" step="1" inputmode="numeric" placeholder="예: 3000">
+            <span class="manual-price-won">원</span>
+          </div>
+          <div class="manual-price-hint">입력하면 오늘 날짜의 구매 기록으로 저장돼 북플렉스에 바로 집계돼요. 회차 결제는 등록 후 책 상세의 소유 기록에서 추가할 수 있어요.</div>
+        </div>
         <!-- 표지 직접 첨부 (선택) -->
         <div class="form-field">
           <label class="form-label">표지 이미지 (선택)</label>
@@ -31742,6 +31755,17 @@ function confirmAddBook() {
     priceSales: (typeof b.priceSales === 'number' && b.priceSales > 0) ? b.priceSales : null,
     priceSource: (typeof b.priceSales === 'number' && b.priceSales > 0) ? 'aladin' : null,
   };
+  // v2.x — 직접 입력의 구매 금액(선택): 오늘 날짜 구매 취득 기록 자동 생성 → 북플렉스 즉시 집계.
+  //   검색 등록(source!=='manual')과 권 묶음에는 미적용 (칸이 숨김이지만 낡은 입력값 대비 이중 가드)
+  if (b.source === 'manual' && !BA.bundleEnabled) {
+    const _pEl = document.getElementById('manualPriceInput');
+    const _p = _pEl ? parseInt(_pEl.value, 10) : NaN;
+    if (Number.isFinite(_p) && _p > 0) {
+      const _acqRec = { id: _acqNewId(), type: 'purchase', date: today, place: null, price: _p, returnDate: null, memo: null };
+      newBook.acquisitions = [_acqRec];
+      Object.assign(newBook, _acqMirrorOf([_acqRec]));
+    }
+  }
 
   if (status === 'reading') {
     newBook.dateStart = inputStart;
@@ -31913,6 +31937,9 @@ document.getElementById('btnManualSubmit').addEventListener('click', submitManua
     BA.bundleEnabled = !!toggleInput.checked;
     toggleCard.classList.toggle('is-on', BA.bundleEnabled);
     countRow.classList.toggle('is-show', BA.bundleEnabled);
+    // v2.x — 묶음 등록 시 가격 칸 숨김 (권당/총액 모호 → 등록 후 책별 소유 기록으로)
+    const priceField = document.getElementById('manualPriceField');
+    if (priceField) priceField.hidden = BA.bundleEnabled;
 
     if (BA.bundleEnabled) {
       if (titleLbl) titleLbl.innerHTML = '시리즈명 <span class="req">*</span>';
@@ -38271,6 +38298,10 @@ const _BACK_OVERLAYS = [
   ['mrModal', 'closeMonthReport'],
   ['manualSheet', 'closeManualSheet'],
   ['loginSheet', 'closeLoginSheet'],
+  ['imBackdrop', '_imClose'],
+  ['obBackdrop', 'closeOnboarding'],
+  ['rsBackdrop', '_rsClose'],
+  ['.grp-sheet-backdrop', '_grpCloseSheet'],
 ];
 function _kbOverlayVisible(el) {
   if (!el) return false;
@@ -38287,18 +38318,23 @@ function _kbOverlayVisible(el) {
   return true;
 }
 function _closeTopOverlayForBack() {
-  let bestFn = null, bestZ = -1;
+  let bestFn = null, bestEl = null, bestZ = -1;
   for (let i = 0; i < _BACK_OVERLAYS.length; i++) {
-    const el = document.getElementById(_BACK_OVERLAYS[i][0]);
+    const key = _BACK_OVERLAYS[i][0];
+    const el = key.charAt(0) === '.' ? document.querySelector(key) : document.getElementById(key);
     if (!el || !_kbOverlayVisible(el)) continue;
     const z = parseInt(getComputedStyle(el).zIndex, 10) || 0;
-    if (z >= bestZ) { bestZ = z; bestFn = _BACK_OVERLAYS[i][1]; }
+    if (z >= bestZ) { bestZ = z; bestFn = _BACK_OVERLAYS[i][1]; bestEl = el; }
   }
-  if (!bestFn) return false;
+  if (!bestEl) return false;
   const f = window[bestFn];
-  if (typeof f !== 'function') return false;
-  try { f(); } catch (e) { console.error('[backGuard]', bestFn, e); return false; }
-  return true;
+  if (typeof f === 'function') {
+    // 함수가 닫기를 거절해도(예: 임포트 진행 중 _imClose 차단) 의도된 보호로 존중
+    try { f(); return true; } catch (e) { console.error('[backGuard]', bestFn, e); return false; }
+  }
+  // 전역 미노출 함수(동적 시트 등) → 백드롭 클릭 규약 폴백 + 실제 닫힘 재검사
+  try { bestEl.click(); } catch (e) { return false; }
+  return !_kbOverlayVisible(bestEl);
 }
 window.addEventListener('popstate', () => {
   if (_closeTopOverlayForBack()) {
