@@ -38336,18 +38336,141 @@ function _closeTopOverlayForBack() {
   try { bestEl.click(); } catch (e) { return false; }
   return !_kbOverlayVisible(bestEl);
 }
+/* ═══ 뒤로가기 v2 — 열림 감시(MutationObserver) 기반 자동 등록 ═══
+   v1(보초+사후 스캔)의 구조 결함 두 가지를 제거한다.
+   ① 보초가 1장짜리 일회용 — 닫을 창 없는 뒤로가기가 보초를 소비하면
+      이후 popstate 자체가 오지 않아 가드가 죽었다 (서재에서 백 → 노트에서 백 = 종료 제보의 원인).
+   ② 사후 스캔은 맵에 없는 창이 구멍 — 새 시트마다 두더지잡기.
+   v2: 어떤 오버레이든 .open/.is-open으로 열리는 "순간"을 감시해 히스토리 1장을
+   자동으로 쌓는다 (ModalStack 원리의 전 창 일반화). 뒤로가기 = 최근 창 닫기,
+   X버튼·배경 탭 닫기 = 해당 히스토리 자기 소비(어긋남 방지),
+   전부 닫힌 뒤의 뒤로가기 = 히스토리 바닥 = 시스템이 자연 종료. 보초 불필요.
+   새 창이 추가돼도 규약만 지키면 등록 코드 0줄로 자동 커버된다. */
+
+/* 열림 "상태" 판정 — 트랜지션 무관 (open 클래스 + aria + display만).
+   opacity·pointer-events는 열림/닫힘 전이의 순간에 중간값이라 판정에 쓰면 안 된다
+   (클래스가 붙는 순간 opacity는 아직 0 → 오판). 그 검사는 정적 시점 스캔(_kbOverlayVisible) 전용. */
+function _kbIsOpenState(el) {
+  if (!el || !el.classList) return false;
+  if (el.getAttribute && el.getAttribute('aria-hidden') === 'true') return false;
+  if (!el.classList.contains('open') && !el.classList.contains('is-open')) return false;
+  try { if (getComputedStyle(el).display === 'none') return false; } catch (e) {}
+  return true;
+}
+
+/* ModalStack이 자체 관리하는 요소는 이중 등록 제외 */
+const _KB_OBS_EXCLUDE = { bdSheet: 1, bdBackdrop: 1, noteBookSheet: 1 };
+
+function _kbIsOverlayEl(el) {
+  if (!el || el.nodeType !== 1) return false;
+  if (el.id && _KB_OBS_EXCLUDE[el.id]) return false;
+  const cls = typeof el.className === 'string' ? el.className : '';
+  if (!_kbIsOpenState(el)) return false;
+  for (let i = 0; i < _BACK_OVERLAYS.length; i++) {
+    const key = _BACK_OVERLAYS[i][0];
+    if (key.charAt(0) === '.' ? (el.matches && el.matches(key)) : el.id === key) return true;
+  }
+  if (/backdrop|sheet|modal|-view/i.test(cls) || /Backdrop|Sheet|Modal|View/.test(el.id || '')) return true;
+  try { if (getComputedStyle(el).position === 'fixed') return true; } catch (e) {}
+  return false;
+}
+
+const _kbStack = [];      // [{ els: [Element,...] }] — 논리적 창 하나 = 히스토리 1장
+let _kbConsuming = 0;     // X버튼 닫기 동기화로 우리가 스스로 소비 중인 pop 수
+
+function _kbEntryOf(el) {
+  for (let i = _kbStack.length - 1; i >= 0; i--) {
+    if (_kbStack[i].els.indexOf(el) !== -1) return i;
+  }
+  return -1;
+}
+function _kbEntryClosed(entry) {
+  for (let i = 0; i < entry.els.length; i++) {
+    const el = entry.els[i];
+    if (document.contains(el) && _kbIsOpenState(el)) return false;
+  }
+  return true;
+}
+function _kbConsumeFrom(idx) {
+  // 앱 코드(X버튼·배경 탭)로 닫힘 → 그 창부터 위의 히스토리를 스스로 소비해 어긋남 방지
+  const steps = _kbStack.length - idx;
+  _kbStack.length = idx;
+  _kbConsuming += steps;
+  try { history.go(-steps); } catch (e) { _kbConsuming -= steps; }
+}
+
+try {
+  const _kbMo = new MutationObserver((muts) => {
+    let batchEntry = null;  // 같은 턴의 동시 전이(한 창의 backdrop+sheet 쌍)는 한 항목으로 병합
+    const seen = new Set();
+    for (let i = 0; i < muts.length; i++) {
+      const el = muts[i].target;
+      if (seen.has(el)) continue;
+      seen.add(el);
+      const idx = _kbEntryOf(el);
+      if (idx === -1 && _kbIsOverlayEl(el) && _kbIsOpenState(el)) {
+        if (batchEntry) { batchEntry.els.push(el); continue; }
+        batchEntry = { els: [el] };
+        _kbStack.push(batchEntry);
+        try { history.pushState(Object.assign({}, history.state || {}, { kbOv: _kbStack.length }), ''); } catch (e) {}
+      } else if (idx !== -1 && !_kbIsOpenState(el) && _kbEntryClosed(_kbStack[idx])) {
+        _kbConsumeFrom(idx);
+      }
+    }
+  });
+  _kbMo.observe(document.body, { attributes: true, attributeFilter: ['class', 'aria-hidden'], subtree: true });
+} catch (e) { console.error('[backGuard v2] observer init', e); }
+
+/* 닫기 일반화 — ①그룹 내 맵 매치의 닫기 함수 ②창 내부 닫기 버튼 ③백드롭 클릭, 실제 닫힘 재검사 */
+function _kbCloseEntry(entry) {
+  for (let e = 0; e < entry.els.length; e++) {
+    const el = entry.els[e];
+    for (let i = 0; i < _BACK_OVERLAYS.length; i++) {
+      const key = _BACK_OVERLAYS[i][0];
+      const hit = key.charAt(0) === '.' ? (el.matches && el.matches(key)) : el.id === key;
+      if (!hit) continue;
+      const f = window[_BACK_OVERLAYS[i][1]];
+      if (typeof f === 'function') {
+        // 닫기 함수가 스스로 거절해도(예: 임포트 진행 중) 의도된 보호로 존중
+        try { f(); return true; } catch (err) { console.error('[backGuard v2]', _BACK_OVERLAYS[i][1], err); }
+      }
+    }
+  }
+  for (let e = 0; e < entry.els.length; e++) {
+    const el = entry.els[e];
+    const btn = el.querySelector && el.querySelector('[aria-label="닫기"], .bas-close, [data-close], [class*="-close"]');
+    if (btn) { try { btn.click(); } catch (err) {} if (_kbEntryClosed(entry)) return true; }
+  }
+  for (let e = 0; e < entry.els.length; e++) {
+    const el = entry.els[e];
+    if (/backdrop/i.test(typeof el.className === 'string' ? el.className : '')) {
+      try { el.click(); } catch (err) {}
+      if (_kbEntryClosed(entry)) return true;
+    }
+  }
+  return false;
+}
+
 window.addEventListener('popstate', () => {
-  if (_closeTopOverlayForBack()) {
-    try { history.pushState(Object.assign({}, history.state || {}, { modalDepth: ModalStack.stack.length, kbGuard: 1 }), ''); } catch (e) {}
+  // X버튼 닫기 동기화로 우리가 유발한 pop → 소비만 하고 종료
+  if (_kbConsuming > 0) { _kbConsuming--; return; }
+  // 관찰 밖에서 닫힌 스테일 정리
+  while (_kbStack.length && _kbEntryClosed(_kbStack[_kbStack.length - 1])) _kbStack.pop();
+  if (_kbStack.length) {
+    const entry = _kbStack.pop();
+    // 닫기 실패 시 재푸시하지 않는다 — 같은 창에서 무한히 막히는 것 방지
+    // (히스토리 한 장을 조용히 소비하고, 다음 뒤로가기는 자연스럽게 아래 단계로)
+    _kbCloseEntry(entry);
     return;
   }
-  const beforeLen = ModalStack.stack.length;
+  // 옵저버가 못 잡은 창(부팅 전 열림 등) 폴백 스캔 — 닫았으면 한 장 재장전
+  if (_closeTopOverlayForBack()) {
+    try { history.pushState(Object.assign({}, history.state || {}, { kbOv: _kbStack.length }), ''); } catch (e) {}
+    return;
+  }
+  // 기존 등록형(ModalStack: 책 상세 등) 처리 — 닫을 게 없으면 자연히 아무 일 없음
   ModalStack._handlePop();
-  if (ModalStack.stack.length !== beforeLen) return;
-  try { history.back(); } catch (e) {}
 });
-/* 보초 1장 — 첫 뒤로가기가 곧장 앱 종료로 이어지지 않게 */
-try { history.pushState(Object.assign({}, history.state || {}, { kbGuard: 1 }), ''); } catch (e) {}
 
 /* ─── 모달 열기/닫기 ─── */
 /* ═══════════════════════════════════════════════════════════
