@@ -19708,6 +19708,29 @@ body.cn-locked {
 .bfp-equiv-item .bfsw-ok { color: #5B7355; font-weight: 800; }
 .bfsw-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--c-border); font-size: 13px; color: var(--c-terra-700); line-height: 1.6; }
 [data-theme="midnight"] .bfsw-foot { color: var(--c-text-2); }
+/* v2.x — 대여처별 아낀 돈 펼치기 (카페 제안) */
+.bfrp-btn {
+  margin-top: 13px; width: 100%;
+  border: 1px solid var(--c-border); background: var(--c-surface-2); color: var(--c-text-2);
+  font-size: 12.5px; font-weight: 700; border-radius: 10px; padding: 10px 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.bfrp-btn:active { opacity: .75; }
+.bfrp-chev { font-size: 10px; }
+.bfrp-wrap { overflow: hidden; max-height: 0; opacity: 0; transition: max-height .38s cubic-bezier(.2,.8,.2,1), opacity .3s ease .05s; }
+.bfp-rentsave.bfrp-expanded .bfrp-wrap { max-height: 620px; opacity: 1; }
+.bfrp-inner { padding-top: 16px; }
+.bfrp-lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; color: var(--c-label); margin-bottom: 10px; }
+.bfrp-row { margin-bottom: 12px; cursor: pointer; border-radius: 8px; padding: 2px 4px; margin-left: -4px; margin-right: -4px; }
+.bfrp-row:active { opacity: .65; }
+.bfrp-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.bfrp-nm { font-size: 13px; font-weight: 700; color: var(--c-text); }
+.bfrp-cnt { font-size: 11px; color: var(--c-muted); font-weight: 400; margin-left: 5px; }
+.bfrp-amt { font-size: 13px; font-weight: 800; color: var(--c-text); }
+.bfrp-bar { height: 6px; border-radius: 100px; background: var(--c-surface-2); overflow: hidden; }
+.bfrp-fill { height: 100%; border-radius: 100px; background: var(--g-gold); }
+.bfrp-foot { font-size: 10.5px; color: var(--c-muted); margin-top: 8px; line-height: 1.6; opacity: .8; }
+
 /* v2.x — 대여로 아낀 돈 카드 (컨테이너·라벨·각주는 bfp-equiv/bfsw-foot 재사용) */
 .bfp-rentsave .bfrs-hero { display: flex; align-items: baseline; gap: 7px; margin-bottom: 8px; }
 .bfp-rentsave .bfrs-amt { font-size: 24px; font-weight: 800; color: #0F6E56; }
@@ -24042,8 +24065,8 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="wn-item">
         <div class="wn-icon">📖</div>
         <div>
-          <div class="wn-item-ttl">웹소설도 북플렉스에</div>
-          <div class="wn-item-sub">직접 입력에서 금액을 넣으면 연재작도 바로 집계돼요. 장르 줄을 누르면 책 목록도 열려요.</div>
+          <div class="wn-item-ttl">북플렉스가 더 똑똑해졌어요</div>
+          <div class="wn-item-sub">웹소설 금액 집계, 장르 줄 탭 → 책 목록, 그리고 대여로 아낀 돈을 대여처별로도 볼 수 있어요.</div>
         </div>
       </div>
       <div class="wn-item">
@@ -47452,6 +47475,75 @@ function _calcRentSaved(year) {
   return { total, count: rented.length, priced, noPriceCount: rented.length - priced.length };
 }
 /* v2.x — 아낀 돈 카드 HTML (시안 B: 총액 + top 3 + 그 외). 대여 0권/전부 가격 미상이면 빈 문자열 */
+/* v2.x — 대여처별 아낀 돈 (카페 제안): _calcRentSaved와 같은 책 선정을 그대로 쓰고
+   place로만 쪼갠다(총액 = 대여처 합 보장). 귀속 규칙: 그 연도 rent 레코드 중 날짜가
+   가장 이른 것의 place(빈 값은 '대여처 미입력'). 한 책을 두 대여처에서 빌려도 1곳에만. */
+let _rentPlaceCache = null;
+function _rentPlaceOf(b, year) {
+  const rents = _acqList(b).filter(r => r.type === 'rent');
+  let pool = rents;
+  if (year != null) {
+    const inYear = rents.filter(r => r.date && new Date(r.date).getFullYear() === year);
+    if (inYear.length > 0) pool = inYear;
+  }
+  pool = pool.slice().sort((a, c) => String(a.date || '9999').localeCompare(String(c.date || '9999')));
+  const place = pool.length ? String(pool[0].place || '').trim() : '';
+  return place || '대여처 미입력';
+}
+function _rentSavedByPlace(year) {
+  const rs = _calcRentSaved(year);
+  const buckets = new Map();
+  rs.priced.forEach(x => {
+    const key = _rentPlaceOf(x.b, year);
+    const cur = buckets.get(key) || { name: key, amt: 0, count: 0, books: [] };
+    cur.amt += x.amt;
+    cur.count += 1;
+    cur.books.push(x.b);
+    buckets.set(key, cur);
+  });
+  return [...buckets.values()].sort((a, c) => c.amt - a.amt || c.count - a.count);
+}
+function _rentPlaceRowsHtml(rows) {
+  const maxAmt = rows.length ? rows[0].amt : 0;
+  const fmt = (n) => '\u20A9' + n.toLocaleString('ko-KR');
+  return rows.map((g, i) => {
+    const em = g.name === '대여처 미입력' ? '📦' : '📚';
+    const pct = maxAmt > 0 ? Math.max(3, Math.round(g.amt / maxAmt * 100)) : 0;
+    return '<div class="bfrp-row" data-rpl-i="' + i + '" role="button" tabindex="0" aria-label="' + _spEsc(g.name) + ' 책 모아보기">' +
+      '<div class="bfrp-top"><span class="bfrp-nm">' + em + ' ' + _spEsc(g.name) +
+      '<span class="bfrp-cnt">' + g.count + '권</span></span>' +
+      '<span class="bfrp-amt">' + fmt(g.amt) + '</span></div>' +
+      '<div class="bfrp-bar"><div class="bfrp-fill" style="width:' + pct + '%"></div></div>' +
+    '</div>';
+  }).join('');
+}
+function _rentPlaceToggle(btn) {
+  const wrap = btn.closest('.bfp-rentsave');
+  if (!wrap) return;
+  const on = wrap.classList.toggle('bfrp-expanded');
+  const chev = btn.querySelector('.bfrp-chev');
+  const lblEl = btn.querySelector('.bfrp-btn-lbl');
+  if (lblEl) lblEl.textContent = on ? '접기' : '대여처별로 보기';
+  if (chev) chev.textContent = on ? '\u25B2' : '\u25BC';
+}
+function _rentPlaceOpenBooks(i) {
+  const g = _rentPlaceCache && _rentPlaceCache[i];
+  if (!g || !Array.isArray(g.books) || !g.books.length) return;
+  const em = g.name === '대여처 미입력' ? '📦' : '📚';
+  const bd = document.getElementById('ddBackdrop');
+  const sh = document.getElementById('ddSheet');
+  if (bd) bd.classList.add('dd-above-bf');
+  if (sh) sh.classList.add('dd-above-bf');
+  const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
+  openDrillDown(em + ' ' + g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)));
+}
+document.addEventListener('click', (e) => {
+  const tgl = e.target && e.target.closest ? e.target.closest('.bfrp-btn') : null;
+  if (tgl) { _rentPlaceToggle(tgl); return; }
+  const row = e.target && e.target.closest ? e.target.closest('.bfrp-row[data-rpl-i]') : null;
+  if (row) _rentPlaceOpenBooks(parseInt(row.getAttribute('data-rpl-i'), 10));
+});
+
 function _rentSavedCardHtml(year) {
   const rs = _calcRentSaved(year);
   if (rs.count === 0 || rs.total === 0) return '';
@@ -47467,11 +47559,21 @@ function _rentSavedCardHtml(year) {
   }
   const foot = '대여로 읽은 책, 이만큼 아꼈어요!' +
     (rs.noPriceCount > 0 ? ' 가격 정보 없는 <b>' + rs.noPriceCount + '권</b>은 뺐어요.' : '');
+  const placeRows = _rentSavedByPlace(year);
+  _rentPlaceCache = placeRows;
+  const placesHtml = placeRows.length === 0 ? '' :
+    '<button type="button" class="bfrp-btn"><span class="bfrp-btn-lbl">대여처별로 보기</span> <span class="bfrp-chev">\u25BC</span></button>' +
+    '<div class="bfrp-wrap"><div class="bfrp-inner">' +
+      '<div class="bfrp-lbl">어디서 얼마나 아꼈을까요</div>' +
+      _rentPlaceRowsHtml(placeRows) +
+      '<div class="bfrp-foot">금액은 그 대여처에서 빌려 읽은 책들의 판매가 합이에요. 대여처는 소유 기록의 \u201C어디서\u201D 칸에 적은 이름 그대로예요. 행을 누르면 책 목록이 열려요.</div>' +
+    '</div></div>';
   return '<div class="bfp-equiv bfp-rentsave">' +
     '<div class="bfp-equiv-lbl">대여로 아낀 돈</div>' +
     '<div class="bfrs-hero"><span class="bfrs-amt">' + fmt(rs.total) + '</span><span class="bfrs-n">' + rs.priced.length + '권</span></div>' +
     '<div class="bfrs-list">' + rows + '</div>' +
     '<div class="bfsw-foot">' + foot + '</div>' +
+    placesHtml +
   '</div>';
 }
 function _calcSpend(year) {
