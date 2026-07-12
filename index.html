@@ -581,56 +581,26 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   color: var(--c-label);
   text-align: center;
 }
-.app-footer-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Pretendard Variable', Pretendard, inherit;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  opacity: 0.55;
-  margin-bottom: 18px;
+/* v2.x — 푸터 A안: 정식 로고 + 버전·저작자 한 줄 + 크레딧 한 줄 */
+.app-footer-logo {
+  font-size: 17px;      /* .keepbook-logo는 height:1em — 폰트 크기로 로고 크기 제어 */
+  opacity: 0.8;
 }
-.app-footer-mark {
-  width: 16px;
-  height: 16px;
-}
-.app-footer-by {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  color: var(--c-label);
-  margin-bottom: 4px;
+.app-footer-meta {
+  margin-top: 11px;
+  font-size: 12px;
+  color: var(--c-text-2);
   opacity: 0.85;
 }
-.app-footer-name {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--c-text);
-  letter-spacing: -0.015em;
-  margin-bottom: 10px;
-  opacity: 0.9;
-}
-.app-footer-rights {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: var(--c-label);
-  opacity: 0.75;
-}
-.app-footer-sep {
-  width: 44px;
-  height: 1px;
-  background: var(--c-border);
-  margin: 14px 0;
+.app-footer-meta b {
+  font-weight: 600;
+  color: var(--c-text-2);
 }
 .app-footer-credit {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.4px;
+  margin-top: 6px;
+  font-size: 11px;
   color: var(--c-label);
-  opacity: 0.6;
+  opacity: 0.65;
 }
 .header-actions { display: flex; gap: 2px; }
 .header-btn {
@@ -7866,6 +7836,7 @@ body:has(.lib-edit-bar) .library-cards {
 }
 
 /* ─── Stage 1b: 직접 입력 ─── */
+.manual-wn-hint { font-size: 11.5px; line-height: 1.6; color: var(--c-text-2, #5f5b52); background: var(--c-surface-2, #f4efe4); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
 .manual-price-row { display: flex; align-items: center; gap: 8px; }
 .manual-price-row .form-input { flex: 1; }
 .manual-price-won { font-size: 13.5px; color: var(--c-text-2, #5f5b52); flex: none; }
@@ -22760,18 +22731,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
   </div><!-- /.pane-viewport -->
 
   <footer class="app-footer">
-    <div class="app-footer-brand">
-      <svg class="app-footer-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M7 5 L22 5 A4 4 0 0 1 26 9 L26 24 A2.5 2.5 0 0 1 23.5 26.5 L9.5 26.5 A2.5 2.5 0 0 1 7 24 L7 5 Z"/>
-        <path d="M11 5 L11 12 L14 10 L17 12 L17 5"/>
-      </svg>
-      <span class="keepbook-logo">keepbook</span>
-    </div>
-    <div class="app-footer-by">DESIGNED &amp; DEVELOPED BY</div>
-    <div class="app-footer-name">Locadomingo</div>
-    <div class="app-footer-rights">© 2026 · ALL RIGHTS RESERVED</div>
-    <div class="app-footer-sep"></div>
-    <div class="app-footer-credit">Book data · Kakao Books · Google Books · Aladin</div>
+    <span class="keepbook-logo app-footer-logo">keepbook</span>
+    <div class="app-footer-meta"><span id="appFooterVer"></span>© 2026 <b>Locadomingo</b></div>
+    <div class="app-footer-credit">책 정보 · 카카오 · 알라딘 · Google Books</div>
   </footer>
 
 </div>
@@ -23185,6 +23147,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
         <!-- 웹소설 전용: 연재 상태 + 진행 단위 + 회차/권 (webnovel 선택 시만 표시) -->
         <div id="manualWebnovelFields" hidden>
+          <div class="manual-wn-hint">권마다 페이지를 따로 기록하고 싶다면, 이 화면 대신 <b>권 묶음 등록</b>으로 각 권을 등록해보세요. 권별 타이머·완독 확인까지 전부 돼요.</div>
           <div class="form-field">
             <label class="form-label">연재 상태</label>
             <div class="format-toggle novel-status-toggle">
@@ -24052,28 +24015,47 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
     <div class="wn-badge" id="wnBadge">업데이트 소식</div>
-    <div class="wn-ttl">밑줄 친 그 문장, 이제 함께 나눠요</div>
-    <div class="wn-sub">혼자 기록하던 keepbook에 이제 함께하는 작은 공간이 생겼어요. 노트에 적어 간직하던 내 생각들, 인상깊었던 인용구들을 다른 사람들과 함께 조용히 나누고 더 많은 영감을 얻어가세요.</div>
-
-    <div class="wn-hero" style="background:linear-gradient(135deg,rgba(111,90,200,0.13),rgba(111,90,200,0.04));border:1px solid rgba(111,90,200,0.45);">
-      <div class="wn-hero-tag" style="background:#6F5AC8;color:#fff;">
-        <span style="font-size:11px;">🌙</span>
-        NEW · KEEP
+    <div class="wn-ttl">로그인 문이 하나 더 열렸어요</div>
+    <div class="wn-sub">그동안 카페와 문의로 주신 제보·제안을 담아, 곳곳을 손봤어요.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+      <div class="wn-item wn-item-highlight">
+        <div class="wn-icon">🔑</div>
+        <div>
+          <div class="wn-item-ttl">Google 로그인</div>
+          <div class="wn-item-sub">카카오가 부담스러웠다면 이제 Google로도 시작할 수 있어요. 두 계정은 서로 달라서, 쓰던 쪽으로 계속 로그인해 주세요.</div>
+        </div>
       </div>
-      <div class="wn-hero-ttl" style="font-size:19px;color:var(--c-text);font-weight:800;">다섯 번째 탭, KEEP</div>
-      <div class="wn-hero-sub" style="margin-bottom:14px;">내 서재는 그대로 비공개예요. 내가 올리기로 한 글만 KEEP 피드에 올라가요.</div>
-      <div style="background:rgba(255,255,255,0.78);border-radius:6px;padding:11px 13px;border:1px solid rgba(111,90,200,0.22);">
-        <div style="font-size:12px;color:var(--c-text);line-height:1.9;">
-          <div style="margin-bottom:6px;">처음 한 번 <b style="font-weight:700;">KEEP에서 쓸 이름</b> 정하기</div>
-          <div style="margin-bottom:6px;">노트 카드의 <b style="font-weight:700;">[+ KEEP]</b> 버튼으로 문장 공유</div>
-          <div style="margin-bottom:6px;">댓글을 남기고, 마음에 든 글은 <b style="font-weight:700;">KEEP 저장</b></div>
-          <div>공유는 하루 <b style="font-weight:700;">3개</b>까지, 천천히</div>
+      <div class="wn-item">
+        <div class="wn-icon">🔙</div>
+        <div>
+          <div class="wn-item-ttl">뒤로가기 새 단장</div>
+          <div class="wn-item-sub">열린 창 닫기 → 서재로 → 종료. 이제 앱이 갑자기 꺼지지 않아요.</div>
+        </div>
+      </div>
+      <div class="wn-item">
+        <div class="wn-icon">🏁</div>
+        <div>
+          <div class="wn-item-ttl">마지막 페이지를 읽으면</div>
+          <div class="wn-item-sub">완독으로 옮길지 바로 물어봐요. 탭 한 번이면 완독 처리 끝.</div>
+        </div>
+      </div>
+      <div class="wn-item">
+        <div class="wn-icon">📖</div>
+        <div>
+          <div class="wn-item-ttl">웹소설도 북플렉스에</div>
+          <div class="wn-item-sub">직접 입력에서 금액을 넣으면 연재작도 바로 집계돼요. 장르 줄을 누르면 책 목록도 열려요.</div>
+        </div>
+      </div>
+      <div class="wn-item">
+        <div class="wn-icon">🌼</div>
+        <div>
+          <div class="wn-item-ttl">봄날 개나리 테마 · 자잘한 수리</div>
+          <div class="wn-item-sub">노란 봄 테마가 생겼고, 아침 기록 날짜·잡지 등록·공유 오류를 고쳤어요.</div>
         </div>
       </div>
     </div>
-
     <div class="wn-actions" style="margin-top:18px;">
-      <button class="wn-btn primary" id="wnGoStats">KEEP 보러가기</button>
+      <button class="wn-btn primary" id="wnGoStats">좋아요, 시작하기</button>
     </div>
   </div>
 </div>
@@ -51644,9 +51626,14 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
+// v2.x — 푸터 버전 표기 (캐시/구버전 문의 판별용, APP_VERSION 따라 자동)
+(function () {
+  const el = document.getElementById('appFooterVer');
+  if (el) el.textContent = 'v' + APP_VERSION + ' · ';
+})();
 const LAST_SEEN_VERSION_KEY = 'read.lastSeenVersion.v9_1';
 
 /* v1.9.0 — 설정 페이지 부제 자동 갱신 (APP_VERSION 한 곳만 바꾸면 같이 갱신됨)
@@ -51925,10 +51912,9 @@ window.kbmOpenWelcome = kbmOpenWelcome;
   if (later) later.addEventListener('click', closeWhatsNew);
   if (backdrop) backdrop.addEventListener('click', closeWhatsNew);
   if (goStats) {
-    // v2.0.0 — KEEP 보러가기 (닫고 KEEP 탭으로 이동)
+    // v2.1.0 — 확인 후 닫기 (탭 이동 없음)
     goStats.addEventListener('click', function(){
       closeWhatsNew();
-      try { var _i = (typeof TAB_ORDER !== 'undefined') ? TAB_ORDER.indexOf('sayu') : -1; if (_i >= 0 && typeof switchTab === 'function') switchTab(_i); } catch(e){}
     });
   }
 })();
