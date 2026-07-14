@@ -10412,6 +10412,47 @@ body.manual-open { overflow: hidden; }
 }
 
 /* ═══ 바로 읽기 알약 (제목 옆) ═══ */
+/* v2.1.0 — 책 정보 수정 */
+.bd-title-edit {
+  flex: none; border: none; background: var(--c-surface-2); color: var(--c-text-2);
+  width: 26px; height: 26px; border-radius: 100px; font-size: 11px; cursor: pointer; margin-top: 2px;
+}
+.bd-title-edit:active { opacity: .7; }
+.te-backdrop {
+  position: fixed; inset: 0; background: rgba(28, 25, 23, 0.5); backdrop-filter: blur(4px);
+  z-index: var(--z-modal); opacity: 0; pointer-events: none; transition: opacity .22s ease;
+}
+.te-backdrop.open { opacity: 1; pointer-events: auto; }
+.te-sheet {
+  position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+  width: 100%; max-width: 480px; background: var(--c-canvas);
+  border-radius: 18px 18px 0 0; z-index: var(--z-modal-fg);
+  padding: 18px 18px calc(26px + env(safe-area-inset-bottom, 0px));
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1);
+}
+.te-sheet.open { transform: translate(-50%, 0); }
+.te-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.te-ttl { font-size: 16px; font-weight: 800; color: var(--c-text); }
+.te-close { border: none; background: var(--c-surface-2); color: var(--c-text-2); width: 30px; height: 30px; border-radius: 100px; font-size: 14px; cursor: pointer; }
+.te-lbl { font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--c-label); margin: 12px 0 6px; }
+.te-in {
+  width: 100%; border: 1px solid var(--c-border-2); background: var(--c-surface);
+  border-radius: 10px; padding: 11px 12px; font-size: 14px; color: var(--c-text); font-family: inherit;
+}
+.te-in:focus { outline: none; border-color: var(--primary); }
+.te-clean { margin-top: 10px; background: var(--c-surface-2); border: 1px dashed var(--c-border-2); border-radius: 10px; padding: 11px 12px; }
+.te-clean.hidden { display: none; }
+.te-clean-lbl { font-size: 11px; font-weight: 700; color: var(--c-label); margin-bottom: 6px; }
+.te-clean-preview { font-size: 13px; line-height: 1.7; color: var(--c-text); margin-bottom: 9px; word-break: break-all; }
+.te-clean-preview .te-del { color: #c26a5a; text-decoration: line-through; opacity: .75; }
+.te-clean-preview .te-keep { font-weight: 700; }
+.te-clean-btn { border: 1px solid var(--primary); background: var(--c-surface); color: var(--primary); font-size: 12px; font-weight: 700; border-radius: 100px; padding: 7px 14px; cursor: pointer; }
+.te-clean-btn.hidden, .te-clean-undo.hidden { display: none; }
+.te-clean-undo { border: none; background: none; color: var(--c-muted); font-size: 12px; text-decoration: underline; cursor: pointer; margin-left: 8px; }
+.te-save { margin-top: 18px; width: 100%; border: none; background: var(--brand-primary); color: #fff; font-size: 14px; font-weight: 700; border-radius: 12px; padding: 14px 0; cursor: pointer; }
+.te-save:active { opacity: .85; }
+.te-foot { font-size: 10.5px; color: var(--c-muted); margin-top: 10px; line-height: 1.6; text-align: center; opacity: .85; }
+
 .bd-title-row {
   display: flex;
   align-items: flex-start;
@@ -24032,6 +24073,27 @@ body.sayu-active #pane-sayu{ background:transparent; }
 </div>
 
 <!-- ═══════════ 업데이트 소식 모달 (기존 유저용) ═══════════ -->
+<!-- ═══════════ v2.1.0 — 책 정보 수정 (제목·저자, 괄호 정리 미리보기) ═══════════ -->
+<div class="te-backdrop" id="teBackdrop"></div>
+<div class="te-sheet" id="teSheet" aria-hidden="true" role="dialog" aria-label="책 정보 수정">
+  <div class="te-head">
+    <div class="te-ttl">책 정보 수정</div>
+    <button type="button" class="te-close" id="teClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="te-lbl">제목</div>
+  <input class="te-in" id="teTitle" type="text" maxlength="200">
+  <div class="te-clean hidden" id="teCleanBox">
+    <div class="te-clean-lbl">괄호 꼬리표를 지우면 이렇게 돼요</div>
+    <div class="te-clean-preview" id="teCleanPreview"></div>
+    <button type="button" class="te-clean-btn" id="teCleanApply">이렇게 지우기</button>
+    <button type="button" class="te-clean-undo hidden" id="teCleanUndo">되돌리기</button>
+  </div>
+  <div class="te-lbl">저자</div>
+  <input class="te-in" id="teAuthor" type="text" maxlength="120">
+  <button type="button" class="te-save" id="teSave">저장</button>
+  <div class="te-foot">표지·페이지·기록 같은 다른 정보는 그대로 유지돼요.<br>제목을 바꿔도 중복 확인은 ISBN으로 계속 작동해요.</div>
+</div>
+
 <div class="wn-backdrop" id="wnBackdrop"></div>
 <div class="wn-modal" id="wnModal" aria-hidden="true">
   <div class="wn-card">
@@ -24067,6 +24129,13 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div>
           <div class="wn-item-ttl">북플렉스가 더 똑똑해졌어요</div>
           <div class="wn-item-sub">웹소설 금액 집계, 장르 줄 탭 → 책 목록, 그리고 대여로 아낀 돈을 대여처별로도 볼 수 있어요.</div>
+        </div>
+      </div>
+      <div class="wn-item">
+        <div class="wn-icon">✏️</div>
+        <div>
+          <div class="wn-item-ttl">책 제목·저자 수정</div>
+          <div class="wn-item-sub">책 상세에서 제목 옆 연필을 누르면 고칠 수 있어요. "(완결)" 같은 괄호 꼬리표는 한 번에 정리돼요.</div>
         </div>
       </div>
       <div class="wn-item">
@@ -31508,6 +31577,92 @@ function _restoreTag(name) {
 }
 
 /* v1.9.0 — 책 상세 페이지 태그 칩 렌더 (BD 컨텍스트) */
+/* ═══════════ v2.1.0 — 책 정보 수정 (제목·저자) ═══════════
+   진입: 책 상세 제목 옆 ✏️. 괄호 꼬리표는 미리보기(남는 부분 강조 + 지워질 부분 취소선)
+   확인 후 원터치 제거 — 자동 필터링은 판형 정보 훼손·잡지 중복 감지 충돌 위험이 있어
+   반드시 사용자 확인을 거친다. 저장은 title/author만 변경(ISBN 등 불변). */
+let _teBookId = null;
+let _teBeforeClean = null;
+function _teSplitParens(t) {
+  const m = String(t || '').match(/^(.*?)((?:\s*\([^()]*\))+)\s*$/);
+  if (!m || !m[1].trim()) return null;
+  return { keep: m[1].trim(), tail: m[2].trim() };
+}
+function _teRenderCleanBox() {
+  const box = document.getElementById('teCleanBox');
+  const prev = document.getElementById('teCleanPreview');
+  const applyBtn = document.getElementById('teCleanApply');
+  const undoBtn = document.getElementById('teCleanUndo');
+  const v = document.getElementById('teTitle').value;
+  const sp = _teSplitParens(v);
+  if (_teBeforeClean !== null) {
+    box.classList.remove('hidden');
+    prev.innerHTML = '<span class="te-keep">' + esc(v) + '</span>';
+    applyBtn.classList.add('hidden');
+    undoBtn.classList.remove('hidden');
+  } else if (sp) {
+    box.classList.remove('hidden');
+    prev.innerHTML = '<span class="te-keep">' + esc(sp.keep) + '</span> <span class="te-del">' + esc(sp.tail) + '</span>';
+    applyBtn.classList.remove('hidden');
+    undoBtn.classList.add('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
+}
+function openTitleEdit(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  _teBookId = bookId;
+  _teBeforeClean = null;
+  document.getElementById('teTitle').value = b.title || '';
+  document.getElementById('teAuthor').value = b.author || '';
+  _teRenderCleanBox();
+  document.getElementById('teBackdrop').classList.add('open');
+  const sh = document.getElementById('teSheet');
+  sh.classList.add('open');
+  sh.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+function closeTitleEdit() {
+  document.getElementById('teBackdrop').classList.remove('open');
+  const sh = document.getElementById('teSheet');
+  sh.classList.remove('open');
+  sh.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+(function wireTitleEdit() {
+  const $ = (id) => document.getElementById(id);
+  $('teClose').addEventListener('click', closeTitleEdit);
+  $('teBackdrop').addEventListener('click', closeTitleEdit);
+  $('teCleanApply').addEventListener('click', () => {
+    const inp = $('teTitle');
+    const sp = _teSplitParens(inp.value);
+    if (!sp) return;
+    _teBeforeClean = inp.value;
+    inp.value = sp.keep;
+    _teRenderCleanBox();
+  });
+  $('teCleanUndo').addEventListener('click', () => {
+    if (_teBeforeClean === null) return;
+    $('teTitle').value = _teBeforeClean;
+    _teBeforeClean = null;
+    _teRenderCleanBox();
+  });
+  $('teTitle').addEventListener('input', () => { _teBeforeClean = null; _teRenderCleanBox(); });
+  $('teSave').addEventListener('click', () => {
+    const b = BOOKS.find(x => x.id === _teBookId);
+    if (!b) { closeTitleEdit(); return; }
+    const title = $('teTitle').value.trim();
+    const author = $('teAuthor').value.trim();
+    if (!title) { showToast('제목은 비울 수 없어요'); return; }
+    updateBook(b.id, { title, author });
+    closeTitleEdit();
+    if (BD.book && BD.book.id === b.id && typeof renderBookDetail === 'function') renderBookDetail();
+    if (typeof renderLibraryCards === 'function') renderLibraryCards();
+    showToast('책 정보를 수정했어요');
+  });
+})();
+
 function renderBookDetailTags() {
   const b = BD.book;
   if (!b) return;
@@ -38799,6 +38954,7 @@ function closeQuickReadConfirm() {
 }
 
 function openBookDetail(id) {
+  BD._closeGen = (BD._closeGen || 0) + 1;  // v2.1.0 — 진행 중인 닫힘 뒷정리 타이머 무효화
   const book = BOOKS.find(b => b.id === id);
   if (!book) return;
   BD.book = book;
@@ -38837,7 +38993,11 @@ function _closeBookDetailActual() {
   // v1.3.0 — 묶음 시트가 열려있으면 그 그리드도 다시 그림 (책 상세에서 상태 변경 시 시트의 책 목록/카드 갱신)
   try { _grpRefreshOpenSheetIfAny(); } catch(e){}
   // v1.0.1 — DOM 리셋은 transition 종료 후로 (슬라이드 다운 중 깜박임 방지)
+  // v2.1.0 — 세대 가드: 이 타이머가 도는 350ms 사이에 상세가 다시 열리면(탭 전환의
+  // 일괄 닫기 직후 열기 등) 묵은 타이머가 새 책의 BD.book을 지워버리는 잠복 버그 수정
+  const _closeGen = BD._closeGen = (BD._closeGen || 0) + 1;
   setTimeout(() => { 
+    if (_closeGen !== BD._closeGen) return;  // 그 사이 열림/닫힘 발생 — 이 뒷정리는 무효
     const ttlEl = document.getElementById('bdHeadTtl');
     if (ttlEl) ttlEl.textContent = '책 상세';
     // v1.5.x — 묶음 위 겹침 클래스 해제 (다음 일반 열기 때 영향 없게)
@@ -39010,6 +39170,7 @@ function renderBookDetail() {
         <div class="bd-hero-info">
           <div class="bd-title-row">
             <div class="bd-hero-title">${esc(b.title)}</div>
+            <button type="button" class="bd-title-edit" id="bdTitleEditBtn" aria-label="책 정보 수정" onclick="if (typeof BD !== 'undefined' && BD.book) openTitleEdit(BD.book.id)">✏️</button>
             ${reading ? `<button type="button" class="quick-read-pill ${TIMER.bookId === b.id ? 'same-book' : ''}" id="bdQuickRead" aria-label="${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'} (시네마 모드)">
               <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
               <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
