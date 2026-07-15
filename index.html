@@ -4429,13 +4429,15 @@ body:has(.lib-edit-bar) .library-cards {
   align-items: center;
 }
 .note-sort-toggle {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 5px 4px;
-  background: transparent;
-  border: none;
+  /* v2.1.0 — 발견성 강화: 텍스트 → 알약 버튼 (제보: 정렬 버튼을 못 찾음) */
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 12px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-2);
+  border-radius: 100px;
   font-family: inherit;
-  font-size: 11px; font-weight: 500;
-  color: var(--c-label);
+  font-size: 11.5px; font-weight: 700;
+  color: var(--c-text-2);
   letter-spacing: -0.01em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -45616,11 +45618,12 @@ function getFilteredNotes() {
         if (ca !== cb) return cb - ca;
         return a.bookId - b.bookId;
       }
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
     });
   } else {
-    // recent (default)
-    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // recent (default) — v2.1.0: 수정한 노트도 위로 (updatedAt 우선, 없으면 createdAt)
+    const ts = (n) => new Date(n.updatedAt || n.createdAt);
+    result.sort((a, b) => ts(b) - ts(a));
   }
   return result;
 }
@@ -45736,7 +45739,7 @@ function renderNoteSummaryHead() {
           <div class="nsc-sub">밑줄 친 문장들이 머무는 곳</div>
         </div>
         <div class="note-sort-wrap">
-          <button class="note-sort-toggle" id="noteSortToggle" type="button" aria-haspopup="menu" aria-expanded="false">${esc(curSortLabel)}<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="note-sort-toggle" id="noteSortToggle" type="button" aria-haspopup="menu" aria-expanded="false"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>${esc(curSortLabel)}<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="note-sort-menu" id="noteSortMenu" role="menu">${sortItems}</div>
         </div>
       </div>
@@ -46815,6 +46818,7 @@ function saveNote() {
       note.page = (pageVal && pageVal > 0) ? pageVal : null;
       note.body = NA.body.trim();
       note.favorite = NA.favorite;
+      note.updatedAt = new Date().toISOString();  // v2.1.0 — 수정한 노트가 최신순 맨 위로 (카페 제보)
     }
     showToast('노트 수정됨 ✓');
   } else {
