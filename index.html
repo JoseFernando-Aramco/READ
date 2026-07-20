@@ -33962,6 +33962,10 @@ const PALETTE_META = {
 // 계절 계산 (12월은 해당 년도 겨울, 1~2월은 전년도 겨울)
 function getSeason(dateStr) {
   const d = new Date(dateStr);
+  if (!dateStr || isNaN(d.getTime())) {
+    // v2.2.x — 시작일·완독일이 없는 책 (아주 예전 버전에서 등록된 기록 등): NaN 대신 명시 그룹
+    return { year: '', season: '시작일 미상', emoji: '<svg class="ic"><use href="#i-book"/></svg>', order: 0 };
+  }
   const m = d.getMonth() + 1;
   const y = d.getFullYear();
   if (m >= 3  && m <= 5)  return { year:y,   season:'봄',   emoji:'<svg class="ic"><use href="#i-season-spring"/></svg>', order:1 };
@@ -33989,7 +33993,7 @@ function formatReadDateRange(dateStart, dateEnd) {
   const endStr = (endY === startY) ? formatDate(dateEnd) : `${endY}.${formatDate(dateEnd)}`;
   return `${startStr} – ${endStr}`;
 }
-const daysBetween = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 86400000));
+const daysBetween = (a, b) => { const ms = new Date(b) - new Date(a); return isNaN(ms) ? null : Math.max(1, Math.round(ms / 86400000)); };  // v2.2.x — 날짜 없는 기록은 null (NaN일 표시 방지)
 /* 로컬(기기 시간대) 기준 YYYY-MM-DD.
    toISOString()은 UTC라서 한국 기준 자정~오전 8시 59분의 기록이 전날 날짜로 밀린다
    (통계 캘린더·스트릭은 로컬 축이라 아침 기록이 누락돼 보이는 버그의 원인). */
@@ -34095,12 +34099,12 @@ function renderLogEntry(b, isFirst, isLast) {
   let sideHtml = '';
   if (reading) {
     sideHtml = `<div class="log-entry-pct">${progPct}%</div>
-                <div class="log-entry-dur">${elapsed}일째</div>`;
+                <div class="log-entry-dur">${elapsed != null ? elapsed + '일째' : ''}</div>`;
   } else if (b.rating) {
     sideHtml = `<div class="log-entry-rating">★ ${b.rating.toFixed(1)}</div>
-                <div class="log-entry-dur">${duration ?? 0}일</div>`;
+                <div class="log-entry-dur">${duration != null ? duration + '일' : ''}</div>`;
   } else {
-    sideHtml = `<div class="log-entry-dur">${duration ?? 0}일</div>`;
+    sideHtml = `<div class="log-entry-dur">${duration != null ? duration + '일' : ''}</div>`;
   }
 
   // 인생책·재독 표시 (제목 옆 미니 뱃지)
@@ -37814,7 +37818,9 @@ function renderLogList() {
     groups[k].books.push(b);
   });
   const ordered = Object.values(groups).sort((a, b) => {
-    if (a.season.year !== b.season.year) return b.season.year - a.season.year;
+    const ay = a.season.year === '' ? -Infinity : a.season.year;  // 시작일 미상은 맨 뒤
+    const by = b.season.year === '' ? -Infinity : b.season.year;
+    if (ay !== by) return by - ay;
     return b.season.order - a.season.order;
   });
 
@@ -37895,6 +37901,7 @@ document.querySelectorAll('.vt-btn').forEach(btn => {
     document.querySelectorAll('.vt-btn').forEach(b => b.classList.toggle('active', b === btn));
     document.getElementById('libCards').style.display = view === 'cards' ? ''      : 'none';
     document.getElementById('libLog').style.display   = view === 'log'   ? 'block' : 'none';
+    if (view === 'log') { try { renderLogList(); } catch(e) { console.error('[log]', e); } }  // v2.2.x — 뷰 열 때 항상 최신 렌더 (갱신 누락 방어)
     document.getElementById('libHall').style.display  = view === 'hall'  ? 'block' : 'none';
     if (view === 'hall') { try { renderHallOfFame(); } catch(e) { console.error('[hall]', e); } }
     // v1.0.1 — 뷰 토글 시 플로팅 편집 버튼 갱신 (북카드 뷰일 때만 노출)
