@@ -11589,6 +11589,8 @@ body.manual-open { overflow: hidden; }
   border-radius: 2px;
   margin: 0 auto 12px;
 }
+.ts-sync-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--c-text-2); background: var(--c-surface-2); border: 1px solid var(--c-border-2); border-radius: 10px; padding: 10px 12px; margin-top: 8px; cursor: pointer; line-height: 1.5; }
+.ts-sync-row input { accent-color: var(--primary, #8a6f3a); width: 16px; height: 16px; flex: none; }
 .ts-title {
   font-size: 15px;
   font-weight: 800;
@@ -19751,6 +19753,108 @@ body.cn-locked {
 .bfp-equiv-item .bfsw-ok { color: #5B7355; font-weight: 800; }
 .bfsw-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--c-border); font-size: 13px; color: var(--c-terra-700); line-height: 1.6; }
 [data-theme="midnight"] .bfsw-foot { color: var(--c-text-2); }
+/* ── 완독 목표 페이서  ── */
+.now-pace { margin-top: 8px; }
+.now-pace-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+  border: none; background: none; padding: 5px 0 2px; cursor: pointer; font-family: inherit;
+}
+.now-pace-toggle:active { opacity: .65; }
+.now-pace-lbl {
+  font-size: 12px; font-weight: 800; letter-spacing: -0.015em; text-transform: lowercase;
+  color: var(--c-text-2);
+}
+.now-pace-hint { font-size: 10.5px; font-weight: 800; color: var(--c-text-2); }
+.now-pace-chev {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 21px; height: 21px; border-radius: 100px;
+  background: var(--c-surface-2); border: 1px solid var(--c-border);
+  color: var(--c-text-2);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.now-pace.open .now-pace-chev { transform: rotate(180deg); }
+.now-pace-body { overflow: hidden; max-height: 0; opacity: 0; transition: max-height .34s cubic-bezier(.2,.8,.2,1), opacity .28s ease .04s; }
+.now-pace.open .now-pace-body { max-height: 420px; opacity: 1; }
+.now-pace-body .bdpc, .now-pace-body .bdpc-entry { margin-top: 8px; }
+
+.bdpc-entry { margin: 12px 0 2px; border: 1px dashed var(--c-border-2); border-radius: 11px; padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bdpc-entry-txt { font-size: 12px; color: var(--c-label); line-height: 1.5; }
+.bdpc-entry-btn { flex: none; border: 1px solid var(--c-border-2); background: var(--c-surface-2); color: var(--c-text-2); font-size: 11.5px; font-weight: 700; border-radius: 100px; padding: 8px 13px; cursor: pointer; font-family: inherit; }
+.bdpc { margin: 12px 0 2px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 13px; padding: 12px 14px; }
+.bdpc-kick { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; color: var(--c-muted); letter-spacing: .2px; }
+.bdpc-dot { width: 5px; height: 5px; border-radius: 100px; flex: none; }
+.bdpc-dot.ok, .bdpc-dot.done { background: var(--c-success, #3E6B47); }
+.bdpc-dot.behind, .bdpc-dot.over { background: var(--c-warn, #c26a5a); }
+.bdpc-dot.ahead { background: var(--c-info, #6F5AC8); }
+.bdpc-quota { font-size: 21px; font-weight: 700; color: var(--c-text); margin: 6px 0 3px; letter-spacing: -0.005em; }
+.bdpc-quota small { font-size: 11.5px; color: var(--c-muted); font-weight: 700; margin-left: 3px; letter-spacing: 0; }
+.bdpc-bar { position: relative; height: 3px; background: var(--c-border); border-radius: 100px; margin: 9px 0 4px; }
+.bdpc-me { position: absolute; height: 100%; background: var(--g-gold); border-radius: 100px; }
+.bdpc-plan {
+  /* 계획선 눈금 — 가는 헤어핀 (얇고 담백하게, 헤드 없음) */
+  position: absolute; top: -3px; width: 1.5px; height: 9px;
+  background: var(--c-muted, #9b968a); opacity: .55; border-radius: 100px;
+}
+.bdpc-mark {
+  /* KEEP 새 글 점의 효과(글로우+맥박)만 — 색은 테마 포인트 컬러 */
+  position: absolute; top: 50%; margin-top: -3.5px; margin-left: -3.5px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--primary, #8a6f3a);
+  box-shadow: 0 0 5px 1px var(--primary, #8a6f3a);
+  animation: sayuPop 1.9s ease-in-out infinite;
+  pointer-events: none;
+}
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+  .bdpc-mark { box-shadow: 0 0 6px 1.5px color-mix(in srgb, var(--primary, #8a6f3a) 72%, transparent); }
+}
+.bdpc-cdot {
+  fill: var(--primary, #8a6f3a);
+  transform-box: fill-box; transform-origin: center;
+  animation: sayuPop 1.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px var(--primary, #8a6f3a));
+}
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+  .bdpc-cdot { filter: drop-shadow(0 0 3.5px color-mix(in srgb, var(--primary, #8a6f3a) 72%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) { .bdpc-cdot { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .bdpc-mark { animation: none; opacity: .9; } }
+.bdpc-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 4px; }
+.bdpc-actions { display: flex; gap: 9px; flex: none; }
+.bdpc-chart { margin: 8px 0 2px; }
+.bdpc-axis { display: flex; justify-content: space-between; font-size: 9px; color: var(--c-muted); margin-top: 3px; opacity: .85; }
+.bdpc-axis .today { color: var(--c-warn, #c26a5a); font-weight: 700; }
+.bdpc-msg { font-size: 11.5px; color: var(--c-text-2); line-height: 1.55; }
+.bdpc-edit { flex: none; border: 1px solid var(--c-border-2); background: var(--c-surface-2); color: var(--c-text-2); font-size: 11px; font-weight: 700; border-radius: 100px; padding: 8px 13px; cursor: pointer; font-family: inherit; }
+/* 페이서 시트 골격 (자립형 — 공통 시트 스타일 비의존) */
+.pcsh-backdrop { position: fixed; inset: 0; background: rgba(28,25,23,.5); backdrop-filter: blur(4px); z-index: var(--z-modal); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+.pcsh-backdrop.open { opacity: 1; pointer-events: auto; }
+.pcsh-sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 102%); width: 100%; max-width: 560px; max-height: 88vh; background: var(--c-canvas); border-radius: 18px 18px 0 0; z-index: var(--z-modal-fg); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; }
+.pcsh-sheet.open { transform: translate(-50%, 0); }
+.pcsh-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; justify-content: space-between; flex: none; }
+.pcsh-kicker { font-size: 10px; font-weight: 800; letter-spacing: 1.4px; color: var(--c-label); margin-bottom: 3px; }
+.pcsh-title { font-size: 16.5px; font-weight: 800; color: var(--c-text); }
+.pcsh-close { border: none; background: var(--c-surface-2); color: var(--c-text-2); width: 30px; height: 30px; border-radius: 100px; font-size: 14px; cursor: pointer; flex: none; }
+.pcsh-body { overflow-y: auto; padding: 14px 18px calc(24px + env(safe-area-inset-bottom, 0px)); }
+.pcsh-note { font-size: 10.5px; color: var(--c-muted); margin-top: 10px; line-height: 1.65; text-align: center; opacity: .85; }
+.pcs-sub { font-size: 11.5px; color: var(--c-muted); margin-bottom: 12px; }
+.pcs-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 11px; }
+.pcs-chip { border: 1px solid var(--c-border-2); background: var(--c-surface); color: var(--c-text-2); font-size: 12px; font-weight: 700; border-radius: 100px; padding: 9px 14px; cursor: pointer; font-family: inherit; }
+.pcs-chip.sel { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
+.pcs-direct { display: flex; gap: 8px; margin-bottom: 12px; }
+.pcs-daybox { flex: 1; display: flex; align-items: center; gap: 4px; border: 1px solid var(--c-border-2); background: var(--c-surface); border-radius: 11px; padding: 5px 6px; }
+.pcs-step { width: 30px; height: 30px; border: none; background: var(--c-surface-2); color: var(--c-text-2); border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer; flex: none; font-family: inherit; }
+.pcs-days { width: 100%; min-width: 0; border: none; background: none; text-align: center; font-size: 15px; font-weight: 800; color: var(--c-text); font-family: inherit; }
+.pcs-days:focus { outline: none; }
+.pcs-unit { font-size: 12px; color: var(--c-muted); flex: none; font-weight: 700; }
+.pcs-datewrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid var(--c-border-2); background: var(--c-surface); border-radius: 11px; font-size: 12px; font-weight: 700; color: var(--c-text-2); cursor: pointer; }
+.pcs-date { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pcs-preview { background: var(--c-surface-2); border: 1px dashed var(--c-border-2); border-radius: 11px; padding: 12px; text-align: center; margin-bottom: 12px; }
+.pcs-pv-quota { font-size: 18px; font-weight: 800; color: var(--c-text); }
+.pcs-pv-sub { font-size: 11px; color: var(--c-label); margin-top: 3px; }
+.pcs-save { width: 100%; border: none; background: var(--brand-primary); color: #fff; font-size: 13.5px; font-weight: 700; border-radius: 11px; padding: 13px 0; cursor: pointer; font-family: inherit; }
+.pcs-stop { width: 100%; border: 1px solid var(--c-border-2); background: none; color: var(--c-muted); font-size: 12px; font-weight: 700; border-radius: 11px; padding: 11px 0; cursor: pointer; font-family: inherit; margin-top: 8px; }
+.pcs-stop.hidden { display: none; }
+
 /* v2.x — 대여처별 아낀 돈 펼치기 (카페 제안) */
 .bfrp-btn {
   margin-top: 13px; width: 100%;
@@ -23809,6 +23913,12 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="ts-info">
     📌 책의 <strong id="tsCurInfo">현재 진행</strong>은 그대로 두고, 이 기록의 시간·진행량만 바꿔요.
   </div>
+  <label class="ts-sync-row" id="tsSyncRow" hidden>
+    <input type="checkbox" id="tsSyncChk">
+    <span id="tsSyncTxt"></span>
+  </label>
+  <div hidden>
+  </div>
 
   <div class="ts-actions">
     <button class="ts-btn ts-btn-delete" id="tsDeleteBtn" type="button" aria-label="삭제">🗑</button>
@@ -24075,6 +24185,45 @@ body.sayu-active #pane-sayu{ background:transparent; }
 </div>
 
 <!-- ═══════════ 업데이트 소식 모달 (기존 유저용) ═══════════ -->
+<!-- ═══════════ v2.2.0 — 완독 목표 페이서 시트  ═══════════ -->
+<div class="pcsh-backdrop" id="pcBackdrop"></div>
+<div class="pcsh-sheet" id="pcSheet" aria-hidden="true" role="dialog" aria-label="완독 목표">
+  <div class="pcsh-head">
+    <div>
+      <div class="pcsh-kicker">완독 목표</div>
+      <div class="pcsh-title" id="pcShTitle">언제까지 다 읽을까요?</div>
+    </div>
+    <button type="button" class="pcsh-close" id="pcClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="pcsh-body">
+    <div class="pcs-sub" id="pcShSub">남은 쪽수를 목표일까지 나눠드려요</div>
+    <div class="pcs-chips" id="pcChips">
+      <button type="button" class="pcs-chip" data-d="7">1주 뒤</button>
+      <button type="button" class="pcs-chip" data-d="14">2주 뒤</button>
+      <button type="button" class="pcs-chip" data-d="30">한 달 뒤</button>
+    </div>
+    <div class="pcs-direct">
+      <div class="pcs-daybox">
+        <button type="button" class="pcs-step" id="pcStepDown">−</button>
+        <input class="pcs-days" id="pcDays" type="number" min="1" max="365" value="14">
+        <span class="pcs-unit">일 뒤</span>
+        <button type="button" class="pcs-step" id="pcStepUp">+</button>
+      </div>
+      <label class="pcs-datewrap">
+        <span id="pcDateLabel">날짜로 고르기</span>
+        <input class="pcs-date" id="pcDate" type="date">
+      </label>
+    </div>
+    <div class="pcs-preview">
+      <div class="pcs-pv-quota">하루 약 <span id="pcPvQuota">–</span>쪽</div>
+      <div class="pcs-pv-sub" id="pcPvSub"></div>
+    </div>
+    <button type="button" class="pcs-save" id="pcSave">이 목표로 시작하기</button>
+    <button type="button" class="pcs-stop hidden" id="pcStop">목표 그만두기</button>
+    <div class="pcsh-note">목표는 언제든 바꾸거나 그만둘 수 있어요.<br>뒤처져도 다그치지 않고, 남은 날에 맞춰 조용히 다시 나눠드릴 뿐이에요.</div>
+  </div>
+</div>
+
 <!-- ═══════════ v2.1.0 — 책 정보 수정 (제목·저자, 괄호 정리 미리보기) ═══════════ -->
 <div class="te-backdrop" id="teBackdrop"></div>
 <div class="te-sheet" id="teSheet" aria-hidden="true" role="dialog" aria-label="책 정보 수정">
@@ -24102,10 +24251,17 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <button class="wn-skip" id="wnSkip" aria-label="닫기">✕</button>
 
     <div class="wn-badge" id="wnBadge">업데이트 소식</div>
-    <div class="wn-ttl">로그인 문이 하나 더 열렸어요</div>
+    <div class="wn-ttl">완독까지, 오늘 몇 쪽이면 될까요</div>
     <div class="wn-sub">그동안 카페와 문의로 주신 제보·제안을 담아, 곳곳을 손봤어요.</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
       <div class="wn-item wn-item-highlight">
+        <div class="wn-icon">🏃</div>
+        <div>
+          <div class="wn-item-ttl">완독 목표 페이서 — keep your pace</div>
+          <div class="wn-item-sub">목표일을 정하면 오늘 몇 쪽 읽으면 되는지 매일 알려드려요. 며칠 쉬어도 다그치지 않고, 남은 날에 맞춰 조용히 다시 나눠드릴 뿐이에요. 홈의 keep your pace를 펼치면 진도 그래프까지.</div>
+        </div>
+      </div>
+      <div class="wn-item">
         <div class="wn-icon">🔑</div>
         <div>
           <div class="wn-item-ttl">Google 로그인</div>
@@ -27720,6 +27876,313 @@ function snapToTab(idx) {
   if (TAB_ORDER[idx] === 'sayu') sayuApplyGate();
   positionTabThumb();
 }
+
+/* ═══════════ v2.2.0 — 완독 목표 페이서  ═══════════
+   책에 pacer: { targetDate:'YYYY-MM-DD', startDate, startPage } 저장.
+   계산은 열 때마다 오늘 기준(_pcCalc 순수 함수) — 알림·서버 없음, 전부 로컬.
+   대상: 독서중 + 페이지 있는 비웹소설(웹소설은 회차 기반이라 1차 제외). */
+function _pcTodayStr() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+/* 일별 진도 스냅샷 — 모든 진행 경로(_maybeOfferDone)에서 호출. log: { 'YYYY-MM-DD': page } */
+function _pcLogToday(bookId) {
+  const b = BOOKS.find(x => String(x.id) === String(bookId));
+  if (!b || !b.pacer || !b.pacer.targetDate) return;
+  const t = _pcTodayStr();
+  const log = b.pacer.log || {};
+  if (log[t] === b.currentPage) return;
+  log[t] = b.currentPage || 0;
+  updateBook(b.id, { pacer: Object.assign({}, b.pacer, { log }) });
+}
+/* 차트 시리즈(순수) — [{d(0부터 경과일), page}] 계단용 정렬 배열 + 오늘 포인트 */
+function _pcChartSeries(b, todayStr) {
+  const p = b && b.pacer;
+  if (!p || !p.targetDate) return null;
+  const DAY = 86400000;
+  const start = new Date((p.startDate || todayStr) + 'T00:00:00');
+  const today = new Date((todayStr || _pcTodayStr()) + 'T00:00:00');
+  const target = new Date(p.targetDate + 'T00:00:00');
+  const totalDays = Math.max(1, Math.round((target - start) / DAY));
+  const todayD = Math.min(totalDays, Math.max(0, Math.round((today - start) / DAY)));
+  const pts = [{ d: 0, page: p.startPage || 0 }];
+  const log = p.log || {};
+  Object.keys(log).sort().forEach(ds => {
+    const d = Math.round((new Date(ds + 'T00:00:00') - start) / DAY);
+    if (d > 0 && d <= todayD) pts.push({ d, page: log[ds] });
+  });
+  // 오늘 포인트 = 현재 페이지 (로그보다 항상 우선)
+  const cur = b.currentPage || 0;
+  if (pts[pts.length - 1].d === todayD) pts[pts.length - 1].page = cur;
+  else pts.push({ d: todayD, page: cur });
+  return { pts, totalDays, todayD, startPage: p.startPage || 0, total: b.pages || 0 };
+}
+function _pcCalc(b, todayStr) {
+  const p = b && b.pacer;
+  if (!p || !p.targetDate || !b.pages) return null;
+  const DAY = 86400000;
+  const today = new Date((todayStr || _pcTodayStr()) + 'T00:00:00');
+  const target = new Date(p.targetDate + 'T00:00:00');
+  const start = new Date((p.startDate || p.targetDate) + 'T00:00:00');
+  const startPage = p.startPage || 0;
+  const remaining = Math.max(0, (b.pages || 0) - (b.currentPage || 0));
+  const rawDaysLeft = Math.round((target - today) / DAY);
+  const totalDays = Math.max(1, Math.round((target - start) / DAY));
+  const elapsed = Math.min(totalDays, Math.max(0, Math.round((today - start) / DAY)));
+  const planned = Math.min(b.pages, startPage + (b.pages - startPage) * (elapsed / totalDays));
+  if (remaining === 0) return { state: 'done', dDay: rawDaysLeft, quota: 0, planned, remaining };
+  if (rawDaysLeft < 0) return { state: 'over', dDay: rawDaysLeft, quota: remaining, planned, remaining };
+  const daysLeft = Math.max(1, rawDaysLeft);
+  const quota = Math.max(1, Math.ceil(remaining / daysLeft));
+  const diff = (b.currentPage || 0) - planned;
+  const state = diff < -quota * 0.8 ? 'behind' : diff > quota * 0.8 ? 'ahead' : 'ok';
+  return { state, dDay: rawDaysLeft, daysLeft, quota, planned, remaining, diff };
+}
+function _pcRefreshSection(b) {
+  if (!b) return;
+  // updateBook은 불변 갱신(새 객체 교체)이라 클로저의 b가 낡을 수 있음 — 최신본 재조회
+  const fresh = (typeof BOOKS !== 'undefined' && BOOKS.find(x => String(x.id) === String(b.id))) || b;
+  const html = _pcSectionHtml(fresh);
+  if (!html) return;
+  // 같은 컴포넌트가 상세·히어로 두 곳에 렌더될 수 있음 — 각각 스코프로 교체 (전역 셀렉터 금지)
+  const inBd = document.querySelector('#bdSheet .bdpc, #bdSheet .bdpc-entry');
+  if (inBd) inBd.outerHTML = html;
+  const pace = document.getElementById('nowPace');
+  if (pace) {
+    const inPace = pace.querySelector('.bdpc, .bdpc-entry');
+    if (inPace) inPace.outerHTML = html;
+    const hintEl = pace.querySelector('.now-pace-hint');
+    const c = _pcCalc(fresh);
+    const hint = _pcHintLabel(fresh, c);
+    if (hintEl) { if (hint) hintEl.textContent = hint; else hintEl.remove(); }
+  }
+}
+let _pcChartOpen = false;
+function _pcToggleChart(bookId) {
+  _pcChartOpen = !_pcChartOpen;
+  const b = BOOKS.find(x => String(x.id) === String(bookId));
+  if (b) _pcRefreshSection(b);
+}
+function _pcChartSvg(b, c) {
+  const s = _pcChartSeries(b, _pcTodayStr());
+  if (!s || !s.total) return '';
+  const W = 320, H = 96, PAD = 4;
+  const x = (d) => (d / s.totalDays) * W;
+  const y = (pg) => H - PAD - (pg / s.total) * (H - PAD * 2);
+  // 실제 계단 경로
+  let dPath = 'M' + x(s.pts[0].d).toFixed(1) + ',' + y(s.pts[0].page).toFixed(1);
+  for (let i = 1; i < s.pts.length; i++) {
+    dPath += ' L' + x(s.pts[i].d).toFixed(1) + ',' + y(s.pts[i - 1].page).toFixed(1);
+    dPath += ' L' + x(s.pts[i].d).toFixed(1) + ',' + y(s.pts[i].page).toFixed(1);
+  }
+  const last = s.pts[s.pts.length - 1];
+  const area = dPath + ' L' + x(last.d).toFixed(1) + ',' + (H - PAD) + ' L' + x(0).toFixed(1) + ',' + (H - PAD) + ' Z';
+  const tX = x(s.todayD).toFixed(1);
+  const behind = c.state === 'behind' || c.state === 'over';
+  const redivide = (c.state === 'behind')
+    ? '<line x1="' + tX + '" y1="' + y(last.page).toFixed(1) + '" x2="' + W + '" y2="' + y(s.total).toFixed(1) + '" stroke="currentColor" stroke-width="1.4" stroke-dasharray="1.5 4" opacity=".8"/>'
+    : '';
+  const gap = behind
+    ? '<line x1="' + tX + '" y1="' + y(last.page).toFixed(1) + '" x2="' + tX + '" y2="' + y(c.planned).toFixed(1) + '" stroke="var(--c-warn, #c26a5a)" stroke-width="1" stroke-dasharray="2 3"/>'
+    : '';
+  const startD = (b.pacer.startDate || '').split('-');
+  const tgtD = b.pacer.targetDate.split('-');
+  const fmtD = (a) => a.length === 3 ? parseInt(a[1], 10) + '월 ' + parseInt(a[2], 10) + '일' : '';
+  return `<div class="bdpc-chart" style="color: var(--g-gold-solid, #8a6f3a)">
+    <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="0" y1="${H - PAD}" x2="${W}" y2="${H - PAD}" stroke="var(--c-border)" stroke-width="1"/>
+      <line x1="0" y1="${y(s.startPage).toFixed(1)}" x2="${W}" y2="${y(s.total).toFixed(1)}" stroke="var(--c-border-2)" stroke-width="1.4" stroke-dasharray="4 4"${behind ? ' opacity=".5"' : ''}/>
+      <path d="${area}" fill="currentColor" opacity="0.10"/>
+      <path d="${dPath}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${gap}${redivide}
+      <line x1="${tX}" y1="0" x2="${tX}" y2="${H}" stroke="var(--c-warn, #c26a5a)" stroke-width="1" opacity=".55"/>
+      <!-- 현재 위치 — 헤어라인 점(.bdpc-mark)과 같은 문법: 테마색·글로우·sayuPop -->
+      <circle class="bdpc-cdot" cx="${tX}" cy="${y(last.page).toFixed(1)}" r="3.5"/>
+    </svg>
+    <div class="bdpc-axis"><span>${fmtD(startD)}</span><span class="today">오늘</span><span>${fmtD(tgtD)}</span></div>
+  </div>`;
+}
+
+/* 홈 히어로용 — 카드 하단 "keep your pace" 접이식 (Jason 지시): 펼치면 페이서 상세 */
+let _nowPaceOpen = false;   // 펼침 상태 유지 (재렌더 후에도)
+function _pcHintLabel(b, c) {
+  if (!c) return '';
+  if (c.state === 'over') return '남은 ' + c.remaining + '쪽';
+  const dday = c.dDay <= 0 ? 'D-DAY' : 'D-' + c.dDay;
+  if (typeof isDigital === 'function' && isDigital(b)) {
+    return dday + ' · 오늘 ' + Math.max(1, Math.round(c.quota / b.pages * 100)) + '%';
+  }
+  return dday + ' · 오늘 ' + c.quota + '쪽';
+}
+function _pcHeroPaceHtml(b) {
+  if (!b || b.status !== 'reading' || isWebnovel(b) || !b.pages) return '';
+  const c = _pcCalc(b);
+  const hint = _pcHintLabel(b, c);
+  return `<div class="now-pace ${_nowPaceOpen ? 'open' : ''}" id="nowPace">
+    <button type="button" class="now-pace-toggle" onclick="event.stopPropagation(); nowPaceToggle()">
+      <span class="now-pace-lbl">keep your pace</span>
+      ${hint ? '<span class="now-pace-hint">' + hint + '</span>' : ''}
+      <span class="now-pace-chev" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </button>
+    <div class="now-pace-body">${_pcSectionHtml(b)}</div>
+  </div>`;
+}
+function nowPaceToggle() {
+  _nowPaceOpen = !_nowPaceOpen;
+  const el = document.getElementById('nowPace');
+  if (el) el.classList.toggle('open', _nowPaceOpen);
+}
+function _pcSectionHtml(b) {
+  if (!b || b.status !== 'reading' || isWebnovel(b) || !b.pages) return '';
+  const c = _pcCalc(b);
+  if (!c) {
+    return `<div class="bdpc-entry">
+      <div class="bdpc-entry-txt">완독 목표일을 정하면<br><b>오늘 몇 쪽</b>인지 알려드려요</div>
+      <button type="button" class="bdpc-entry-btn" onclick="event.stopPropagation(); openPacerSheet('${b.id}')">목표일 정하기</button>
+    </div>`;
+  }
+  const tgt = b.pacer.targetDate.split('-');
+  const tgtLabel = parseInt(tgt[1], 10) + '월 ' + parseInt(tgt[2], 10) + '일';
+  const stLabel = { ok: '순항 중', behind: '살짝 뒤처짐', ahead: '여유 있음', over: '목표일 지남', done: '완독!' }[c.state];
+  const digital = typeof isDigital === 'function' && isDigital(b);
+  let quotaHtml, msg;
+  if (c.state === 'over') {
+    quotaHtml = `남은 ${c.remaining}쪽`;
+    msg = '목표일이 지났어요 — 새 목표로 다시 나눠볼까요?';
+  } else if (c.state === 'done') {
+    quotaHtml = '다 읽었어요';
+    msg = '목표보다 먼저 마지막 장을 덮었어요.';
+  } else {
+    const subTxt = { ok: '읽으면 딱 맞아요', behind: '읽으면 따라잡아요', ahead: '읽으면 충분해요' }[c.state] || '';
+    if (digital) {
+      const pct = Math.max(1, Math.round(c.quota / b.pages * 100));
+      quotaHtml = `오늘 ${pct}%<small> · \u2248${c.quota}쪽 · ${subTxt}</small>`;
+    } else {
+      quotaHtml = `오늘 ${c.quota}쪽<small>${subTxt}</small>`;
+    }
+    if (c.state === 'behind') {
+      msg = '괜찮아요, 남은 ' + c.daysLeft + '일에 맞춰 다시 나눴어요';
+    } else if (c.state === 'ahead') {
+      msg = '계획보다 ' + Math.round(c.diff) + '쪽 앞 — 오늘은 쉬어가도 좋아요';
+    } else {
+      msg = '이대로면 ' + tgtLabel + ', 마지막 장을 덮어요';
+    }
+  }
+  const mePct = Math.min(100, (b.currentPage || 0) / b.pages * 100);
+  const planPct = Math.min(100, c.planned / b.pages * 100);
+  const gaugeHtml = _pcChartOpen
+    ? _pcChartSvg(b, c)
+    : `<div class="bdpc-bar"><div class="bdpc-me" style="width:${mePct}%"></div><div class="bdpc-plan" style="left:calc(${planPct}% - 1px)"></div><div class="bdpc-mark" style="left:${mePct}%"></div></div>`;
+  return `<div class="bdpc">
+    <div class="bdpc-kick"><span class="bdpc-dot ${c.state}"></span>${c.dDay <= 0 ? 'D-DAY' : 'D-' + c.dDay} · ${tgtLabel}까지 · ${stLabel}</div>
+    <div class="bdpc-quota">${quotaHtml}</div>
+    ${gaugeHtml}
+    <div class="bdpc-foot">
+      <span class="bdpc-msg">${msg}</span>
+      <span class="bdpc-actions">
+        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); _pcToggleChart('${b.id}')">${_pcChartOpen ? '접기' : '그래프'}</button>
+        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); openPacerSheet('${b.id}')">바꾸기</button>
+      </span>
+    </div>
+  </div>`;
+}
+
+/* ── 페이서 시트 (칩·일수·날짜 3중 동기화) ── */
+let _pcDaysSel = 14;
+let _pcSheetBookId = null;   // 시트가 다루는 책 (상세 밖 진입 지원 — 홈 히어로 등)
+function _pcSheetBook() {
+  if (_pcSheetBookId != null) return BOOKS.find(x => String(x.id) === String(_pcSheetBookId)) || null;
+  return (typeof BD !== 'undefined' && BD.book) ? BD.book : null;
+}
+function _pcAfterChange() {
+  // 페이서 변경 후 보이는 곳 전부 갱신 — 상세(열려 있으면) + 홈 히어로
+  try { if (typeof BD !== 'undefined' && BD.book && typeof renderBookDetail === 'function') renderBookDetail(); } catch (e) {}
+  try { if (document.getElementById('nowHero') && typeof nowHeroGo === 'function') nowHeroGo(0); } catch (e) {}
+}
+function _pcSyncPreview(from) {
+  const b = _pcSheetBook();
+  if (!b) return;
+  _pcDaysSel = Math.max(1, Math.min(365, _pcDaysSel));
+  document.querySelectorAll('.pcs-chip').forEach(x => x.classList.toggle('sel', parseInt(x.dataset.d, 10) === _pcDaysSel));
+  if (from !== 'days') document.getElementById('pcDays').value = _pcDaysSel;
+  const dt = new Date(Date.now() + _pcDaysSel * 86400000);
+  document.getElementById('pcDateLabel').textContent = (dt.getMonth() + 1) + '월 ' + dt.getDate() + '일';
+  if (from !== 'date') {
+    document.getElementById('pcDate').value = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+  const remaining = Math.max(0, (b.pages || 0) - (b.currentPage || 0));
+  const q = Math.max(1, Math.ceil(remaining / _pcDaysSel));
+  document.getElementById('pcPvQuota').textContent = q;
+  document.getElementById('pcPvSub').textContent = _pcDaysSel + '일 × ' + q + '쪽 = 남은 ' + remaining + '쪽' + (q <= 20 ? ', 무리 없는 페이스예요' : q <= 35 ? ', 조금 부지런한 페이스예요' : ', 꽤 빡센 페이스예요');
+}
+function openPacerSheet(bookId) {
+  _pcSheetBookId = (bookId != null) ? bookId : null;
+  const b = _pcSheetBook();
+  if (!b) return;
+  const has = !!(b.pacer && b.pacer.targetDate);
+  if (has) {
+    const t = new Date(b.pacer.targetDate + 'T00:00:00');
+    _pcDaysSel = Math.max(1, Math.round((t - new Date(_pcTodayStr() + 'T00:00:00')) / 86400000));
+  } else {
+    _pcDaysSel = 14;
+  }
+  document.getElementById('pcShTitle').textContent = has ? '목표일 바꾸기' : '언제까지 다 읽을까요?';
+  document.getElementById('pcShSub').textContent = '남은 ' + Math.max(0, (b.pages || 0) - (b.currentPage || 0)) + '쪽을 목표일까지 나눠드려요';
+  document.getElementById('pcStop').classList.toggle('hidden', !has);
+  _pcSyncPreview();
+  document.getElementById('pcBackdrop').classList.add('open');
+  const sh = document.getElementById('pcSheet');
+  sh.classList.add('open');
+  sh.setAttribute('aria-hidden', 'false');
+  lockBodyScroll();
+}
+function closePacerSheet() {
+  _pcSheetBookId = null;
+  document.getElementById('pcBackdrop').classList.remove('open');
+  const sh = document.getElementById('pcSheet');
+  sh.classList.remove('open');
+  sh.setAttribute('aria-hidden', 'true');
+  unlockBodyScroll();
+}
+(function wirePacerSheet() {
+  const $ = (id) => document.getElementById(id);
+  if (!$('pcSheet')) return;
+  $('pcClose').addEventListener('click', closePacerSheet);
+  $('pcBackdrop').addEventListener('click', closePacerSheet);
+  $('pcChips').addEventListener('click', (e) => {
+    const c = e.target.closest('.pcs-chip');
+    if (!c) return;
+    _pcDaysSel = parseInt(c.dataset.d, 10);
+    _pcSyncPreview('chip');
+  });
+  $('pcStepDown').addEventListener('click', () => { _pcDaysSel -= 1; _pcSyncPreview(); });
+  $('pcStepUp').addEventListener('click', () => { _pcDaysSel += 1; _pcSyncPreview(); });
+  $('pcDays').addEventListener('input', () => {
+    const v = parseInt($('pcDays').value, 10);
+    if (!isNaN(v)) { _pcDaysSel = v; _pcSyncPreview('days'); }
+  });
+  $('pcDate').addEventListener('change', () => {
+    const v = $('pcDate').value;
+    if (!v) return;
+    const diff = Math.round((new Date(v + 'T00:00:00') - new Date(_pcTodayStr() + 'T00:00:00')) / 86400000);
+    if (diff >= 1) { _pcDaysSel = diff; _pcSyncPreview('date'); }
+  });
+  $('pcSave').addEventListener('click', () => {
+    const b = _pcSheetBook();
+    if (!b) { closePacerSheet(); return; }
+    const dt = new Date(Date.now() + _pcDaysSel * 86400000);
+    const targetDate = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    const _log = {}; _log[_pcTodayStr()] = b.currentPage || 0;
+    updateBook(b.id, { pacer: { targetDate, startDate: _pcTodayStr(), startPage: b.currentPage || 0, log: _log } });
+    closePacerSheet();
+    _pcAfterChange();
+    showToast('목표를 세웠어요 — 오늘 ' + Math.max(1, Math.ceil(Math.max(0, (b.pages || 0) - (b.currentPage || 0)) / _pcDaysSel)) + '쪽부터');
+  });
+  $('pcStop').addEventListener('click', () => {
+    const b = _pcSheetBook();
+    if (b) updateBook(b.id, { pacer: null });
+    closePacerSheet();
+    _pcAfterChange();
+    showToast('목표를 내려놨어요 — 편하게 읽어요');
+  });
+})();
 
 /* 활성 탭에 맞춰 FAB 라벨 전환 */
 function updateFabLabel(tabId) {
@@ -33928,6 +34391,7 @@ function renderNowHero(arr) {
           <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
         </div>
         ${progressBlock}
+        ${typeof _pcHeroPaceHtml === 'function' ? _pcHeroPaceHtml(b) : ''}
       </div>
     </div>`;
 }
@@ -39315,6 +39779,8 @@ function renderBookDetail() {
       `;
     })() : ''}
 
+    ${typeof _pcSectionHtml === 'function' ? _pcSectionHtml(b) : ''}
+
     ${(() => {
       // v1.10.4 — 타이머 세션 섹션 (진행률 바 아래, 독서 메모 위)
       if (wish) return ''; // 위시는 세션 없음
@@ -39714,6 +40180,7 @@ function _statusChangeConfirmLabel(newStatus) {
    · 같은 세션에서 한 번 거절한 책은 다시 묻지 않음 */
 const _doneOfferDeclined = new Set();
 function _maybeOfferDone(bookId, oldPage, newPage) {
+  try { if (typeof _pcLogToday === 'function') _pcLogToday(bookId); } catch (e) {}  // v2.2.0 — 페이서 일별 스냅샷
   const b = BOOKS.find(x => x.id === bookId);
   if (!b || b.status !== 'reading') return;
   const total = Number(b.pages) || 0;
@@ -40050,6 +40517,7 @@ function wireBookDetailEvents() {
       document.getElementById('bdProgressFill').style.width = pct + '%';
       document.getElementById('bdProgressPct').textContent = pct + '%';
       progInput.value = v;
+      if (typeof _pcRefreshSection === 'function') _pcRefreshSection(b);  // v2.2.0 — 페이서 오늘 분량 재계산
     };
     progInput.addEventListener('change', applyProgress);
     progInput.addEventListener('blur', applyProgress);
@@ -40676,6 +41144,11 @@ function wireBookDetailEvents() {
 function openTimerSessionEdit(sessKey) {
   const b = BD.book;
   if (!b || !sessKey) return;
+  const _sc = document.getElementById('tsSyncChk');
+  if (_sc) _sc.checked = false;
+  const _sr = document.getElementById('tsSyncRow');
+  if (_sr) _sr.hidden = true;
+  setTimeout(function(){ try { _tsSyncRowUpdate(); } catch(e) {} }, 0);
   const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
   // 키 포맷: "YYYY-MM-DD|minutes|pages|origIdx"
   const parts = sessKey.split('|');
@@ -40756,6 +41229,42 @@ function closeTimerSessionEdit() {
   BD.tmSessEditKey = null;
 }
 
+/* v2.2.0 — 오늘 기록의 진행량을 늘리면 "현재 페이지도 올릴까요?" 선택 행 (Jason 결정) */
+function _tsSyncCond() {
+  const b = BD.book;
+  const key = BD.tmSessEditKey;
+  if (!b || !key || b.status !== 'reading' || !(b.pages > 0)) return null;
+  const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+  const origIdx = parseInt(key.split('|')[3], 10);
+  if (!Number.isFinite(origIdx) || !sess[origIdx]) return null;
+  const t = new Date();
+  const today = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+  if ((document.getElementById('tsDate').value || sess[origIdx].date) !== today) return null;
+  const rawPages = parseInt(document.getElementById('tsPages').value, 10) || 0;
+  const total = b.pages || 0;
+  const newPages = isDigital(b) ? pctToPages(Math.max(0, Math.min(100, rawPages)), total)
+                                : Math.max(0, Math.min(total, rawPages));
+  const delta = newPages - (sess[origIdx].pages || 0);
+  if (delta <= 0) return null;
+  const cur = b.currentPage || 0;
+  const newCur = Math.min(total, cur + delta);
+  if (newCur <= cur) return null;
+  return { delta, cur, newCur };
+}
+function _tsSyncRowUpdate() {
+  const row = document.getElementById('tsSyncRow');
+  if (!row) return;
+  const c = _tsSyncCond();
+  row.hidden = !c;
+  if (c) document.getElementById('tsSyncTxt').textContent = '현재 페이지도 +' + c.delta + '쪽 올리기 (' + c.cur + 'p → ' + c.newCur + 'p)';
+}
+(function wireTsSyncRow() {
+  const pg = document.getElementById('tsPages');
+  const dt = document.getElementById('tsDate');
+  if (pg) pg.addEventListener('input', _tsSyncRowUpdate);
+  if (dt) dt.addEventListener('change', _tsSyncRowUpdate);
+})();
+
 function saveTimerSessionEdit() {
   const b = BD.book;
   const key = BD.tmSessEditKey;
@@ -40793,7 +41302,13 @@ function saveTimerSessionEdit() {
   if (newStart) sess[origIdx].start = newStart; else delete sess[origIdx].start;
   if (newEnd) sess[origIdx].end = newEnd; else delete sess[origIdx].end;
 
+  // v2.2.0 — 체크 시 현재 페이지 동반 갱신 (저장 시점 값으로 재검증)
+  const _sync = document.getElementById('tsSyncChk') && document.getElementById('tsSyncChk').checked ? _tsSyncCond() : null;
   updateBook(b.id, { readingSessions: sess });
+  if (_sync) {
+    updateBook(b.id, { currentPage: _sync.newCur });
+    try { if (typeof _maybeOfferDone === 'function') _maybeOfferDone(b.id, _sync.cur, _sync.newCur); } catch (e) {}
+  }
   // BD.book 참조 갱신
   BD.book = BOOKS.find(x => x.id === b.id) || BD.book;
 
@@ -51893,7 +52408,7 @@ document.addEventListener('keydown', (e) => {
    ─ ONBOARDING 안 본 유저(신규)는 onboarding만 보고 자동 skip
    ─ 기존 유저는 lastSeenVersion < CURRENT_VERSION 일 때 1회 노출
    ═══════════════════════════════════════════════════════════ */
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 // v1.0.1 — APP_VERSION 따라 자동 갱신 (수동 갱신 누락 방지)
 const APP_VERSION_NICKNAME = `keepbook ${APP_VERSION}`;
 // v2.x — 푸터 버전 표기 (캐시/구버전 문의 판별용, APP_VERSION 따라 자동)
