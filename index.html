@@ -16420,6 +16420,10 @@ html.kbd-open .ct-modal.open .ct-card {
    타이머 · Timer
    ═══════════════════════════════════════════════════════════ */
 
+/* 발열 절약 v2 — 시네마가 화면을 덮는 동안, 가려진 배경의 무한 애니메이션(펄스·점·스피너 등)을 전부 멈춘다.
+   iOS는 가려진 레이어도 합성을 계속하므로, 재생 중인 애니가 많을수록 GPU가 쉬지 못한다. */
+body.cn-locked > :not(#cnOverlay), body.cn-locked > :not(#cnOverlay) * { animation-play-state: paused !important; }
+
 /* Now Hero 버튼의 "실행 중" 상태 — 시네마 톤 (검정 + 골드) */
 .now-btn.timer-running {
   background: #0a0807 !important;
@@ -37984,11 +37988,19 @@ function tickTimerUI() {
   const paused = isTimerPaused();
 
   const btn = document.getElementById('nowTimerBtn');
-  if (btn) {
-    const icon = paused ? '#i-pause' : '#i-play';
-    const label = paused ? '일시정지됨' : '계속 읽기';
-    btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="${icon}"/></svg> ${display} · ${label}`;
-    btn.classList.toggle('timer-paused', paused);
+  if (btn && !(typeof CINEMA !== 'undefined' && CINEMA.active)) {
+    // 발열 절약 — 매초 innerHTML 재생성 대신, 상태가 바뀔 때만 구조를 만들고 평소엔 시간 텍스트만 갱신
+    const state = paused ? 'p' : 'r';
+    if (btn.dataset.tmState !== state || !btn.querySelector('.tm-tick-t')) {
+      const icon = paused ? '#i-pause' : '#i-play';
+      const label = paused ? '일시정지됨' : '계속 읽기';
+      btn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="${icon}"/></svg> <span class="tm-tick-t">${display}</span> · ${label}`;
+      btn.classList.toggle('timer-paused', paused);
+      btn.dataset.tmState = state;
+    } else {
+      const t = btn.querySelector('.tm-tick-t');
+      if (t && t.textContent !== display) t.textContent = display;
+    }
   }
   // 시네마 모드 시간도 동시 업데이트
   const cnTimeEl = document.getElementById('cnTime');
@@ -38021,6 +38033,7 @@ function startTimerTick() {
 
 /* 책 카드의 시간 배지 실시간 갱신 — 시네마 영역 함수는 안 건드리고 별도로 호출 */
 function updateBookCardTimerBadge() {
+  if (typeof CINEMA !== 'undefined' && CINEMA.active) return;  // 발열 절약 — 시네마가 덮고 있으면 스킵
   if (!TIMER.bookId) return;
   const sec = getElapsedSec();
   const h = Math.floor(sec / 3600);
@@ -38766,6 +38779,7 @@ const CINEMA = {
     overlay.classList.remove('open', 'cn-running', 'show-controls', 'cn-paused', 'cn-switching');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cn-locked');
+    try { tickTimerUI(); updateBookCardTimerBadge(); } catch (e) {}  // 시네마 중 스킵된 표시 복구
 
     // 상태바 색 복원
     this._restoreThemeColor();
