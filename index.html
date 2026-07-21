@@ -28217,6 +28217,8 @@ function _closeOverlaysForNav(){
   try{ document.querySelectorAll('[class*=backdrop].is-open, [class*=backdrop].open, .modal-backdrop.open, .bd-backdrop.open').forEach(function(el){ try{ el.click(); }catch(e){} }); }catch(e){}
 }
 function switchTab(nextIdx, opts = {}) {
+  // v2.2.x — 숨김 중 미뤄둔 통계 갱신을 통계 탭 진입 때 처리
+  try { if (typeof TAB_ORDER !== 'undefined' && TAB_ORDER[nextIdx] === 'stats' && typeof _flushHeavyIfDirty === 'function') _flushHeavyIfDirty(); } catch (e) {}
   nextIdx = Math.max(0, Math.min(TAB_COUNT - 1, nextIdx));
   if (nextIdx === currentTabIdx) {
     // 드래그 후 제자리로 돌아가는 snap도 여기서 처리
@@ -37956,11 +37958,36 @@ function updateBook(id, partial) {
   BOOKS[idx] = { ...BOOKS[idx], ...partial };
   STORE.set('books', BOOKS);
   BD.book = BOOKS[idx]; // 참조 업데이트
-  try { renderTagRadar(); } catch(e){}
-  try { renderLogList(); } catch(e){}
-  try { renderAllStats(); } catch(e){}
   try { renderLibraryCards(); } catch(e){}
+  try { renderLogList(); } catch(e){}
+  _scheduleHeavyRenders();  // v2.2.x — 통계·레이더는 디바운스 + 통계 탭이 보일 때만 (숨김 중엔 더티로 미룸)
   return BOOKS[idx];
+}
+
+/* v2.2.x — 무거운 렌더(통계 전체·태그 레이더) 배칭: 연속 수정을 1회로 합치고,
+   통계 탭이 안 보이면 더티 표시만 해뒀다가 탭 진입 때 갱신 (등록·수정 렉의 주범 완화) */
+let _heavyDirty = false;
+let _heavyScheduled = false;
+function _statsTabVisible() {
+  try { return typeof currentTabIdx !== 'undefined' && TAB_ORDER[currentTabIdx] === 'stats'; } catch (e) { return true; }
+}
+function _runHeavyRenders() {
+  _heavyDirty = false;
+  try { renderTagRadar(); } catch(e){}
+  try { renderAllStats(); } catch(e){}
+}
+function _scheduleHeavyRenders() {
+  _heavyDirty = true;
+  if (!_statsTabVisible()) return;  // 안 보이면 더티만 — 탭 진입 훅이 처리
+  if (_heavyScheduled) return;
+  _heavyScheduled = true;
+  requestAnimationFrame(() => {
+    _heavyScheduled = false;
+    if (_heavyDirty) _runHeavyRenders();
+  });
+}
+function _flushHeavyIfDirty() {
+  if (_heavyDirty) _runHeavyRenders();
 }
 
 function deleteBookById(id) {
@@ -38363,7 +38390,8 @@ function saveTimerSession() {
   // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
   const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const _sessRec = {
-    date: _localDateISO(new Date()),
+    // v2.2.x — 자정을 넘겨 끝낸 세션은 '시작한 날'의 독서로 기록 (토요일 밤 독서가 일요일로 밀리던 문제)
+    date: _localDateISO(TIMER.startTime ? new Date(TIMER.startTime) : new Date()),
     minutes,
     pages: pagesRead,
     end: _hm(new Date()),
@@ -39250,7 +39278,8 @@ function autoSaveTimerSession(opts) {
   // v2.x — 시작·종료 시각 자동 기록 (타이머가 이미 아는 값)
   const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const _sessRec = {
-    date: _localDateISO(new Date()),
+    // v2.2.x — 자정을 넘겨 끝낸 세션은 '시작한 날'의 독서로 기록 (토요일 밤 독서가 일요일로 밀리던 문제)
+    date: _localDateISO(TIMER.startTime ? new Date(TIMER.startTime) : new Date()),
     minutes,
     pages: pagesRead,
     end: _hm(new Date()),
@@ -44627,10 +44656,32 @@ function renderMonthCal() {
   }
 
   BOOKS.forEach(b => {
-    if (!b.dateStart) return;
-    const end = b.dateEnd || (b.status === 'reading' ? today.toISOString() : null);
-    if (!end) return;
-    add(b.dateStart, end, b.pages, b, !!b.dateEnd);
+    // v2.2.x — 타이머 세션이 있는 책은 '실제 읽은 날·읽은 양'으로 표시 (추정보다 정확, dateStart 없어도 표시)
+    const sessions = Array.isArray(b.readingSessions) ? b.readingSessions.filter(s => s && s.date) : [];
+    if (sessions.length) {
+      const seenDays = new Set();
+      sessions.forEach(sess => {
+        const dt = new Date(String(sess.date).slice(0, 10) + 'T00:00:00');
+        if (isNaN(dt) || dt.getFullYear() !== year || dt.getMonth() !== month) return;
+        const d = dt.getDate();
+        if (!dayAct[d]) return;
+        if (!seenDays.has(d)) { dayAct[d].books.push(b); seenDays.add(d); }
+        dayAct[d].pages += Number(sess.pages) || 0;
+      });
+      // 완독일 표시는 기존과 동일하게 유지
+      if (b.dateEnd) {
+        const de = new Date(b.dateEnd);
+        if (!isNaN(de) && de.getFullYear() === year && de.getMonth() === month) {
+          const d = de.getDate();
+          if (dayAct[d]) { dayAct[d].finished += 1; dayAct[d].finishedBooks.push(b); if (!seenDays.has(d)) dayAct[d].books.push(b); }
+        }
+      }
+    } else {
+      if (!b.dateStart) return;
+      const end = b.dateEnd || (b.status === 'reading' ? today.toISOString() : null);
+      if (!end) return;
+      add(b.dateStart, end, b.pages, b, !!b.dateEnd);
+    }
     (b.rereads || []).forEach(r => {
       if (r.dateStart && r.dateEnd) add(r.dateStart, r.dateEnd, b.pages, b, true);
     });
