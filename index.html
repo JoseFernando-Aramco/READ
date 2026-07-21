@@ -2051,6 +2051,17 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* 책 그리드 (4열) */
+/* v2.2.x — 장르별 보기: 한 단(선반) 헤더 */
+.genre-shelf-head {
+  grid-column: 1 / -1;
+  display: flex; align-items: baseline; gap: 7px;
+  padding: 12px 2px 4px;
+  border-bottom: 1.5px solid var(--c-border);
+  margin-bottom: 4px;
+}
+.genre-shelf-head:first-child { padding-top: 2px; }
+.gsh-name { font-size: 13px; font-weight: 800; color: var(--c-text); letter-spacing: -0.01em; }
+.gsh-count { font-size: 10.5px; font-weight: 700; color: var(--c-muted); }
 .book-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -9351,6 +9362,8 @@ body.manual-open { overflow: hidden; }
   border-bottom: 1px solid var(--c-border);
   margin-bottom: 12px;
 }
+.grp-name-pen { margin-left: 6px; color: var(--c-muted); opacity: .7; vertical-align: -1px; }
+.grp-name-input { font-size: 16px; font-weight: 800; color: var(--c-text); background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: 8px; padding: 4px 10px; width: min(220px, 60vw); outline: none; }
 .grp-sheet-title {
   font-size: 17px;
   font-weight: 800;
@@ -34274,6 +34287,10 @@ function _bcProgressCorner(pct) {
 }
 
 function renderBookCard(b, idx) {
+  // v2.2.x — 장르별 보기: 단(선반) 헤더 마커
+  if (b && b._genreShelfHeader) {
+    return `<div class="genre-shelf-head"><span class="gsh-name">${esc(b._genreShelfHeader)}</span><span class="gsh-count">${b._shelfCount}권</span></div>`;
+  }
   if (b && b._isGroupCover && b._grp) {
     return renderStackBookCard(b, b._grp, b._grpBooks || [], idx);
   }
@@ -35427,9 +35444,41 @@ function _libSortDateKey(tab, b) {
   return null;
 }
 /* 통합 비교자 — 날짜 없는 책은 어느 모드든 맨 뒤, 별점 동점은 완독일 최신순 */
+/* v2.2.x — 장르(첫 태그) 키. 태그 없으면 '미분류' (Jason: 장르별 한 단 한 단 보기) */
+function _libGenreOf(b) {
+  const t = Array.isArray(b && b.tags) ? b.tags.find(x => x && String(x).trim()) : null;
+  return t ? String(t).trim() : '미분류';
+}
+/* 최종 표시 배열에 장르 단 헤더 마커 삽입 (genre 모드일 때만) */
+function _libInsertGenreShelves(list, mode) {
+  if (mode !== 'genre' || !Array.isArray(list) || !list.length) return list;
+  const out = [];
+  let cur = null;
+  list.forEach(b => {
+    const g = _libGenreOf(b);
+    if (g !== cur) {
+      cur = g;
+      out.push({ _genreShelfHeader: g, _shelfCount: list.filter(x => _libGenreOf(x) === g).length });
+    }
+    out.push(b);
+  });
+  return out;
+}
 function _libTabSortCmp(tab, mode) {
   if (mode === 'title') {
     return (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko');
+  }
+  if (mode === 'genre') {
+    const dateCmp = _libTabSortCmp(tab, 'date_desc');
+    return (a, b) => {
+      const ga = _libGenreOf(a), gb = _libGenreOf(b);
+      if (ga !== gb) {
+        if (ga === '미분류') return 1;
+        if (gb === '미분류') return -1;
+        return ga.localeCompare(gb, 'ko');
+      }
+      return dateCmp(a, b);
+    };
   }
   const t = (b) => { const k = _libSortDateKey(tab, b); return k ? new Date(k).getTime() : NaN; };
   return (a, b) => {
@@ -35449,6 +35498,7 @@ function _libTabSortCmp(tab, mode) {
 function _wishSortApply(list, mode) {
   if (mode === 'date_asc') return list.slice().reverse();
   if (mode === 'title') return list.slice().sort(_libTabSortCmp('wish', 'title'));
+  if (mode === 'genre') return list.slice().sort(_libTabSortCmp('wish', 'genre'));
   return list;
 }
 /* 정렬 알약 공통 빌더 — 2권 이상일 때만. done은 별점순, wish는 취향순(showRec) 추가 */
@@ -35458,7 +35508,8 @@ function _libSortPillsHtml(tab, count, showRec) {
   const dateOn = mode === 'date_desc' || mode === 'date_asc';
   const dateLabel = mode === 'date_asc' ? '오래된순 ↑' : '최신순 ↓';
   let pills = `<button type="button" class="wish-sort-pill ${dateOn ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="date">${dateLabel}</button>`
-    + `<button type="button" class="wish-sort-pill ${mode === 'title' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="title">가나다순</button>`;
+    + `<button type="button" class="wish-sort-pill ${mode === 'title' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="title">가나다순</button>`
+    + `<button type="button" class="wish-sort-pill ${mode === 'genre' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="genre">장르별</button>`;
   if (tab === 'done') {
     pills += `<button type="button" class="wish-sort-pill ${mode === 'rating' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rating">별점순</button>`;
   }
@@ -35473,6 +35524,7 @@ function _libSortWord(mode) {
   if (mode === 'title') return '가나다순';
   if (mode === 'rating') return '별점 상위';
   if (mode === 'rec') return '취향순';
+  if (mode === 'genre') return '장르별';
   return '최근';
 }
 
@@ -35718,16 +35770,16 @@ function renderLibraryCards() {
     ${monthStripHtml}
     ${tabsHtml}
     <div class="lib-cat-pane ${activeCat==='wish'?'active':''} ${_libEdit.active && _libEdit.cat==='wish'?'lib-edit-mode':''}" id="libCat-wish">
-      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(wish, wishTrailing, wishSubLabel, editBtnHtml) : emptyPane('위시리스트가 비어있어요')) : ''}
+      ${activeCat === 'wish' ? (wishAll.length ? renderWishlistSection(_libInsertGenreShelves(wish, _tabSortMode.wish), wishTrailing, wishSubLabel, editBtnHtml) : emptyPane('위시리스트가 비어있어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='reading'?'active':''} ${_libEdit.active && _libEdit.cat==='reading'?'lib-edit-mode':''}" id="libCat-reading">
-      ${activeCat === 'reading' ? ((reading.length ? renderBookSection('독서중', readingSubLabel, readingVisible, readingTrailing, editBtnHtml, _libSortPillsHtml('reading', readingRaw.length)) : emptyPane('읽고 있는 책이 없어요')) + pausedDrawerHtml) : ''}
+      ${activeCat === 'reading' ? ((reading.length ? renderBookSection('독서중', readingSubLabel, _libInsertGenreShelves(readingVisible, _tabSortMode.reading), readingTrailing, editBtnHtml, _libSortPillsHtml('reading', readingRaw.length)) : emptyPane('읽고 있는 책이 없어요')) + pausedDrawerHtml) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='done'?'active':''} ${_libEdit.active && _libEdit.cat==='done'?'lib-edit-mode':''}" id="libCat-done">
-      ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, done, doneTrailing, editBtnHtml, doneSortToggle) : emptyPane('완독한 책이 아직 없어요')) : ''}
+      ${activeCat === 'done' ? (doneAll.length ? renderBookSection('완독', doneSubLabel, _libInsertGenreShelves(done, _tabSortMode.done), doneTrailing, editBtnHtml, doneSortToggle) : emptyPane('완독한 책이 아직 없어요')) : ''}
     </div>
     <div class="lib-cat-pane ${activeCat==='dropped'?'active':''} ${_libEdit.active && _libEdit.cat==='dropped'?'lib-edit-mode':''}" id="libCat-dropped">
-      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, dropped, droppedTrailing, editBtnHtml, _libSortPillsHtml('dropped', droppedRaw.length)) : emptyPane('하차한 책이 없어요')) : ''}
+      ${activeCat === 'dropped' ? (droppedAll.length ? renderBookSection('하차', droppedSubLabel, _libInsertGenreShelves(dropped, _tabSortMode.dropped), droppedTrailing, editBtnHtml, _libSortPillsHtml('dropped', droppedRaw.length)) : emptyPane('하차한 책이 없어요')) : ''}
     </div>
   `;
 
@@ -35842,6 +35894,22 @@ function _libSetActiveCat(cat) {
 function _grpGet() { return STORE.get('groups.v1', []); }
 function _grpSet(groups) { STORE.set('groups.v1', groups); }
 function _grpFindById(id) { return _grpGet().find(g => g.id === id) || null; }
+/* v2.2.x — 묶음 이름 바꾸기. 빈 값으로 저장하면 자동 추론명으로 복원 (Jason: '추천받은 책' 같은 커스텀 묶음명) */
+function _grpRename(groupId, newName) {
+  const groups = _grpGet();
+  const g = groups.find(x => x.id === groupId);
+  if (!g) return null;
+  const trimmed = (newName || '').trim();
+  if (trimmed) {
+    g.name = trimmed;
+  } else {
+    const ids = BOOKS.filter(b => b.groupId === groupId).map(b => b.id);
+    g.name = _grpInferName(ids);
+  }
+  _grpSet(groups);
+  try { renderLibraryCards(); } catch (e) {}
+  return g.name;
+}
 function _grpGenId() { return 'grp_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 /* v1.3.0 — 책 제목 끝에서 권 번호 자동 추출
@@ -36792,7 +36860,7 @@ function _grpExpandSheet(groupId, categoryFilter) {
   sheet.innerHTML = `
     <div class="grp-sheet-head">
       <div>
-        <div class="grp-sheet-title">${esc(grp.name)}</div>
+        <div class="grp-sheet-title" data-action="grp-rename" role="button" aria-label="묶음 이름 바꾸기">${esc(grp.name)}<svg class="grp-name-pen" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></div>
         <div class="grp-sheet-sub">묶음 ${books.length}권</div>
       </div>
       <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
@@ -36824,6 +36892,29 @@ function _grpExpandSheet(groupId, categoryFilter) {
 
   // 시트 핸들러
   sheet.addEventListener('click', (e) => {
+    // v2.2.x — 묶음 이름 인라인 편집
+    const renameEl = e.target.closest('[data-action="grp-rename"]');
+    if (renameEl && !renameEl.querySelector('input')) {
+      const cur = _grpFindById(groupId);
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'grp-name-input';
+      input.value = (cur && cur.name) || '';
+      input.placeholder = '묶음 이름 (비우면 자동)';
+      input.maxLength = 40;
+      renameEl.textContent = '';
+      renameEl.appendChild(input);
+      input.focus();
+      try { input.select(); } catch (err) {}
+      const commit = () => {
+        const nm = _grpRename(groupId, input.value);
+        renameEl.innerHTML = esc(nm || '') + '<svg class="grp-name-pen" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+      };
+      input.addEventListener('keydown', (ke) => { if (ke.key === 'Enter') input.blur(); });
+      input.addEventListener('blur', commit, { once: true });
+      input.addEventListener('click', (ce) => ce.stopPropagation());
+      return;
+    }
     const editBtn = e.target.closest('[data-action="grp-sheet-edit"]');
     if (editBtn) {
       const on = sheet.classList.toggle('grp-editing');
@@ -52031,6 +52122,7 @@ function exportDataAsJson() {
       notes: NOTES,
       tags: TAGS,
       goals,
+      groups: (typeof _grpGet === 'function') ? _grpGet() : [],  // v2.2.x — 묶음(이름 포함)도 백업에 담기
     };
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -52235,6 +52327,9 @@ async function handleImportFile(file) {
 
     if (data.goals) {
       try { saveGoals(data.goals); } catch(e){}
+    }
+    if (Array.isArray(data.groups)) {
+      try { _grpSet(data.groups); } catch(e){}  // v2.2.x — 묶음 이름 복원
     }
 
     closeExportModal();
