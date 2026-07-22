@@ -24429,6 +24429,20 @@ body.sayu-active #pane-sayu{ background:transparent; }
       </div>
     </div>
   </div>
+  <!-- v2.2.x — 일괄 구매기록 (Jason: 가격·구매처 한 번에) -->
+  <div class="blkx-sec">
+    <div class="blkx-head">
+      <span class="blkx-lbl">구매기록<span class="m">선택 권에 적용</span></span>
+      <div class="blkx-tg" id="blkAcqOn" role="switch" aria-checked="false" aria-label="구매기록 일괄 적용"></div>
+    </div>
+    <div class="blkx-body off" id="blkAcqBody">
+      <div style="display:flex; gap:8px;">
+        <input type="number" inputmode="numeric" id="blkAcqPrice" placeholder="가격 (원)" min="0" step="100" style="flex:1; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
+        <input type="text" id="blkAcqPlace" placeholder="구매처 (예: 알라딘)" maxlength="30" style="flex:1.2; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
+      </div>
+      <div id="blkAcqHint" style="font-size:11px; color:var(--c-terra-400); margin-top:7px;"></div>
+    </div>
+  </div>
   <label id="blkSkipRow" style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 20px 0; padding:11px 13px; background:var(--c-border-2); border-radius:10px; cursor:pointer;">
     <span style="font-size:13px; color:var(--c-terra-700);">이미 입력된 책은 건너뛰기</span>
     <input type="checkbox" id="blkSkip" checked style="width:18px; height:18px;" />
@@ -36707,10 +36721,14 @@ function _libEditApplyBulk(){
   const rating = _blkRating;
   const wantTags = _blkTagOn && _blkTags.size > 0;
   const wantFmt = _blkFmtOn && !!_blkFormat;
-  if(!(rating >= 0.5) && !memo && !wantTags && !wantFmt){ if(typeof showToast==='function') showToast('적용할 내용을 입력해주세요'); return; }
+  const _acqPriceRaw = parseInt((document.getElementById('blkAcqPrice')||{}).value, 10);
+  const _acqPrice = Number.isFinite(_acqPriceRaw) && _acqPriceRaw > 0 ? _acqPriceRaw : null;
+  const _acqPlace = ((document.getElementById('blkAcqPlace')||{}).value || '').trim() || null;
+  const wantAcq = _blkAcqOn && (_acqPrice != null || _acqPlace != null);
+  if(!(rating >= 0.5) && !memo && !wantTags && !wantFmt && !wantAcq){ if(typeof showToast==='function') showToast('적용할 내용을 입력해주세요'); return; }
   // 스킵(이미 입력된 책)은 별점·한줄평 기록 기준 — 태그·매체는 선택 전체에 적용
   const targets = skip ? sel.filter(b => !_blkHasRecord(b)) : sel;
-  if((rating >= 0.5 || memo) && !targets.length && !wantTags && !wantFmt){ if(typeof showToast==='function') showToast('적용할 책이 없어요'); return; }
+  if((rating >= 0.5 || memo) && !targets.length && !wantTags && !wantFmt && !wantAcq){ if(typeof showToast==='function') showToast('적용할 책이 없어요'); return; }
   let booksChanged = false;
   if(rating >= 0.5 && targets.length){
     targets.forEach(b => { b.rating = rating; });
@@ -36732,6 +36750,16 @@ function _libEditApplyBulk(){
     sel.forEach(b => { b.format = _blkFormat; });
     booksChanged = true;
   }
+  if(wantAcq){
+    // 구매 기록은 이력 데이터 — 이미 기록 있는 책은 항상 건너뛰어 중복 생성 방지
+    const acqTargets = sel.filter(b => !(Array.isArray(b.acquisitions) && b.acquisitions.length));
+    acqTargets.forEach(b => {
+      const rec = { id: _acqNewId(), type: 'purchase', date: todayStr(), place: _acqPlace, price: _acqPrice, returnDate: null, memo: null };
+      b.acquisitions = [rec];
+      Object.assign(b, _acqMirrorOf([rec]));
+    });
+    if(acqTargets.length) booksChanged = true;
+  }
   if(booksChanged){ try{ STORE.set('books', BOOKS); }catch(e){} }
   closeBulkSheet();
   _libEdit.active=false; _libEdit.cat=null; _libEdit.selected.clear(); _libEdit.pendingMove=null; _libEdit.pendingDelete=false;
@@ -36741,7 +36769,7 @@ function _libEditApplyBulk(){
   try{ renderTagRadar && renderTagRadar(); }catch(e){}
   try{ renderHallOfFame && renderHallOfFame(); }catch(e){}
   try{ renderNotesTab && renderNotesTab(); }catch(e){}
-  if(typeof showToast==='function') showToast('📚 ' + ((wantTags || wantFmt) ? sel.length : targets.length) + '권에 적용했어요');
+  if(typeof showToast==='function') showToast('📚 ' + ((wantTags || wantFmt || wantAcq) ? sel.length : targets.length) + '권에 적용했어요');
 }
 (function wireBulkSheet(){
   const skip=document.getElementById('blkSkip');
@@ -36756,6 +36784,7 @@ function _libEditApplyBulk(){
 
 /* v2.x — 일괄 태그·매체 상태 (카페 제안 #1+#3b) */
 let _blkTagOn = false, _blkTagMode = 'add', _blkFmtOn = false, _blkFormat = null;
+let _blkAcqOn = false;
 const _blkTags = new Set();
 function _blkRenderTagChips(){
   const box = document.getElementById('blkTagChips'); if(!box) return;
@@ -36767,6 +36796,11 @@ function _blkRenderTagChips(){
 }
 function _blkResetExtras(){
   _blkTagOn = false; _blkTagMode = 'add'; _blkFmtOn = false; _blkFormat = null; _blkTags.clear();
+  _blkAcqOn = false;
+  const ag = document.getElementById('blkAcqOn'); if(ag){ ag.classList.remove('on'); ag.setAttribute('aria-checked','false'); }
+  const ab = document.getElementById('blkAcqBody'); if(ab) ab.classList.add('off');
+  const ap = document.getElementById('blkAcqPrice'); if(ap) ap.value = '';
+  const apl = document.getElementById('blkAcqPlace'); if(apl) apl.value = '';
   const tg = document.getElementById('blkTagOn'); if(tg){ tg.classList.remove('on'); tg.setAttribute('aria-checked','false'); }
   const tb = document.getElementById('blkTagBody'); if(tb) tb.classList.add('off');
   const fg = document.getElementById('blkFmtOn'); if(fg){ fg.classList.remove('on'); fg.setAttribute('aria-checked','false'); }
@@ -36782,6 +36816,17 @@ function _blkResetExtras(){
   const fg = document.getElementById('blkFmtOn'), fb = document.getElementById('blkFmtBody');
   if(tg) tg.addEventListener('click', function(){ _blkTagOn = !_blkTagOn; tg.classList.toggle('on', _blkTagOn); tg.setAttribute('aria-checked', String(_blkTagOn)); if(tb) tb.classList.toggle('off', !_blkTagOn); });
   if(fg) fg.addEventListener('click', function(){ _blkFmtOn = !_blkFmtOn; fg.classList.toggle('on', _blkFmtOn); fg.setAttribute('aria-checked', String(_blkFmtOn)); if(fb) fb.classList.toggle('off', !_blkFmtOn); });
+  const ag = document.getElementById('blkAcqOn'), ab = document.getElementById('blkAcqBody');
+  if(ag) ag.addEventListener('click', function(){
+    _blkAcqOn = !_blkAcqOn; ag.classList.toggle('on', _blkAcqOn); ag.setAttribute('aria-checked', String(_blkAcqOn));
+    if(ab) ab.classList.toggle('off', !_blkAcqOn);
+    if(_blkAcqOn){
+      const sel = _blkSelected();
+      const empt = sel.filter(b => !(Array.isArray(b.acquisitions) && b.acquisitions.length)).length;
+      const hint = document.getElementById('blkAcqHint');
+      if(hint) hint.textContent = '구매 기록이 없는 ' + empt + '권에만 새로 기록돼요 (이미 있는 ' + (sel.length - empt) + '권은 건너뜀)';
+    }
+  });
   const seg = document.getElementById('blkTagMode');
   if(seg) seg.addEventListener('click', function(e){
     const btn = e.target.closest('button[data-mode]'); if(!btn) return;
