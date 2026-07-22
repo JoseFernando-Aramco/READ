@@ -11757,6 +11757,12 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
 }
 
 /* 별점 에디터 — 드래그 슬라이더 (v1.7.0) */
+/* v2.2.x — 별점 변경 확인 줄 (변화 있을 때만 우하단 등장, 확인 눌러야 저장) */
+.bdrc { display: flex; align-items: center; justify-content: flex-end; gap: 9px; margin-top: 7px; animation: bdrcIn .18s ease; }
+.bdrc[hidden] { display: none; }
+.bdrc-diff { font-size: 11.5px; font-weight: 700; color: var(--c-terra-400); }
+.bdrc-ok { border: none; background: var(--primary, #8a6f3a); color: #fff; font-family: inherit; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 100px; cursor: pointer; }
+@keyframes bdrcIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
 .bd-stars {
   touch-action: pan-y;  /* v2.2.x — 별점 위에서도 세로 스크롤 가능 (스침 오조작 방지, 유저 제안) */
   display: flex; gap: 4px;
@@ -40174,6 +40180,10 @@ function renderBookDetail() {
         <span class="bd-stars-val">${b.rating ? `★ ${b.rating.toFixed(1)}` : '미평가'}</span>
       </div>
       <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점을 매겨주세요 · 0.5점 단위</div>
+      <div class="bdrc" id="bdRatingConfirm" hidden>
+        <span class="bdrc-diff" id="bdRatingDiff"></span>
+        <button type="button" class="bdrc-ok" id="bdRatingOk">확인</button>
+      </div>
     </div>
     ` : ''}
 
@@ -40864,10 +40874,31 @@ function wireBookDetailEvents() {
       if (valEl) valEl.textContent = v > 0 ? `★ ${v.toFixed(1)}` : '미평가';
     },
     onCommit: (v) => {
-      updateBook(b.id, { rating: v > 0 ? v : null });
-      renderBookDetail();
+      // v2.2.x — 즉시 저장하지 않고 미확정: 값이 달라졌을 때만 확인 줄 노출, 확인을 눌러야 저장 (Jason 설계)
+      const fresh = BOOKS.find(x => String(x.id) === String(b.id)) || b;
+      const cur = fresh.rating || 0;
+      const nv = v > 0 ? v : 0;
+      const row = document.getElementById('bdRatingConfirm');
+      if (!row) return;
+      if (nv === cur) { row.hidden = true; return; }
+      const fmt = (x) => x > 0 ? '★ ' + x.toFixed(1) : '미평가';
+      document.getElementById('bdRatingDiff').textContent = fmt(cur) + ' → ' + fmt(nv);
+      row.hidden = false;
+      row.dataset.pending = String(nv);
     },
   });
+  // 확인 → 그때 저장
+  const ratingOk = document.getElementById('bdRatingOk');
+  if (ratingOk) {
+    ratingOk.addEventListener('click', () => {
+      const row = document.getElementById('bdRatingConfirm');
+      const nv = parseFloat(row && row.dataset.pending);
+      if (!row || !Number.isFinite(nv)) return;
+      updateBook(b.id, { rating: nv > 0 ? nv : null });
+      renderBookDetail();
+      showToast(nv > 0 ? '★ ' + nv.toFixed(1) + ' 저장했어요' : '별점을 지웠어요');
+    });
+  }
 
   // 재독 기록 추가 버튼
   const addBtn = document.getElementById('bdAddRereadBtn');
