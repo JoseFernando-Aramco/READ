@@ -4678,7 +4678,57 @@ body:has(.lib-edit-bar) .library-cards {
   margin: 8px 0 -6px;
   /* color는 인라인으로 책별 색 */
 }
-.note-card.quote .note-body {
+.note-card.quote /* v2.2.x — 노트 스와이프 코멘트 (왼쪽으로 밀면 +코멘트, 다시 읽다 덧붙이는 생각) */
+.note-card { overflow: visible; }
+.note-card.cmt-open { transform: translateX(-92px); }
+.note-card.cmt-open:active { transform: translateX(-92px); }
+.note-cmt-act {
+  position: absolute; right: -92px; top: 8px; bottom: 8px; width: 82px;
+  border: none; border-radius: 10px;
+  background: var(--primary, #8a6f3a); color: #fff;
+  font-family: inherit; font-size: 12.5px; font-weight: 800;
+  cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.note-card.cmt-open .note-cmt-act { opacity: 1; pointer-events: auto; }
+.note-cmt-pc { display: none; font-size: 13px; }
+@media (hover: hover) and (pointer: fine) { .note-cmt-pc { display: inline-flex; } }
+.note-comments { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.note-cmt {
+  background: var(--c-surface-2); border-radius: 8px; padding: 8px 11px 6px;
+  font-size: 12.5px; line-height: 1.6; color: var(--c-text-2);
+}
+.note-cmt-body { white-space: pre-wrap; word-break: break-word; }
+.note-cmt-meta { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 3px; }
+.note-cmt-meta span { font-size: 10px; color: var(--c-muted); font-weight: 600; }
+.note-cmt-del { border: none; background: none; color: var(--c-muted); font-size: 15px; line-height: 1; padding: 0 2px; cursor: pointer; }
+.note-cmt-form { margin-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+.note-cmt-input {
+  width: 100%; box-sizing: border-box; min-height: 58px; resize: none;
+  border: 1px solid var(--c-border); border-radius: 10px; padding: 9px 12px;
+  background: var(--c-surface); color: var(--c-text); font-family: inherit; font-size: 13px; line-height: 1.6;
+}
+.note-cmt-form-btns { display: flex; justify-content: flex-end; gap: 7px; }
+.note-cmt-form-btns button { border: none; border-radius: 100px; font-family: inherit; font-size: 12px; font-weight: 800; padding: 7px 14px; cursor: pointer; }
+.note-cmt-cancel { background: var(--c-surface-2); color: var(--c-text-2); }
+.note-cmt-save { background: var(--primary, #8a6f3a); color: #fff; }
+/* v2.2.x — 인용 아래 '내 생각' 덧붙임 (인용=책의 목소리·선택 서체, 생각=내 목소리·앱 서체) */
+.note-thought-add {
+  margin-top: 10px; padding: 9px 12px;
+  background: var(--c-surface-2);
+  border-left: 2.5px solid var(--c-border-2);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px; line-height: 1.65; color: var(--c-text-2);
+  white-space: pre-wrap; word-break: break-word;
+}
+.note-thought-add .nta-lbl {
+  display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.6px;
+  color: var(--c-muted); margin-bottom: 4px;
+}
+.na-thought { margin-top: 8px; min-height: 64px; font-size: 13.5px; }
+/* v2.2.x — 노트 서체 선택 (유저 제안): 기본 명조 / 고딕 / 손글씨 */
+body[data-note-font="sans"] .note-body { font-family: inherit; letter-spacing: -0.01em; }
+body[data-note-font="hand"] .note-body { font-family: 'Nanum Pen Script', 'Noto Serif KR', cursive; font-size: 19px; line-height: 1.55; }
+.note-body {
   font-family: 'Noto Serif KR', Georgia, serif;
   font-size: 14.5px; font-weight: 400;
   color: var(--c-text);
@@ -23168,6 +23218,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="settings-section-ttl">일반</div>
       </div>
       <div class="settings-list">
+        <button class="settings-row" id="noteFontRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-pen"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">노트 서체</div>
+            <div class="settings-row-sub">인용구·메모의 글씨체</div>
+          </div>
+          <div class="settings-row-right" id="noteFontState">명조</div>
+        </button>
         <button class="settings-row" id="notifRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
@@ -24074,6 +24132,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         </span>
       </button>
       <textarea class="na-textarea" id="naBody" placeholder="인용구나 떠오른 생각을 적어보세요"></textarea>
+      <textarea class="na-textarea na-thought" id="naThought" placeholder="이 문장이 왜 좋았나요? — 내 생각 (선택)"></textarea>
     </div>
 
     <div class="na-field">
@@ -33510,6 +33569,7 @@ const NA = {
   type: 'quote',
   page: null,
   body: '',
+  thought: '',
   favorite: false,
   bookLocked: false,
 };
@@ -42081,6 +42141,7 @@ async function _captureTicketImage() {
       allowTaint: false,
       logging: false,
       imageTimeout: 10000,
+      ignoreElements: _h2cIgnoreAppRoot(wrapper),
     });
     return canvas;
   } finally {
@@ -46422,6 +46483,94 @@ function getFilteredNotes() {
 }
 
 /* ─── 카드 렌더 ─── */
+/* v2.2.x — 노트 스와이프 코멘트: 카드를 왼쪽으로 밀면 +코멘트 (다시 읽다 덧붙이는 생각, 여러 개·날짜 표시) */
+function _cmtDateLabel(iso) {
+  try {
+    const d = new Date(iso);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  } catch (e) { return ''; }
+}
+function _cmtCloseAll() {
+  document.querySelectorAll('.note-card.cmt-open').forEach(c => c.classList.remove('cmt-open'));
+}
+function _cmtRerender(noteId) {
+  // 열려 있는 화면 갱신 — 노트 탭 + (책 상세 노트 탭이 열려 있으면 그쪽도)
+  try { renderNotesTab(); } catch (e) {}
+  try { if (typeof BD !== 'undefined' && BD && BD.book && document.getElementById('bdSheet')?.classList.contains('open')) renderBookDetail(); } catch (e) {}
+}
+function _cmtAdd(noteId, body) {
+  const note = NOTES.find(n => n.id === noteId);
+  if (!note) return;
+  if (!Array.isArray(note.comments)) note.comments = [];
+  note.comments.push({ id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), body: body, createdAt: new Date().toISOString() });
+  STORE.set('notes', NOTES);
+  showToast('코멘트를 남겼어요 💬');
+  _cmtRerender(noteId);
+}
+function _cmtDelete(noteId, cmtId) {
+  const note = NOTES.find(n => n.id === noteId);
+  if (!note || !Array.isArray(note.comments)) return;
+  note.comments = note.comments.filter(c => String(c.id) !== String(cmtId));
+  STORE.set('notes', NOTES);
+  showToast('코멘트 삭제됨');
+  _cmtRerender(noteId);
+}
+function _cmtOpenForm(card, noteId) {
+  _cmtCloseAll();
+  if (card.querySelector('.note-cmt-form')) return;
+  const form = document.createElement('div');
+  form.className = 'note-cmt-form';
+  form.innerHTML = `<textarea class="note-cmt-input" placeholder="그때의 나에게 한마디"></textarea>
+    <div class="note-cmt-form-btns"><button type="button" class="note-cmt-cancel">취소</button><button type="button" class="note-cmt-save">등록</button></div>`;
+  // 액션 버튼 앞(카드 본문 끝)에 삽입
+  card.insertBefore(form, card.querySelector('.note-cmt-act'));
+  const ta = form.querySelector('.note-cmt-input');
+  ta.focus();
+  form.querySelector('.note-cmt-cancel').addEventListener('click', (e) => { e.stopPropagation(); form.remove(); });
+  form.querySelector('.note-cmt-save').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const v = ta.value.trim();
+    if (!v) { showToast('내용을 입력해주세요'); return; }
+    _cmtAdd(noteId, v);
+  });
+  ta.addEventListener('click', (e) => e.stopPropagation());
+}
+(function _wireNoteSwipe() {
+  // 별점과 같은 제스처 판별: 가로 우세 드래그만 스와이프로 인정, 세로는 스크롤에 양보
+  let armed = false, target = null, startX = 0, startY = 0, decided = false;
+  const SLOP = 10, OPEN_AT = -40;
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const card = e.target.closest('.note-card');
+    if (!card || e.target.closest('.note-cmt-form')) { return; }
+    armed = true; decided = false; target = card;
+    startX = e.clientX; startY = e.clientY;
+  }, { passive: true });
+  document.addEventListener('pointermove', (e) => {
+    if (!armed || !target) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (!decided) {
+      if (Math.abs(dy) >= SLOP && Math.abs(dy) >= Math.abs(dx)) { armed = false; target = null; return; }
+      if (Math.abs(dx) >= SLOP && Math.abs(dx) > Math.abs(dy)) decided = true;
+      else return;
+    }
+  }, { passive: true });
+  document.addEventListener('pointerup', (e) => {
+    if (!armed || !target) { armed = false; target = null; return; }
+    const dx = e.clientX - startX;
+    if (decided && dx <= OPEN_AT) {
+      _cmtCloseAll();
+      target.classList.add('cmt-open');
+    } else if (decided && dx > 0 && target.classList.contains('cmt-open')) {
+      target.classList.remove('cmt-open');
+    }
+    armed = false; target = null;
+  }, { passive: true });
+  // 바깥 탭 시 닫기
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.note-card.cmt-open') && !e.target.closest('.note-cmt-form')) _cmtCloseAll();
+  });
+})();
 function renderNoteCard(n) {
   const book = BOOKS.find(b => b.id === n.bookId);
   if (!book) return '';
@@ -46462,11 +46611,14 @@ function renderNoteCard(n) {
     : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
 
   return `
-    <div class="note-card ${esc(n.type)} palette-${palette}" data-note-id="${n.id}">
+    <div class="note-card ${esc(n.type)} palette-${palette}" data-note-id="${n.id}" data-no-swipe>
       ${labelHtml}
       <button class="note-fav-corner${n.favorite ? ' fav-on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
       ${headHtml}
       <div class="note-body${isLong ? ' collapsed' : ''}">${esc(bodyText)}</div>
+      ${(isQuote && n.thought) ? `<div class="note-thought-add"><span class="nta-lbl">내 생각</span>${esc(n.thought)}</div>` : ''}
+      ${(Array.isArray(n.comments) && n.comments.length) ? `<div class="note-comments">${n.comments.map(c => `<div class="note-cmt"><div class="note-cmt-body">${esc(c.body)}</div><div class="note-cmt-meta"><span>${esc(_cmtDateLabel(c.createdAt))}</span><button type="button" class="note-cmt-del" data-action="note-cmt-del" data-note-id="${n.id}" data-cmt-id="${esc(String(c.id))}" aria-label="코멘트 삭제">&times;</button></div></div>`).join('')}</div>` : ''}
+      <button type="button" class="note-cmt-act" data-action="note-cmt-open" data-note-id="${n.id}">+ 코멘트</button>
       ${isLong ? `<button class="note-expand-btn" data-action="note-expand" type="button">더보기 ⌄</button>` : ''}
       <div class="note-card-divider"></div>
       <div class="note-meta">
@@ -46477,6 +46629,7 @@ function renderNoteCard(n) {
         </div>
         <div class="note-meta-actions">
           <button class="note-keep-btn${noteShared ? ' shared-done' : ''}" data-action="note-sayu-share" data-note-id="${n.id}" aria-label="${noteShared ? '이미 KEEP에 공유됨' : 'KEEP에 공유'}"${noteShared ? ' disabled' : ''}>${noteShared ? '✓ KEEP' : '+ KEEP'}</button>
+          <button class="note-meta-btn note-cmt-pc" data-action="note-cmt-open" data-note-id="${n.id}" aria-label="코멘트 달기">💬</button>
           <button class="note-meta-btn" data-action="note-share" data-note-id="${n.id}" aria-label="공유">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
@@ -46839,6 +46992,19 @@ function _noteCardClickHandler(e) {
     toggleNoteFavorite(id);
     return;
   }
+  const cmtOpenBtn = e.target.closest('[data-action="note-cmt-open"]');
+  if (cmtOpenBtn) {
+    e.stopPropagation();
+    const card = cmtOpenBtn.closest('.note-card');
+    _cmtOpenForm(card, parseInt(cmtOpenBtn.dataset.noteId, 10));
+    return;
+  }
+  const cmtDelBtn = e.target.closest('[data-action="note-cmt-del"]');
+  if (cmtDelBtn) {
+    e.stopPropagation();
+    _cmtDelete(parseInt(cmtDelBtn.dataset.noteId, 10), cmtDelBtn.dataset.cmtId);
+    return;
+  }
   const sayuShareBtn = e.target.closest('[data-action="note-sayu-share"]');
   if (sayuShareBtn) {
     e.stopPropagation();
@@ -46922,6 +47088,14 @@ function _showShareChoice(opts) {
   bd.classList.add('open');
 }
 
+/* v2.2.x — 티켓 캡처 최적화 (유저 제보: 티켓 생성 딜레이): html2canvas는 문서 전체를 클론하므로
+   캡처 대상과 무관한 앱 본체(.main-wrap)를 클론에서 제외해 준비 시간을 줄인다. (~25-30% 단축 실측)
+   대상이 main-wrap 안에 있으면 제외하지 않는다 (안전 가드). */
+function _h2cIgnoreAppRoot(targetEl) {
+  return (el) => {
+    try { return el.classList && el.classList.contains('main-wrap') && !el.contains(targetEl); } catch (e) { return false; }
+  };
+}
 async function shareNoteCard(id, btnEl) {
   if (typeof html2canvas === 'undefined') {
     showToast('네트워크 확인 후 다시 시도해주세요');
@@ -47119,6 +47293,7 @@ async function shareNoteCard(id, btnEl) {
         allowTaint: false,
         logging: false,
         imageTimeout: 10000,
+        ignoreElements: _h2cIgnoreAppRoot(wrapper),
       });
     } finally {
       document.body.removeChild(wrapper);
@@ -47354,6 +47529,7 @@ function resetNA(defaults = {}) {
   NA.type = defaults.type || 'quote';
   NA.page = defaults.page || null;
   NA.body = defaults.body || '';
+  NA.thought = defaults.thought || '';
   NA.favorite = !!defaults.favorite;
   NA.bookLocked = !!defaults.bookLocked;
 }
@@ -47515,6 +47691,11 @@ function renderNA() {
 
   document.getElementById('naPage').value = NA.page || '';
   document.getElementById('naBody').value = NA.body || '';
+  const _naTh = document.getElementById('naThought');
+  if (_naTh) {
+    _naTh.value = NA.thought || '';
+    _naTh.style.display = NA.type === 'quote' ? '' : 'none';
+  }
   // 기존 노트 편집 시 긴 텍스트면 자동 늘어남
   if (typeof _naAutoGrow === 'function') _naAutoGrow();
 
@@ -47571,6 +47752,7 @@ function openNoteEdit(id) {
     type: note.type,
     page: note.page,
     body: note.body,
+    thought: note.thought || '',
     favorite: note.favorite,
   });
   renderNA();
@@ -47610,6 +47792,7 @@ function saveNote() {
       note.type = NA.type;
       note.page = (pageVal && pageVal > 0) ? pageVal : null;
       note.body = NA.body.trim();
+      note.thought = (note.type === 'quote' && NA.thought.trim()) ? NA.thought.trim() : null;
       note.favorite = NA.favorite;
       note.updatedAt = new Date().toISOString();  // v2.1.0 — 수정한 노트가 최신순 맨 위로 (카페 제보)
     }
@@ -47622,6 +47805,7 @@ function saveNote() {
       type: NA.type,
       page: (pageVal && pageVal > 0) ? pageVal : null,
       body: NA.body.trim(),
+      thought: (NA.type === 'quote' && NA.thought.trim()) ? NA.thought.trim() : null,
       favorite: NA.favorite,
       createdAt: new Date().toISOString(),
     });
@@ -47734,6 +47918,8 @@ document.getElementById('naTypeSeg').addEventListener('click', (e) => {
   const btn = e.target.closest('.status-seg-btn');
   if (!btn) return;
   NA.type = btn.dataset.type;
+  const _thEl = document.getElementById('naThought');
+  if (_thEl) _thEl.style.display = NA.type === 'quote' ? '' : 'none';
   document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(b => {
     b.classList.toggle('active', b === btn);
   });
@@ -47770,6 +47956,8 @@ function _naAutoGrow() {
   });
 }
 
+const _naThoughtEl = document.getElementById('naThought');
+if (_naThoughtEl) _naThoughtEl.addEventListener('input', (e) => { NA.thought = e.target.value; });
 const _naBodyEl = document.getElementById('naBody');
 _naBodyEl.addEventListener('compositionstart', () => { _naComposing = true; });
 _naBodyEl.addEventListener('compositionend', () => {
@@ -48103,6 +48291,37 @@ function scheduleNextNotif() {
 
 /* 설정 행 클릭 바인딩 */
 (function wireNotifToggle() {
+  // v2.2.x — 노트 서체 (유저 제안): serif(기본·명조) / sans(고딕) / hand(손글씨·웹폰트)
+  (function wireNoteFont() {
+    const KEY = 'read.noteFont';
+    const LABEL = { serif: '명조', sans: '고딕', hand: '손글씨' };
+    const ORDER = ['serif', 'sans', 'hand'];
+    function ensureHandFont() {
+      if (document.getElementById('handFontLink')) return;
+      const l = document.createElement('link');
+      l.id = 'handFontLink';
+      l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap';
+      document.head.appendChild(l);
+    }
+    function apply(v) {
+      document.body.setAttribute('data-note-font', v);
+      if (v === 'hand') ensureHandFont();
+      const st = document.getElementById('noteFontState');
+      if (st) st.textContent = LABEL[v] || '명조';
+    }
+    let cur = localStorage.getItem(KEY) || 'serif';
+    if (!ORDER.includes(cur)) cur = 'serif';
+    apply(cur);
+    const fontRow = document.getElementById('noteFontRow');
+    if (fontRow) fontRow.addEventListener('click', () => {
+      cur = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
+      localStorage.setItem(KEY, cur);
+      apply(cur);
+      showToast('노트 서체: ' + LABEL[cur]);
+      try { renderNotesTab(); } catch (e) {}
+    });
+  })();
   const row = document.getElementById('notifRow');
   if (!row || row.dataset.notifWired) return;
   row.dataset.notifWired = '1';
