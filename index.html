@@ -4728,6 +4728,9 @@ body:has(.lib-edit-bar) .library-cards {
 /* v2.2.x — 노트 서체 선택 (유저 제안): 기본 명조 / 고딕 / 손글씨 */
 body[data-note-font="sans"] .note-body { font-family: inherit; letter-spacing: -0.01em; }
 body[data-note-font="hand"] .note-body { font-family: 'Nanum Pen Script', 'Noto Serif KR', cursive; font-size: 19px; line-height: 1.55; }
+body[data-note-font="melody"] .note-body { font-family: 'Hi Melody', 'Noto Serif KR', cursive; font-size: 17px; line-height: 1.6; }
+body[data-note-font="gamja"] .note-body { font-family: 'Gamja Flower', 'Noto Serif KR', cursive; font-size: 17px; line-height: 1.6; }
+body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Serif KR', cursive; font-size: 17px; line-height: 1.6; }
 .note-body {
   font-family: 'Noto Serif KR', Georgia, serif;
   font-size: 14.5px; font-weight: 400;
@@ -48294,19 +48297,21 @@ function scheduleNextNotif() {
   // v2.2.x — 노트 서체 (유저 제안): serif(기본·명조) / sans(고딕) / hand(손글씨·웹폰트)
   (function wireNoteFont() {
     const KEY = 'read.noteFont';
-    const LABEL = { serif: '명조', sans: '고딕', hand: '손글씨' };
-    const ORDER = ['serif', 'sans', 'hand'];
-    function ensureHandFont() {
-      if (document.getElementById('handFontLink')) return;
+    const LABEL = { serif: '명조', sans: '고딕', hand: '손글씨 펜', melody: '하이멜로디', gamja: '감자꽃', yeonsung: '연성' };
+    const GFONT = { hand: 'Nanum+Pen+Script', melody: 'Hi+Melody', gamja: 'Gamja+Flower', yeonsung: 'Yeon+Sung' };
+    const ORDER = ['serif', 'sans', 'hand', 'melody', 'gamja', 'yeonsung'];
+    function ensureWebFont(v) {
+      const fam = GFONT[v];
+      if (!fam || document.getElementById('nfFont_' + v)) return;
       const l = document.createElement('link');
-      l.id = 'handFontLink';
+      l.id = 'nfFont_' + v;
       l.rel = 'stylesheet';
-      l.href = 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap';
+      l.href = 'https://fonts.googleapis.com/css2?family=' + fam + '&display=swap';
       document.head.appendChild(l);
     }
     function apply(v) {
       document.body.setAttribute('data-note-font', v);
-      if (v === 'hand') ensureHandFont();
+      ensureWebFont(v);
       const st = document.getElementById('noteFontState');
       if (st) st.textContent = LABEL[v] || '명조';
     }
