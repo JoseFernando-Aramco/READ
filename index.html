@@ -35559,6 +35559,18 @@ function _setBooksPaused(ids, val) {
   return n;
 }
 /* 탭별 날짜 키 — wish는 날짜 필드가 없어 null (배열 등록순 사용) */
+/* v2.2.x — '마지막으로 읽은 날' (유저 건의: 다시 읽는 책이 밑에 묻힘).
+   그동안 이 함수가 미구현이라 독서중 정렬이 조용히 등록순으로 동작하고 있었다. */
+function _lastActivityISO(b) {
+  let best = b.dateStart ? new Date(b.dateStart).getTime() : 0;
+  const sessions = Array.isArray(b.readingSessions) ? b.readingSessions : [];
+  sessions.forEach(sess => {
+    if (!sess || !sess.date) return;
+    const t = new Date(String(sess.date).slice(0, 10) + 'T00:00:00').getTime();
+    if (Number.isFinite(t) && t > best) best = t;
+  });
+  return best > 0 ? new Date(best).toISOString() : null;
+}
 function _libSortDateKey(tab, b) {
   if (tab === 'done') return b.dateEnd || null;
   if (tab === 'reading') return (typeof _lastActivityISO === 'function' ? _lastActivityISO(b) : null) || null;
@@ -35628,7 +35640,7 @@ function _libSortPillsHtml(tab, count, showRec) {
   if (!(count > 1)) return '';
   const mode = _tabSortMode[tab];
   const dateOn = mode === 'date_desc' || mode === 'date_asc';
-  const dateLabel = mode === 'date_asc' ? '오래된순 ↑' : '최신순 ↓';
+  const dateLabel = mode === 'date_asc' ? '오래된순 ↑' : (tab === 'reading' ? '최근순 ↓' : '최신순 ↓');
   let pills = `<button type="button" class="wish-sort-pill ${dateOn ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="date">${dateLabel}</button>`
     + `<button type="button" class="wish-sort-pill ${mode === 'title' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="title">가나다순</button>`
     + `<button type="button" class="wish-sort-pill ${mode === 'genre' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="genre">장르별</button>`;
