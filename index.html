@@ -42708,11 +42708,28 @@ function renderLifebookCard() {
 
 /* ─── ② 요일별 패턴 ─── */
 function computeWeekdayStats() {
-  // 일(0)~토(6) 기준. 각 독서 세션의 모든 날짜를 해당 요일 버킷에 추가
+  // 일(0)~토(6) 기준.
+  // v2.2.x — 타이머 세션이 있는 책은 '실제 읽은 날·읽은 양'으로 집계 (유저 제보: 하루 500p 읽는데 평균 109p —
+  //   기간 균등 분배가 안 읽은 날까지 분모에 넣어 평균을 희석하던 문제). 세션 없는 책만 기존 기간 추정 폴백.
   const daysPerWeekday = [0, 0, 0, 0, 0, 0, 0];
   const pagesPerWeekday = [0, 0, 0, 0, 0, 0, 0];
+  const sessionDayKeys = new Set();  // 실측: 같은 날 여러 세션은 '읽은 날 1일'로
+
+  BOOKS.forEach(b => {
+    const sessions = Array.isArray(b.readingSessions) ? b.readingSessions.filter(x => x && x.date) : [];
+    sessions.forEach(sess => {
+      const dt = new Date(String(sess.date).slice(0, 10) + 'T00:00:00');
+      if (isNaN(dt)) return;
+      const wd = dt.getDay();
+      const key = String(sess.date).slice(0, 10);
+      if (!sessionDayKeys.has(key)) { sessionDayKeys.add(key); daysPerWeekday[wd] += 1; }
+      pagesPerWeekday[wd] += Number(sess.pages) || 0;
+    });
+  });
+  const sessionBookIds = new Set(BOOKS.filter(b => Array.isArray(b.readingSessions) && b.readingSessions.length).map(b => b.id));
 
   allReadSessions().forEach(s => {
+    if (sessionBookIds.has(s.book.id)) return;  // 실측된 책은 추정 제외 (이중 집계 방지)
     const start = new Date(s.dateStart);
     const end = new Date(s.dateEnd);
     const totalDays = Math.max(1, Math.round((end - start) / 86400000) + 1);
