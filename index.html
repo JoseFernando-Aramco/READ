@@ -39186,6 +39186,10 @@ const CINEMA = {
 /* 이 시점에 resumeTimer에서 복원된 TIMER.bookId가 있으면 tick 시작 */
 if (TIMER.bookId && TIMER.startTime) {
   startTimerTick();
+  // v2.2.x — 타이머가 살아있는 채로 앱이 다시 켜졌다면(iOS가 백그라운드에서 페이지를 회수한 복귀),
+  //   서재를 거치지 않고 곧장 시네마로 복귀한다 (유저 제보: 복귀 딜레이 — 스크립트 동기 실행이라 첫 페인트부터 시네마).
+  //   fullscreen은 제스처 컨텍스트가 아니라 요청이 무시될 수 있지만 오버레이 복귀 자체는 문제없다.
+  try { CINEMA.enter(TIMER.bookId); } catch (e) {}
 }
 
 /* ═══════════════════════════════════════════
