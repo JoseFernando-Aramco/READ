@@ -22215,6 +22215,7 @@ body.cn-locked {
 .sayu-search-clear { border: none; background: rgba(87,76,118,.12); color: #574C76; width: 32px; height: 32px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: none; }
 .sayu-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
 .sayu-head-txt{ display:flex; flex-direction:column; gap:6px; }
+.sayu-head-actions{ display:flex; align-items:center; gap:8px; flex:none; }
 .sayu-profile-btn{ width:40px; height:40px; flex:none; border-radius:50%; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); color:#6F5AC8; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 .sayu-profile-btn:active{ opacity:.6; }
 /* v2.0.0 — KEEP 웰컴 오버레이 + 알림 배지 */
@@ -22974,6 +22975,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="sayu-title">KEEP</div>
         <div class="sayu-desc">당신과 나, 우리의 책 이야기</div>
       </div>
+      <div class="sayu-head-actions">
       <button class="sayu-profile-btn" id="sayuSearchBtn" onclick="toggleSayuSearch()" aria-label="책으로 검색">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
@@ -22981,6 +22983,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.8 3.6-6 8-6s8 2.2 8 6"/></svg>
         <span class="sayu-profile-badge" id="sayuProfileBadge" hidden></span>
       </button>
+      </div>
     </div>
     <div class="sayu-feed" id="sayuFeed">
     </div>
