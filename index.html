@@ -4561,6 +4561,11 @@ body:has(.lib-edit-bar) .library-cards {
   font-size: 9px; color: var(--c-muted);
   font-weight: 500;
 }
+.note-book-tile-search .nbt-search-cover {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--c-surface-2); border: 1.5px dashed var(--c-border-2);
+  color: var(--c-muted); border-radius: 10px;
+}
 .note-book-tile-more {
   border-left: 1px solid var(--c-border-2);
   padding-left: 7px; margin-left: 3px;
@@ -22199,6 +22204,15 @@ body.cn-locked {
 <style id="sayu-styles">
 /* ═══════════ [TAB 5] 사유 — 몽환 피드 (B 라이트 / A midnight) ═══════════ */
 #pane-sayu{ min-height:72vh; background:transparent; }
+/* v2.2.x — KEEP 책 검색 (유저 요구: 피드에서 원하는 책의 노트 검색) */
+.sayu-search-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.sayu-search-input {
+  flex: 1; box-sizing: border-box; border: 1px solid rgba(87,76,118,.28); border-radius: 100px;
+  padding: 9px 16px; background: #fff; color: #352D4E;
+  font-family: inherit; font-size: 13.5px; outline: none;
+}
+.sayu-search-input:focus { border-color: rgba(87,76,118,.55); }
+.sayu-search-clear { border: none; background: rgba(87,76,118,.12); color: #574C76; width: 32px; height: 32px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: none; }
 .sayu-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
 .sayu-head-txt{ display:flex; flex-direction:column; gap:6px; }
 .sayu-profile-btn{ width:40px; height:40px; flex:none; border-radius:50%; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); color:#6F5AC8; display:flex; align-items:center; justify-content:center; cursor:pointer; }
@@ -22951,11 +22965,18 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
   <!-- ═══════════ [TAB 5] 사유 — 공유 노트 피드 (1a 스캐폴드·더미) ═══════════ -->
   <section class="pane" id="pane-sayu">
+    <div class="sayu-search-bar" id="sayuSearchBar" style="display:none">
+      <input type="search" id="sayuSearchInput" class="sayu-search-input" placeholder="책 제목이나 작가로 검색" autocomplete="off"/>
+      <button type="button" class="sayu-search-clear" id="sayuSearchClear" aria-label="검색 닫기">&times;</button>
+    </div>
     <div class="sayu-head">
       <div class="sayu-head-txt">
         <div class="sayu-title">KEEP</div>
         <div class="sayu-desc">당신과 나, 우리의 책 이야기</div>
       </div>
+      <button class="sayu-profile-btn" id="sayuSearchBtn" onclick="toggleSayuSearch()" aria-label="책으로 검색">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
       <button class="sayu-profile-btn" onclick="openMyView()" aria-label="내 KEEP">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.8 3.6-6 8-6s8 2.2 8 6"/></svg>
         <span class="sayu-profile-badge" id="sayuProfileBadge" hidden></span>
@@ -27518,10 +27539,59 @@ function _sayuSetupFeedIO(){
   _sayuFeedIO.observe(sent);
 }
 function _sayuTeardownFeedIO(){ if(_sayuFeedIO){ try{ _sayuFeedIO.disconnect(); }catch(e){} _sayuFeedIO=null; } }
+/* v2.2.x — KEEP 책 검색 상태 */
+var SAYU_SEARCH_Q = '';
+var _sayuSearchTimer = null;
+function toggleSayuSearch(){
+  var bar = document.getElementById('sayuSearchBar');
+  if (!bar) return;
+  var show = bar.style.display === 'none';
+  bar.style.display = show ? 'flex' : 'none';
+  if (show) {
+    setTimeout(function(){ var i = document.getElementById('sayuSearchInput'); if (i) i.focus(); }, 100);
+  } else {
+    _sayuClearSearch();
+  }
+}
+function _sayuClearSearch(){
+  SAYU_SEARCH_Q = '';
+  var i = document.getElementById('sayuSearchInput');
+  if (i) i.value = '';
+  renderSayuFeed();
+}
+(function wireSayuSearch(){
+  document.addEventListener('input', function(e){
+    if (!e.target || e.target.id !== 'sayuSearchInput') return;
+    clearTimeout(_sayuSearchTimer);
+    _sayuSearchTimer = setTimeout(function(){
+      SAYU_SEARCH_Q = e.target.value.trim();
+      renderSayuFeed();
+    }, 300);
+  });
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.closest && e.target.closest('#sayuSearchClear')) {
+      var bar = document.getElementById('sayuSearchBar');
+      if (bar) bar.style.display = 'none';
+      _sayuClearSearch();
+    }
+  });
+})();
+/* 구 워커 호환 폴백 — 서버가 q를 몰라 전체를 돌려줘도 로드분은 클라에서 걸러 보여준다 */
+function _sayuLocalFilter(posts){
+  if (!SAYU_SEARCH_Q) return posts;
+  var q = SAYU_SEARCH_Q.toLowerCase();
+  return posts.filter(function(p){
+    var b = p.book || {};
+    return String(b.title || '').toLowerCase().indexOf(q) !== -1
+        || String(b.author || '').toLowerCase().indexOf(q) !== -1;
+  });
+}
 async function renderSayuFeed(){
   const el=document.getElementById('sayuFeed'); if(!el) return;
+  const qAtCall = SAYU_SEARCH_Q;
   try {
-    var r = await keepApi('GET','/keep/feed');
+    var r = await keepApi('GET','/keep/feed' + (qAtCall ? ('?q=' + encodeURIComponent(qAtCall)) : ''));
+    if (SAYU_SEARCH_Q !== qAtCall) return; // 낡은 응답 폐기
     if (r.ok && r.data && Array.isArray(r.data.posts)){
       SAYU_POSTS = r.data.posts.map(_sayuFromApi);
       _sayuFeedCursor = r.data.nextCursor || null;
@@ -27529,7 +27599,9 @@ async function renderSayuFeed(){
     }
   } catch(e){}
   var hid=sayuHiddenSet();
-  el.innerHTML = SAYU_POSTS.filter(function(p){ return !hid.has(p.id); }).map(sayuCardHTML).join('');
+  var _sayuShown = _sayuLocalFilter(SAYU_POSTS.filter(function(p){ return !hid.has(p.id); }));
+  el.innerHTML = _sayuShown.length ? _sayuShown.map(sayuCardHTML).join('')
+    : (SAYU_SEARCH_Q ? '<div class="my-empty">\'' + esc(SAYU_SEARCH_Q) + '\'에 대한 글이 아직 없어요.</div>' : '');
   _sayuRevealMore(el);
   _sayuSetupFeedIO();
   _sayuDotSync();
@@ -46809,7 +46881,12 @@ function renderNoteCarousel() {
       <div class="note-book-tile-cnt">+${rest.length}</div>
     </button>` : '';
 
-  carousel.innerHTML = tileHtml + moreHtml;
+  const searchTileHtml = `
+    <button class="note-book-tile note-book-tile-search" id="noteBookSearchTile" type="button" aria-label="책으로 노트 찾기">
+      <div class="note-book-tile-cover nbt-search-cover"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      <div class="note-book-tile-title">책 찾기</div>
+    </button>`;
+  carousel.innerHTML = searchTileHtml + tileHtml + moreHtml;
 }
 
 /* ─── 메인 렌더 ─── */
@@ -46989,6 +47066,13 @@ document.getElementById('noteSearchInput').addEventListener('input', (e) => {
 
 /* ─── 책별 carousel 이벤트 위임 ─── */
 document.getElementById('noteBookCarousel').addEventListener('click', (e) => {
+  const searchBtn = e.target.closest('#noteBookSearchTile');
+  if (searchBtn) {
+    openNoteBookSheet();
+    // v2.2.x — 검색 타일로 열었을 땐 곧장 타이핑 (유저 요구: 원하는 책 바로 검색)
+    setTimeout(() => { const inp = document.getElementById('noteBookSheetSearch'); if (inp) inp.focus(); }, 250);
+    return;
+  }
   const moreBtn = e.target.closest('#noteBookMoreTile');
   if (moreBtn) {
     openNoteBookSheet();
