@@ -38647,11 +38647,19 @@ function openTimerStop() {
   sheet.setAttribute('aria-hidden', 'false');
 }
 
-function closeTimerStop() {
-  document.getElementById('tmBackdrop').classList.remove('open');
+function closeTimerStop(opts) {
   const sheet = document.getElementById('tmSheet');
+  const wasOpen = sheet.classList.contains('open');
+  document.getElementById('tmBackdrop').classList.remove('open');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
+  // v2.2.x — 유저 제보 '저장했는데 반영 안 되고 타이머 계속': 실제로는 백드롭 탭·스와이프·뒤로가기로
+  //   시트가 저장 없이 닫히는 경우 (iOS 키보드 열림 상태의 첫 탭 소실 포함). 타이머가 살아있는 채
+  //   닫히면 저장이 안 됐다는 뜻이므로 즉시 알려준다. (의도적 '취소' 버튼은 silent로 조용히)
+  const silent = opts && opts.silent;
+  if (wasOpen && !silent && TIMER.bookId) {
+    showToast('기록이 저장되지 않았어요 — 타이머는 계속 갑니다 ⏱️');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -38695,7 +38703,16 @@ function closeTimerStop() {
 /* 세션 저장 + 타이머 종료 */
 function saveTimerSession() {
   const book = BOOKS.find(b => b.id === TIMER.bookId);
-  if (!book) { closeTimerStop(); return; }
+  if (!book) {
+    // v2.2.x — 책을 못 찾는 비정상 상태: 시트만 닫고 타이머를 남겨두면 유령 타이머가 됨 → 정리
+    if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+    TIMER.bookId = null; TIMER.startTime = null; TIMER.intervalId = null;
+    TIMER.pendingMinutes = null; TIMER.pausedAt = null; TIMER.pausedTotal = 0;
+    STORE.set('timer', null);
+    closeTimerStop({ silent: true });
+    showToast('책 정보를 찾을 수 없어 타이머를 종료했어요');
+    return;
+  }
 
   const minutes = TIMER.pendingMinutes || 1;
   const oldPage = book.currentPage || 0;
@@ -38788,7 +38805,7 @@ function discardTimerSession() {
 
 /* 타이머 정지 시트 이벤트 바인딩 */
 document.getElementById('tmBackdrop').addEventListener('click', closeTimerStop);
-document.getElementById('tmCancel').addEventListener('click', closeTimerStop);
+document.getElementById('tmCancel').addEventListener('click', () => closeTimerStop({ silent: true }));
 document.getElementById('tmSave').addEventListener('click', saveTimerSession);
 document.getElementById('tmDiscard').addEventListener('click', discardTimerSession);
 
@@ -40589,6 +40606,31 @@ function _maybeOfferDone(bookId, oldPage, newPage) {
 
 function _applyStatusChange(b, newStatus) {
   const update = { status: newStatus };
+  // v2.2.x — 유저 제보(긴급): 타이머 도는 책을 완독/하차 처리하면 타이머가 유령처럼 계속 돌던 문제.
+  //   완독까지의 시간을 독서 세션으로 기록하고 (긴 독서 기록을 버리지 않도록) 타이머를 함께 종료한다.
+  if ((newStatus === 'done' || newStatus === 'dropped') && TIMER.bookId != null && String(TIMER.bookId) === String(b.id)) {
+    try {
+      const elapsedMin = Math.max(1, Math.round(getElapsedSec() / 60));
+      const total = Number(b.pages) || 0;
+      const sessPages = (newStatus === 'done' && total > 0) ? Math.max(0, total - (b.currentPage || 0)) : 0;
+      const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      const rec = {
+        date: _localDateISO(TIMER.startTime ? new Date(TIMER.startTime) : new Date()),
+        minutes: elapsedMin,
+        pages: sessPages,
+        end: _hm(new Date()),
+      };
+      if (TIMER.startTime) rec.start = _hm(new Date(TIMER.startTime));
+      update.readingSessions = [...(b.readingSessions || []), rec];
+      showToast(`타이머 ${elapsedMin}분도 함께 기록했어요 ⏱️`);
+    } catch (e) {}
+    if (TIMER.intervalId) clearInterval(TIMER.intervalId);
+    TIMER.bookId = null; TIMER.startTime = null; TIMER.intervalId = null;
+    TIMER.pendingMinutes = null; TIMER.pausedAt = null; TIMER.pausedTotal = 0;
+    STORE.set('timer', null);
+    try { CINEMA.exit({ silent: true }); } catch (e) {}
+    try { closeTimerStop({ silent: true }); } catch (e) {}
+  }
   update.paused = false; // 쉼표 — 상태가 바뀌면 항상 초기화
   const today = todayStr();
 
