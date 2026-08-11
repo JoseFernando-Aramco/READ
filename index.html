@@ -47190,10 +47190,25 @@ document.addEventListener('click', (e) => {
   if (btn) btn.setAttribute('aria-expanded', 'false');
 });
 
-/* ─── 검색 이벤트 ─── */
-document.getElementById('noteSearchInput').addEventListener('input', (e) => {
-  NOTE_FILTER.search = e.target.value.trim();
-  renderNotesTab();
+/* ─── 검색 이벤트 ───
+   v2.2.x — [성능] 디바운스 도입 (유저 제보 '타자가 느리게 뜬다'): 기존엔 키 입력마다
+   노트 탭 전체 리렌더 → 노트 수백 개 유저는 글자당 수백 ms. 200ms 디바운스 + IME 조합 중 스킵. */
+let _noteSearchTimer = null;
+const _noteSearchInputEl = document.getElementById('noteSearchInput');
+_noteSearchInputEl.addEventListener('input', (e) => {
+  if (e.isComposing) return;  // 한글 조합 중엔 compositionend에서 처리
+  clearTimeout(_noteSearchTimer);
+  _noteSearchTimer = setTimeout(() => {
+    NOTE_FILTER.search = _noteSearchInputEl.value.trim();
+    renderNotesTab();
+  }, 200);
+});
+_noteSearchInputEl.addEventListener('compositionend', () => {
+  clearTimeout(_noteSearchTimer);
+  _noteSearchTimer = setTimeout(() => {
+    NOTE_FILTER.search = _noteSearchInputEl.value.trim();
+    renderNotesTab();
+  }, 200);
 });
 
 /* ─── 책별 carousel 이벤트 위임 ─── */
