@@ -2431,12 +2431,12 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 
 /* 편집 모드 시 본문 하단 여백 확보 (액션바에 가려지지 않게) */
 body:has(.lib-edit-bar) /* v2.2.x — 예시 서재 안내 (신규 유저 혼란 방지: '앱이 깨끗하지 않아요' 문의 대응) */
-.demo-banner {
+.pane .demo-banner, .demo-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  margin: 0 0 12px; padding: 10px 14px;
+  margin: 2px 0 18px !important; padding: 11px 14px;
   background: var(--c-surface-2); border: 1px dashed var(--c-border-2); border-radius: 12px;
 }
-.demo-banner-txt { font-size: 12.5px; color: var(--c-text-2); line-height: 1.5; }
+.demo-banner-txt { flex: 1; min-width: 0; font-size: 12.5px; color: var(--c-text-2); line-height: 1.5; word-break: keep-all; overflow-wrap: break-word; }
 .demo-banner-btn {
   flex: none; border: none; border-radius: 100px; padding: 7px 13px;
   background: var(--primary, #8a6f3a); color: #fff;
@@ -11933,6 +11933,10 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   background: var(--c-surface-2);
   border: 1px dashed var(--c-border-2);
 }
+.bd-review-past-wrap { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; border-top: 1px dashed var(--c-border); padding-top: 9px; }
+.bd-review-past-lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.4px; color: var(--c-muted); margin-bottom: 3px; }
+.bd-review-past-body { font-size: 12.5px; line-height: 1.6; color: var(--c-text-2); white-space: pre-wrap; word-break: break-word; }
+.note-round-badge { display: inline-block; margin-left: 5px; padding: 1.5px 6px; border-radius: 100px; background: var(--c-surface-2); border: 0.5px solid var(--c-border-2); font-size: 9px; font-weight: 800; color: var(--c-muted); vertical-align: middle; }
 .bd-review-card-head {
   display: flex;
   align-items: center;
@@ -37516,9 +37520,20 @@ document.addEventListener('DOMContentLoaded', () => {}); // placeholder to ensur
    ═══════════════════════════════════════════════════════════ */
 
 /* 책 ID로 한줄평 노트 찾기 (없으면 null) */
+/* v2.2.x — 회독별 감상 (유저 기획: 처음·재독·삼독 감상은 다르다).
+   review 노트에 round(회독 차수)를 부여 — round 없음 = 1회독(기존 데이터 그대로).
+   findReviewNote는 '현재 회차'의 감상을 반환하므로, 재독을 시작하면 이전 감상은 자연히 과거 회차로 보존된다. */
+function _bookRound(b) {
+  return (Array.isArray(b && b.rereads) ? b.rereads.length : 0) + 1;
+}
+function findReviewNoteByRound(bookId, round) {
+  return NOTES.find(n => n.bookId === bookId && n.type === 'review' && (n.round || 1) === round) || null;
+}
 function findReviewNote(bookId) {
   if (typeof NOTES === 'undefined' || !Array.isArray(NOTES)) return null;
-  return NOTES.find(n => n.bookId === bookId && n.type === 'review') || null;
+  const b = BOOKS.find(x => x.id === bookId);
+  const round = b ? _bookRound(b) : 1;
+  return findReviewNoteByRound(bookId, round);
 }
 
 /* 한줄평 저장/덮어쓰기 (text가 빈 문자열이면 삭제) */
@@ -37533,10 +37548,12 @@ function saveQuickNote(bookId, text) {
       // createdAt은 유지 (최초 작성 시점 보존). 수정 표시는 별도 필드 안 둠 — 간단함 우선
     } else {
       const newId = NOTES.length ? Math.max(...NOTES.map(n => n.id)) + 1 : 1;
+      const _rvBook = BOOKS.find(x => x.id === bookId);
       NOTES.push({
         id: newId,
         bookId: bookId,
         type: 'review',
+        round: _rvBook ? _bookRound(_rvBook) : 1,
         page: null,
         body: trimmed,
         favorite: false,
@@ -40231,6 +40248,20 @@ function renderBookDetail() {
           </div>
           <div class="bd-review-card-body">${hasReview ? esc(review.body) : '탭하면 이 책에 대한 한 줄을 남길 수 있어요'}</div>
           <span class="bd-review-card-edit">${hasReview ? '✏️ 수정' : '+ 남기기'}</span>
+        ${(() => {
+          // v2.2.x — 과거 회독 감상 스택 (최근 회차부터)
+          const curRound = _bookRound(b);
+          if (curRound <= 1) return '';
+          const past = [];
+          for (let r = curRound - 1; r >= 1; r--) {
+            const note = findReviewNoteByRound(b.id, r);
+            if (!note || !note.body) continue;
+            const rr = (b.rereads || [])[r - 1] || {};
+            const period = rr.dateEnd ? ` · ${String(rr.dateEnd).slice(2).replace(/-/g, '.')} 완독` : '';
+            past.push(`<div class="bd-review-past"><div class="bd-review-past-lbl">${r}회독 감상${period}</div><div class="bd-review-past-body">${esc(note.body)}</div></div>`);
+          }
+          return past.length ? `<div class="bd-review-past-wrap">${past.join('')}</div>` : '';
+        })()}
         </div>
       </div>
       `;
@@ -46823,6 +46854,7 @@ function renderNoteCard(n) {
       ${labelHtml}
       <button class="note-fav-corner${n.favorite ? ' fav-on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
       ${headHtml}
+      ${(n.type === 'review' && (n.round || 1) > 1) ? `<div style="margin:-2px 0 5px"><span class="note-round-badge">${n.round}회독 감상</span></div>` : ''}
       <div class="note-body${isLong ? ' collapsed' : ''}">${esc(bodyText)}</div>
       ${(isQuote && n.thought) ? `<div class="note-thought-add"><span class="nta-lbl">내 생각</span>${esc(n.thought)}</div>` : ''}
       ${(Array.isArray(n.comments) && n.comments.length) ? `<div class="note-comments">${n.comments.map(c => `<div class="note-cmt"><div class="note-cmt-body">${esc(c.body)}</div><div class="note-cmt-meta"><span>${esc(_cmtDateLabel(c.createdAt))}</span><button type="button" class="note-cmt-del" data-action="note-cmt-del" data-note-id="${n.id}" data-cmt-id="${esc(String(c.id))}" aria-label="코멘트 삭제">&times;</button></div></div>`).join('')}</div>` : ''}
