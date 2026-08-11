@@ -2430,7 +2430,19 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 }
 
 /* 편집 모드 시 본문 하단 여백 확보 (액션바에 가려지지 않게) */
-body:has(.lib-edit-bar) .library-cards {
+body:has(.lib-edit-bar) /* v2.2.x — 예시 서재 안내 (신규 유저 혼란 방지: '앱이 깨끗하지 않아요' 문의 대응) */
+.demo-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 0 0 12px; padding: 10px 14px;
+  background: var(--c-surface-2); border: 1px dashed var(--c-border-2); border-radius: 12px;
+}
+.demo-banner-txt { font-size: 12.5px; color: var(--c-text-2); line-height: 1.5; }
+.demo-banner-btn {
+  flex: none; border: none; border-radius: 100px; padding: 7px 13px;
+  background: var(--primary, #8a6f3a); color: #fff;
+  font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.library-cards {
   padding-bottom: 160px;
 }
 
@@ -22601,6 +22613,10 @@ body.sayu-active #pane-sayu{ background:transparent; }
     </div>
 
     <!-- 북카드 뷰 (기존 콘텐츠) -->
+    <div class="demo-banner" id="demoBanner" style="display:none">
+      <span class="demo-banner-txt">👋 지금 보이는 책들은 <b>예시 서재</b>예요 — 둘러보신 뒤 지워도 돼요</span>
+      <button type="button" class="demo-banner-btn" id="demoBannerClear">한 번에 지우기</button>
+    </div>
     <div class="library-cards" id="libCards">
       <!-- JS 동적 렌더 · renderLibraryCards() -->
     </div><!-- /.library-cards -->
@@ -25872,6 +25888,8 @@ const READ_AUTH = {
       this.setSession(token, user);
       this._cleanUrl();
       if (typeof showToast === 'function') showToast(`${user.nickname}님 환영해요!`);
+      // v2.2.x — 로그인 = 진짜 기록 시작. 손대지 않은 예시 서재는 자동 정리 (id+제목 일치만)
+      try { if (typeof clearDemoLibrary === 'function' && _demoBooksPresent()) setTimeout(() => clearDemoLibrary('login'), 900); } catch (e) {}
       this.refreshUI();
       return true;
     } catch (e) {
@@ -34483,6 +34501,42 @@ function _bcProgressCorner(pct) {
   return `<span class="bc-pct-corner">${pct}%</span>`;
 }
 
+/* v2.2.x — 예시 서재 표식·정리 (유저 문의 '앱이 깨끗하지 않아요' 대응).
+   판별은 id+제목 '동시 일치'만 인정 — 유저가 제목을 고친 데모 책이나 실책은 절대 안 지운다. */
+const _DEMO_BOOK_SIG = { 1: '데미안', 2: '1984', 3: '넛지', 4: '코스모스', 5: '사피엔스', 6: '총, 균, 쇠', 7: '팩트풀니스', 8: 'Atomic Habits', 9: '호모 데우스', 10: '미움받을 용기', 11: '참을 수 없는 존재의 가벼움', 12: '율리시스', 13: '단정함의 힘' };
+function _isDemoBook(b) {
+  return !!(b && _DEMO_BOOK_SIG[b.id] && _DEMO_BOOK_SIG[b.id] === b.title);
+}
+function _demoBooksPresent() {
+  return BOOKS.some(_isDemoBook);
+}
+function clearDemoLibrary(reason) {
+  const demoIds = new Set(BOOKS.filter(_isDemoBook).map(b => b.id));
+  if (!demoIds.size) return 0;
+  const kept = BOOKS.filter(b => !demoIds.has(b.id));
+  BOOKS.length = 0;
+  BOOKS.push(...kept);
+  STORE.set('books', BOOKS);
+  // 데모 책에 딸린 노트도 함께 (실책 노트는 bookId가 다르므로 무관)
+  const keptNotes = NOTES.filter(n => !demoIds.has(n.bookId));
+  if (keptNotes.length !== NOTES.length) {
+    NOTES.length = 0;
+    NOTES.push(...keptNotes);
+    STORE.set('notes', NOTES);
+  }
+  try { renderLibraryCards(); } catch (e) {}
+  try { renderNotesTab(); } catch (e) {}
+  showToast(reason === 'login' ? '예시 서재를 정리했어요 — 이제 진짜 기록을 시작해요!' : '예시 서재를 지웠어요 ✨');
+  return demoIds.size;
+}
+function _syncDemoBanner() {
+  const el = document.getElementById('demoBanner');
+  if (el) el.style.display = _demoBooksPresent() ? 'flex' : 'none';
+}
+(function wireDemoBanner() {
+  const btn = document.getElementById('demoBannerClear');
+  if (btn) btn.addEventListener('click', () => clearDemoLibrary('banner'));
+})();
 function renderBookCard(b, idx) {
   // v2.2.x — 장르별 보기: 단(선반) 헤더 마커
   if (b && b._genreShelfHeader) {
@@ -35801,6 +35855,7 @@ function renderWishlistSection(wish, trailing = '', subLabel = '', headerBtn = '
 function renderLibraryCards() {
   const container = document.getElementById('libCards');
   if (!container) return;
+  try { _syncDemoBanner(); } catch (e) {}
 
   // v1.11.0 — raw 책 리스트 (카테고리 카운트 + 정렬용)
   // v1.5.x — 독서중 책 정렬: 가장 최근 세션 날짜 내림차순 (세션 없으면 dateStart, 그것도 없으면 0)
@@ -40241,7 +40296,7 @@ function renderBookDetail() {
         <div class="bd-section-lbl">독서 메모<span class="subct">등장인물 · 용어 · 지역</span></div>
         <button type="button" class="memo-save-btn idle" id="bdReadingNoteSave" disabled>저장</button>
       </div>
-      <textarea class="bd-reading-note" id="bdReadingNote" placeholder="예: 싱클레어 — 주인공 · 10살 소년&#10;데미안 — 전학생, 싱클레어보다 어른스러움&#10;크로머 — 싱클레어를 괴롭히는 동네 불량배" maxlength="2000" rows="4">${esc(b.readingNote || '')}</textarea>
+      <textarea class="bd-reading-note" id="bdReadingNote" placeholder="" maxlength="2000" rows="4">${esc(b.readingNote || '')}</textarea>
     </div>
     ` : ''}
 
