@@ -11428,6 +11428,19 @@ body.manual-open { overflow: hidden; }
 /* ═══════════════════════════════════════════════════════════
    타이머 세션 상세 (v1.10.4) — 책상세 안 펼침 + 편집/삭제
    ═══════════════════════════════════════════════════════════ */
+/* v2.2.x — 수기 세션 추가 */
+.tm-sess-add-empty {
+  width: 100%; box-sizing: border-box; border: 1px dashed var(--c-border-2); border-radius: 12px;
+  background: var(--c-surface-2); color: var(--c-text-2); padding: 12px 14px;
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.tm-sess-add-empty .tm-sess-add-sub { font-size: 11px; font-weight: 500; color: var(--c-muted); }
+.tm-sess-add-row {
+  width: 100%; box-sizing: border-box; border: none; border-top: 1px dashed var(--c-border);
+  background: transparent; color: var(--c-text-2); padding: 10px 0 4px;
+  font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
 .tm-sess-toggle {
   padding: 10px 12px;
   background: var(--c-surface-2);
@@ -11936,6 +11949,7 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
 .bd-review-past-wrap { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; border-top: 1px dashed var(--c-border); padding-top: 9px; }
 .bd-review-past-lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.4px; color: var(--c-muted); margin-bottom: 3px; }
 .bd-review-past-body { font-size: 12.5px; line-height: 1.6; color: var(--c-text-2); white-space: pre-wrap; word-break: break-word; }
+.note-group-badge { display: inline-block; margin: -2px 0 6px; padding: 3px 9px; border: none; border-radius: 100px; background: var(--c-surface-2); color: var(--c-text-2); font-family: inherit; font-size: 10.5px; font-weight: 800; cursor: pointer; }
 .note-round-badge { display: inline-block; margin-left: 5px; padding: 1.5px 6px; border-radius: 100px; background: var(--c-surface-2); border: 0.5px solid var(--c-border-2); font-size: 9px; font-weight: 800; color: var(--c-muted); vertical-align: middle; }
 .bd-review-card-head {
   display: flex;
@@ -40273,7 +40287,14 @@ function renderBookDetail() {
       // v1.10.4 — 타이머 세션 섹션 (진행률 바 아래, 독서 메모 위)
       if (wish) return ''; // 위시는 세션 없음
       const sess = Array.isArray(b.readingSessions) ? b.readingSessions : [];
-      if (sess.length === 0) return '';
+      // v2.2.x — 세션 0개여도 수기 추가 진입점 노출 (기록 소실 유저의 복구 경로)
+      if (sess.length === 0) {
+        return `
+      <div class="bd-section">
+        <button class="tm-sess-add-empty" id="bdTmSessAdd" type="button">⏱ 독서 기록 직접 추가 <span class="tm-sess-add-sub">타이머 없이 읽은 날도 남길 수 있어요</span></button>
+      </div>
+      `;
+      }
       const totalMins = sess.reduce((s, x) => s + (x.minutes || 0), 0);
       const totalPages = sess.reduce((s, x) => s + (x.pages || 0), 0);
       const isOpen = !!BD.tmSessOpen;
@@ -40314,6 +40335,7 @@ function renderBookDetail() {
                 </div>`;
             }).join('')}
           </div>
+          <button class="tm-sess-add-row" id="bdTmSessAdd" type="button">+ 직접 추가</button>
           <div class="tm-sess-list-fade"></div>
         </div>
       </div>
@@ -41697,6 +41719,8 @@ function openTimerSessionEdit(sessKey) {
   if (!s) return;
 
   BD.tmSessEditKey = sessKey;
+  const _delBtn = document.getElementById('tsDeleteBtn');
+  if (_delBtn) _delBtn.style.display = '';  // v2.2.x — 수기 추가에서 숨긴 삭제 버튼 복원
 
   // 매체별 입력 단위
   const isDig = isDigital(b);
@@ -41803,11 +41827,70 @@ function _tsSyncRowUpdate() {
   if (dt) dt.addEventListener('change', _tsSyncRowUpdate);
 })();
 
+/* v2.2.x — 수기 세션 추가 (유저 제안: 날아간 타이머 기록을 손으로 복구·타이머 없이 읽은 날 기록) */
+function openTimerSessionAdd() {
+  const b = BD.book;
+  if (!b) return;
+  BD.tmSessEditKey = '__new__';
+  const isDig = isDigital(b);
+  const total = b.pages || 0;
+  document.getElementById('tsMins').value = 30;
+  document.getElementById('tsStart').value = '';
+  document.getElementById('tsEnd').value = '';
+  document.getElementById('tsDate').value = todayStr();
+  document.getElementById('tsSub').textContent = '직접 추가 — 타이머 없이 읽은 기록';
+  const curInfo = document.getElementById('tsCurInfo');
+  if (isDig && total > 0) curInfo.innerHTML = `현재 진행(<strong>${pagesToPct(b.currentPage || 0, total)}%</strong>)`;
+  else if (total > 0) curInfo.innerHTML = `현재 페이지(<strong>${b.currentPage || 0}p</strong>)`;
+  else curInfo.textContent = '현재 진행';
+  const pageInput = document.getElementById('tsPages');
+  const pageLabel = document.getElementById('tsPagesLabel');
+  const pageUnit = document.getElementById('tsPagesUnit');
+  const pageConv = document.getElementById('tsPagesConv');
+  if (isDig && total > 0) {
+    pageInput.value = 0; pageInput.max = 100;
+    pageLabel.textContent = isWebnovel(b) ? '시간만 (페이지 미지원)' : '진행 (%p)';
+    pageUnit.textContent = '%'; pageConv.textContent = '';
+  } else {
+    pageInput.value = 0; pageInput.max = total > 0 ? total : 9999;
+    pageLabel.textContent = '페이지 진행'; pageUnit.textContent = 'p'; pageConv.textContent = '';
+  }
+  const delBtn = document.getElementById('tsDeleteBtn');
+  if (delBtn) delBtn.style.display = 'none';  // 신규엔 삭제 없음
+  document.getElementById('tsSheet').classList.add('open');
+  document.getElementById('tsBackdrop').classList.add('open');
+  document.getElementById('tsSheet').setAttribute('aria-hidden', 'false');
+  try { _tsSyncRowUpdate(); } catch (e) {}
+}
 function saveTimerSessionEdit() {
   const b = BD.book;
   const key = BD.tmSessEditKey;
   if (!b || !key) return closeTimerSessionEdit();
   const sess = Array.isArray(b.readingSessions) ? [...b.readingSessions] : [];
+  // v2.2.x — 수기 추가 모드
+  if (key === '__new__') {
+    const addMins = Math.max(1, Math.min(600, parseInt(document.getElementById('tsMins').value, 10) || 0));
+    const addDate = document.getElementById('tsDate').value || todayStr();
+    const rawP = parseInt(document.getElementById('tsPages').value, 10) || 0;
+    const isDigN = isDigital(b);
+    const totalN = b.pages || 0;
+    const addPages = (isDigN && totalN > 0) ? pctToPages(Math.max(0, Math.min(100, rawP)), totalN)
+      : Math.max(0, totalN > 0 ? Math.min(totalN, rawP) : rawP);
+    const rec = { date: addDate, minutes: addMins, pages: addPages, manual: true };
+    const addStart = document.getElementById('tsStart').value;
+    const addEnd = document.getElementById('tsEnd').value;
+    if (addStart) rec.start = addStart;
+    if (addEnd) rec.end = addEnd;
+    sess.push(rec);
+    const _syncN = document.getElementById('tsSyncChk') && document.getElementById('tsSyncChk').checked ? null : null;
+    updateBook(b.id, { readingSessions: sess });
+    BD.book = BOOKS.find(x => x.id === b.id) || BD.book;
+    closeTimerSessionEdit();
+    renderBookDetail();
+    try { renderLogList && renderLogList(); } catch (e) {}
+    showToast(`${addMins}분 기록을 추가했어요 ✍️`);
+    return;
+  }
   const parts = key.split('|');
   const origIdx = parseInt(parts[3], 10);
   if (!Number.isFinite(origIdx) || origIdx < 0 || origIdx >= sess.length) return closeTimerSessionEdit();
@@ -41885,6 +41968,10 @@ function deleteTimerSession() {
   });
 }
 
+/* v2.2.x — 수기 세션 추가 버튼 위임 (bdBody는 리렌더되므로 상위 위임) */
+document.getElementById('bdSheet').addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('#bdTmSessAdd')) openTimerSessionAdd();
+});
 /* ─── 모달 자체 핸들러 ─── */
 document.getElementById('bdBackdrop').addEventListener('click', closeBookDetail);
 document.getElementById('bdClose').addEventListener('click', closeBookDetail);
@@ -46855,6 +46942,7 @@ function renderNoteCard(n) {
       <button class="note-fav-corner${n.favorite ? ' fav-on' : ''}" data-action="note-fav" data-note-id="${n.id}" aria-label="즐겨찾기">${favIcon}</button>
       ${headHtml}
       ${(n.type === 'review' && (n.round || 1) > 1) ? `<div style="margin:-2px 0 5px"><span class="note-round-badge">${n.round}회독 감상</span></div>` : ''}
+      ${(n._groupCount > 1) ? `<button type="button" class="note-group-badge" data-note-group="${esc(n.body.trim())}">📚 같은 한줄평 ${n._groupCount}권 · 펼치기</button>` : ''}
       <div class="note-body${isLong ? ' collapsed' : ''}">${esc(bodyText)}</div>
       ${(isQuote && n.thought) ? `<div class="note-thought-add"><span class="nta-lbl">내 생각</span>${esc(n.thought)}</div>` : ''}
       ${(Array.isArray(n.comments) && n.comments.length) ? `<div class="note-comments">${n.comments.map(c => `<div class="note-cmt"><div class="note-cmt-body">${esc(c.body)}</div><div class="note-cmt-meta"><span>${esc(_cmtDateLabel(c.createdAt))}</span><button type="button" class="note-cmt-del" data-action="note-cmt-del" data-note-id="${n.id}" data-cmt-id="${esc(String(c.id))}" aria-label="코멘트 삭제">&times;</button></div></div>`).join('')}</div>` : ''}
@@ -47059,7 +47147,30 @@ function renderNotesTab() {
   // v1.5.x — 30개 cap (노트 많은 사용자 대비 — 메인 스레드 폭발 방지)
   //   3개 정렬 분기 공통: 슬라이스된 visibleNotes만 렌더, 그룹화는 그 안에서
   const totalNoteCount = filtered.length;
-  const visibleNotes = filtered.slice(0, _visibleNoteCount);
+  let visibleNotes = filtered.slice(0, _visibleNoteCount);
+  // v2.2.x — 묶음 일괄 한줄평 접기 (유저 제보 '같은 글이 반복으로 뜸'):
+  //   같은 문구의 review 노트가 2권 이상이면 목록엔 대표 1장만 + '외 N권' 뱃지.
+  //   데이터는 그대로(각 책 상세엔 각자의 한줄평 유지) — 목록 표시만 접는다. 펼치면 전부 노출.
+  if (typeof window._noteGroupExpanded === 'undefined') window._noteGroupExpanded = new Set();
+  {
+    const bodyCount = {};
+    filtered.forEach(n => {
+      if (n.type !== 'review' || !n.body) return;
+      const k = n.body.trim();
+      bodyCount[k] = (bodyCount[k] || 0) + 1;
+    });
+    const seen = new Set();
+    visibleNotes = visibleNotes.filter(n => {
+      if (n.type !== 'review' || !n.body) return true;
+      const k = n.body.trim();
+      if ((bodyCount[k] || 0) < 2) return true;
+      if (window._noteGroupExpanded.has(k)) return true;  // 펼침 상태면 전부
+      if (seen.has(k)) return false;  // 대표 1장만
+      seen.add(k);
+      n._groupCount = bodyCount[k];  // 렌더에서 뱃지용
+      return true;
+    });
+  }
 
   if (sort === 'byBook') {
     // 책별 그룹 헤더
@@ -47188,6 +47299,14 @@ document.addEventListener('click', (e) => {
   menu.classList.remove('show');
   const btn = document.getElementById('noteSortToggle');
   if (btn) btn.setAttribute('aria-expanded', 'false');
+});
+
+/* v2.2.x — 일괄 한줄평 그룹 펼치기 위임 */
+document.addEventListener('click', (e) => {
+  const gb = e.target.closest && e.target.closest('.note-group-badge');
+  if (!gb) return;
+  window._noteGroupExpanded.add(gb.getAttribute('data-note-group'));
+  renderNotesTab();
 });
 
 /* ─── 검색 이벤트 ───
