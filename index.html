@@ -11177,6 +11177,7 @@ body.manual-open { overflow: hidden; }
   display: flex; justify-content: space-between; align-items: baseline;
 }
 .bd-section-lbl .subct {
+  margin-left: 6px;
   font-family: inherit;
   font-style: normal;
   text-transform: none;
@@ -11437,8 +11438,10 @@ body.manual-open { overflow: hidden; }
 }
 .tm-sess-add-empty .tm-sess-add-sub { font-size: 11px; font-weight: 500; color: var(--c-muted); }
 .tm-sess-add-row {
+  position: relative; z-index: 2;  /* v2.2.x — fade(absolute bottom) 위로: 세션 6개+에서 버튼 가려지던 문제 */
   width: 100%; box-sizing: border-box; border: none; border-top: 1px dashed var(--c-border);
-  background: transparent; color: var(--c-text-2); padding: 10px 0 4px;
+  background: var(--c-surface-2); color: var(--c-text-2); padding: 10px 0;
+  border-radius: 0 0 6px 6px;
   font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
 }
 .tm-sess-toggle {
@@ -40335,8 +40338,8 @@ function renderBookDetail() {
                 </div>`;
             }).join('')}
           </div>
-          <button class="tm-sess-add-row" id="bdTmSessAdd" type="button">+ 직접 추가</button>
           <div class="tm-sess-list-fade"></div>
+          <button class="tm-sess-add-row" id="bdTmSessAdd" type="button">+ 직접 추가</button>
         </div>
       </div>
       `;
