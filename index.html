@@ -26298,8 +26298,18 @@ const READ_AUTH = {
       // 로컬 데이터 덮어쓰기
       const data = body.data;
       if (Array.isArray(data.books)) {
+        // v2.2.x — [제보] 첨부 표지 보존 병합: 서버 백업은 첨부 표지를 담지 않으므로(booksClean)
+        //   서버 사본으로 통째 교체하면 로컬 표지가 증발한다. 같은 id의 로컬 첨부 표지를 승계.
+        const _localCovers = {};
+        BOOKS.forEach(b => {
+          const c = b.coverUrl || '';
+          if (c.startsWith('data:') || c.startsWith('idb:')) _localCovers[String(b.id)] = c;
+        });
         BOOKS.length = 0;
-        BOOKS.push(...data.books);
+        BOOKS.push(...data.books.map(b => {
+          const lc = _localCovers[String(b.id)];
+          return (lc && !(b.coverUrl || '')) ? { ...b, coverUrl: lc } : b;
+        }));
         STORE.set('books', BOOKS);
       }
       if (Array.isArray(data.notes)) {
