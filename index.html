@@ -12019,8 +12019,10 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   resize: none;
   /* v1.5.x — field-sizing 지원 브라우저는 JS 없이 콘텐츠 맞춰 자동 높이 조절 (height='auto' 리플로우 제거 → 타이핑 중 점멸 방지). 미지원 브라우저는 무시되고 JS autoGrow 폴백 */
   field-sizing: content;
-  /* v1.5.x — 30줄(14px × 1.5 × 30 ≈ 630px)에서 멈춤, 그 안에서 스크롤. iOS 점프 차단 */
-  max-height: 630px;
+  /* v2.2.x — 상한 축소: 630px(30줄)는 키보드 열린 아이폰 가시영역보다 커서
+     상한 도달 전에 위쪽 저장 버튼이 화면 밖으로 밀렸다(유저 제보 '저장 버튼까지 너무 멀다').
+     260px(약 11줄)로 낮춰 라벨+저장 버튼+칸이 항상 한 화면. 그 이상은 칸 안에서 스크롤 */
+  max-height: 260px;
   overflow-y: auto;
   -webkit-overflow-scrolling: auto;
   scrollbar-width: thin;
@@ -41479,7 +41481,7 @@ function wireBookDetailEvents() {
     // v1.5.x — 입력 시 textarea 자동 높이 조정
     // 30줄(630px)에서 멈춤 → 내부 스크롤로 처리 (iOS 큰 textarea 점프 차단)
     // 한글 IME 조합 중엔 갱신 X, rAF 디바운스로 한 프레임당 1회만 실행
-    const MAX_MEMO_H = 630;
+    const MAX_MEMO_H = 260;  // v2.2.x — CSS max-height와 동기 (autoGrow 폴백)
     let composing = false;
     let growRAF = null;
     // field-sizing:content 지원 브라우저는 CSS가 높이를 자동 관리 → JS autoGrow 불필요 (점멸 방지)
