@@ -32556,6 +32556,10 @@ function renderBookDetailTags() {
 }
 
 /* ─── 새 태그 생성 ─── */
+/* v2.2.x — 태그 이름이 이미 이모지로 시작하는지 (유저 제보: 자동 이모지와 이중으로 붙음) */
+function _nameStartsWithEmoji(name) {
+  try { return /^\p{Extended_Pictographic}/u.test(name || ''); } catch (e) { return false; }
+}
 const NEW_TAG_EMOJIS = ['🏷️','✨','📘','🔖','💫','🎨','🌿','⭐','🫧','🎭','🧩','🌊'];
 const NEW_TAG_COLORS = ['#ef4444','#f59e0b','#10b981','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#84cc16','#f97316','#a855f7','#0ea5e9'];
 
@@ -32579,7 +32583,8 @@ function createNewTag() {
   // v1.9.0 — 선택된 카테고리에 사용자 태그로 등록
   const targetCat = BA.newTagCategory || 'genre';
   TAGS[name] = {
-    emoji: NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
+    // v2.2.x — 이름에 이모지를 직접 넣었으면 자동 이모지 생략 (이중 방지)
+    emoji: _nameStartsWithEmoji(name) ? '' : NEW_TAG_EMOJIS[idx % NEW_TAG_EMOJIS.length],
     color: NEW_TAG_COLORS[idx % NEW_TAG_COLORS.length],
     category: targetCat,
     source: 'user',
@@ -33773,6 +33778,19 @@ const NA = {
     //  필요하면 사용자가 직접 추가하시면 됨. 사용자 의도 침범 안 하는 게 우선)
     Object.keys(TAGS).forEach(k => { delete TAGS[k]; });
     Object.keys(savedTags).forEach(k => { TAGS[k] = savedTags[k]; });
+
+    // v2.2.x — [1회 정리] 과거 이모지 이름 + 자동 이모지 이중 부착 유저 태그 정리 (제보 대응)
+    try {
+      let _emojiFixed = false;
+      Object.keys(TAGS).forEach(name => {
+        const t = TAGS[name];
+        if (t && t.source === 'user' && t.emoji && _nameStartsWithEmoji(name)) {
+          t.emoji = '';
+          _emojiFixed = true;
+        }
+      });
+      if (_emojiFixed) STORE.set('tags', TAGS);
+    } catch (e) {}
 
     // v1.10.1 — 다음 두 경우에만 DEFAULT 태그를 자동 보강:
     //  (1) 사용자가 본 적도 없는 신규 카테고리 (해당 category 태그가 savedTags에 0개)
