@@ -5706,6 +5706,32 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .lifebook-star::before { content: '⭐'; font-size: 10px; margin-right: 0; line-height: 1; }
 
 /* v1.10.0 — H.O.F 리본 (인생책 책 표지 우상단) */
+/* v2.2.x — 재독 뱃지 B4 유리 (완독 N회, 2회독부터 · 우하단 — 우상단 hof-ribbon 회피) */
+.reread-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  border: 0.5px solid rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  color: #3a2f1f;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;              /* v2.2.x — 세로 시각 중심 고정 */
+  padding-bottom: 0.5px;       /* × 글리프가 살짝 낮게 붙는 것 보정 */
+  z-index: 2;
+  pointer-events: none;
+}
 .hof-ribbon {
   position: absolute;
   top: 0;
@@ -34658,6 +34684,7 @@ function renderBookCard(b, idx) {
         ${timerBadge}
         ${isDropped ? '<div class="bc-bookmark-pin"></div>' : ''}
         ${b.isLifeBook ? '<div class="hof-ribbon" aria-label="명예의 전당"></div>' : ''}
+        ${(b.status === 'done' && Array.isArray(b.rereads) && b.rereads.length > 0) ? `<div class="reread-badge" aria-label="${b.rereads.length + 1}회 완독">×${b.rereads.length + 1}</div>` : ''}
         ${renderRentDdayBadge(b)}
       </div>
       <div class="book-card-title">${esc(b.title)}${isBookIncomplete(b) ? '<span class="book-card-incomplete-dot" title="페이지·표지·가격·ISBN 중 누락된 정보가 있어요"></span>' : ''}</div>
