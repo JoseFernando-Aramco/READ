@@ -5449,6 +5449,16 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 }
 .log-filter-clear:active { background: rgba(255,255,255,.25); }
 
+/* v2.2.x — 리딩로그 보기 전환 알약 */
+.log-view-toggle { display: flex; gap: 6px; margin: 0 0 14px; }
+.log-view-pill {
+  border: 1px solid var(--c-border-2); border-radius: 100px; background: var(--c-surface);
+  color: var(--c-text-2); padding: 6px 14px;
+  font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.log-view-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
+
 /* 계절 그룹 헤더 */
 .season-header {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -22694,6 +22704,13 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <button class="log-filter-clear" id="logFilterClear">전체 보기 <svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
       </div>
 
+      <!-- v2.2.x — 보기 전환: 계절 · 월 · 연 -->
+      <div class="log-view-toggle" id="logViewToggle">
+        <button type="button" class="log-view-pill active" data-log-view="season">계절별</button>
+        <button type="button" class="log-view-pill" data-log-view="month">월별</button>
+        <button type="button" class="log-view-pill" data-log-view="year">연도별</button>
+      </div>
+
       <!-- 로그 리스트 -->
       <div class="log-list" id="logList">
         <!-- JS 렌더 -->
@@ -38264,6 +38281,28 @@ function _qnAutoResize() {
 })();
 
 /* 로그 리스트 전체 렌더 (계절별 그룹) */
+/* v2.2.x — 리딩로그 보기 모드 (계절/월/연) — 선택 기억 */
+let LOG_VIEW = (function () {
+  try { const v = localStorage.getItem('read.logView'); return ['season', 'month', 'year'].includes(v) ? v : 'season'; }
+  catch (e) { return 'season'; }
+})();
+(function wireLogViewToggle() {
+  const wrap = document.getElementById('logViewToggle');
+  if (!wrap) return;
+  const sync = () => wrap.querySelectorAll('.log-view-pill').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.logView === LOG_VIEW));
+  sync();
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.log-view-pill');
+    if (!btn || btn.dataset.logView === LOG_VIEW) return;
+    LOG_VIEW = btn.dataset.logView;
+    try { localStorage.setItem('read.logView', LOG_VIEW); } catch (err) {}
+    sync();
+    _visibleLogCount = LOG_PAGE_SIZE;  // 보기 바꾸면 페이지네이션 리셋
+    renderLogList();
+  });
+})();
+
 function renderLogList() {
   const list = document.getElementById('logList');
   let books = BOOKS.filter(b => b.status === 'reading' || b.status === 'done');
@@ -38288,17 +38327,40 @@ function renderLogList() {
   const totalCount = books.length;
   const visibleBooks = books.slice(0, _visibleLogCount);
 
-  // 계절별 그룹화 (시작일 없으면 완독일로 fallback)
+  // v2.2.x — 보기 모드별 그룹화: 계절(기존) · 월 · 연 (시작일 없으면 완독일로 fallback)
   const groups = {};
   visibleBooks.forEach(b => {
-    const s = getSeason(b.dateStart || b.dateEnd);
-    const k = seasonKey(s);
-    if (!groups[k]) groups[k] = { season:s, books:[] };
+    const dateStr = b.dateStart || b.dateEnd;
+    let k, meta;
+    if (LOG_VIEW === 'month') {
+      const d = dateStr ? new Date(dateStr) : null;
+      if (d && !isNaN(d)) {
+        k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        meta = { emoji: '', season: (d.getMonth() + 1) + '월', year: d.getFullYear(), order: d.getMonth() + 1 };
+      } else {
+        k = 'unknown';
+        meta = { emoji: '', season: '날짜 미상', year: '', order: 0 };
+      }
+    } else if (LOG_VIEW === 'year') {
+      const d = dateStr ? new Date(dateStr) : null;
+      if (d && !isNaN(d)) {
+        k = String(d.getFullYear());
+        meta = { emoji: '', season: d.getFullYear() + '년', year: '', order: 0, _yr: d.getFullYear() };
+      } else {
+        k = 'unknown';
+        meta = { emoji: '', season: '날짜 미상', year: '', order: 0 };
+      }
+    } else {
+      const s = getSeason(dateStr);
+      k = seasonKey(s);
+      meta = s;
+    }
+    if (!groups[k]) groups[k] = { season: meta, books: [] };
     groups[k].books.push(b);
   });
   const ordered = Object.values(groups).sort((a, b) => {
-    const ay = a.season.year === '' ? -Infinity : a.season.year;  // 시작일 미상은 맨 뒤
-    const by = b.season.year === '' ? -Infinity : b.season.year;
+    const yOf = (g) => (g.season._yr !== undefined) ? g.season._yr : (g.season.year === '' ? -Infinity : g.season.year);
+    const ay = yOf(a), by = yOf(b);  // 날짜 미상은 맨 뒤
     if (ay !== by) return by - ay;
     return b.season.order - a.season.order;
   });
