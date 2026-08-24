@@ -7762,6 +7762,22 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 }
 .search-btn:active { background: var(--brand-primary-dk); }
 
+/* v2.2.x — 추가 상태 세그먼트 */
+.search-add-status { display: flex; align-items: center; gap: 6px; margin: 10px 0 2px; flex-wrap: wrap; }
+.sas-lbl { font-size: 11px; font-weight: 700; color: var(--c-muted); margin-right: 2px; }
+.sas-pill {
+  border: 1px solid var(--c-border-2); border-radius: 100px; background: var(--c-surface);
+  color: var(--c-text-2); padding: 5px 11px;
+  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.sas-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
+.toast-action-btn {
+  margin-left: 10px; border: none; border-radius: 100px; padding: 5px 12px;
+  background: var(--primary, #8a6f3a); color: #fff;
+  font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+
 .search-results {
   display: flex; flex-direction: column; gap: 6px;
   margin-bottom: 14px;
@@ -23430,6 +23446,13 @@ body.sayu-active #pane-sayu{ background:transparent; }
                autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="search-btn" id="bookSearchBtn">검색</button>
       </div>
+      <!-- v2.2.x — [B] + 버튼이 추가할 상태 미리 선택 (기본 위시) -->
+      <div class="search-add-status" id="searchAddStatus">
+        <span class="sas-lbl">+ 누르면</span>
+        <button type="button" class="sas-pill active" data-add-status="wish">🔖 위시로</button>
+        <button type="button" class="sas-pill" data-add-status="reading">📖 독서중으로</button>
+        <button type="button" class="sas-pill" data-add-status="done">✅ 완독으로</button>
+      </div>
       <div class="search-results" id="searchResults">
         <!-- 초기: welcome state. 검색 후: result-item 리스트 -->
       </div>
@@ -29199,6 +29222,7 @@ function openBookAdd() {
   sheet.setAttribute('aria-hidden', 'false');
   lockBodyScroll();
   goToStage('search');
+  try { _resetSearchAddStatus(); } catch (e) {}  // v2.2.x — [B] 시트 열 때 위시로 리셋 (예측 가능성)
   setTimeout(() => document.getElementById('bookSearchInput').focus(), 280);
   renderSearchWelcome();
 }
@@ -30669,6 +30693,37 @@ function _findExistingBookFromSearch(item) {
 }
 
 /* 빠른 위시 추가 — confirm 스테이지 우회, 모달 유지 */
+/* v2.2.x — [B] 검색 + 버튼의 추가 상태 (기본 wish · 검색 시트 열 때마다 wish로 리셋) */
+let SEARCH_ADD_STATUS = 'wish';
+function _resetSearchAddStatus() {
+  SEARCH_ADD_STATUS = 'wish';
+  const wrap = document.getElementById('searchAddStatus');
+  if (wrap) wrap.querySelectorAll('.sas-pill').forEach(b => b.classList.toggle('active', b.dataset.addStatus === 'wish'));
+}
+(function wireSearchAddStatus() {
+  const wrap = document.getElementById('searchAddStatus');
+  if (!wrap) return;
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sas-pill');
+    if (!btn) return;
+    SEARCH_ADD_STATUS = btn.dataset.addStatus;
+    wrap.querySelectorAll('.sas-pill').forEach(b => b.classList.toggle('active', b === btn));
+  });
+})();
+/* 선택 상태를 newBook에 반영 — 독서중: 오늘 시작 / 완독: 오늘 완독·전체 페이지 */
+function _applySearchAddStatus(newBook) {
+  const st = SEARCH_ADD_STATUS;
+  if (st === 'reading') {
+    newBook.status = 'reading';
+    newBook.dateStart = todayStr();
+  } else if (st === 'done') {
+    newBook.status = 'done';
+    newBook.dateEnd = todayStr();
+    if (newBook.pages > 0) newBook.currentPage = newBook.pages;
+  }
+  return st;
+}
+
 async function quickAddToWish(idx, btnEl) {
   const item = _lastSearchItems && _lastSearchItems[idx];
   if (!item) return;
@@ -30712,6 +30767,7 @@ async function quickAddToWish(idx, btnEl) {
     rereads: [],
     format: (item.format === 'ebook' || item.format === 'paper' || item.format === 'audio') ? item.format : 'paper',
   };
+  const _addedAs = _applySearchAddStatus(newBook);  // v2.2.x — [B] + 버튼 선택 상태 반영
   BOOKS.unshift(newBook);
   STORE.set('books', BOOKS);
 
@@ -30725,7 +30781,19 @@ async function quickAddToWish(idx, btnEl) {
     btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
   }
 
-  showToast(`위시에 추가됐어요 ✓ · "${newBook.title}"`);
+  // v2.2.x — [B+C] 상태별 토스트 · 위시엔 '지금 읽는 중' 원탭 액션
+  if (_addedAs === 'reading') {
+    showToast(`독서중에 추가됐어요 📖 · "${newBook.title}"`);
+  } else if (_addedAs === 'done') {
+    showToast(`완독으로 기록했어요 ✅ · "${newBook.title}"`);
+  } else {
+    showActionToast(`위시에 담았어요 ✓ · "${newBook.title}"`, '지금 읽는 중', () => {
+      const bk = BOOKS.find(x => x.id === newBook.id);
+      if (!bk || bk.status !== 'wish') return;
+      updateBook(bk.id, { status: 'reading', dateStart: todayStr() });
+      showToast(`독서중으로 옮겼어요 📖`);
+    });
+  }
 
   // v1.10.0 — 누락 메타데이터 백그라운드 보강 (cover/price/pages 통합)
   //   여러 권 일괄 + 시 각 책 모두 보강. /book 캐시 활용으로 외부 API 거의 0번.
@@ -32807,6 +32875,32 @@ function showToast(msg, duration) {
   t.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => t.classList.remove('show'), duration || 2800);
+}
+
+/* v2.2.x — [C] 액션 버튼 토스트: 메시지 + 원탭 버튼 (위시 추가 직후 '지금 읽는 중' 전환용) */
+function showActionToast(msg, btnLabel, onAction, duration) {
+  const t = document.getElementById('toast');
+  t.textContent = '';
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = msg;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toast-action-btn';
+  btn.textContent = btnLabel;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    t.classList.remove('show');
+    clearTimeout(_toastTimer);
+    try { onAction(); } catch (err) {}
+  });
+  t.appendChild(msgSpan);
+  t.appendChild(btn);
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => { if (!t.classList.contains('show')) t.textContent = ''; }, 300);
+  }, duration || 5000);
 }
 
 /* ─── 이벤트 바인딩 ─── */
