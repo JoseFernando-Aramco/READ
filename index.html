@@ -20061,6 +20061,13 @@ body.cn-locked {
   font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
 }
 .bfp-rentsave .bfrs-sort-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
+.dd-sort { display: flex; gap: 6px; margin: 2px 0 12px; }
+.dd-sort-pill {
+  border: 1px solid var(--c-border-2); border-radius: 100px; background: var(--c-surface);
+  color: var(--c-text-2); padding: 5px 12px;
+  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.dd-sort-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
 .bfp-rentsave .bfrs-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; padding: 3px 0; }
 .bfp-rentsave .bfrs-ttl { color: var(--c-text, #1c1c1c); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bfp-rentsave .bfrs-val { color: #0F6E56; font-weight: 600; flex-shrink: 0; }
@@ -42375,8 +42382,21 @@ function ddBooksByTagEtc() {
 }
 
 /* ─── 드릴다운 열기·닫기 ─── */
+let _ddSortMode = 'recent';   // v2.2.x — 드릴다운 정렬 (amountOf 옵션 있을 때만 알약 노출)
+let _ddLastArgs = null;
+document.addEventListener('click', (e) => {
+  const pill = e.target && e.target.closest ? e.target.closest('.dd-sort-pill') : null;
+  if (!pill || !_ddLastArgs) return;
+  const mode = pill.getAttribute('data-dd-sort');
+  if (mode === _ddSortMode) return;
+  _ddSortMode = mode;
+  const a = _ddLastArgs;
+  openDrillDown(a.title, a.subtitle, a.books, a.valFormatter, Object.assign({}, a.options, { _resort: true }));
+});
 function openDrillDown(title, subtitle, books, valFormatter, options) {
   const opts = options || {};
+  if (!opts._resort) _ddSortMode = 'recent';  // 새로 열 때 최신순 기본
+  _ddLastArgs = { title, subtitle, books, valFormatter, options: opts };
   const variant = opts.variant || 'list';  // 'list' | 'month'
   const list    = document.getElementById('ddList');
   const ticket  = document.getElementById('ddTicket');
@@ -42427,12 +42447,22 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
             <div class="dd-item-val">${val}</div>
           </div>`;
       };
-      // 최신순 정렬
+      // 최신순 정렬 · v2.2.x — amountOf 옵션 시 금액순 선택 가능 (유저 건의: 구매 목록도 정렬)
       const sorted = [...books].sort((a, b) => {
+        if (_ddSortMode === 'amount' && typeof opts.amountOf === 'function') {
+          const diff = (opts.amountOf(b) || 0) - (opts.amountOf(a) || 0);
+          if (diff !== 0) return diff;
+        }
         const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
         const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
         return bD - aD;
       });
+      const sortBarHtml = (typeof opts.amountOf === 'function')
+        ? '<div class="dd-sort">' +
+            '<button type="button" class="dd-sort-pill' + (_ddSortMode === 'recent' ? ' active' : '') + '" data-dd-sort="recent">최신순</button>' +
+            '<button type="button" class="dd-sort-pill' + (_ddSortMode === 'amount' ? ' active' : '') + '" data-dd-sort="amount">금액순</button>' +
+          '</div>'
+        : '';
 
       if (opts.dayContext) {
         // DAY 뷰: 읽는 중 / 완독 두 섹션. 각 3권 + 더보기 (3권 초과 시 접기)
@@ -42504,7 +42534,7 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
           });
         });
       } else {
-        list.innerHTML = sorted.map(renderBook).join('');
+        list.innerHTML = sortBarHtml + sorted.map(renderBook).join('');
       }
     }
     if (list) list.style.display = '';
@@ -49222,7 +49252,8 @@ function _bfgOpenBooks(i) {
     em + ' ' + g.name,
     'BOOKFLEX',
     g.books,
-    (b) => _fmt(_bookSpendAmt(b, _SPEND_VIEW_YEAR))
+    (b) => _fmt(_bookSpendAmt(b, _SPEND_VIEW_YEAR)),
+    { amountOf: (b) => _bookSpendAmt(b, _SPEND_VIEW_YEAR) }
   );
 }
 document.addEventListener('click', (e) => {
@@ -49405,7 +49436,7 @@ function _rentPlaceOpenBooks(i) {
   if (bd) bd.classList.add('dd-above-bf');
   if (sh) sh.classList.add('dd-above-bf');
   const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
-  openDrillDown(em + ' ' + g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)));
+  openDrillDown(em + ' ' + g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)), { amountOf: _rentBookPrice });
 }
 let _bfRentBooksCache = [];
 document.addEventListener('click', (e) => {
@@ -49437,7 +49468,7 @@ document.addEventListener('click', (e) => {
     if (bd) bd.classList.add('dd-above-bf');
     if (sh) sh.classList.add('dd-above-bf');
     const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
-    openDrillDown('\uD83D\uDCDA 대여로 아낀 책', 'BOOKFLEX · 대여', _bfRentBooksCache, (b) => fmt(_rentBookPrice(b)));
+    openDrillDown('\uD83D\uDCDA 대여로 아낀 책', 'BOOKFLEX · 대여', _bfRentBooksCache, (b) => fmt(_rentBookPrice(b)), { amountOf: _rentBookPrice });
   }
 });
 
