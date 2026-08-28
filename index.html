@@ -20699,6 +20699,13 @@ body.cn-locked {
 /* v1.8.0 — 모달 안 책별 종이값 행 (.price-card 재활용, 가로 행 형태) */
 .sp-books-section { margin: 22px 20px 0; }
 .sp-books-list { display: flex; flex-direction: column; gap: 6px; }
+.sp-book-sort { display: flex; gap: 6px; margin: 8px 0 10px; }
+.sp-sort-pill {
+  border: 1px solid var(--c-border-2); border-radius: 100px; background: var(--c-surface);
+  color: var(--c-text-2); padding: 4px 11px;
+  font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.sp-sort-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
 
 .sp-row-card {
   padding: 0 !important;
@@ -49752,6 +49759,16 @@ function _renderSpendCompareLine(currentTotal, year) {
 }
 
 /* 모달 본문 렌더 */
+/* v2.2.x — 책별 종이값 정렬 (금액순 기본 · 모달 안에서만 유지) */
+let _SPEND_BOOK_SORT = 'amount';
+document.addEventListener('click', (e) => {
+  const pill = e.target && e.target.closest ? e.target.closest('.sp-sort-pill') : null;
+  if (!pill) return;
+  const mode = pill.getAttribute('data-sp-sort');
+  if (mode === _SPEND_BOOK_SORT) return;
+  _SPEND_BOOK_SORT = mode;
+  try { _renderSpendModal(); } catch (err) {}
+});
 function _renderSpendModal() {
   const body = document.getElementById('spendBody');
   if (!body) return;
@@ -49970,9 +49987,16 @@ function _renderSpendModal() {
         return bf === fmt;
       });
 
+      // v2.2.x — [건의 연장] 책별 종이값도 금액순/최신순 정렬
       const priced = eligible
         .filter(hasEffectivePrice)
-        .sort(function(a, b) { return getEffectivePrice(b) - getEffectivePrice(a); });
+        .sort(_SPEND_BOOK_SORT === 'recent'
+          ? function(a, b) {
+              const aD = new Date(a.dateEnd || a.dateStart || 0).getTime();
+              const bD = new Date(b.dateEnd || b.dateStart || 0).getTime();
+              return bD - aD || getEffectivePrice(b) - getEffectivePrice(a);
+            }
+          : function(a, b) { return getEffectivePrice(b) - getEffectivePrice(a); });
       const empty = eligible
         .filter(function(b) { return !hasEffectivePrice(b); });
       const allBooks = priced.concat(empty);
@@ -49994,6 +50018,10 @@ function _renderSpendModal() {
 
       let html = '<div class="sp-books-section">' +
         '<div class="sp-sec-title">' + sectionTitle + '</div>' +
+        '<div class="sp-book-sort">' +
+          '<button type="button" class="sp-sort-pill' + (_SPEND_BOOK_SORT === 'amount' ? ' active' : '') + '" data-sp-sort="amount">금액순</button>' +
+          '<button type="button" class="sp-sort-pill' + (_SPEND_BOOK_SORT === 'recent' ? ' active' : '') + '" data-sp-sort="recent">최신순</button>' +
+        '</div>' +
         '<div class="sp-books-list">' +
           visible.map(function(b, i) { return _renderSpendBookRow(b, i + 1); }).join('') +
         '</div>';
