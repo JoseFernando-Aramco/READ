@@ -20053,6 +20053,14 @@ body.cn-locked {
 .bfp-rentsave .bfrs-amt { font-size: 24px; font-weight: 800; color: #0F6E56; }
 .bfp-rentsave .bfrs-n { font-size: 12px; color: var(--c-muted); }
 .bfp-rentsave .bfrs-list { border-top: 1px solid var(--c-border, #e5e3d8); padding-top: 8px; }
+.bfp-rentsave .bfrs-row[data-rs-book], .bfp-rentsave .bfrs-row[data-rs-all] { cursor: pointer; }
+.bfp-rentsave .bfrs-sort { display: flex; gap: 6px; margin: 8px 0 2px; }
+.bfp-rentsave .bfrs-sort-pill {
+  border: 1px solid var(--c-border-2); border-radius: 100px; background: var(--c-surface);
+  color: var(--c-text-2); padding: 4px 10px;
+  font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.bfp-rentsave .bfrs-sort-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
 .bfp-rentsave .bfrs-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; padding: 3px 0; }
 .bfp-rentsave .bfrs-ttl { color: var(--c-text, #1c1c1c); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bfp-rentsave .bfrs-val { color: #0F6E56; font-weight: 600; flex-shrink: 0; }
@@ -49309,6 +49317,15 @@ function _rentYearsSetOf(b) {
   });
   return set;
 }
+/* v2.2.x — [제안] 아낀 돈 정렬 상태 (가격순 기본 · 저장) + 최신 대여일 */
+let _bfRentSort = (function () {
+  try { return localStorage.getItem('read.bfRentSort') === 'recent' ? 'recent' : 'price'; } catch (e) { return 'price'; }
+})();
+function _latestRentDateOf(b) {
+  const dates = _acqList(b).filter(r => r.type === 'rent' && r.date).map(r => String(r.date));
+  if (dates.length) return dates.sort().pop();
+  return b.dateEnd || b.dateStart || '0000';
+}
 function _calcRentSaved(year) {
   const rented = (BOOKS || []).filter(b => {
     const list = _acqList(b);
@@ -49317,8 +49334,13 @@ function _calcRentSaved(year) {
     if (year == null) return true;
     return _rentYearsSetOf(b).has(year);
   });
-  const items = rented.map(b => ({ b, amt: _rentBookPrice(b) }));
-  const priced = items.filter(x => x.amt > 0).sort((a, c) => c.amt - a.amt);
+  const items = rented.map(b => ({ b, amt: _rentBookPrice(b), rentAt: _latestRentDateOf(b) }));
+  // v2.2.x — [제안] 정렬: 가격순(기본) / 최신순(가장 최근 대여일)
+  const priced = items.filter(x => x.amt > 0).sort(
+    _bfRentSort === 'recent'
+      ? (a, c) => String(c.rentAt).localeCompare(String(a.rentAt)) || c.amt - a.amt
+      : (a, c) => c.amt - a.amt
+  );
   const total = priced.reduce((sum, x) => sum + x.amt, 0);
   return { total, count: rented.length, priced, noPriceCount: rented.length - priced.length };
 }
@@ -49385,26 +49407,59 @@ function _rentPlaceOpenBooks(i) {
   const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
   openDrillDown(em + ' ' + g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)));
 }
+let _bfRentBooksCache = [];
 document.addEventListener('click', (e) => {
   const tgl = e.target && e.target.closest ? e.target.closest('.bfrp-btn') : null;
   if (tgl) { _rentPlaceToggle(tgl); return; }
   const row = e.target && e.target.closest ? e.target.closest('.bfrp-row[data-rpl-i]') : null;
-  if (row) _rentPlaceOpenBooks(parseInt(row.getAttribute('data-rpl-i'), 10));
+  if (row) { _rentPlaceOpenBooks(parseInt(row.getAttribute('data-rpl-i'), 10)); return; }
+  // v2.2.x — [제안] 아낀 돈 리스트 인터랙션: 정렬 토글 / 행 탭 책 상세 / 그 외 전체 목록
+  const sortBtn = e.target && e.target.closest ? e.target.closest('.bfrs-sort-pill') : null;
+  if (sortBtn) {
+    const mode = sortBtn.getAttribute('data-rs-sort');
+    if (mode !== _bfRentSort) {
+      _bfRentSort = mode;
+      try { localStorage.setItem('read.bfRentSort', mode); } catch (err) {}
+      if (typeof _renderSpendModal === 'function') { try { _renderSpendModal(); } catch (err) {} }
+    }
+    return;
+  }
+  const bookRow = e.target && e.target.closest ? e.target.closest('.bfrs-row[data-rs-book]') : null;
+  if (bookRow) {
+    const id = parseInt(bookRow.getAttribute('data-rs-book'), 10);
+    if ((BOOKS || []).some(x => x.id === id) && typeof openBookDetail === 'function') openBookDetail(id);
+    return;
+  }
+  const allRow = e.target && e.target.closest ? e.target.closest('.bfrs-row[data-rs-all]') : null;
+  if (allRow && _bfRentBooksCache.length) {
+    const bd = document.getElementById('ddBackdrop');
+    const sh = document.getElementById('ddSheet');
+    if (bd) bd.classList.add('dd-above-bf');
+    if (sh) sh.classList.add('dd-above-bf');
+    const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
+    openDrillDown('\uD83D\uDCDA 대여로 아낀 책', 'BOOKFLEX · 대여', _bfRentBooksCache, (b) => fmt(_rentBookPrice(b)));
+  }
 });
 
 function _rentSavedCardHtml(year) {
   const rs = _calcRentSaved(year);
   if (rs.count === 0 || rs.total === 0) return '';
   const fmt = (n) => '\u20A9' + n.toLocaleString('ko-KR');
+  _bfRentBooksCache = rs.priced.map(x => x.b);
   const top = rs.priced.slice(0, 3);
   const rest = rs.priced.slice(3);
-  let rows = top.map(x =>
-    '<div class="bfrs-row"><span class="bfrs-ttl">' + _spEsc(x.b.title) + '</span><span class="bfrs-val">' + fmt(x.amt) + '</span></div>'
+  // v2.2.x — [제안] 행 탭 → 책 상세 · '그 외' 탭 → 전체 목록 · 정렬 토글
+  let rows = top.map((x, i) =>
+    '<div class="bfrs-row" data-rs-book="' + x.b.id + '" role="button" tabindex="0"><span class="bfrs-ttl">' + _spEsc(x.b.title) + '</span><span class="bfrs-val">' + fmt(x.amt) + '</span></div>'
   ).join('');
   if (rest.length > 0) {
     const restSum = rest.reduce((sum, x) => sum + x.amt, 0);
-    rows += '<div class="bfrs-row rest"><span class="bfrs-ttl">그 외 ' + rest.length + '권</span><span class="bfrs-val">' + fmt(restSum) + '</span></div>';
+    rows += '<div class="bfrs-row rest" data-rs-all="1" role="button" tabindex="0"><span class="bfrs-ttl">그 외 ' + rest.length + '권 — 전체 보기</span><span class="bfrs-val">' + fmt(restSum) + '</span></div>';
   }
+  const sortHtml = '<div class="bfrs-sort">' +
+    '<button type="button" class="bfrs-sort-pill' + (_bfRentSort === 'price' ? ' active' : '') + '" data-rs-sort="price">아낀 금액순</button>' +
+    '<button type="button" class="bfrs-sort-pill' + (_bfRentSort === 'recent' ? ' active' : '') + '" data-rs-sort="recent">최신순</button>' +
+  '</div>';
   const foot = '대여로 읽은 책, 이만큼 아꼈어요!' +
     (rs.noPriceCount > 0 ? ' 가격 정보 없는 <b>' + rs.noPriceCount + '권</b>은 뺐어요.' : '');
   const placeRows = _rentSavedByPlace(year);
@@ -49419,6 +49474,7 @@ function _rentSavedCardHtml(year) {
   return '<div class="bfp-equiv bfp-rentsave">' +
     '<div class="bfp-equiv-lbl">대여로 아낀 돈</div>' +
     '<div class="bfrs-hero"><span class="bfrs-amt">' + fmt(rs.total) + '</span><span class="bfrs-n">' + rs.priced.length + '권</span></div>' +
+    sortHtml +
     '<div class="bfrs-list">' + rows + '</div>' +
     '<div class="bfsw-foot">' + foot + '</div>' +
     placesHtml +
