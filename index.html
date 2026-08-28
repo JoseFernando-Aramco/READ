@@ -10588,6 +10588,7 @@ body.manual-open { overflow: hidden; }
 .te-clean-undo { border: none; background: none; color: var(--c-muted); font-size: 12px; text-decoration: underline; cursor: pointer; margin-left: 8px; }
 .te-save { margin-top: 18px; width: 100%; border: none; background: var(--brand-primary); color: #fff; font-size: 14px; font-weight: 700; border-radius: 12px; padding: 14px 0; cursor: pointer; }
 .te-save:active { opacity: .85; }
+.te-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 .te-foot { font-size: 10.5px; color: var(--c-muted); margin-top: 10px; line-height: 1.6; text-align: center; opacity: .85; }
 
 .bd-title-row {
@@ -24047,7 +24048,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 종이책: 페이지 입력 -->
     <div class="tm-page-field" id="tmPaperField">
-      <label>현재 페이지 <span class="subct">(선택)</span></label>
+      <label id="tmPaperLabel">현재 페이지 <span class="subct">(선택)</span></label>
       <div class="tm-page-row">
         <input type="number" id="tmPageInput" class="tm-page-input" min="0">
         <span class="tm-page-sep">/</span>
@@ -24161,7 +24162,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="cn-time" id="cnTime">00:00</div>
 
     <div class="cn-meta-bottom">
-      <span class="cn-progress-num" id="cnProgressNum">—</span> / <span id="cnProgressTotal">—</span> P
+      <span class="cn-progress-num" id="cnProgressNum">—</span> / <span id="cnProgressTotal">—</span> <span id="cnProgressUnit">P</span>
     </div>
 
     <!-- 탭 시 페이드 인 컨트롤 -->
@@ -24456,8 +24457,27 @@ body.sayu-active #pane-sayu{ background:transparent; }
   </div>
   <div class="te-lbl">저자</div>
   <input class="te-in" id="teAuthor" type="text" maxlength="120">
+  <!-- v2.2.x — [제안] 검색으로 넣은 책도 모든 정보 수정 가능하게 -->
+  <div class="te-grid">
+    <div>
+      <div class="te-lbl">출판사</div>
+      <input class="te-in" id="tePublisher" type="text" maxlength="60" placeholder="예: 민음사">
+    </div>
+    <div>
+      <div class="te-lbl">정가 (원)</div>
+      <input class="te-in" id="tePrice" type="number" inputmode="numeric" min="0" placeholder="예: 16200">
+    </div>
+    <div>
+      <div class="te-lbl">전체 페이지</div>
+      <input class="te-in" id="tePages" type="number" inputmode="numeric" min="0" placeholder="예: 320">
+    </div>
+    <div>
+      <div class="te-lbl">ISBN</div>
+      <input class="te-in" id="teIsbn" type="text" inputmode="numeric" maxlength="17" placeholder="예: 9788937460449">
+    </div>
+  </div>
   <button type="button" class="te-save" id="teSave">저장</button>
-  <div class="te-foot">표지·페이지·기록 같은 다른 정보는 그대로 유지돼요.<br>제목을 바꿔도 중복 확인은 ISBN으로 계속 작동해요.</div>
+  <div class="te-foot">표지와 독서 기록은 그대로 유지돼요.<br>제목을 바꿔도 중복 확인은 ISBN으로 계속 작동해요.</div>
 </div>
 
 <div class="wn-backdrop" id="wnBackdrop"></div>
@@ -32458,6 +32478,11 @@ function openTitleEdit(bookId) {
   _teBeforeClean = null;
   document.getElementById('teTitle').value = b.title || '';
   document.getElementById('teAuthor').value = b.author || '';
+  // v2.2.x — 전체 필드 수정 (제안 반영)
+  document.getElementById('tePublisher').value = b.publisher || '';
+  document.getElementById('tePrice').value = (b.priceSales > 0) ? b.priceSales : '';
+  document.getElementById('tePages').value = (b.pages > 0) ? b.pages : '';
+  document.getElementById('teIsbn').value = b.isbn || '';
   _teRenderCleanBox();
   document.getElementById('teBackdrop').classList.add('open');
   const sh = document.getElementById('teSheet');
@@ -32497,7 +32522,24 @@ function closeTitleEdit() {
     const title = $('teTitle').value.trim();
     const author = $('teAuthor').value.trim();
     if (!title) { showToast('제목은 비울 수 없어요'); return; }
-    updateBook(b.id, { title, author });
+    // v2.2.x — 전체 필드 저장 (제안 반영)
+    const publisher = $('tePublisher').value.trim();
+    const priceRaw = parseInt($('tePrice').value, 10);
+    const pagesRaw = parseInt($('tePages').value, 10);
+    const isbn = $('teIsbn').value.trim().replace(/[^0-9Xx]/g, '');
+    const patch = { title, author, publisher, isbn };
+    if (!isNaN(priceRaw) && priceRaw >= 0) {
+      patch.priceSales = priceRaw > 0 ? priceRaw : null;
+      // 값을 실제로 바꿨으면 출처를 manual로 (검색값 그대로면 기존 출처 유지)
+      if (priceRaw > 0 && priceRaw !== (b.priceSales || 0)) patch.priceSource = 'manual';
+      if (priceRaw === 0) patch.priceSource = null;
+    }
+    if (!isNaN(pagesRaw) && pagesRaw >= 0) {
+      patch.pages = pagesRaw;
+      // 총 페이지를 진행보다 줄이면 현재 페이지도 맞춰 내림 (진행률 100% 초과 방지)
+      if (pagesRaw > 0 && (b.currentPage || 0) > pagesRaw) patch.currentPage = pagesRaw;
+    }
+    updateBook(b.id, patch);
     closeTitleEdit();
     if (BD.book && BD.book.id === b.id && typeof renderBookDetail === 'function') renderBookDetail();
     if (typeof renderLibraryCards === 'function') renderLibraryCards();
@@ -38936,11 +38978,16 @@ function openTimerStop() {
       prevLbl.textContent = oldPct > 0 ? `이전: ${oldPct}%` : '';
     }
   } else {
-    // 종이책 — 페이지 입력
+    // 종이책 — 페이지 입력 · v2.2.x 웹소설 — 같은 칸을 회차로 (유저 제안: 타이머에서 회차 바로 기록)
+    const wn = isWebnovel(book);
+    const wnVol = wn && book.novelUnit && book.novelUnit !== 'episode';
+    const unit = wn ? (wnVol ? '권' : '화') : 'p';
+    const lbl = document.getElementById('tmPaperLabel');
+    if (lbl) lbl.innerHTML = `${wn ? '현재 회차' : '현재 페이지'} <span class="subct">(선택)</span>`;
     const pageInput = document.getElementById('tmPageInput');
     pageInput.value = book.currentPage || 0;
     pageInput.max = book.pages;
-    document.getElementById('tmPageTotal').textContent = `${book.pages} p`;
+    document.getElementById('tmPageTotal').textContent = `${book.pages} ${unit}`;
   }
 
   document.getElementById('tmBackdrop').classList.add('open');
@@ -39327,6 +39374,9 @@ const CINEMA = {
     document.getElementById('cnMetaAuthor').textContent = book.author || '';
     document.getElementById('cnProgressNum').textContent = book.currentPage || 0;
     document.getElementById('cnProgressTotal').textContent = book.pages || '—';
+    // v2.2.x — 웹소설은 회차 단위 표기 (유저 제안 연장선)
+    const _cnUnit = document.getElementById('cnProgressUnit');
+    if (_cnUnit) _cnUnit.textContent = isWebnovel(book) ? (book.novelUnit && book.novelUnit !== 'episode' ? '권' : '화') : 'P';
     // 재진입 시에는 현재 경과시간 그대로, 첫 진입엔 00:00
     if (TIMER.startTime) {
       document.getElementById('cnTime').textContent = formatTimerDisplay(getElapsedSec());
