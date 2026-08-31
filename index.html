@@ -18137,6 +18137,7 @@ body.cn-locked {
 }
 .lib-search-input-wrap {
   flex: 1;
+  min-width: 0;   /* v2.2.x — 상동 */
   position: relative;
   display: flex; align-items: center;
   background: color-mix(in srgb, var(--c-text) 5%, var(--c-surface));
@@ -18156,6 +18157,8 @@ body.cn-locked {
 }
 .lib-search-input {
   flex: 1;
+  min-width: 0;   /* v2.2.x — 긴 검색어 입력 시 intrinsic 폭이 최소폭이 되어 취소 버튼이 화면 밖으로 밀리던 버그 (유저 제보) */
+  width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -38488,7 +38491,8 @@ function renderLogList() {
   // v2.2.x — 보기 모드별 그룹화: 계절(기존) · 월 · 연 (시작일 없으면 완독일로 fallback)
   const groups = {};
   visibleBooks.forEach(b => {
-    const dateStr = b.dateStart || b.dateEnd;
+    // v2.2.x — [제보] 여러 달에 걸쳐 읽은 책이 시작월에 묶이던 것 → 완독한 책은 완독일 기준, 아니면 시작일
+    const dateStr = (b.status === 'done' && b.dateEnd) ? b.dateEnd : (b.dateStart || b.dateEnd);
     let k, meta;
     if (LOG_VIEW === 'month') {
       const d = dateStr ? new Date(dateStr) : null;
