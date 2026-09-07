@@ -24501,6 +24501,17 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <input class="te-in" id="teIsbn" type="text" inputmode="numeric" maxlength="17" placeholder="예: 9788937460449">
     </div>
   </div>
+  <!-- v2.2.x — [문의] 등록 후에도 독서 기간 수정 (상태별 노출: 완독=둘 다 · 독서중=시작일만 · 위시=숨김) -->
+  <div class="te-grid" id="teDatesGrid" style="display:none">
+    <div id="teDateStartWrap">
+      <div class="te-lbl">시작일</div>
+      <input class="te-in" id="teDateStart" type="date">
+    </div>
+    <div id="teDateEndWrap">
+      <div class="te-lbl">완독일</div>
+      <input class="te-in" id="teDateEnd" type="date">
+    </div>
+  </div>
   <button type="button" class="te-save" id="teSave">저장</button>
   <div class="te-foot">표지와 독서 기록은 그대로 유지돼요.<br>제목을 바꿔도 중복 확인은 ISBN으로 계속 작동해요.</div>
 </div>
@@ -32508,6 +32519,13 @@ function openTitleEdit(bookId) {
   document.getElementById('tePrice').value = (b.priceSales > 0) ? b.priceSales : '';
   document.getElementById('tePages').value = (b.pages > 0) ? b.pages : '';
   document.getElementById('teIsbn').value = b.isbn || '';
+  // v2.2.x — 독서 기간 (상태별 노출)
+  const _dg = document.getElementById('teDatesGrid');
+  const _showDates = b.status === 'done' || b.status === 'reading' || b.status === 'dropped';
+  _dg.style.display = _showDates ? '' : 'none';
+  document.getElementById('teDateEndWrap').style.display = (b.status === 'done') ? '' : 'none';
+  document.getElementById('teDateStart').value = b.dateStart || '';
+  document.getElementById('teDateEnd').value = b.dateEnd || '';
   _teRenderCleanBox();
   document.getElementById('teBackdrop').classList.add('open');
   const sh = document.getElementById('teSheet');
@@ -32563,6 +32581,18 @@ function closeTitleEdit() {
       patch.pages = pagesRaw;
       // 총 페이지를 진행보다 줄이면 현재 페이지도 맞춰 내림 (진행률 100% 초과 방지)
       if (pagesRaw > 0 && (b.currentPage || 0) > pagesRaw) patch.currentPage = pagesRaw;
+    }
+    // v2.2.x — 독서 기간 저장 (표시된 칸만 반영 · 완독은 시작>완독 방지)
+    if (document.getElementById('teDatesGrid').style.display !== 'none') {
+      const ds = document.getElementById('teDateStart').value || null;
+      if (b.status === 'done') {
+        const de = document.getElementById('teDateEnd').value || null;
+        if (ds && de && ds > de) { showToast('시작일이 완독일보다 늦을 수 없어요'); return; }
+        patch.dateStart = ds;
+        patch.dateEnd = de;
+      } else {
+        patch.dateStart = ds;
+      }
     }
     updateBook(b.id, patch);
     closeTitleEdit();
