@@ -7950,6 +7950,14 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
   padding-top: 14px;
   border-top: 1px dashed var(--c-border);
 }
+.search-fallback-top {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding-top: 0;
+  padding-bottom: 12px;
+  border-top: none;
+  border-bottom: 1px dashed var(--c-border);
+}
 .fallback-btn {
   width: 100%;
   padding: 12px;
@@ -7963,6 +7971,7 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
   transition: all .15s;
 }
 .fallback-btn:active { background: var(--c-surface-2); }
+.search-state-manual { margin-top: 16px; max-width: 260px; margin-left: auto; margin-right: auto; }
 .fallback-hint {
   text-align: center;
   font-size: 10.5px; color: var(--c-muted);
@@ -23479,14 +23488,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <button type="button" class="sas-pill" data-add-status="reading">📖 독서중으로</button>
         <button type="button" class="sas-pill" data-add-status="done">✅ 완독으로</button>
       </div>
-      <div class="search-results" id="searchResults">
-        <!-- 초기: welcome state. 검색 후: result-item 리스트 -->
-      </div>
-      <div class="search-fallback">
+      <!-- v2.2.x — [제안] 직접 입력을 상단 상시 노출로 (키보드에 안 가리게) -->
+      <div class="search-fallback search-fallback-top">
         <button class="fallback-btn" id="btnManualInput">
           <span><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg></span> 검색 결과에 없는 책을 직접 입력
         </button>
-        <div class="fallback-hint">원서·구서적·자비출판도 수동으로 등록할 수 있어요</div>
+      </div>
+      <div class="search-results" id="searchResults">
+        <!-- 초기: welcome state. 검색 후: result-item 리스트 -->
       </div>
     </div>
   </div>
@@ -30377,6 +30386,8 @@ function _mergeByIsbn(arr) {
 }
 
 async function searchBooks(query) {
+  // v2.2.x — [제안] 검색 실행 시 키보드 접기: 결과·직접 입력 버튼이 키보드에 가리지 않게
+  try { document.getElementById('bookSearchInput').blur(); } catch (e) {}
   const q = query.trim();
   console.log('[search] 시작:', q);
   if (!q) { renderSearchWelcome(); return; }
@@ -30494,14 +30505,14 @@ function renderSearchResults(items, errors, ctx) {
   if (!items.length) {
     // 컨텍스트별 빈 결과 안내
     let title = '검색 결과가 없어요';
-    let sub = '아래 <strong>직접 입력</strong>으로 추가할 수 있어요';
+    let sub = '검색창 아래 <strong>직접 입력</strong> 버튼으로 추가할 수 있어요';
     if (ctx.isbnMode) {
       title = 'ISBN 검색 결과가 없어요';
-      sub = `입력하신 ISBN(<code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">${esc(ctx.query || '')}</code>)으로<br/>` + '책을 찾을 수 없어요. 다음을 확인해보세요:<br/><br/>' + '· 책 표지나 판권면의 ISBN이 정확히 입력됐나요?<br/>' + '· 영문 원서라면 <strong>제목·저자명</strong>으로 검색해보세요<br/>' + '· 그래도 안 나오면 <strong>직접 입력</strong>으로 추가하실 수 있어요';
+      sub = `입력하신 ISBN(<code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">${esc(ctx.query || '')}</code>)으로<br/>` + '책을 찾을 수 없어요. 다음을 확인해보세요:<br/><br/>' + '· 책 표지나 판권면의 ISBN이 정확히 입력됐나요?<br/>' + '· 영문 원서라면 <strong>제목·저자명</strong>으로 검색해보세요<br/>' + '· 그래도 안 나오면 위의 <strong>직접 입력</strong> 버튼으로 추가하실 수 있어요';
     } else if (ctx.query && !ctx.isKorean) {
       // 영문 쿼리에서 결과 0
       sub = '영문 신간이라면 <strong>저자명을 함께</strong> 입력해보세요<br/>' +
-            '(예: <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">In Your Dreams Sarah Adams</code>)<br/><br/>' + '아래 <strong>직접 입력</strong>으로도 추가할 수 있어요';
+            '(예: <code style="font-size:11px;background:var(--c-surface-2);padding:1px 5px;border-radius:4px">In Your Dreams Sarah Adams</code>)<br/><br/>' + '검색에 없는 책은 위의 <strong>직접 입력</strong> 버튼으로 추가할 수 있어요';
     }
     container.innerHTML = errorBanner + `
       <div class="search-state">
