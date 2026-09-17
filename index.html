@@ -38873,6 +38873,7 @@ function startTimer(bookId) {
   TIMER.startTime = Date.now();
   TIMER.pausedAt = null;
   TIMER.pausedTotal = 0;
+  TIMER.pageBaseOverride = null;  // v2.2.x — 새 세션은 새 기준
   STORE.set('timer', { bookId, startTime: TIMER.startTime, pausedAt: null, pausedTotal: 0 });
 
   renderLibraryCards(); // 버튼 실행중 상태로 리렌더
@@ -39079,7 +39080,6 @@ function openTimerStop() {
 }
 
 function closeTimerStop(opts) {
-  TIMER.pageBaseOverride = null;  // v2.2.x — 미저장 닫힘 시 기준 페이지 폐기
   const sheet = document.getElementById('tmSheet');
   const wasOpen = sheet.classList.contains('open');
   document.getElementById('tmBackdrop').classList.remove('open');
@@ -40080,8 +40080,10 @@ function autoSaveTimerSession(opts) {
   const minutes = Math.max(1, Math.round(elapsedMs / 60000));
 
   // 페이지 입력 검증 (선택)
-  const oldPage = book.currentPage || 0;
-  let validNewPage = oldPage;  // 기본: 변동 없음
+  // v2.2.x — 상세에서 페이지를 먼저 고친 뒤 완독·전환된 경우: 입력 전 페이지를 세션 기준으로 ('시간만' 세션 방지)
+  const oldPage = (typeof TIMER.pageBaseOverride === 'number') ? TIMER.pageBaseOverride : (book.currentPage || 0);
+  TIMER.pageBaseOverride = null;
+  let validNewPage = book.currentPage || 0;  // 기본: 현재 페이지(이미 반영된 입력 포함)
   if (opts.newPage != null && opts.newPage !== '') {
     const parsed = parseInt(opts.newPage, 10);
     if (!isNaN(parsed) && parsed >= 0 && parsed <= book.pages) {
@@ -41102,7 +41104,10 @@ function _applyStatusChange(b, newStatus) {
     try {
       const elapsedMin = Math.max(1, Math.round(getElapsedSec() / 60));
       const total = Number(b.pages) || 0;
-      const sessPages = (newStatus === 'done' && total > 0) ? Math.max(0, total - (b.currentPage || 0)) : 0;
+      // v2.2.x — [제보 후속] 진행률 칸에 끝페이지를 먼저 입력한 뒤 완독하면 total-currentPage=0으로
+      //   세션이 '시간만'이 되던 문제: 입력 전 페이지(pageBaseOverride)를 기준으로 계산
+      const _basePage = (typeof TIMER.pageBaseOverride === 'number') ? TIMER.pageBaseOverride : (b.currentPage || 0);
+      const sessPages = (newStatus === 'done' && total > 0) ? Math.max(0, total - _basePage) : 0;
       const _hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
       const rec = {
         date: _localDateISO(TIMER.startTime ? new Date(TIMER.startTime) : new Date()),
@@ -41117,6 +41122,7 @@ function _applyStatusChange(b, newStatus) {
     if (TIMER.intervalId) clearInterval(TIMER.intervalId);
     TIMER.bookId = null; TIMER.startTime = null; TIMER.intervalId = null;
     TIMER.pendingMinutes = null; TIMER.pausedAt = null; TIMER.pausedTotal = 0;
+    TIMER.pageBaseOverride = null;
     STORE.set('timer', null);
     try { CINEMA.exit({ silent: true }); } catch (e) {}
     try { closeTimerStop({ silent: true }); } catch (e) {}
@@ -41435,14 +41441,15 @@ function wireBookDetailEvents() {
       updateBook(b.id, { currentPage: v });
       if (typeof _maybeOfferDone === 'function') _maybeOfferDone(b.id, _oldPage, v);
       // v2.2.x — [제안] 이 책 타이머 진행 중에 페이지를 고치면, 그 페이지 그대로 정지까지 한 탭
-      if (TIMER.bookId === b.id && TIMER.startTime && v !== _oldPage && typeof showActionToast === 'function') {
-        showActionToast('타이머가 계속 가고 있어요', '기록 저장하며 정지', () => {
-          if (TIMER.bookId === b.id) {
-            // 세션의 '+p'가 방금 입력분을 포함하도록 입력 전 페이지를 기준으로
-            TIMER.pageBaseOverride = _oldPage;
-            openTimerStop();
-          }
-        });
+      if (TIMER.bookId === b.id && TIMER.startTime && v !== _oldPage) {
+        // 세션 '+p' 기준: 이 타이머 세션 중 시트 밖에서 페이지를 처음 고친 시점의 이전값
+        //   (토스트를 안 눌러도 완독·후속 정지·자동 저장 모두 이 기준으로 계산)
+        if (TIMER.pageBaseOverride == null) TIMER.pageBaseOverride = _oldPage;
+        if (typeof showActionToast === 'function') {
+          showActionToast('타이머가 계속 가고 있어요', '기록 저장하며 정지', () => {
+            if (TIMER.bookId === b.id) openTimerStop();
+          });
+        }
       }
       const pct = Math.round(v / b.pages * 100);
       document.getElementById('bdProgressFill').style.width = pct + '%';
