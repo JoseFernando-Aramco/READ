@@ -10651,6 +10651,16 @@ body.manual-open { overflow: hidden; }
   50% { box-shadow: 0 1px 4px rgba(212, 165, 116, 0.35), 0 0 0 4px rgba(212, 165, 116, 0.15); }
 }
 
+/* v2.2.x — [제안] 상세에서 바로 정지 (시네마 안 거치고 정지 시트 직행) */
+.quick-stop-pill {
+  flex: none; display: inline-flex; align-items: center; gap: 4px;
+  border: none; border-radius: 100px; padding: 6px 11px; margin-top: 2px;
+  background: var(--c-text); color: var(--c-surface);
+  font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer;
+}
+.quick-stop-pill svg { width: 11px; height: 11px; fill: currentColor; }
+.quick-stop-pill:active { opacity: .8; }
+
 /* ═══ 바로 읽기 확인 다이얼로그 ═══ */
 .qr-confirm-backdrop {
   position: fixed;
@@ -39069,6 +39079,7 @@ function openTimerStop() {
 }
 
 function closeTimerStop(opts) {
+  TIMER.pageBaseOverride = null;  // v2.2.x — 미저장 닫힘 시 기준 페이지 폐기
   const sheet = document.getElementById('tmSheet');
   const wasOpen = sheet.classList.contains('open');
   document.getElementById('tmBackdrop').classList.remove('open');
@@ -39136,7 +39147,9 @@ function saveTimerSession() {
   }
 
   const minutes = TIMER.pendingMinutes || 1;
-  const oldPage = book.currentPage || 0;
+  // v2.2.x — 상세 페이지 입력→토스트 정지 경로: 입력 전 페이지를 세션 기준으로
+  const oldPage = (typeof TIMER.pageBaseOverride === 'number') ? TIMER.pageBaseOverride : (book.currentPage || 0);
+  TIMER.pageBaseOverride = null;
   let validNewPage = oldPage;
 
   if (isDigital(book)) {
@@ -39191,6 +39204,11 @@ function saveTimerSession() {
 
   closeTimerStop();
   renderLibraryCards();
+  // v2.2.x — 상세 화면에서 정지한 경우: 알약·진행률 즉시 갱신
+  if (typeof BD !== 'undefined' && BD.book) {
+    BD.book = BOOKS.find(x => x.id === BD.book.id) || BD.book;
+    try { renderBookDetail(); } catch (e) {}
+  }
 
   // 토스트 — 사용자가 시간을 직접 수정한 경우 측정값과 저장값 둘 다 표시
   const pageStr = pagesRead > 0 ? ` · +${pagesRead}p` : '';
@@ -39221,6 +39239,11 @@ function discardTimerSession() {
   CINEMA.exit({ silent: true });
   closeTimerStop();
   renderLibraryCards();
+  // v2.2.x — 상세 화면에서 정지한 경우: 알약·진행률 즉시 갱신
+  if (typeof BD !== 'undefined' && BD.book) {
+    BD.book = BOOKS.find(x => x.id === BD.book.id) || BD.book;
+    try { renderBookDetail(); } catch (e) {}
+  }
   showToast('기록 없이 종료했어요');
 }
 
@@ -40484,6 +40507,10 @@ function renderBookDetail() {
               <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
               <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
             </button>` : ''}
+            ${reading && TIMER.bookId === b.id ? `<button type="button" class="quick-stop-pill" id="bdQuickStop" aria-label="기록 저장하며 정지">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"></rect><rect x="15" y="4" width="4" height="16" rx="1"></rect></svg>
+              <span>정지</span>
+            </button>` : ''}
           </div>
           <div class="bd-hero-author">${esc(b.author)}</div>
           <div class="bd-hero-meta">
@@ -41407,6 +41434,16 @@ function wireBookDetailEvents() {
       const _oldPage = Number(b.currentPage) || 0;  // updateBook 전에 캡처
       updateBook(b.id, { currentPage: v });
       if (typeof _maybeOfferDone === 'function') _maybeOfferDone(b.id, _oldPage, v);
+      // v2.2.x — [제안] 이 책 타이머 진행 중에 페이지를 고치면, 그 페이지 그대로 정지까지 한 탭
+      if (TIMER.bookId === b.id && TIMER.startTime && v !== _oldPage && typeof showActionToast === 'function') {
+        showActionToast('타이머가 계속 가고 있어요', '기록 저장하며 정지', () => {
+          if (TIMER.bookId === b.id) {
+            // 세션의 '+p'가 방금 입력분을 포함하도록 입력 전 페이지를 기준으로
+            TIMER.pageBaseOverride = _oldPage;
+            openTimerStop();
+          }
+        });
+      }
       const pct = Math.round(v / b.pages * 100);
       document.getElementById('bdProgressFill').style.width = pct + '%';
       document.getElementById('bdProgressPct').textContent = pct + '%';
@@ -41937,6 +41974,13 @@ function wireBookDetailEvents() {
   const bdQuickRead = document.getElementById('bdQuickRead');
   if (bdQuickRead) {
     bdQuickRead.addEventListener('click', () => handleQuickRead(b));
+  }
+  // v2.2.x — [제안] 상세에서 바로 정지: 시네마 없이 정지 시트(시간+페이지+저장) 직행
+  const bdQuickStop = document.getElementById('bdQuickStop');
+  if (bdQuickStop) {
+    bdQuickStop.addEventListener('click', () => {
+      if (TIMER.bookId === b.id) openTimerStop();
+    });
   }
 
   // ═══ 매체 알약 토글 (segmented) — 종이/전자/오디오 사후 변경 ═══
