@@ -47179,6 +47179,18 @@ renderAllStats();
     }, 350);
   } catch (e) {}
 })();
+/* bfcache 복원(pageshow persisted) 커버 — 드물게 화면은 복원됐는데 시네마만 닫혀 있는 경우 */
+try {
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    if (TIMER.bookId && TIMER.startTime && !CINEMA.active) {
+      const bk = BOOKS.find(x => x.id === TIMER.bookId);
+      if (bk && bk.status === 'reading') {
+        setTimeout(() => { try { if (TIMER.bookId && !CINEMA.active) CINEMA.enter(TIMER.bookId); } catch (err) {} }, 250);
+      }
+    }
+  });
+} catch (e) {}
 
 /* ═══════════════════════════════════════════════════════════
    📓 노트 탭 V2 (v1.4.0)
