@@ -41430,6 +41430,18 @@ function wireBookDetailEvents() {
     });
   }
 
+  // v2.2.x — 타이머 중 시트 밖 진행 입력 공통 처리: 세션 기준 페이지 기록 + 정지 토스트
+  //   (종이책 페이지·전자책 % 두 입력 모두 — 완독/정지/전환 시 '+p'가 입력분을 포함하도록)
+  const _noteTimerPageBase = (oldPage, newPage) => {
+    if (TIMER.bookId !== b.id || !TIMER.startTime || newPage === oldPage) return;
+    if (TIMER.pageBaseOverride == null) TIMER.pageBaseOverride = oldPage;
+    if (typeof showActionToast === 'function') {
+      showActionToast('타이머가 계속 가고 있어요', '기록 저장하며 정지', () => {
+        if (TIMER.bookId === b.id) openTimerStop();
+      });
+    }
+  };
+
   // 진행률 입력
   const progInput = document.getElementById('bdProgressInput');
   if (progInput) {
@@ -41441,16 +41453,7 @@ function wireBookDetailEvents() {
       updateBook(b.id, { currentPage: v });
       if (typeof _maybeOfferDone === 'function') _maybeOfferDone(b.id, _oldPage, v);
       // v2.2.x — [제안] 이 책 타이머 진행 중에 페이지를 고치면, 그 페이지 그대로 정지까지 한 탭
-      if (TIMER.bookId === b.id && TIMER.startTime && v !== _oldPage) {
-        // 세션 '+p' 기준: 이 타이머 세션 중 시트 밖에서 페이지를 처음 고친 시점의 이전값
-        //   (토스트를 안 눌러도 완독·후속 정지·자동 저장 모두 이 기준으로 계산)
-        if (TIMER.pageBaseOverride == null) TIMER.pageBaseOverride = _oldPage;
-        if (typeof showActionToast === 'function') {
-          showActionToast('타이머가 계속 가고 있어요', '기록 저장하며 정지', () => {
-            if (TIMER.bookId === b.id) openTimerStop();
-          });
-        }
-      }
+      _noteTimerPageBase(_oldPage, v);
       const pct = Math.round(v / b.pages * 100);
       document.getElementById('bdProgressFill').style.width = pct + '%';
       document.getElementById('bdProgressPct').textContent = pct + '%';
@@ -41529,6 +41532,7 @@ function wireBookDetailEvents() {
       const _oldPage = Number(b.currentPage) || 0;  // updateBook 전에 캡처
       updateBook(b.id, { currentPage: newCurrentPage });
       if (typeof _maybeOfferDone === 'function') _maybeOfferDone(b.id, _oldPage, newCurrentPage);
+      _noteTimerPageBase(_oldPage, newCurrentPage);  // v2.2.x — 전자책 %도 세션 기준·정지 토스트
       // 표시 업데이트
       const fill = document.getElementById('bdProgressFill');
       if (fill) fill.style.width = pct + '%';
@@ -47159,6 +47163,22 @@ renderTagRadar();
 renderLogList();
 renderLibraryCards();
 renderAllStats();
+
+/* v2.2.x — [안드로이드 제보] 리로드 후 시네마 자동 복귀
+   iOS는 백그라운드 복귀 시 페이지가 유지돼 시네마가 그대로 보이지만,
+   Android는 전화·앱 전환 중 탭이 재로드되는 일이 잦아 타이머만 복원되고
+   화면은 책 상세/홈에 떨어졌다 → 진행 중이던 시네마로 자동 복귀시켜 동일 경험 제공. */
+(function autoResumeCinema() {
+  try {
+    if (!TIMER.bookId || !TIMER.startTime) return;
+    const bk = BOOKS.find(b => b.id === TIMER.bookId);
+    if (!bk || bk.status !== 'reading') return;
+    if (localStorage.getItem('read.onboarding.done.v1') !== '1') return;  // 온보딩 중이면 보류
+    setTimeout(() => {
+      try { if (TIMER.bookId) CINEMA.enter(TIMER.bookId); } catch (e) {}
+    }, 350);
+  } catch (e) {}
+})();
 
 /* ═══════════════════════════════════════════════════════════
    📓 노트 탭 V2 (v1.4.0)
