@@ -79,7 +79,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="keepbook">
-<meta name="theme-color" content="#5A7A3C">
+<meta name="theme-color" content="#F3F3F0">
 
 <!-- v1.0.1 — 공유 미리보기 메타 태그 (네이버 카페, 카톡, 페북, 디스코드 등) -->
 <meta name="description" content="읽은 책, 읽고 있는 책, 읽고 싶은 책. 조용히 기록하는 독서 일기.">
@@ -22311,7 +22311,7 @@ body.cn-locked {
 </div>
 <div class="main-wrap">
 
-  <div class="keep-topblur" aria-hidden="true"><div class="ktb-l1"></div><div class="ktb-l2"></div><div class="ktb-l3"></div><div class="ktb-l4"></div><div class="ktb-l5"></div><div class="ktb-l6"></div><div class="ktb-fade"></div></div>
+  <div class="keep-topblur" aria-hidden="true"><div class="ktb-l1"></div><div class="ktb-l2"></div><div class="ktb-l3"></div><div class="ktb-l4"></div><div class="ktb-l5"></div><div class="ktb-l6"></div></div>
 
   <!-- ═══════════ 헤더 ═══════════ -->
   <header class="app-header" id="appHeader">
@@ -22604,22 +22604,15 @@ html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-solid:#DEE
 html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-solid:#F4ECF2; }
 html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-solid:#E9E1F1; }
 /* KEEP 상단 점진적 블러 (위로 갈수록 강하게, 아래로 페이드) — 피드 위·헤더 아래(z:5) */
-.keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(170px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
-  --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px;
-  /* v2.2.x — [제보] 블러가 헤더(로고·아이콘)까지 침범하던 문제:
-     iOS Safari는 fixed+mask backdrop-filter가 위층(z:50 헤더)까지 흐리는 동작이 있어
-     z-index로는 못 막는다 → 헤더 높이만큼 블러를 아예 두지 않고(각 레이어 마스크 상단 오프셋),
-     그 구간은 캔버스색 페이드(.ktb-fade)가 콘텐츠를 가린다. 로고는 어느 플랫폼에서도 선명. */
-  --ktb-hd:calc(68px + env(safe-area-inset-top, 0px)); }
+.keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
+  --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
 .keep-topblur > div{ position:absolute; inset:0; }
-.keep-topblur .ktb-fade{ background:linear-gradient(to bottom, var(--c-canvas) 0, var(--c-canvas) var(--ktb-hd), transparent calc(var(--ktb-hd) + 18px)); }
-body[data-keepbg] .keep-topblur .ktb-fade{ background:linear-gradient(to bottom, var(--keep-solid, var(--c-canvas)) 0, var(--keep-solid, var(--c-canvas)) var(--ktb-hd), transparent calc(var(--ktb-hd) + 18px)); }
-.keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.12 + 88%),transparent 100%); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.12 + 88%),transparent 100%); }
-.keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.4 + 60%),transparent calc(var(--ktb-hd)*0.18 + 82%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.4 + 60%),transparent calc(var(--ktb-hd)*0.18 + 82%)); }
-.keep-topblur .ktb-l3{ -webkit-backdrop-filter:blur(var(--b3)); backdrop-filter:blur(var(--b3)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.6 + 40%),transparent calc(var(--ktb-hd)*0.38 + 62%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.6 + 40%),transparent calc(var(--ktb-hd)*0.38 + 62%)); }
-.keep-topblur .ktb-l4{ -webkit-backdrop-filter:blur(var(--b4)); backdrop-filter:blur(var(--b4)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.76 + 24%),transparent calc(var(--ktb-hd)*0.56 + 44%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.76 + 24%),transparent calc(var(--ktb-hd)*0.56 + 44%)); }
-.keep-topblur .ktb-l5{ -webkit-backdrop-filter:blur(var(--b5)); backdrop-filter:blur(var(--b5)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.88 + 12%),transparent calc(var(--ktb-hd)*0.72 + 28%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.88 + 12%),transparent calc(var(--ktb-hd)*0.72 + 28%)); }
-.keep-topblur .ktb-l6{ -webkit-backdrop-filter:blur(var(--b6)); backdrop-filter:blur(var(--b6)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),transparent calc(var(--ktb-hd)*0.84 + 16%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),transparent calc(var(--ktb-hd)*0.84 + 16%)); }
+.keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); }
+.keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); }
+.keep-topblur .ktb-l3{ -webkit-backdrop-filter:blur(var(--b3)); backdrop-filter:blur(var(--b3)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 62%); mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 62%); }
+.keep-topblur .ktb-l4{ -webkit-backdrop-filter:blur(var(--b4)); backdrop-filter:blur(var(--b4)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 24%,transparent 44%); mask-image:linear-gradient(to bottom,#000 0%,#000 24%,transparent 44%); }
+.keep-topblur .ktb-l5{ -webkit-backdrop-filter:blur(var(--b5)); backdrop-filter:blur(var(--b5)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 12%,transparent 28%); mask-image:linear-gradient(to bottom,#000 0%,#000 12%,transparent 28%); }
+.keep-topblur .ktb-l6{ -webkit-backdrop-filter:blur(var(--b6)); backdrop-filter:blur(var(--b6)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 16%); mask-image:linear-gradient(to bottom,#000 0%,transparent 16%); }
 /* KEEP 배경 테마 5종 (라이트 테마 한정 — 카드/텍스트 가독성 유지) */
 html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-bg:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-bg:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
@@ -27304,7 +27297,8 @@ function applyTheme(id) {
   try { localStorage.setItem(THEME_KEY, id || ''); } catch(e){}
   // theme-color 메타도 함께 업데이트
   const css = getComputedStyle(root);
-  const mainColor = css.getPropertyValue('--c-terra-900').trim() || '#7c2d12';
+  // v2.2.x — [Jason] 사파리 상단 크롬이 어두운 색(--c-terra-900)으로 물들어 거슬림 → 캔버스색과 통일(이음새 없는 상단)
+  const mainColor = css.getPropertyValue('--c-canvas').trim() || '#F3F3F0';
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) metaTheme.setAttribute('content', mainColor);
   // 활성 표시 갱신
@@ -28247,7 +28241,7 @@ function snapToTab(idx) {
         var _ks=getComputedStyle(document.body).getPropertyValue('--keep-solid').trim();
         if(_ks) _mtc.setAttribute('content', _ks);
       } else {
-        var _mc=getComputedStyle(document.documentElement).getPropertyValue('--c-terra-900').trim();
+        var _mc=getComputedStyle(document.documentElement).getPropertyValue('--c-canvas').trim();
         _mtc.setAttribute('content', _mc || '#7c2d12');
       }
     }
