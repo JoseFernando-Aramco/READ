@@ -22311,7 +22311,7 @@ body.cn-locked {
 </div>
 <div class="main-wrap">
 
-  <div class="keep-topblur" aria-hidden="true"><div class="ktb-l1"></div><div class="ktb-l2"></div><div class="ktb-l3"></div><div class="ktb-l4"></div><div class="ktb-l5"></div><div class="ktb-l6"></div></div>
+  <div class="keep-topblur" aria-hidden="true"><div class="ktb-l1"></div><div class="ktb-l2"></div><div class="ktb-l3"></div><div class="ktb-l4"></div><div class="ktb-l5"></div><div class="ktb-l6"></div><div class="ktb-fade"></div></div>
 
   <!-- ═══════════ 헤더 ═══════════ -->
   <header class="app-header" id="appHeader">
@@ -22604,15 +22604,22 @@ html:not([data-theme="midnight"]) body[data-keepbg="deepsea"]{ --keep-solid:#DEE
 html:not([data-theme="midnight"]) body[data-keepbg="dawn"]{ --keep-solid:#F4ECF2; }
 html:not([data-theme="midnight"]) body[data-keepbg="amethyst"]{ --keep-solid:#E9E1F1; }
 /* KEEP 상단 점진적 블러 (위로 갈수록 강하게, 아래로 페이드) — 피드 위·헤더 아래(z:5) */
-.keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(150px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
-  --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px; }
+.keep-topblur{ position:fixed; top:0; left:0; right:0; height:calc(170px + env(safe-area-inset-top, 0px)); z-index:5; pointer-events:none; opacity:1;
+  --b1:3px; --b2:7px; --b3:13px; --b4:22px; --b5:34px; --b6:52px;
+  /* v2.2.x — [제보] 블러가 헤더(로고·아이콘)까지 침범하던 문제:
+     iOS Safari는 fixed+mask backdrop-filter가 위층(z:50 헤더)까지 흐리는 동작이 있어
+     z-index로는 못 막는다 → 헤더 높이만큼 블러를 아예 두지 않고(각 레이어 마스크 상단 오프셋),
+     그 구간은 캔버스색 페이드(.ktb-fade)가 콘텐츠를 가린다. 로고는 어느 플랫폼에서도 선명. */
+  --ktb-hd:calc(68px + env(safe-area-inset-top, 0px)); }
 .keep-topblur > div{ position:absolute; inset:0; }
-.keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%); }
-.keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); mask-image:linear-gradient(to bottom,#000 0%,#000 60%,transparent 82%); }
-.keep-topblur .ktb-l3{ -webkit-backdrop-filter:blur(var(--b3)); backdrop-filter:blur(var(--b3)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 62%); mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 62%); }
-.keep-topblur .ktb-l4{ -webkit-backdrop-filter:blur(var(--b4)); backdrop-filter:blur(var(--b4)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 24%,transparent 44%); mask-image:linear-gradient(to bottom,#000 0%,#000 24%,transparent 44%); }
-.keep-topblur .ktb-l5{ -webkit-backdrop-filter:blur(var(--b5)); backdrop-filter:blur(var(--b5)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 12%,transparent 28%); mask-image:linear-gradient(to bottom,#000 0%,#000 12%,transparent 28%); }
-.keep-topblur .ktb-l6{ -webkit-backdrop-filter:blur(var(--b6)); backdrop-filter:blur(var(--b6)); -webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 16%); mask-image:linear-gradient(to bottom,#000 0%,transparent 16%); }
+.keep-topblur .ktb-fade{ background:linear-gradient(to bottom, var(--c-canvas) 0, var(--c-canvas) var(--ktb-hd), transparent calc(var(--ktb-hd) + 18px)); }
+body[data-keepbg] .keep-topblur .ktb-fade{ background:linear-gradient(to bottom, var(--keep-solid, var(--c-canvas)) 0, var(--keep-solid, var(--c-canvas)) var(--ktb-hd), transparent calc(var(--ktb-hd) + 18px)); }
+.keep-topblur .ktb-l1{ -webkit-backdrop-filter:blur(var(--b1)); backdrop-filter:blur(var(--b1)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.12 + 88%),transparent 100%); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.12 + 88%),transparent 100%); }
+.keep-topblur .ktb-l2{ -webkit-backdrop-filter:blur(var(--b2)); backdrop-filter:blur(var(--b2)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.4 + 60%),transparent calc(var(--ktb-hd)*0.18 + 82%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.4 + 60%),transparent calc(var(--ktb-hd)*0.18 + 82%)); }
+.keep-topblur .ktb-l3{ -webkit-backdrop-filter:blur(var(--b3)); backdrop-filter:blur(var(--b3)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.6 + 40%),transparent calc(var(--ktb-hd)*0.38 + 62%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.6 + 40%),transparent calc(var(--ktb-hd)*0.38 + 62%)); }
+.keep-topblur .ktb-l4{ -webkit-backdrop-filter:blur(var(--b4)); backdrop-filter:blur(var(--b4)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.76 + 24%),transparent calc(var(--ktb-hd)*0.56 + 44%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.76 + 24%),transparent calc(var(--ktb-hd)*0.56 + 44%)); }
+.keep-topblur .ktb-l5{ -webkit-backdrop-filter:blur(var(--b5)); backdrop-filter:blur(var(--b5)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.88 + 12%),transparent calc(var(--ktb-hd)*0.72 + 28%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),#000 calc(var(--ktb-hd)*0.88 + 12%),transparent calc(var(--ktb-hd)*0.72 + 28%)); }
+.keep-topblur .ktb-l6{ -webkit-backdrop-filter:blur(var(--b6)); backdrop-filter:blur(var(--b6)); -webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),transparent calc(var(--ktb-hd)*0.84 + 16%)); mask-image:linear-gradient(to bottom,transparent calc(var(--ktb-hd) - 1px),#000 var(--ktb-hd),transparent calc(var(--ktb-hd)*0.84 + 16%)); }
 /* KEEP 배경 테마 5종 (라이트 테마 한정 — 카드/텍스트 가독성 유지) */
 html:not([data-theme="midnight"]) body[data-keepbg="sunset"]{ --keep-bg:radial-gradient(50% 36% at 88% 18%, rgba(255,183,160,.46), transparent 72%), radial-gradient(54% 38% at 4% 54%, rgba(245,168,190,.44), transparent 72%), radial-gradient(46% 30% at 64% 92%, rgba(255,206,168,.42), transparent 72%), linear-gradient(180deg,#FBEDE4 0px,#FBEDE4 300px,#F6DFDA 640px,#F0D4D2 100%); }
 html:not([data-theme="midnight"]) body[data-keepbg="mist"]{ --keep-bg:radial-gradient(48% 32% at 20% 22%, rgba(168,206,190,.42), transparent 72%), radial-gradient(52% 38% at 88% 50%, rgba(176,198,214,.44), transparent 72%), radial-gradient(46% 30% at 40% 90%, rgba(196,214,200,.38), transparent 72%), linear-gradient(180deg,#E7EFEB 0px,#E7EFEB 300px,#DCE8E6 640px,#D2E1E0 100%); }
@@ -38715,10 +38722,59 @@ function updateBook(id, partial) {
   BOOKS[idx] = { ...BOOKS[idx], ...partial };
   STORE.set('books', BOOKS);
   BD.book = BOOKS[idx]; // 참조 업데이트
-  try { renderLibraryCards(); } catch(e){}
-  try { renderLogList(); } catch(e){}
+  // v2.2.x — [성능] 순서·탭 소속에 영향 없는 수정은 해당 카드만 교체 (헤비 서재 1초 렉의 주범 완화)
+  if (_isCardOnlyPatch(partial) && _patchLibraryCard(BOOKS[idx])) {
+    _scheduleLogRender();  // 리딩로그는 rAF 디바운스 (연속 저장 1회 합침)
+  } else {
+    try { renderLibraryCards(); } catch(e){}
+    try { renderLogList(); } catch(e){}
+  }
   _scheduleHeavyRenders();  // v2.2.x — 통계·레이더는 디바운스 + 통계 탭이 보일 때만 (숨김 중엔 더티로 미룸)
   return BOOKS[idx];
+}
+
+/* v2.2.x — [성능] 카드 단독 교체: 정렬·필터·탭 소속과 무관한 키만 담긴 patch면
+   서재 전체를 다시 그리는 대신 그 책의 카드 DOM만 renderBookCard로 재생성해 교체한다.
+   (status·날짜·별점·제목·태그 등 순서가 바뀔 수 있는 키는 기존 전체 리렌더로 폴백) */
+const _CARD_ONLY_KEYS = new Set([
+  'currentPage', 'quickNote', 'readingNote', 'priceSales', 'publisher', 'isbn',
+  'pages', 'episodes', 'readingSessions', 'acquisitions', 'stagePass',
+  'cover', 'coverLocal', 'palette', 'novelUnit', 'priceSource'
+]);
+function _isCardOnlyPatch(partial) {
+  if (!partial) return false;
+  const keys = Object.keys(partial);
+  if (!keys.length) return false;
+  return keys.every(k => _CARD_ONLY_KEYS.has(k));
+}
+let _logRenderScheduled = false;
+function _scheduleLogRender() {
+  if (_logRenderScheduled) return;
+  _logRenderScheduled = true;
+  requestAnimationFrame(() => {
+    _logRenderScheduled = false;
+    try { renderLogList(); } catch (e) {}
+  });
+}
+function _patchLibraryCard(b) {
+  try {
+    const els = document.querySelectorAll('.book-card[data-book-id="' + b.id + '"]');
+    if (!els.length) return false;  // 화면에 없음(필터·다른 탭) → 전체 리렌더 폴백
+    for (const el of els) {
+      // 그룹/스택 커버 등 특수 카드는 일반 템플릿과 마크업이 달라 교체 불가 → 폴백
+      if (el.className.indexOf('stack') !== -1 || el.className.indexOf('group') !== -1) return false;
+      const siblings = Array.from(el.parentElement.children).filter(c => c.classList && c.classList.contains('book-card'));
+      const idx = Math.max(0, siblings.indexOf(el));
+      const html = renderBookCard(b, idx);
+      if (!html || html.indexOf('book-card') === -1) return false;
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const fresh = tmp.firstElementChild;
+      if (!fresh) return false;
+      el.replaceWith(fresh);
+    }
+    return true;
+  } catch (e) { return false; }
 }
 
 /* v2.2.x — 무거운 렌더(통계 전체·태그 레이더) 배칭: 연속 수정을 1회로 합치고,
@@ -39456,7 +39512,8 @@ const CINEMA = {
   },
 
   /* 시네마 진입 — 사용자 제스처 컨텍스트에서 호출돼야 함 */
-  async enter(bookId) {
+  async enter(bookId, opts) {
+    opts = opts || {};
     if (this.active) return; // 이미 떠 있으면 무시
     const book = BOOKS.find(b => b.id === bookId);
     if (!book) return;
@@ -39501,7 +39558,10 @@ const CINEMA = {
     this.clockTimer = setInterval(() => this._updateClock(), 15000);
 
     // 풀스크린 시도 (가로 잠금은 안 함 — 양쪽 다 지원)
-    await this._tryFullscreen();
+    // v2.2.x — [안드로이드 제보] 자동 복귀 진입은 풀스크린 시도 안 함:
+    //   제스처 없는 풀스크린을 Android가 뒤늦게 걷어내며 fullscreenchange가 발화,
+    //   '외부 요인 이탈' 핸들러가 시네마를 통째로 닫아버리던 문제 (복귀 후 십수 초 뒤 자기 소멸).
+    if (!opts.noFullscreen) await this._tryFullscreen();
 
     // 진입 애니메이션 트리거 (다음 프레임에서 cn-running 추가)
     requestAnimationFrame(() => {
@@ -47159,10 +47219,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // 초기 렌더
-renderTagRadar();
+// v2.2.x — [성능] 통계·태그 레이더는 부팅에서 제외(-400ms): 더티만 걸어두고
+//   통계 탭 진입 시(_flushHeavyIfDirty) 그린다. 첫 화면(서재)에 필요한 것만 즉시.
 renderLogList();
 renderLibraryCards();
-renderAllStats();
+_scheduleHeavyRenders();
 
 /* v2.2.x — [안드로이드 제보] 리로드 후 시네마 자동 복귀
    iOS는 백그라운드 복귀 시 페이지가 유지돼 시네마가 그대로 보이지만,
@@ -47175,7 +47236,7 @@ renderAllStats();
     if (!bk || bk.status !== 'reading') return;
     if (localStorage.getItem('read.onboarding.done.v1') !== '1') return;  // 온보딩 중이면 보류
     setTimeout(() => {
-      try { if (TIMER.bookId) CINEMA.enter(TIMER.bookId); } catch (e) {}
+      try { if (TIMER.bookId) CINEMA.enter(TIMER.bookId, { noFullscreen: true }); } catch (e) {}
     }, 350);
   } catch (e) {}
 })();
@@ -47186,7 +47247,7 @@ try {
     if (TIMER.bookId && TIMER.startTime && !CINEMA.active) {
       const bk = BOOKS.find(x => x.id === TIMER.bookId);
       if (bk && bk.status === 'reading') {
-        setTimeout(() => { try { if (TIMER.bookId && !CINEMA.active) CINEMA.enter(TIMER.bookId); } catch (err) {} }, 250);
+        setTimeout(() => { try { if (TIMER.bookId && !CINEMA.active) CINEMA.enter(TIMER.bookId, { noFullscreen: true }); } catch (err) {} }, 250);
       }
     }
   });
