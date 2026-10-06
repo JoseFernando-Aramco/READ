@@ -18310,6 +18310,25 @@ body.cn-locked {
   font-size: 10px; font-weight: 700;
   letter-spacing: 0.02em;
 }
+/* v2.3.x — [Jason B안] 서재 검색 결과: 매체 배지(각) + 구입처 칩(둥근, 대여=점선) */
+.lsr-fmt {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px; font-weight: 800;
+  background: color-mix(in srgb, var(--c-text) 7%, transparent);
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+.lsr-src {
+  padding: 2px 7px;
+  border-radius: 100px;
+  font-size: 10px; font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--c-text) 14%, transparent);
+  color: var(--c-text-2);
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 110px;
+}
+.lsr-src.rent { border-style: dashed; }
 .lib-search-result-status.wish {
   background: color-mix(in srgb, var(--c-rose-500, #E11D48) 12%, transparent);
   color: var(--c-rose-500, #E11D48);
@@ -27455,6 +27474,40 @@ function highlightMatch(text, query) {
     + esc(t.slice(idx + q.length));
 }
 
+/* v2.3.x — 구입 기록 중 '장소가 있는 가장 최근' 1건 (서재 검색 칩용) */
+function _latestAcqOf(b) {
+  const list = Array.isArray(b && b.acquisitions) ? b.acquisitions.filter(a => a && a.place) : [];
+  if (!list.length) return null;
+  return list.slice().sort((x, y) => new Date(y.date || 0) - new Date(x.date || 0))[0];
+}
+
+/* v2.3.x — 서재 검색 결과 행 HTML (B안: 매체 배지 + 구입처 칩 · 페이지는 저자 줄로) */
+function _libSearchRowHtml(b, q) {
+  const statusLabel = { wish: '위시', reading: '독서중', done: '완독' };
+  const cover = b.coverUrl
+    ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<span style=&quot;font-size:20px&quot;>📖</span>'">`
+    : `<span style="font-size:20px">📖</span>`;
+  const fmt = getBookFormat(b);
+  const pagesStr = b.pages ? ` · ${b.pages}${fmt === 'webnovel' ? '화' : 'p'}` : '';
+  const acq = _latestAcqOf(b);
+  const srcChip = acq
+    ? `<span class="lsr-src${acq.type === 'rent' ? ' rent' : ''}">${acq.type === 'rent' ? '🔄' : '🛒'} ${esc(acq.place)}${acq.type === 'rent' ? ' · 대여' : ''}</span>`
+    : '';
+  return `
+      <div class="lib-search-result" data-id="${b.id}">
+        <div class="lib-search-result-cover">${cover}</div>
+        <div class="lib-search-result-info">
+          <div class="lib-search-result-title">${highlightMatch(b.title, q)}</div>
+          <div class="lib-search-result-author">${highlightMatch(b.author, q)}${esc(pagesStr)}</div>
+          <div class="lib-search-result-meta">
+            <span class="lib-search-result-status ${b.status || 'wish'}">${statusLabel[b.status] || '위시'}</span>
+            <span class="lsr-fmt">${formatLabel(fmt)}</span>
+            ${srcChip}
+          </div>
+        </div>
+      </div>`;
+}
+
 function renderLibSearchResults(query) {
   if (!libSearchBody) return;
   const q = (query || '').trim();
@@ -27479,29 +27532,8 @@ function renderLibSearchResults(query) {
     return;
   }
 
-  const statusLabel = { wish: '위시', reading: '독서중', done: '완독' };
   const sectionTitle = q ? `검색 결과 · ${results.length}권` : '최근 추가';
-  const items = results.map(r => {
-    const b = r.book;
-    const cover = b.coverUrl
-      ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.outerHTML='<span style=&quot;font-size:20px&quot;>📖</span>'">`
-      : `<span style="font-size:20px">📖</span>`;
-    const tagsStr = Array.isArray(b.tags) && b.tags.length
-      ? ' · ' + b.tags.slice(0, 3).map(t => '#' + t).join(' ')
-      : '';
-    return `
-      <div class="lib-search-result" data-id="${b.id}">
-        <div class="lib-search-result-cover">${cover}</div>
-        <div class="lib-search-result-info">
-          <div class="lib-search-result-title">${highlightMatch(b.title, q)}</div>
-          <div class="lib-search-result-author">${highlightMatch(b.author, q)}</div>
-          <div class="lib-search-result-meta">
-            <span class="lib-search-result-status ${b.status || 'wish'}">${statusLabel[b.status] || '위시'}</span>
-            <span class="lib-search-result-tags">${esc(b.pages ? b.pages + 'p' : '')}${esc(tagsStr)}</span>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+  const items = results.map(r => _libSearchRowHtml(r.book, q)).join('');
 
   libSearchBody.innerHTML = `
     <div class="lib-search-section-ttl">${sectionTitle}</div>
