@@ -7772,6 +7772,9 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
   transition: background .15s, color .15s;
 }
 .sas-pill.active { background: var(--c-text); color: var(--c-surface); border-color: var(--c-text); }
+.bundle-sas { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.bundle-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.bundle-dates-hint { font-size: 11px; color: var(--c-muted); margin-top: 6px; font-weight: 500; }
 .sas-pill { display: inline-flex; align-items: center; gap: 5px; }
 .sas-ic { width: 13px; height: 13px; fill: currentColor; stroke: none; flex: 0 0 auto; }
 .toast-action-btn {
@@ -23559,6 +23562,26 @@ body.sayu-active #pane-sayu{ background:transparent; }
             <label class="form-label" for="bundleCountInput">총 권수 <span class="req">*</span></label>
             <input class="bundle-count-input" type="number" id="bundleCountInput" min="2" max="200" placeholder="예: 10" inputmode="numeric">
             <div class="bundle-preview" id="bundlePreview" hidden></div>
+            <!-- v2.3.x — [제보] 묶음 등록 시 상태·독서 기간 일괄 지정 (전권 동일 적용) -->
+            <div class="bundle-status-block" id="bundleStatusBlock">
+              <label class="form-label" style="margin-top:10px;">등록할 상태</label>
+              <div class="bundle-sas">
+                <button type="button" class="sas-pill active" data-bundle-status="wish"><svg class="sas-ic" aria-hidden="true"><use href="#i-bookmark-solid"/></svg>위시로</button>
+                <button type="button" class="sas-pill" data-bundle-status="reading"><svg class="sas-ic" aria-hidden="true"><use href="#i-book-solid"/></svg>독서중으로</button>
+                <button type="button" class="sas-pill" data-bundle-status="done"><svg class="sas-ic" aria-hidden="true"><use href="#i-check-solid"/></svg>완독으로</button>
+              </div>
+              <div class="bundle-dates" id="bundleDatesRow" hidden>
+                <div>
+                  <label class="form-label">시작일</label>
+                  <input class="form-input" type="date" id="bundleDateStart">
+                </div>
+                <div id="bundleDateEndWrap">
+                  <label class="form-label">완독일</label>
+                  <input class="form-input" type="date" id="bundleDateEnd">
+                </div>
+              </div>
+              <div class="bundle-dates-hint" id="bundleDatesHint" hidden>시리즈 전체에 같은 기간이 기록돼요 — 비워두면 오늘로</div>
+            </div>
           </div>
         </div>
         <div class="form-field">
@@ -29086,6 +29109,9 @@ const BA = {
   _submitting: false,          // v1.0.2 — 책 추가 중복 등록 방지 가드 (더블 탭 race)
   // v1.0.2 — 권 묶음 등록 (수동 입력 시 시리즈 일괄 등록)
   bundleEnabled: false,        // 묶음 토글 ON/OFF
+  bundleStatus: 'wish',        // v2.3.x — 묶음 일괄 상태 (wish/reading/done)
+  bundleDateStart: '',         // v2.3.x — 묶음 일괄 시작일
+  bundleDateEnd: '',           // v2.3.x — 묶음 일괄 완독일
   bundleCount: 0,              // 총 권수 (2 이상)
 };
 let _searchReqId = 0;   // stale 응답 버리기용 (AbortController 대체 · iframe 호환)
@@ -29412,6 +29438,13 @@ function closeBookAdd() {
   if (bundleCountInput) bundleCountInput.value = '';
   if (bundleSubLabel) bundleSubLabel.textContent = '시리즈를 1~N권으로 한 번에';
   if (bundlePreview) { bundlePreview.hidden = true; bundlePreview.innerHTML = ''; }
+  // v2.3.x — 묶음 상태·기간 리셋
+  BA.bundleStatus = 'wish'; BA.bundleDateStart = ''; BA.bundleDateEnd = '';
+  document.querySelectorAll('[data-bundle-status]').forEach(x => x.classList.toggle('active', x.getAttribute('data-bundle-status') === 'wish'));
+  const _bds = document.getElementById('bundleDateStart'); if (_bds) _bds.value = '';
+  const _bde = document.getElementById('bundleDateEnd'); if (_bde) _bde.value = '';
+  const _bdr = document.getElementById('bundleDatesRow'); if (_bdr) _bdr.hidden = true;
+  const _bdh = document.getElementById('bundleDatesHint'); if (_bdh) _bdh.hidden = true;
   // 제목 라벨 + 등록 버튼 텍스트 복원
   const titleLblEl = document.querySelector('#manualForm .form-field:first-of-type .form-label');
   if (titleLblEl) titleLblEl.innerHTML = '제목 <span class="req">*</span>';
@@ -31289,6 +31322,43 @@ function submitManual() {
   renderConfirm();
 }
 
+/* v2.3.x — 묶음 상태 알약·기간 입력 위임 */
+document.addEventListener('click', (e) => {
+  const pill = e.target && e.target.closest ? e.target.closest('[data-bundle-status]') : null;
+  if (!pill) return;
+  const st = pill.getAttribute('data-bundle-status');
+  BA.bundleStatus = st;
+  document.querySelectorAll('[data-bundle-status]').forEach(x => x.classList.toggle('active', x === pill));
+  const datesRow = document.getElementById('bundleDatesRow');
+  const endWrap = document.getElementById('bundleDateEndWrap');
+  const hint = document.getElementById('bundleDatesHint');
+  if (datesRow) datesRow.hidden = (st === 'wish');
+  if (endWrap) endWrap.style.display = (st === 'done') ? '' : 'none';
+  if (hint) hint.hidden = (st === 'wish');
+});
+document.addEventListener('change', (e) => {
+  if (!e.target || !e.target.id) return;
+  if (e.target.id === 'bundleDateStart') BA.bundleDateStart = e.target.value || '';
+  if (e.target.id === 'bundleDateEnd') BA.bundleDateEnd = e.target.value || '';
+});
+
+/* v2.3.x — 묶음 일괄 메타 계산 (전권 동일 적용 · 테스트 가능 순수 함수)
+   반환: { status, dateStart, dateEnd, error } */
+function _bundleBatchMeta(st, ds, de, today) {
+  st = st || 'wish';
+  ds = ds || ''; de = de || '';
+  if (st === 'done') {
+    if (!de) de = today;
+    if (!ds) ds = de;
+    if (ds > de) return { error: '시작일이 완독일보다 늦을 수 없어요' };
+    return { status: 'done', dateStart: ds, dateEnd: de };
+  }
+  if (st === 'reading') {
+    return { status: 'reading', dateStart: ds || today, dateEnd: undefined };
+  }
+  return { status: 'wish', dateStart: undefined, dateEnd: undefined };
+}
+
 /* ═══════════════════════════════════════════════════════════
    v1.0.2 — 권 묶음 일괄 등록
    - submitManual 검증 통과 후 호출됨 (BA.selected에 단권 베이스 메타 채워진 상태)
@@ -31308,8 +31378,11 @@ function submitManualBundle() {
 
     const baseTitle = b.title;
     const n = BA.bundleCount;
-    const today = todayStr();  // (현재 미사용 — wish 상태이므로 dateStart 없음)
+    const today = todayStr();
     const isWebnov = b.format === 'webnovel';
+    // v2.3.x — [제보] 묶음 일괄 상태·기간 (전권 동일)
+    const batch = _bundleBatchMeta(BA.bundleStatus, BA.bundleDateStart, BA.bundleDateEnd, today);
+    if (batch.error) { showToast(batch.error); BA._submitting = false; return; }
     const baseTimestamp = Date.now();
 
     // v1.5.x — id 충돌 버그 수정 (기록 사라짐 원인)
@@ -31339,7 +31412,7 @@ function submitManualBundle() {
         // v1.5.x — 웹소설도 페이지 입력값 사용 (회차와 병행). 기존 isWebnov?0 강제 제거.
         pages: b.pages || 0,
         palette,
-        status: 'wish',  // 일괄 wish default
+        status: batch.status,  // v2.3.x — 일괄 상태 (기본 wish)
         tags: [],
         isbn: '',
         language: b.language || 'ko',
@@ -31349,11 +31422,14 @@ function submitManualBundle() {
         rereads: [],
         format: b.format,
         source: 'manual',
+        dateStart: batch.dateStart,
+        dateEnd: batch.dateEnd,
         // 웹소설 전용 필드 (공통 적용 — 권별로 다르면 등록 후 개별 수정)
         novelStatus: isWebnov ? (b.novelStatus || 'serial') : undefined,
         episodeUnit: isWebnov ? (b.episodeUnit || 'episode') : undefined,
         episodes: isWebnov ? (b.episodes || 0) : undefined,
-        currentEpisode: isWebnov ? 0 : undefined,  // 묶음 등록 시 진행도는 항상 0 (시작 전)
+        currentPage: (batch.status === 'done' && !isWebnov) ? (b.pages || 0) : undefined,
+        currentEpisode: isWebnov ? (batch.status === 'done' ? (b.episodes || 0) : 0) : undefined,
         priceList: null,
         priceSales: null,
         priceSource: null,
@@ -31387,7 +31463,8 @@ function submitManualBundle() {
 
     // 시트 닫기 + 토스트
     closeBookAdd();
-    showToast('📚 ' + baseTitle + ' 시리즈 ' + n + '권 등록 완료');
+    const stLabel = batch.status === 'done' ? ' · 완독' : (batch.status === 'reading' ? ' · 독서중' : '');
+    showToast('📚 ' + baseTitle + ' 시리즈 ' + n + '권 등록 완료' + stLabel);
   } finally {
     BA._submitting = false;
   }
@@ -42042,6 +42119,23 @@ function wireBookDetailEvents() {
     if (e.key === 'Enter') { e.preventDefault(); _bdCreateNewTag(); }
   });
 
+  // v2.3.x — [제보] 시리즈 묶음 표지 일괄 적용 (한 번 리렌더로 전권)
+  function _applyCoverToGroup(groupId, dataUrl, exceptId) {
+    let cnt = 0;
+    BOOKS.forEach((x, i) => {
+      if (x.groupId === groupId && x.id !== exceptId) {
+        BOOKS[i] = { ...x, coverUrl: dataUrl };
+        cnt++;
+      }
+    });
+    if (cnt > 0) {
+      try { STORE.set('books', BOOKS); } catch (e) {}
+      try { renderLibraryCards(); } catch (e) {}
+    }
+    return cnt;
+  }
+  window._applyCoverToGroup = _applyCoverToGroup;
+
   // 표지 변경 (책 상세) — 표지 탭 → 사진 선택
   const bdCoverBtn = document.getElementById('bdCoverBtn');
   const bdCoverFileInput = document.getElementById('bdCoverFileInput');
@@ -42056,9 +42150,18 @@ function wireBookDetailEvents() {
         showToast('표지 처리 중…');
         const dataUrl = await processCoverImage(file);
         updateBook(b.id, { coverUrl: dataUrl });
-        showToast('표지를 변경했어요 ✓');
         renderBookDetail();
         renderLibraryCards();
+        // v2.3.x — [제보] 시리즈 묶음이면 전권 일괄 적용 제안
+        const _sibCnt = b.groupId ? BOOKS.filter(x => x.groupId === b.groupId && x.id !== b.id).length : 0;
+        if (_sibCnt > 0 && typeof showActionToast === 'function') {
+          showActionToast('표지를 변경했어요 ✓', `시리즈 ${_sibCnt + 1}권 모두 적용`, () => {
+            const applied = _applyCoverToGroup(b.groupId, dataUrl, b.id);
+            showToast(`시리즈 ${applied + 1}권 표지를 맞췄어요 ✓`);
+          });
+        } else {
+          showToast('표지를 변경했어요 ✓');
+        }
       } catch (err) {
         showToast(err.message || '표지를 변경하지 못했어요');
       } finally {
@@ -43411,6 +43514,11 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
   }
   // 캘린더 셀 (특정 일자)
   const dayCell = e.target.closest('[data-dd-day]');
+  if (dayCell && dayCell.hasAttribute('data-cv-book')) {
+    // v2.3.x — 완독 1권 썸네일: 드릴다운 건너뛰고 책 상세 직행
+    const bid = parseInt(dayCell.getAttribute('data-cv-book'), 10);
+    if (!isNaN(bid) && BOOKS.some(x => x.id === bid)) { openBookDetail(bid); return; }
+  }
   if (dayCell) {
     const day = parseInt(dayCell.dataset.ddDay, 10);
     const month = parseInt(dayCell.dataset.ddMonth, 10);
@@ -45856,6 +45964,8 @@ function renderMonthCal() {
     const ddAttrs = isActive
       ? `data-dd-day="${d}" data-dd-month="${month}" data-dd-year="${year}"`
       : '';
+    // v2.3.x — [건의] 완독 1권인 날 썸네일 탭 → 책 상세 직행 (여러 권이면 기존 일별 보기)
+    const directId = (hasCover && finishedBooks.length === 1) ? ` data-cv-book="${coverBook.id}"` : '';
     let inner;
     if (hasCover) {
       const cvUrl = esc(coverBook.coverUrl);
@@ -45869,7 +45979,7 @@ function renderMonthCal() {
     } else {
       inner = String(d);
     }
-    html += `<div class="${cls.join(' ')}" ${ddAttrs} title="${tip}">${inner}</div>`;
+    html += `<div class="${cls.join(' ')}" ${ddAttrs}${directId} title="${tip}">${inner}</div>`;
   }
   html += '</div>';
   cal.innerHTML = html;
