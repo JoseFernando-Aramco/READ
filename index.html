@@ -10778,6 +10778,7 @@ body.manual-open { overflow: hidden; }
   animation: none;
 }
 
+.na-page-hint { font-size: 11px; color: var(--c-muted); margin-top: 5px; font-weight: 500; }
 /* 페이지 입력 필드 (선택) */
 .qr-page-field {
   margin-bottom: 14px;
@@ -24340,8 +24341,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
     </div>
 
     <div class="na-field">
-      <label class="na-lbl">페이지 <span class="subct">(선택)</span></label>
+      <label class="na-lbl" id="naPageLbl">페이지 <span class="subct">(선택)</span></label>
       <input type="number" class="na-input" id="naPage" placeholder="예: 127" min="0">
+      <div class="na-page-hint" id="naPageHint" hidden></div>
     </div>
 
     <div class="na-field">
@@ -28222,7 +28224,7 @@ function openSayuShareConfirm(noteId){
   tp.textContent = isQuote ? '인용구' : '감상';
   tp.className = 'sc-ptype ' + (isQuote ? 'quote' : 'review');
   document.getElementById('scPreviewBody').textContent = _sayuNoteBody(note);
-  document.getElementById('scPreviewBook').textContent = book.title + (book.author ? ' · '+book.author : '') + (isQuote && note.page ? ' · p.'+note.page : '');
+  document.getElementById('scPreviewBook').textContent = book.title + (book.author ? ' · '+book.author : '') + (isQuote && note.page ? ' · '+_notePageStr(note) : '');
   document.getElementById('sayuShareBackdrop').classList.add('open');
   document.getElementById('sayuShareSheet').classList.add('open');
 }
@@ -28239,6 +28241,7 @@ async function confirmShareToSayu(){
   var payload = {
     type: isQuote ? 'quote' : 'review',
     page: isQuote ? (note.page||null) : null,
+    pageUnit: isQuote ? (note.pageUnit||null) : null,
     text: _sayuNoteBody(note),
     book: {
       isbn: book.isbn || ('bk_'+book.id),
@@ -47573,7 +47576,7 @@ function renderNoteCard(n) {
 
   const coverHasImg = _noteCoverHasImg(book);
   const coverStyle = _noteCoverStyle(book);
-  const pageStr = n.page ? ' · p.' + n.page : '';
+  const pageStr = n.page ? ' · ' + _notePageStr(n) : '';
   const noteShared = typeof sayuIsNoteShared === 'function' && sayuIsNoteShared(n.id);
   const authorStr = book.author ? esc(book.author) + ' · ' : '';
 
@@ -48220,7 +48223,7 @@ async function shareNoteCard(id, btnEl) {
     // 메타 sub 문자열
     const metaSubParts = [];
     if (book.author) metaSubParts.push(esc(book.author));
-    if (note.page) metaSubParts.push(`p.${note.page}`);
+    if (note.page) metaSubParts.push(_notePageStr(note));
     const metaSub = metaSubParts.join(' · ');
 
     // 바코드 stripe 패턴 (시드: note.id로 항상 같은 패턴)
@@ -48705,6 +48708,16 @@ function _naLockedBookHtml(b) {
     </div>`;
 }
 
+/* v2.3.x — [제보] 전자책·오디오북 노트: 페이지 대신 % 위치 입력
+   노트에 pageUnit('pct')을 함께 저장 — 종이책 노트(기존)는 플래그 없이 'p.N' 그대로 */
+function _naBookIsDigital() {
+  const b = NA.bookId != null ? BOOKS.find(x => x.id === NA.bookId) : null;
+  return !!(b && typeof isDigital === 'function' && isDigital(b));
+}
+function _notePageStr(n) {
+  if (!n || !n.page) return '';
+  return n.pageUnit === 'pct' ? n.page + '%' : 'p.' + n.page;
+}
 function renderNA() {
   // 책에서 바로 진입(bookLocked)하면 책 선택 picker 대신 선택된 책만 표시
   const bookField = document.getElementById('naBookField');
@@ -48733,6 +48746,27 @@ function renderNA() {
     btn.classList.toggle('active', btn.dataset.type === NA.type);
   });
 
+  // v2.3.x — 디지털 책이면 % 입력 모드 (라벨·placeholder·힌트 전환)
+  {
+    const _dig = _naBookIsDigital();
+    const _b = NA.bookId != null ? BOOKS.find(x => x.id === NA.bookId) : null;
+    const _lbl = document.getElementById('naPageLbl');
+    const _inp = document.getElementById('naPage');
+    const _hint = document.getElementById('naPageHint');
+    if (_lbl) _lbl.innerHTML = _dig ? '위치 (%) <span class="subct">(선택)</span>' : '페이지 <span class="subct">(선택)</span>';
+    if (_inp) { _inp.placeholder = _dig ? '예: 34' : '예: 127'; _inp.max = _dig ? 100 : ''; }
+    if (_hint) {
+      if (_dig && _b) {
+        const parts = [];
+        if (_b.pages > 0) parts.push('책 전체 ' + _b.pages + 'p');
+        if (_b.pages > 0 && _b.currentPage > 0 && typeof pagesToPct === 'function') parts.push('지금 ' + pagesToPct(_b.currentPage, _b.pages) + '% 읽는 중');
+        _hint.textContent = parts.length ? parts.join(' · ') + ' — %로 적어주세요' : '뷰어에 보이는 %를 그대로 적어주세요';
+        _hint.hidden = false;
+      } else {
+        _hint.hidden = true;
+      }
+    }
+  }
   document.getElementById('naPage').value = NA.page || '';
   document.getElementById('naBody').value = NA.body || '';
   const _naTh = document.getElementById('naThought');
@@ -48835,6 +48869,7 @@ function saveNote() {
       note.bookId = NA.bookId;
       note.type = NA.type;
       note.page = (pageVal && pageVal > 0) ? pageVal : null;
+      note.pageUnit = (note.page && _naBookIsDigital()) ? 'pct' : undefined;
       note.body = NA.body.trim();
       note.thought = (note.type === 'quote' && NA.thought.trim()) ? NA.thought.trim() : null;
       note.favorite = NA.favorite;
@@ -48848,6 +48883,7 @@ function saveNote() {
       bookId: NA.bookId,
       type: NA.type,
       page: (pageVal && pageVal > 0) ? pageVal : null,
+      pageUnit: (pageVal && pageVal > 0 && _naBookIsDigital()) ? 'pct' : undefined,
       body: NA.body.trim(),
       thought: (NA.type === 'quote' && NA.thought.trim()) ? NA.thought.trim() : null,
       favorite: NA.favorite,
@@ -48970,8 +49006,10 @@ document.getElementById('naTypeSeg').addEventListener('click', (e) => {
 });
 
 document.getElementById('naPage').addEventListener('input', (e) => {
-  const v = e.target.value;
-  NA.page = v ? parseInt(v, 10) : null;
+  let v = e.target.value ? parseInt(e.target.value, 10) : null;
+  // v2.3.x — % 모드면 0~100 클램프
+  if (v != null && _naBookIsDigital() && v > 100) { v = 100; e.target.value = 100; }
+  NA.page = v;
 });
 
 // v1.5.x — 노트 textarea 자동 높이 (40줄 = 960px에서 멈춤)
