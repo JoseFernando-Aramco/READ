@@ -31139,7 +31139,8 @@ async function quickAddToWish(idx, btnEl) {
   if (_addedAs === 'reading') {
     showToast(`독서중에 추가됐어요 📖 · "${newBook.title}"`);
   } else if (_addedAs === 'done') {
-    showToast(`완독으로 기록했어요 ✅ · "${newBook.title}"`);
+    // v2.4 — 완독일이 '오늘'로 저장됨을 알리고 바로 고칠 길 제공 (예전에 읽은 책 등록 시 오해 방지)
+    showActionToast(`완독으로 기록했어요 ✅ 완독일은 일단 오늘로 적었어요`, '날짜 바꾸기', () => openTitleEdit(newBook.id));
   } else {
     showActionToast(`위시에 담았어요 ✓ · "${newBook.title}"`, '지금 읽는 중', () => {
       const bk = BOOKS.find(x => x.id === newBook.id);
@@ -46280,11 +46281,17 @@ function renderMonthCal() {
           if (dayAct[d]) { dayAct[d].finished += 1; dayAct[d].finishedBooks.push(b); if (!seenDays.has(d)) dayAct[d].books.push(b); }
         }
       }
-    } else {
-      if (!b.dateStart) return;
+    } else if (b.dateStart) {
       const end = b.dateEnd || (b.status === 'reading' ? today.toISOString() : null);
-      if (!end) return;
-      add(b.dateStart, end, b.pages, b, !!b.dateEnd);
+      if (end) add(b.dateStart, end, b.pages, b, !!b.dateEnd);
+    } else if (b.dateEnd) {
+      // v2.4 — 시작일 없이 완독일만 있는 책(검색에서 '완독으로' 바로 추가 등)도 완독 칸은 표시
+      //        (기존엔 dateStart 없으면 통째로 스킵 — 제보: 달력에 완독이 안 떠요)
+      const de2 = new Date(b.dateEnd);
+      if (!isNaN(de2) && de2.getFullYear() === year && de2.getMonth() === month) {
+        const dd2 = de2.getDate();
+        if (dayAct[dd2]) { dayAct[dd2].finished += 1; dayAct[dd2].finishedBooks.push(b); dayAct[dd2].books.push(b); }
+      }
     }
     (b.rereads || []).forEach(r => {
       if (r.dateStart && r.dateEnd) add(r.dateStart, r.dateEnd, b.pages, b, true);
