@@ -22268,6 +22268,41 @@ html[data-theme="midnight"] .bdpc-ring-me { stroke: #8A7765; }
 .bdpc-ring-info .bdpc-quota { margin: 0; font-size: 18px; }
 .bdpc-ring-msg { font-size: 11px; color: var(--c-label); margin-top: 5px; line-height: 1.55; }
 .bdpc-foot-ring { justify-content: flex-end; margin-top: 2px; }
+/* v2.4 — 새 노트 집중 모드 (nf) */
+.na-head { border-bottom: none; padding: 12px 14px 10px; }
+html:not([data-theme="midnight"]) .na-head { background: linear-gradient(180deg, color-mix(in srgb, var(--w1, #C6CEDB) 50%, transparent), transparent); }
+.nf-bookbar { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.nf-bb-cov { width: 22px; height: 30px; border-radius: 3px; overflow: hidden; flex: 0 0 auto; background: var(--c-border-2); font-size: 12px; text-align: center; line-height: 30px; }
+.nf-bb-cov img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nf-bb-tx { min-width: 0; }
+.nf-bb-t { font-size: 13px; font-weight: 800; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.2px; }
+.na-head .na-head-ttl { font-size: 9.5px; font-weight: 700; color: var(--c-muted); text-align: left; margin-top: 1px; letter-spacing: .2px; }
+.na-sheet .na-body { gap: 10px; padding: 12px 20px 40px; }
+.nf-thlbl { align-self: flex-start; font-size: 10px; font-weight: 800; color: #8A7A55; background: rgba(201,162,39,.13); border-radius: 5px; padding: 4px 9px; letter-spacing: .3px; }
+.na-sheet .na-textarea.nf-main { border: none; background: transparent; padding: 4px 2px; font-size: 17px; line-height: 1.85; min-height: 132px; border-radius: 0; box-shadow: none; }
+.na-sheet .na-textarea.nf-main:focus { border: none; box-shadow: none; }
+.na-sheet .na-textarea.nf-main.nf-serif { font-family: 'Noto Serif KR', Georgia, serif; }
+.na-sheet .na-textarea.nf-sub { border: none; background: var(--c-surface-2); border-radius: 12px; font-size: 16px; line-height: 1.7; padding: 12px 14px; min-height: 72px; box-shadow: none; }
+.na-sheet .na-textarea.nf-sub:focus { border: none; box-shadow: none; }
+.nf-tools { display: flex; align-items: center; gap: 7px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--c-surface); border-top: 1px solid var(--c-border); flex-shrink: 0; }
+.nf-tools #naTypeSeg.status-seg { display: inline-flex; grid-template-columns: none; background: var(--c-surface-2); border: none; border-radius: 100px; padding: 2.5px; gap: 2px; width: auto; }
+.nf-tools #naTypeSeg .status-seg-btn { flex: none; border: none; border-radius: 100px; padding: 10px 12px; font-size: 11.5px; font-weight: 800; background: transparent; color: var(--c-muted); box-shadow: none; }
+.nf-tools #naTypeSeg .status-seg-btn.active { background: var(--c-text); color: var(--c-canvas); }
+.nf-loc { display: inline-flex; align-items: center; gap: 1px; background: var(--c-surface-2); border-radius: 100px; padding: 5px 10px 5px 11px; font-size: 11px; }
+.nf-loc-bm { width: 13px; height: 13px; flex: 0 0 auto; color: color-mix(in srgb, var(--w1, #C9B2A4) 70%, #6B5A4E); }
+.nf-loc-in { width: 44px; border: none; background: transparent; font-family: inherit; font-size: 16px; font-weight: 800; color: var(--c-text); text-align: center; padding: 3px 0; -moz-appearance: textfield; }
+.nf-loc-in::-webkit-outer-spin-button, .nf-loc-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.nf-loc-in:focus { outline: none; }
+.nf-loc-u { font-size: 10.5px; font-weight: 800; color: var(--c-muted); }
+.nf-star { width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--c-surface-2); display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; flex: 0 0 auto; }
+.nf-star .na-fav-icon { filter: grayscale(1) opacity(.45); }
+.nf-star.on { background: rgba(201,162,39,.16); }
+.nf-star.on .na-fav-icon { filter: none; }
+.nf-hide { display: none; }
+.nf-ocr { width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--c-surface-2); display: flex; align-items: center; justify-content: center; color: var(--c-text-2); cursor: pointer; margin-left: auto; flex: 0 0 auto; }
+.nf-ocr svg { width: 18px; height: 18px; }
+/* 책이 정해진 경우의 '책' 표시 필드 — 상단 책 바가 대신하므로 숨김 (미선택 시 picker는 그대로) */
+#naLockedBookField { display: none !important; }
 /* ④ 시트 헤더 워시 + 스크롤 미니바 */
 html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
 html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
@@ -24465,7 +24500,13 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="bas-grip"></div>
   <div class="na-head">
     <button class="bas-close" id="naClose" aria-label="닫기"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-x"/></svg></button>
-    <div class="na-head-ttl" id="naHeadTtl">새 노트</div>
+    <div class="nf-bookbar">
+      <div class="nf-bb-cov" id="nfBbCov" aria-hidden="true">📖</div>
+      <div class="nf-bb-tx">
+        <div class="nf-bb-t" id="nfBbTitle">책을 골라주세요</div>
+        <div class="na-head-ttl" id="naHeadTtl">새 노트</div>
+      </div>
+    </div>
     <button class="na-save-btn" id="naSave" disabled>저장</button>
   </div>
   <div class="na-body">
@@ -24488,43 +24529,29 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="na-locked-book" id="naLockedBook"></div>
     </div>
 
-    <div class="na-field">
-      <label class="na-lbl">타입</label>
-      <div class="status-seg" id="naTypeSeg">
-        <button class="status-seg-btn active" data-type="quote"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg> 인용구</button>
-        <button class="status-seg-btn" data-type="thought"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 내 생각</button>
-      </div>
-    </div>
-
-    <div class="na-field">
-      <label class="na-lbl" id="naPageLbl">페이지 <span class="subct">(선택)</span></label>
-      <input type="number" class="na-input" id="naPage" placeholder="예: 127" min="0">
-      <div class="na-page-hint" id="naPageHint" hidden></div>
-    </div>
-
-    <div class="na-field">
-      <label class="na-lbl">내용</label>
-      <button type="button" class="na-ocr-btn" id="naOcrBtn" onclick="openLtModal()">
-        <span class="na-ocr-iconbox" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg>
-        </span>
-        <span class="na-ocr-tx">
-          <span class="na-ocr-ttl">Live Text로 문장 추출</span>
-          <span class="na-ocr-sub">iOS 텍스트 인식 기능 활용</span>
-        </span>
-      </button>
-      <textarea class="na-textarea" id="naBody" placeholder="인용구나 떠오른 생각을 적어보세요"></textarea>
-      <textarea class="na-textarea na-thought" id="naThought" placeholder="이 문장이 왜 좋았나요? — 내 생각 (선택)"></textarea>
-    </div>
-
-    <div class="na-field">
-      <button class="na-fav-toggle" id="naFav">
-        <span class="na-fav-icon">⭐</span>
-        <span id="naFavLbl">즐겨찾기에 추가</span>
-      </button>
-    </div>
+    <span class="nf-thlbl" id="nfThLbl" hidden>✎ 내 생각</span>
+    <textarea class="na-textarea nf-main nf-serif" id="naBody" placeholder="마음에 닿은 문장을 옮겨 적어보세요"></textarea>
+    <textarea class="na-textarea na-thought nf-sub" id="naThought" placeholder="이 문장이 왜 좋았나요? — 내 생각 (선택)"></textarea>
 
     <div class="na-delete-zone" id="naDeleteZone" style="display:none"></div>
+  </div>
+  <!-- v2.4 집중 모드 — 하단 도구 바 (타입 · 위치 · 즐겨찾기 · Live Text) -->
+  <div class="nf-tools" id="nfTools">
+    <div class="status-seg" id="naTypeSeg">
+      <button class="status-seg-btn active" data-type="quote">“ 인용구</button>
+      <button class="status-seg-btn" data-type="thought">✎ 생각</button>
+    </div>
+    <label class="nf-loc" id="nfLoc">
+      <svg class="nf-loc-bm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bookmark-solid"/></svg>
+      <input type="number" class="nf-loc-in" id="naPage" min="0" inputmode="decimal" aria-label="위치">
+      <span class="nf-loc-u" id="nfLocU">%</span>
+    </label>
+    <button class="nf-star" id="naFav" aria-label="즐겨찾기">
+      <span class="na-fav-icon">⭐</span><span id="naFavLbl" class="nf-hide"></span>
+    </button>
+    <button type="button" class="nf-ocr" id="naOcrBtn" onclick="openLtModal()" aria-label="Live Text로 문장 추출">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg>
+    </button>
   </div>
 </aside>
 
@@ -48968,6 +48995,16 @@ document.getElementById('noteBookSheetList').addEventListener('click', (e) => {
    📝 노트 추가/편집 시트
    ═══════════════════════════════════════════════════════════ */
 
+/* v2.4 집중 모드 — 위치 자동 제안: 현재 진행률(전자책 %·종이책 p). 0이거나 웹소설은 제안 없음 */
+function _naSuggestLoc(b) {
+  if (!b) return null;
+  if (typeof isWebnovel === 'function' && isWebnovel(b)) return null;
+  if (typeof isDigital === 'function' && isDigital(b)) {
+    const p = (typeof getBookProgressPct === 'function') ? getBookProgressPct(b) : 0;
+    return p > 0 ? p : null;
+  }
+  return (b.currentPage && b.currentPage > 0) ? b.currentPage : null;
+}
 function resetNA(defaults = {}) {
   NA.editingId = defaults.editingId || null;
   NA.bookId = defaults.bookId || null;
@@ -49140,6 +49177,39 @@ function renderNA() {
 
   document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
 
+  // v2.4 집중 모드 — 상단 책 바 · 워시 · 서체/견출지/단위
+  {
+    const _bk = NA.bookId != null ? BOOKS.find(x => String(x.id) === String(NA.bookId)) : null;
+    const _cov = document.getElementById('nfBbCov');
+    const _tt = document.getElementById('nfBbTitle');
+    if (_cov) _cov.innerHTML = (_bk && _bk.coverUrl) ? '<img src="' + esc(_bk.coverUrl) + '" alt="" referrerpolicy="no-referrer">' : '📖';
+    if (_tt) _tt.textContent = _bk ? (_bk.title + (_bk.author ? ' · ' + _bk.author : '')) : '아래에서 책을 골라주세요';
+    const _sh = document.getElementById('naSheet');
+    if (_sh) {
+      _sh.className = _sh.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
+      _sh.style.removeProperty('--w1'); _sh.style.removeProperty('--w2');
+      if (_bk) {
+        _sh.classList.add('palette-' + (_bk.palette || 'demian'));
+        try {
+          const _wc = _coverWashCache()[_bk.id];
+          if (_wc && _wc.u === _bk.coverUrl && _wc.h != null) {
+            const _w = _washFromHue(_wc.h);
+            _sh.style.setProperty('--w1', _w.w1); _sh.style.setProperty('--w2', _w.w2);
+          }
+        } catch (e) {}
+      }
+    }
+    const _ta = document.getElementById('naBody');
+    if (_ta) {
+      _ta.classList.toggle('nf-serif', NA.type === 'quote');
+      _ta.placeholder = NA.type === 'quote' ? '마음에 닿은 문장을 옮겨 적어보세요' : '읽으며 떠오른 생각을 적어보세요';
+    }
+    const _thl = document.getElementById('nfThLbl');
+    if (_thl) _thl.hidden = NA.type !== 'thought';
+    const _u = document.getElementById('nfLocU');
+    if (_u) _u.textContent = _naBookIsDigital() ? '%' : 'p';
+  }
+
   document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.type === NA.type);
   });
@@ -49206,6 +49276,12 @@ function openNoteAdd(prefillBookId = null) {
     if (reading) defaultBookId = reading.id;
   }
   resetNA({ bookId: defaultBookId, type: 'quote', bookLocked: !!prefillBookId });
+  // v2.4 집중 모드 — 위치를 현재 진행률로 자동 제안 (아니면 탭해서 고치기)
+  if (defaultBookId != null) {
+    const _sb = BOOKS.find(x => String(x.id) === String(defaultBookId));
+    const _sv = _naSuggestLoc(_sb);
+    if (_sv) NA.page = String(_sv);
+  }
   renderNA();
   // v2.x — 묶음 펼침 시트 위에서 열렸으면 상세보다 위 레이어로
   if (document.querySelector('.grp-sheet')) {
@@ -49244,7 +49320,24 @@ function openNoteEdit(id) {
   lockBodyScroll();
 }
 
+/* v2.4 집중 모드 — iOS에서 키보드가 도구 바를 가릴 때 끌어올림 (안드로이드는 dvh 축소로 자연 해결 → gap≈0) */
+(function _nfKbTrack() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const update = () => {
+    const bar = document.getElementById('nfTools');
+    const sheet = document.getElementById('naSheet');
+    if (!bar) return;
+    if (!sheet || !sheet.classList.contains('open')) { bar.style.transform = ''; return; }
+    const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    bar.style.transform = gap > 0 ? ('translateY(-' + gap + 'px)') : '';
+  };
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+})();
 function closeNoteSheet() {
+  const _nfBar = document.getElementById('nfTools');
+  if (_nfBar) _nfBar.style.transform = '';
   const naBd = document.getElementById('naBackdrop');
   naBd.classList.remove('open');
   naBd.classList.remove('na-above-grp');
@@ -49366,7 +49459,12 @@ document.getElementById('naClose').addEventListener('click', closeNoteSheet);
       // 같은 책 다시 누르면 선택 해제 (저장 버튼 비활성화)
       const numId = isNaN(+id) ? id : +id;
       NA.bookId = (String(NA.bookId) === String(id)) ? null : numId;
-      renderBookPicker(document.getElementById('bpSearch').value);
+      // v2.4 집중 모드 — 책 고르면 위치 제안 + 상단 책 바·워시까지 갱신 (renderNA가 picker 재렌더 포함)
+      if (NA.bookId != null && !NA.page) {
+        const _sv2 = _naSuggestLoc(BOOKS.find(x => String(x.id) === String(NA.bookId)));
+        if (_sv2) { NA.page = String(_sv2); }
+      }
+      renderNA();
       updateNASaveBtn();
       return;
     }
@@ -49401,6 +49499,14 @@ document.getElementById('naTypeSeg').addEventListener('click', (e) => {
   document.querySelectorAll('#naTypeSeg .status-seg-btn').forEach(b => {
     b.classList.toggle('active', b === btn);
   });
+  // v2.4 집중 모드 — 타입에 따라 서체·안내문·견출지 전환
+  const _ta2 = document.getElementById('naBody');
+  if (_ta2) {
+    _ta2.classList.toggle('nf-serif', NA.type === 'quote');
+    _ta2.placeholder = NA.type === 'quote' ? '마음에 닿은 문장을 옮겨 적어보세요' : '읽으며 떠오른 생각을 적어보세요';
+  }
+  const _thl2 = document.getElementById('nfThLbl');
+  if (_thl2) _thl2.hidden = NA.type !== 'thought';
 });
 
 document.getElementById('naPage').addEventListener('input', (e) => {
