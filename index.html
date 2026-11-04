@@ -22251,6 +22251,23 @@ html[data-theme="midnight"] .bd-done-pill { background: rgba(255,255,255,.07); }
 /* 점선 박스 2연속(목표일·직접 추가) → 조용한 행 (책 상세 안에서만) */
 #bdBody .bdpc-entry { border: 1px solid transparent; background: var(--c-surface-2); }
 #bdBody .tm-sess-add-empty { border: 1px solid transparent; background: var(--c-surface-2); }
+/* v2.4 — 페이서 독서 링 (펼친 보기) */
+.bdpc-ring-row { display: flex; align-items: center; gap: 14px; margin: 10px 0 2px; }
+.bdpc-ring { position: relative; width: 96px; height: 96px; flex: 0 0 auto; }
+.bdpc-ring svg { width: 100%; height: 100%; display: block; }
+.bdpc-ring-track { stroke: var(--c-surface-2, #E8E8E4); }
+.bdpc-ring-me { stroke: color-mix(in srgb, var(--w1, #C9B2A4) 78%, #6B5A4E); stroke-linecap: round; }
+html[data-theme="midnight"] .bdpc-ring-me { stroke: #8A7765; }
+.bdpc-ring-today { stroke: #D9A832; stroke-linecap: round; }
+.bdpc-ring-day { fill: var(--c-border-2); }
+.bdpc-ring-goal { fill: var(--c-text-2); }
+.bdpc-ring-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.bdpc-ring-c b { font-size: 19px; font-weight: 800; letter-spacing: -.5px; color: var(--c-text); }
+.bdpc-ring-c span { font-size: 8.5px; font-weight: 700; color: var(--c-muted); margin-top: 1px; }
+.bdpc-ring-info { flex: 1; min-width: 0; }
+.bdpc-ring-info .bdpc-quota { margin: 0; font-size: 18px; }
+.bdpc-ring-msg { font-size: 11px; color: var(--c-label); margin-top: 5px; line-height: 1.55; }
+.bdpc-foot-ring { justify-content: flex-end; margin-top: 2px; }
 /* ④ 시트 헤더 워시 + 스크롤 미니바 */
 html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
 html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
@@ -24736,7 +24753,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="wn-icon">🏃</div>
         <div>
           <div class="wn-item-ttl">완독 목표 페이서 — keep your pace</div>
-          <div class="wn-item-sub">목표일을 정하면 오늘 몇 쪽 읽으면 되는지 매일 알려드려요. 며칠 쉬어도 다그치지 않고, 남은 날에 맞춰 조용히 다시 나눠드릴 뿐이에요. 홈의 keep your pace를 펼치면 진도 그래프까지.</div>
+          <div class="wn-item-sub">목표일을 정하면 오늘 몇 쪽 읽으면 되는지 매일 알려드려요. 며칠 쉬어도 다그치지 않고, 남은 날에 맞춰 조용히 다시 나눠드릴 뿐이에요. 홈의 keep your pace를 펼치면 진행 링까지.</div>
         </div>
       </div>
       <div class="wn-item">
@@ -28599,6 +28616,34 @@ function nowPaceToggle() {
   const el = document.getElementById('nowPace');
   if (el) el.classList.toggle('open', _nowPaceOpen);
 }
+
+/* v2.4 — 독서 링: 펼친 보기에서 좌표 그래프 대신 링 게이지 (도착점은 단순 노치)
+   SVG stroke 호라 배경색 무관·mask 불필요. 워시(--w1)를 눌러 호 색으로 — 책마다 링 색이 달라짐. */
+function _pcRingSvg(b, c) {
+  const meP = Math.min(100, (b.currentPage || 0) / b.pages * 100);
+  const qP = Math.min(Math.max(0, 100 - meP), Math.max(0.8, c.quota / b.pages * 100));
+  const R = 46, CX = 55, CY = 55, SW = 10;
+  const CIRC = 2 * Math.PI * R;
+  const arc = (p) => (p / 100) * CIRC;
+  // 남은 날 마커: 내일부터 하루 한 점 (도착 전날까지, 최대 6개 — 링이 지저분해지지 않게)
+  const marks = [];
+  const dl = c.daysLeft || 1;
+  const n = Math.min(6, Math.max(0, dl - 2));
+  const rest = Math.max(0, 100 - meP - qP);
+  for (let i = 1; i <= n; i++) {
+    const p = meP + qP + rest * (i / (dl - 1));
+    const a = (p / 100) * 2 * Math.PI - Math.PI / 2;
+    marks.push('<circle cx="' + (CX + Math.cos(a) * R).toFixed(1) + '" cy="' + (CY + Math.sin(a) * R).toFixed(1) + '" r="2.2" class="bdpc-ring-day"/>');
+  }
+  return '<div class="bdpc-ring"><svg viewBox="0 0 110 110" aria-hidden="true">'
+    + '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" class="bdpc-ring-track" stroke-width="' + SW + '" fill="none"/>'
+    + '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" class="bdpc-ring-me" stroke-width="' + SW + '" fill="none" stroke-dasharray="' + arc(meP).toFixed(1) + ' ' + CIRC.toFixed(1) + '" transform="rotate(-90 ' + CX + ' ' + CY + ')"/>'
+    + '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" class="bdpc-ring-today" stroke-width="' + SW + '" fill="none" stroke-dasharray="' + arc(qP).toFixed(1) + ' ' + CIRC.toFixed(1) + '" stroke-dashoffset="' + (-arc(meP)).toFixed(1) + '" transform="rotate(-90 ' + CX + ' ' + CY + ')"/>'
+    + marks.join('')
+    + '<circle cx="' + CX + '" cy="' + (CY - R) + '" r="3" class="bdpc-ring-goal"/>'
+    + '</svg><div class="bdpc-ring-c"><b>' + Math.round(meP) + '%</b><span>' + (b.currentPage || 0) + ' / ' + b.pages + 'p</span></div></div>';
+}
+
 function _pcSectionHtml(b) {
   if (!b || b.status !== 'reading' || isWebnovel(b) || !b.pages) return '';
   const c = _pcCalc(b);
@@ -28635,6 +28680,25 @@ function _pcSectionHtml(b) {
       msg = '이대로면 ' + tgtLabel + ', 마지막 장을 덮어요';
     }
   }
+  // v2.4 — 펼친 보기: 좌표 그래프 → 독서 링 (Jason 확정)
+  if (_pcChartOpen && (c.state === 'ok' || c.state === 'behind' || c.state === 'ahead')) {
+    return `<div class="bdpc">
+    <div class="bdpc-kick"><span class="bdpc-dot ${c.state}"></span>${c.dDay <= 0 ? 'D-DAY' : 'D-' + c.dDay} · ${tgtLabel}까지 · ${stLabel}</div>
+    <div class="bdpc-ring-row">
+      ${_pcRingSvg(b, c)}
+      <div class="bdpc-ring-info">
+        <div class="bdpc-quota">${quotaHtml}</div>
+        <div class="bdpc-ring-msg">${msg}</div>
+      </div>
+    </div>
+    <div class="bdpc-foot bdpc-foot-ring">
+      <span class="bdpc-actions">
+        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); _pcToggleChart('${b.id}')">접기</button>
+        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); openPacerSheet('${b.id}')">바꾸기</button>
+      </span>
+    </div>
+  </div>`;
+  }
   const mePct = Math.min(100, (b.currentPage || 0) / b.pages * 100);
   const planPct = Math.min(100, c.planned / b.pages * 100);
   const gaugeHtml = _pcChartOpen
@@ -28647,7 +28711,7 @@ function _pcSectionHtml(b) {
     <div class="bdpc-foot">
       <span class="bdpc-msg">${msg}</span>
       <span class="bdpc-actions">
-        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); _pcToggleChart('${b.id}')">${_pcChartOpen ? '접기' : '그래프'}</button>
+        <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); _pcToggleChart('${b.id}')">${_pcChartOpen ? '접기' : '자세히'}</button>
         <button type="button" class="bdpc-edit" onclick="event.stopPropagation(); openPacerSheet('${b.id}')">바꾸기</button>
       </span>
     </div>
