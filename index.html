@@ -22203,8 +22203,9 @@ html:not([data-theme="midnight"]) .note-thought-add {
    ═══════════════════════════════════════════════════════════ */
 /* ① 중앙 히어로 — 워시가 top에서 끝남 */
 .bd-hero-unified .bd-hero-top { flex-direction: column; align-items: center; gap: 0; margin: -16px -18px 0; padding: 26px 18px 18px; position: relative; }
-/* iOS 러버밴드(끌어내림) 시 위로 드러나는 공간을 워시색으로 — 흰 띠 방지 */
-html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 600px; background: var(--w1, #C6CEDB); }
+/* iOS 러버밴드(끌어내림) 시 드러나는 것은 스크롤 컨테이너(bd-body)의 배경 —
+   상단 300px을 워시로 칠해 흰 띠 방지. 평상시엔 불투명한 bd-hero(≥500px)가 전부 덮음. */
+html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bd-body { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0, var(--w1, #C6CEDB) 300px, var(--c-canvas) 301px); }
 html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0%, var(--w2, #DCE1E7) 72%, var(--c-surface) 100%); }
 .bd-hero-unified .bd-hero-cover-col { width: 92px; gap: 0; }
 .bd-hero-unified .bd-hero-info { padding: 0 8px; margin-top: 13px; align-items: center; text-align: center; width: 100%; }
@@ -40638,7 +40639,7 @@ function _closeBookDetailActual() {
     if (ttlEl) ttlEl.textContent = '책 상세';
     // v2.4 — 커버 무드 2차: 헤더 워시/미니바 리셋
     const headEl = document.querySelector('#bdSheet .bd-head');
-    if (headEl) headEl.className = 'bd-head';
+    if (headEl) { headEl.className = 'bd-head'; headEl.style.removeProperty('--w1'); headEl.style.removeProperty('--w2'); }
     const sheetRst = document.getElementById('bdSheet');
     if (sheetRst) {
       sheetRst.classList.remove('bd-sheet-wash');
@@ -40799,7 +40800,8 @@ function _applyCoverWash(book) {
   const apply = (w) => {
     const sheetEl = document.getElementById('bdSheet');
     const heroEl = document.querySelector('#bdBody .bd-hero');
-    [sheetEl, heroEl].forEach(el => { if (el) { el.style.setProperty('--w1', w.w1); el.style.setProperty('--w2', w.w2); } });
+    const headEl = document.querySelector('#bdSheet .bd-head');
+    [sheetEl, heroEl, headEl].forEach(el => { if (el) { el.style.setProperty('--w1', w.w1); el.style.setProperty('--w2', w.w2); } });
   };
   const hit = _coverWashCache()[book.id];
   if (hit && hit.u === book.coverUrl) { if (hit.h != null) apply(_washFromHue(hit.h)); return; }
@@ -41331,10 +41333,12 @@ function renderBookDetail() {
     const bodyEl = document.getElementById('bdBody');
     if (!headEl || !bodyEl) return;
     headEl.className = 'bd-head bd-head-wash palette-' + (b.palette || 'demian');
+    headEl.style.removeProperty('--w1'); headEl.style.removeProperty('--w2');
     const sheetEl = document.getElementById('bdSheet');
     if (sheetEl) {
       sheetEl.className = sheetEl.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
       sheetEl.classList.add('bd-sheet-wash', 'palette-' + (b.palette || 'demian'));
+      sheetEl.style.removeProperty('--w1'); sheetEl.style.removeProperty('--w2');
     }
     _applyCoverWash(b);
     headEl.classList.toggle('bd-head-mini', (bodyEl.scrollTop || 0) > 300);
