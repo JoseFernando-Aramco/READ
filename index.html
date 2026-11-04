@@ -22122,6 +22122,140 @@ body.cn-locked {
   to   { opacity: 0; visibility: hidden; }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════
+   v2.4 — 커버 무드 1차: 책 상세 히어로 워시 + 노트 카드 (Jason 확정)
+   워시(--w1/--w2) = 팔레트별 저채도 듀오톤. 이 블록 + _bdShowNotesView 교체가 전부.
+   미드나잇(다크) 테마 무변.
+   ═══════════════════════════════════════════════════════════ */
+.palette-demian{--w1:#C9B2A4;--w2:#DCCCC2}.palette-1984{--w1:#AEBCD2;--w2:#C6CEDB}
+.palette-sapiens{--w1:#AFC0AC;--w2:#C9D3C5}.palette-cosmos{--w1:#B3B2CE;--w2:#CBCADC}
+.palette-prince{--w1:#A9BCD8;--w2:#C4CFE0}.palette-guns{--w1:#A3C0BC;--w2:#C2D4D1}
+.palette-nudge{--w1:#BDAECB;--w2:#D2C8DA}.palette-endhistory{--w1:#C9B2A4;--w2:#DCCCC2}
+.palette-factful{--w1:#A3C2B5;--w2:#C1D5CC}.palette-atomic{--w1:#CDBCA0;--w2:#DCD1BF}
+.palette-homo{--w1:#B5A8CE;--w2:#CCC3DC}.palette-courage{--w1:#A5BCC9;--w2:#C2D1DA}
+
+/* 책 상세 히어로 — 그 책의 공기로 물드는 머리 */
+html:not([data-theme="midnight"]) .bd-hero { border-bottom: none; }
+html:not([data-theme="midnight"]) .bd-hero .bd-hero-cover { box-shadow: 0 5px 16px rgba(25, 31, 40, 0.28); }
+
+/* 메인 노트 카드 — 워시 세로 띠 + 세리프 인용 + 속주머니 */
+html:not([data-theme="midnight"]) .note-card { border-left: none; padding-left: 19px; overflow: hidden; }
+html:not([data-theme="midnight"]) .note-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+  background: linear-gradient(180deg, var(--w1, var(--c-border-2)), var(--w2, var(--c-border)));
+}
+html:not([data-theme="midnight"]) .note-card.quote .note-body {
+  font-family: 'Noto Serif KR', Georgia, 'Apple SD Gothic Neo', serif;
+  font-size: 14.5px; line-height: 1.78; letter-spacing: -0.1px;
+}
+html:not([data-theme="midnight"]) .note-thought-add {
+  background: color-mix(in srgb, var(--c-text) 4%, var(--c-surface));
+  border: none; border-radius: 9px; padding: 9px 11px; margin-top: 9px;
+}
+
+/* 책 상세 노트 탭 — 한줄평 대표 카드 + 페이지 타임라인 */
+.bdn-review {
+  background: var(--c-surface); border-radius: 14px; padding: 14px 15px;
+  margin: 2px 0 4px; box-shadow: 0 1px 5px rgba(25, 31, 40, 0.09);
+}
+.bdn-review-lbl { font-size: 10px; font-weight: 800; color: var(--c-label); display: flex; align-items: center; }
+.bdn-review-stars { margin-left: auto; color: #C9A227; font-size: 12px; letter-spacing: 2px; }
+.bdn-review-body {
+  font-family: 'Noto Serif KR', Georgia, 'Apple SD Gothic Neo', serif;
+  font-size: 14.5px; line-height: 1.7; color: var(--c-text); margin-top: 7px;
+}
+.bdn-sort { display: flex; gap: 6px; margin: 12px 0 4px; align-items: center; }
+.bdn-sort-pill {
+  font-size: 10.5px; font-weight: 700; border-radius: 100px; padding: 6px 12px;
+  background: var(--c-surface-2); color: var(--c-label); border: none; font-family: inherit; cursor: pointer;
+}
+.bdn-sort-pill.on { background: var(--c-text); color: var(--c-surface); }
+.bdn-cnt { margin-left: auto; font-size: 10.5px; font-weight: 700; color: var(--c-label); }
+.bdn-tl { position: relative; padding-left: 52px; margin-top: 8px; }
+.bdn-tl::before {
+  content: ''; position: absolute; left: 19px; top: 8px; bottom: 8px; width: 2px;
+  background: linear-gradient(180deg, var(--w1, var(--c-border-2)), var(--c-border));
+}
+.bdn-node { position: relative; margin-bottom: 12px; }
+.bdn-loc { position: absolute; left: -52px; top: 10px; width: 38px; text-align: center; }
+.bdn-loc b {
+  display: block; font-size: 10px; font-weight: 800; color: var(--c-text-2);
+  background: var(--c-surface-2); border-radius: 100px; padding: 3px 0;
+}
+.bdn-loc::after {
+  content: ''; position: absolute; right: -16px; top: 8px; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--w1, var(--c-border-2)); border: 2px solid var(--c-canvas);
+}
+.bdn-empty { text-align: center; padding: 30px 20px 8px; }
+.bdn-empty-q {
+  font-family: 'Noto Serif KR', Georgia, serif; font-size: 15px;
+  color: var(--w1, var(--c-label)); line-height: 1.7; filter: saturate(.7) brightness(.82);
+}
+.bdn-empty-t { font-size: 11.5px; color: var(--c-label); margin-top: 8px; line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════════════
+   v2.4 — 커버 무드 2차·3차: 시안(bd_covermood_dev) 충실 구현
+   워시는 bd-hero-top(표지~메타 칩)에서 캔버스로 녹아 끝남.
+   그 아래 매체 토글+바로 읽기 경계 행, 박스형 상태 탭은 surface 위.
+   레이아웃은 테마 공통, 워시 색은 라이트 한정(미드나잇 배경 무변).
+   ═══════════════════════════════════════════════════════════ */
+/* ① 중앙 히어로 — 워시가 top에서 끝남 */
+.bd-hero-unified .bd-hero-top { flex-direction: column; align-items: center; gap: 0; margin: -16px -18px 0; padding: 26px 18px 18px; }
+html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0%, var(--w2, #DCE1E7) 72%, var(--c-surface) 100%); }
+.bd-hero-unified .bd-hero-cover-col { width: 92px; gap: 0; }
+.bd-hero-unified .bd-hero-info { padding: 0 8px; margin-top: 13px; align-items: center; text-align: center; width: 100%; }
+.bd-hero-unified .bd-title-row { justify-content: center; margin-bottom: 2px; }
+.bd-hero-unified .bd-title-row .bd-hero-title { flex: 0 1 auto; text-align: center; font-size: 18px; }
+.bd-hero-unified .bd-hero-author { margin-bottom: 0; }
+.bd-hero-unified .bd-title-edit { background: transparent; width: 22px; height: 22px; font-size: 11px; opacity: .5; margin-top: 0; align-self: center; }
+.bd-hero-unified .bd-hero-meta { align-items: center; margin-top: 12px; gap: 0; }
+/* 메타 유리 칩 — 시안처럼 값만 (소유 비어있을 때만 라벨 유지) */
+.bd-hero-unified .bd-meta-list { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.bd-hero-unified .bd-meta-row { background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 100px; padding: 5.5px 12px; gap: 4px; }
+html[data-theme="midnight"] .bd-hero-unified .bd-meta-row { background: rgba(255,255,255,.07); }
+.bd-hero-unified .bd-meta-dot { display: none; }
+.bd-hero-unified .bd-meta-lbl { display: none; }
+.bd-hero-unified .bd-meta-acq-empty .bd-meta-lbl { display: inline; width: auto; font-size: 10.5px; }
+.bd-hero-unified .bd-meta-val { font-size: 12px; font-weight: 700; }
+.bd-meta-enrich { border: none; cursor: pointer; font-family: inherit; color: var(--c-text-2); display: flex; align-items: center; }
+.bd-meta-enrich svg { width: 11px; height: 11px; }
+.bd-meta-enrich span { font-size: 11px; font-weight: 700; }
+.bd-hero-unified .bd-meta-source { width: 100%; border-top: none; padding-top: 0; margin-top: 6px; text-align: center; font-size: 9px; opacity: .8; }
+/* 매체 토글 + 바로 읽기 — 워시 끝난 경계 행 (시안 body 첫 행) */
+html:not([data-theme="midnight"]) .bd-act-row .quick-read-pill { background: #3C4350; box-shadow: 0 1px 4px rgba(40,46,58,.3); }
+/* 진행률 fill — 워시 톤 (라이트 한정) */
+html:not([data-theme="midnight"]) .bd-hero-unified .bd-progress-fill { background: color-mix(in srgb, var(--w1, #8CA3C4) 65%, #3C4350); }
+.bd-act-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0 0; }
+.bd-act-row .fmt-pill { align-self: center; }
+.bd-act-row .fmt-pill-emoji { display: none; }
+.bd-act-right { display: inline-flex; gap: 6px; }
+/* ③ 완독 기념 — 별점 + 완독 pill (제목·저자 아래, 칩 위) */
+.bd-hero-done { text-align: center; margin-top: 9px; }
+.bd-done-stars { font-size: 17px; letter-spacing: 3px; color: #C9A227; }
+.bd-done-pill { display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 800; color: var(--c-text-2); background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 100px; padding: 5px 13px; }
+html[data-theme="midnight"] .bd-done-pill { background: rgba(255,255,255,.07); }
+/* 상태 탭 — 라인 탭 → 시안 박스 세그먼트 */
+.bd-hero-unified .bd-hero-status { margin: 0; border-top: none; padding: 12px 0 0; }
+.bd-hero-unified .bd-hero-status .status-seg { background: var(--c-surface-2, #E8E8E4); border-radius: 12px; padding: 3px; gap: 2px; }
+.bd-hero-unified .bd-hero-status .status-seg-btn { border-radius: 10px; padding: 9px 4px; border-bottom: none; margin-bottom: 0; font-size: 12.5px; }
+.bd-hero-unified .bd-hero-status .status-seg-btn.active { background: var(--c-surface); color: var(--c-text); box-shadow: 0 1px 3px rgba(30,35,45,.15); }
+/* 진행률 — soft primary 박스 해제, 캔버스 위에 조용히 */
+.bd-hero-unified .bd-hero-prog { background: transparent; border-top: none; margin: 0 -18px; padding: 14px 18px 16px; }
+/* 점선 박스 2연속(목표일·직접 추가) → 조용한 행 (책 상세 안에서만) */
+#bdBody .bdpc-entry { border: 1px solid transparent; background: var(--c-surface-2); }
+#bdBody .tm-sess-add-empty { border: 1px solid transparent; background: var(--c-surface-2); }
+/* ④ 시트 헤더 워시 + 스크롤 미니바 */
+html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
+html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
+html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip::after { background: rgba(255,255,255,.55); }
+.bd-head-minicov { width: 26px; height: 36px; border-radius: 3px; overflow: hidden; flex-shrink: 0; display: none; background: var(--c-border-2); font-size: 13px; text-align: center; line-height: 36px; }
+.bd-head-minicov img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bd-head-minipct { display: none; font-size: 11px; font-weight: 800; color: var(--c-text-2); background: rgba(255,255,255,.65); border-radius: 100px; padding: 4px 10px; flex-shrink: 0; }
+html[data-theme="midnight"] .bd-head-minipct { background: rgba(255,255,255,.08); }
+.bd-head.bd-head-mini .bd-head-minicov { display: block; }
+.bd-head.bd-head-mini .bd-head-minipct:not(:empty) { display: inline-block; }
 </style>
 <!-- html2canvas for ticket sharing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -40500,6 +40634,16 @@ function _closeBookDetailActual() {
     if (_closeGen !== BD._closeGen) return;  // 그 사이 열림/닫힘 발생 — 이 뒷정리는 무효
     const ttlEl = document.getElementById('bdHeadTtl');
     if (ttlEl) ttlEl.textContent = '책 상세';
+    // v2.4 — 커버 무드 2차: 헤더 워시/미니바 리셋
+    const headEl = document.querySelector('#bdSheet .bd-head');
+    if (headEl) headEl.className = 'bd-head';
+    const sheetRst = document.getElementById('bdSheet');
+    if (sheetRst) {
+      sheetRst.classList.remove('bd-sheet-wash');
+      sheetRst.className = sheetRst.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
+    }
+    const mcEl = document.getElementById('bdHeadMiniCov'); if (mcEl) mcEl.innerHTML = '';
+    const mpEl = document.getElementById('bdHeadMiniPct'); if (mpEl) mpEl.textContent = '';
     // v1.5.x — 묶음 위 겹침 클래스 해제 (다음 일반 열기 때 영향 없게)
     document.getElementById('bdSheet')?.classList.remove('bd-above-grp');
     document.getElementById('bdBackdrop')?.classList.remove('bd-above-grp');
@@ -40641,7 +40785,7 @@ function renderBookDetail() {
   document.getElementById('bdBody').innerHTML = `
 
     <!-- Hero 통합: 커버 + 타이틀 + 메타 + 상태 + (reading시 진행률) -->
-    <div class="bd-hero bd-hero-unified">
+    <div class="bd-hero bd-hero-unified palette-${esc(b.palette || 'demian')}">
       ${done || b.isLifeBook ? `
       <!-- v1.10.0 — 인생책 별 마크 (시안 E · 블록 내 우상단) -->
       <div class="star-fab ${b.isLifeBook ? 'active' : ''}" id="bdStarFab" role="button" tabindex="0" aria-label="${b.isLifeBook ? '인생책 등록 해제' : '인생책으로 등록'}">
@@ -40658,52 +40802,27 @@ function renderBookDetail() {
             </span>
             <input type="file" id="bdCoverFileInput" accept="image/*" style="display:none">
           </button>
-          <!-- v1.10.0 — 책 정보 검색을 표지 아래로 이동 (표지 폭에 맞춤 + 메타 하단 정렬) -->
-          <!-- v1.10.1 — 웹소설은 직접 입력이므로 외부 API 호출 버튼 안 보이게 -->
-          ${isWebnovel(b) ? '' : `
-          <button type="button" class="bd-enrich-pill bd-enrich-pill-stacked" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
-            <span>책 정보 검색</span>
-          </button>
-          `}
         </div>
         <div class="bd-hero-info">
           <div class="bd-title-row">
             <div class="bd-hero-title">${esc(b.title)}</div>
-            <button type="button" class="bd-title-edit" id="bdTitleEditBtn" aria-label="책 정보 수정" onclick="if (typeof BD !== 'undefined' && BD.book) openTitleEdit(BD.book.id)">✏️</button>
-            ${reading ? `<button type="button" class="quick-read-pill ${TIMER.bookId === b.id ? 'same-book' : ''}" id="bdQuickRead" aria-label="${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'} (시네마 모드)">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
-            </button>` : ''}
-            ${reading && TIMER.bookId === b.id ? `<button type="button" class="quick-stop-pill" id="bdQuickStop" aria-label="기록 저장하며 정지">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"></rect><rect x="15" y="4" width="4" height="16" rx="1"></rect></svg>
-              <span>정지</span>
-            </button>` : ''}
+            <button type="button" class="bd-title-edit" id="bdTitleEditBtn" aria-label="책 정보 수정" onclick="if (typeof BD !== 'undefined' && BD.book) openTitleEdit(BD.book.id)">✎</button>
           </div>
           <div class="bd-hero-author">${esc(b.author)}</div>
+          ${done && (b.rating || b.dateEnd) ? (() => {
+            // v2.4 — 커버 무드: 완독 기념 (별점 + 완독 pill, 시안 ③ 위치 = 저자 아래·칩 위)
+            const r = Math.round(b.rating || 0);
+            const stars = r > 0 ? `<div class="bd-done-stars" aria-label="별점 ${b.rating}점">${'★'.repeat(Math.min(5, r))}${'☆'.repeat(Math.max(0, 5 - Math.min(5, r)))}</div>` : '';
+            let pill = '';
+            if (b.dateEnd) {
+              const dp = String(b.dateEnd).split('-');
+              const dateTxt = dp.length === 3 ? `${dp[0]}. ${+dp[1]}. ${+dp[2]}` : esc(String(b.dateEnd));
+              const dur = b.dateStart ? daysBetween(b.dateStart, b.dateEnd) : null;
+              pill = `<div class="bd-done-pill">✓ ${dateTxt} 완독${dur ? ` · ${dur}일` : ''}</div>`;
+            }
+            return (stars || pill) ? `<div class="bd-hero-done">${stars}${pill}</div>` : '';
+          })() : ''}
           <div class="bd-hero-meta">
-            <span class="fmt-pill" id="bdFmtPill">
-              ${isWebnovel(b) ? `
-              <button type="button" class="active" data-fmt="webnovel" aria-label="웹소설" disabled style="cursor:default;">
-                <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-webnovel"/></svg>
-                <span>웹소설</span>
-              </button>
-              ` : `
-              <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
-                <span class="fmt-pill-emoji">📕</span>
-                <span>종이</span>
-              </button>
-              <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
-                <span class="fmt-pill-emoji">📱</span>
-                <span>전자</span>
-              </button>
-              <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
-                <span class="fmt-pill-emoji">🎧</span>
-                <span>오디오</span>
-              </button>
-              `}
-            </span>
-            ${hasAnyMeta ? `
             <div class="bd-meta-list">
               ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
               ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
@@ -40712,10 +40831,48 @@ function renderBookDetail() {
                 : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
               ${renderAcqMetaRow(b)}
-              <div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>
-            </div>` : ''}
+              ${isWebnovel(b) ? '' : `<button type="button" class="bd-meta-row bd-meta-enrich" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
+                <span>정보 검색</span>
+              </button>`}
+              ${hasAnyMeta ? `<div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>` : ''}
+            </div>
           </div>
         </div>
+      </div>
+      <!-- v2.4 커버 무드 — 매체 토글 + 바로 읽기 (워시 경계 행, 시안 body 첫 행) -->
+      <div class="bd-act-row">
+        <span class="fmt-pill" id="bdFmtPill">
+          ${isWebnovel(b) ? `
+          <button type="button" class="active" data-fmt="webnovel" aria-label="웹소설" disabled style="cursor:default;">
+            <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-webnovel"/></svg>
+            <span>웹소설</span>
+          </button>
+          ` : `
+          <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
+            <span class="fmt-pill-emoji">📕</span>
+            <span>종이</span>
+          </button>
+          <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
+            <span class="fmt-pill-emoji">📱</span>
+            <span>전자</span>
+          </button>
+          <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
+            <span class="fmt-pill-emoji">🎧</span>
+            <span>오디오</span>
+          </button>
+          `}
+        </span>
+        <span class="bd-act-right">
+          ${reading ? `<button type="button" class="quick-read-pill ${TIMER.bookId === b.id ? 'same-book' : ''}" id="bdQuickRead" aria-label="${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'} (시네마 모드)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>${TIMER.bookId === b.id ? '이어 읽기' : '바로 읽기'}</span>
+          </button>` : ''}
+          ${reading && TIMER.bookId === b.id ? `<button type="button" class="quick-stop-pill" id="bdQuickStop" aria-label="기록 저장하며 정지">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"></rect><rect x="15" y="4" width="4" height="16" rx="1"></rect></svg>
+            <span>정지</span>
+          </button>` : ''}
+        </span>
       </div>
       <!-- 상태 세그먼트 (히어로 내부) — 상태 4개 + 노트 뷰 토글 -->
       <div class="bd-hero-status">
@@ -41097,6 +41254,50 @@ function renderBookDetail() {
     </div>
   `;
 
+  // v2.4 — 커버 무드 2차: 시트 헤더 워시 + 스크롤 미니바 (미니 표지·진행률)
+  (() => {
+    const headEl = document.querySelector('#bdSheet .bd-head');
+    const bodyEl = document.getElementById('bdBody');
+    if (!headEl || !bodyEl) return;
+    headEl.className = 'bd-head bd-head-wash palette-' + (b.palette || 'demian');
+    const sheetEl = document.getElementById('bdSheet');
+    if (sheetEl) {
+      sheetEl.className = sheetEl.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
+      sheetEl.classList.add('bd-sheet-wash', 'palette-' + (b.palette || 'demian'));
+    }
+    headEl.classList.toggle('bd-head-mini', (bodyEl.scrollTop || 0) > 300);
+    let mc = document.getElementById('bdHeadMiniCov');
+    if (!mc) {
+      mc = document.createElement('div');
+      mc.id = 'bdHeadMiniCov';
+      mc.className = 'bd-head-minicov';
+      mc.setAttribute('aria-hidden', 'true');
+      headEl.insertBefore(mc, document.getElementById('bdHeadTtl'));
+    }
+    mc.innerHTML = b.coverUrl ? `<img src="${esc(b.coverUrl)}" alt="" referrerpolicy="no-referrer">` : '📖';
+    let mp = document.getElementById('bdHeadMiniPct');
+    if (!mp) {
+      mp = document.createElement('span');
+      mp.id = 'bdHeadMiniPct';
+      mp.className = 'bd-head-minipct';
+      headEl.insertBefore(mp, document.getElementById('bdClose'));
+    }
+    let pctTxt = '';
+    if (reading) {
+      if (isWebnovel(b)) pctTxt = b.episodes ? Math.round((b.currentEpisode || 0) / b.episodes * 100) + '%' : '';
+      else if (isDigital(b)) pctTxt = getBookProgressPct(b) + '%';
+      else pctTxt = b.pages ? progPct + '%' : '';
+    } else if (done) pctTxt = '완독';
+    mp.textContent = pctTxt;
+    if (!BD._miniScrollBound) {
+      BD._miniScrollBound = true;
+      bodyEl.addEventListener('scroll', function () {
+        const h = document.querySelector('#bdSheet .bd-head');
+        if (h) h.classList.toggle('bd-head-mini', this.scrollTop > 300);
+      }, { passive: true });
+    }
+  })();
+
   wireBookDetailEvents();
 
   // v1.6.0 — 하차 책일 때 메타 카드 + 다시 도전 버튼 추가
@@ -41446,56 +41647,91 @@ function wireBookDetailEvents() {
   if (!b) return;
 
   // 책 본문 ↔ 노트 뷰 토글
-  function _bdShowNotesView(book) {
+  function _bdShowNotesView(book, opts) {
     const body = document.getElementById('bdBody');
     const notesBody = document.getElementById('bdNotesBody');
     if (!body || !notesBody) return;
 
-    // 세그먼트 활성 표시: 상태 active 모두 제거 + 노트 탭만 active
+    // v2.4 실험 — [커버 무드] 한줄평 대표 카드 + 책 속 위치 타임라인
+    if (!opts || !opts._resort) _bdNotesSortMode = 'loc';  // 새로 열면 책 속 순서 기본
+
     document.querySelectorAll('#bdStatusSeg .status-seg-btn').forEach(x => x.classList.remove('active'));
     const notesBtn = document.querySelector('#bdStatusSeg .status-seg-btn[data-view="notes"]');
     if (notesBtn) notesBtn.classList.add('active');
-
-    // 본문 숨기고 노트 리스트 보이기
     body.style.display = 'none';
     notesBody.style.display = '';
 
-    // 책별 노트 렌더 (renderNoteCard 사용)
-    const bookNotes = (typeof NOTES !== 'undefined' ? NOTES : [])
-      .filter(n => n.bookId === book.id)
+    const allNotes = (typeof NOTES !== 'undefined' ? NOTES : []).filter(n => n.bookId === book.id);
+    // 한줄평(review) 최신 1개는 대표 카드로, 나머지는 목록에
+    const reviews = allNotes.filter(n => n.type === 'review')
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const headReview = reviews[0] || null;
+    const bookNotes = allNotes.filter(n => !headReview || n.id !== headReview.id);
 
-    if (bookNotes.length === 0) {
+    if (allNotes.length === 0) {
       notesBody.innerHTML = `
-        <div class="bd-notes-empty">
-          <div class="bd-notes-empty-icon">
-            <svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-pen"/></svg>
-          </div>
-          <div class="bd-notes-empty-ttl">아직 노트가 없어요</div>
-          <div class="bd-notes-empty-sub">이 책에서 떠오른 인용구나 생각을 적어보세요</div>
+        <div class="bdn-empty palette-${esc(book.palette || 'demian')}">
+          <div class="bdn-empty-q">“ 마음에 닿은 문장을<br>여기 끼워두세요 ”</div>
+          <div class="bdn-empty-t">책갈피처럼, 페이지와 함께 남으면<br>나중에 그 자리로 돌아갈 수 있어요.</div>
+        </div>
+        <div class="bd-notes-head" style="justify-content:center;border:none">
           <button class="bd-notes-empty-btn" id="bdNotesEmptyBtn" type="button">
             <svg class="ic" aria-hidden="true" style="width:16px;height:16px;margin-right:6px;vertical-align:-3px"><use href="#i-pen"/></svg>
-            노트 작성하기
+            첫 노트 남기기
           </button>
         </div>`;
-      // 작성 버튼 핸들러
       const emptyBtn = document.getElementById('bdNotesEmptyBtn');
-      if (emptyBtn) {
-        emptyBtn.addEventListener('click', () => {
-          if (typeof openNoteAdd === 'function') openNoteAdd(book.id);
-        });
-      }
+      if (emptyBtn) emptyBtn.addEventListener('click', () => {
+        if (typeof openNoteAdd === 'function') openNoteAdd(book.id);
+      });
     } else {
+      const sorted = _bdNotesSortMode === 'loc' ? _bdNotesLocSort(bookNotes) :
+        bookNotes.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const quotes = bookNotes.filter(n => n.type === 'quote').length;
+      const thoughts = bookNotes.length - quotes;
+
+      const reviewHtml = headReview ? `
+        <div class="bdn-review palette-${esc(book.palette || 'demian')}" data-note-id="${headReview.id}" data-action="note-edit">
+          <div class="bdn-review-lbl">한줄평${book.rating ? `<span class="bdn-review-stars">${'★'.repeat(Math.round(book.rating))}${'☆'.repeat(5 - Math.round(book.rating))}</span>` : ''}</div>
+          <div class="bdn-review-body">${esc(headReview.body || '')}</div>
+        </div>` : '';
+
+      const listHtml = _bdNotesSortMode === 'loc'
+        ? `<div class="bdn-tl palette-${esc(book.palette || 'demian')}">${sorted.map(n => `
+            <div class="bdn-node">
+              <div class="bdn-loc"><b>${n.page ? esc(_notePageStr(n)) : '·'}</b></div>
+              ${renderNoteCard(n)}
+            </div>`).join('')}</div>`
+        : `<div class="bd-notes-list">${sorted.map(n => renderNoteCard(n)).join('')}</div>`;
+
       notesBody.innerHTML = `
-        <div class="bd-notes-head">
-          <div class="bd-notes-count">${bookNotes.length}개의 노트</div>
-          <button class="bd-notes-add-btn" id="bdNotesAddBtn" type="button" aria-label="노트 추가">
+        ${reviewHtml}
+        <div class="bdn-sort">
+          <button type="button" class="bdn-sort-pill${_bdNotesSortMode === 'loc' ? ' on' : ''}" data-bdn-sort="loc">책 속 순서</button>
+          <button type="button" class="bdn-sort-pill${_bdNotesSortMode === 'recent' ? ' on' : ''}" data-bdn-sort="recent">최근 작성순</button>
+          <span class="bdn-cnt">문장 ${quotes} · 생각 ${thoughts}</span>
+          <button class="bd-notes-add-btn" id="bdNotesAddBtn" type="button" aria-label="노트 추가" style="margin-left:8px">
             <svg class="ic" aria-hidden="true" style="width:14px;height:14px;margin-right:4px;vertical-align:-2px"><use href="#i-pen"/></svg>
             추가
           </button>
         </div>
-        <div class="bd-notes-list">${bookNotes.map(n => renderNoteCard(n)).join('')}</div>`;
+        ${listHtml}`;
+
+      notesBody.querySelectorAll('[data-bdn-sort]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const mode = btn.getAttribute('data-bdn-sort');
+          if (mode === _bdNotesSortMode) return;
+          _bdNotesSortMode = mode;
+          _bdShowNotesView(book, { _resort: true });
+        });
+      });
     }
+
+    const addBtn = document.getElementById('bdNotesAddBtn');
+    if (addBtn) addBtn.addEventListener('click', () => {
+      if (typeof openNoteAdd === 'function') openNoteAdd(book.id);
+    });
 
     // 스크롤 위로
     notesBody.scrollTop = 0;
@@ -47558,6 +47794,16 @@ function _cmtOpenForm(card, noteId) {
     if (!e.target.closest('.note-card.cmt-open') && !e.target.closest('.note-cmt-form')) _cmtCloseAll();
   });
 })();
+/* v2.4 실험 — [커버 무드] 책 상세 노트 탭: 책 속 위치 정렬 (위치 있는 노트 오름차순, 없는 노트는 작성순으로 뒤에) */
+let _bdNotesSortMode = 'loc';
+function _bdNotesLocSort(notes) {
+  const withLoc = notes.filter(n => n.page > 0).slice()
+    .sort((a, b) => (a.page - b.page) || (new Date(a.createdAt) - new Date(b.createdAt)));
+  const noLoc = notes.filter(n => !(n.page > 0)).slice()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return withLoc.concat(noLoc);
+}
+
 function renderNoteCard(n) {
   const book = BOOKS.find(b => b.id === n.bookId);
   if (!book) return '';
@@ -55274,6 +55520,8 @@ function kbmOpenSupport() {
   }, 200);
 }
 </script>
+
+
 
 </body>
 </html>
