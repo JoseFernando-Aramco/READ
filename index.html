@@ -22203,9 +22203,11 @@ html:not([data-theme="midnight"]) .note-thought-add {
    ═══════════════════════════════════════════════════════════ */
 /* ① 중앙 히어로 — 워시가 top에서 끝남 */
 .bd-hero-unified .bd-hero-top { flex-direction: column; align-items: center; gap: 0; margin: -16px -18px 0; padding: 26px 18px 18px; position: relative; }
-/* iOS 러버밴드(끌어내림) 시 드러나는 것은 스크롤 컨테이너(bd-body)의 배경 —
-   상단 300px을 워시로 칠해 흰 띠 방지. 평상시엔 불투명한 bd-hero(≥500px)가 전부 덮음. */
-html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bd-body { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0, var(--w1, #C6CEDB) 300px, var(--c-canvas) 301px); }
+/* iOS 러버밴드(끌어내림) 흰 띠 방지 — 스크롤 컨테이너 배경은 브라우저별 동작이 달라 쓰지 않고,
+   어디서나 박스에 고정 페인트되는 "시트 배경" 상단 400px을 워시로. 당김은 최상단에서만 일어나므로
+   120px 이상 스크롤되면(투명한 섹션 틈으로 비치기 전에, 불투명 히어로 뒤에서) 캔버스로 전환. */
+html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0, var(--w1, #C6CEDB) 400px, var(--c-canvas) 401px); }
+html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash.bd-sheet-scrolled { background: var(--c-canvas); }
 html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0%, var(--w2, #DCE1E7) 72%, var(--c-surface) 100%); }
 .bd-hero-unified .bd-hero-cover-col { width: 92px; gap: 0; }
 .bd-hero-unified .bd-hero-info { padding: 0 8px; margin-top: 13px; align-items: center; text-align: center; width: 100%; }
@@ -40642,7 +40644,7 @@ function _closeBookDetailActual() {
     if (headEl) { headEl.className = 'bd-head'; headEl.style.removeProperty('--w1'); headEl.style.removeProperty('--w2'); }
     const sheetRst = document.getElementById('bdSheet');
     if (sheetRst) {
-      sheetRst.classList.remove('bd-sheet-wash');
+      sheetRst.classList.remove('bd-sheet-wash', 'bd-sheet-scrolled');
       sheetRst.className = sheetRst.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
       sheetRst.style.removeProperty('--w1'); sheetRst.style.removeProperty('--w2');
     }
@@ -41342,6 +41344,7 @@ function renderBookDetail() {
     }
     _applyCoverWash(b);
     headEl.classList.toggle('bd-head-mini', (bodyEl.scrollTop || 0) > 300);
+    document.getElementById('bdSheet')?.classList.toggle('bd-sheet-scrolled', (bodyEl.scrollTop || 0) > 120);
     let mc = document.getElementById('bdHeadMiniCov');
     if (!mc) {
       mc = document.createElement('div');
@@ -41370,6 +41373,8 @@ function renderBookDetail() {
       bodyEl.addEventListener('scroll', function () {
         const h = document.querySelector('#bdSheet .bd-head');
         if (h) h.classList.toggle('bd-head-mini', this.scrollTop > 300);
+        const sh = document.getElementById('bdSheet');
+        if (sh) sh.classList.toggle('bd-sheet-scrolled', this.scrollTop > 120);
       }, { passive: true });
     }
   })();
