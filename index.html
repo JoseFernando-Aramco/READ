@@ -40819,7 +40819,12 @@ function _applyCoverWash(book) {
       if (hue != null && typeof BD !== 'undefined' && BD.book && BD.book.id === book.id) apply(_washFromHue(hue));
     } catch (e) { /* CORS 미허용 표지 — 팔레트 워시 유지 (캐시 안 함, 다음에 재시도) */ }
   };
-  img.src = book.coverUrl;
+  img.onerror = () => { /* 로드 실패 — 팔레트 워시 유지 */ };
+  // 외부 표지는 이미지 서버가 CORS를 막아 픽셀 읽기가 거부됨 → 워커 /img 프록시(CORS 헤더 부여) 경유.
+  // data:/직접 업로드 표지는 그대로 직접 로드. 프록시 실패 시 onerror → 팔레트 워시 유지.
+  img.src = (/^https?:/i.test(book.coverUrl) && typeof ALADIN_PROXY_URL === 'string' && ALADIN_PROXY_URL)
+    ? ALADIN_PROXY_URL + '/img?url=' + encodeURIComponent(book.coverUrl)
+    : book.coverUrl;
 }
 
 function renderBookDetail() {
