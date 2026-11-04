@@ -22202,7 +22202,9 @@ html:not([data-theme="midnight"]) .note-thought-add {
    레이아웃은 테마 공통, 워시 색은 라이트 한정(미드나잇 배경 무변).
    ═══════════════════════════════════════════════════════════ */
 /* ① 중앙 히어로 — 워시가 top에서 끝남 */
-.bd-hero-unified .bd-hero-top { flex-direction: column; align-items: center; gap: 0; margin: -16px -18px 0; padding: 26px 18px 18px; }
+.bd-hero-unified .bd-hero-top { flex-direction: column; align-items: center; gap: 0; margin: -16px -18px 0; padding: 26px 18px 18px; position: relative; }
+/* iOS 러버밴드(끌어내림) 시 위로 드러나는 공간을 워시색으로 — 흰 띠 방지 */
+html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 600px; background: var(--w1, #C6CEDB); }
 html:not([data-theme="midnight"]) .bd-hero-unified .bd-hero-top { background: linear-gradient(180deg, var(--w1, #C6CEDB) 0%, var(--w2, #DCE1E7) 72%, var(--c-surface) 100%); }
 .bd-hero-unified .bd-hero-cover-col { width: 92px; gap: 0; }
 .bd-hero-unified .bd-hero-info { padding: 0 8px; margin-top: 13px; align-items: center; text-align: center; width: 100%; }
@@ -40641,6 +40643,7 @@ function _closeBookDetailActual() {
     if (sheetRst) {
       sheetRst.classList.remove('bd-sheet-wash');
       sheetRst.className = sheetRst.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
+      sheetRst.style.removeProperty('--w1'); sheetRst.style.removeProperty('--w2');
     }
     const mcEl = document.getElementById('bdHeadMiniCov'); if (mcEl) mcEl.innerHTML = '';
     const mpEl = document.getElementById('bdHeadMiniPct'); if (mpEl) mpEl.textContent = '';
@@ -40754,6 +40757,69 @@ function bdResumePaused() {
   }
   try { renderBookDetail(); } catch(e){}
   try { renderLibraryCards(); } catch(e){}
+}
+
+
+/* ─── v2.4 커버 무드: 표지 주조색 → 워시(--w1/--w2) 추출 ───
+   CORS 허용 표지만 픽셀 읽기 가능. 실패·모노톤 표지는 기존 팔레트 워시 유지.
+   결과는 localStorage 캐시(read.coverWash.v1)로 재방문 시 즉시 적용. */
+const _COVER_WASH_LS = 'read.coverWash.v1';
+function _coverWashCache() {
+  try { return JSON.parse(localStorage.getItem(_COVER_WASH_LS) || '{}'); } catch (e) { return {}; }
+}
+function _washFromHue(h) {
+  return { w1: 'hsl(' + h + ', 27%, 73%)', w2: 'hsl(' + h + ', 24%, 81%)' };
+}
+function _dominantHue(data) {
+  // RGBA 배열 → 채도 가중 hue 히스토그램(30° 12버킷). 유채색 픽셀 6% 미만이면 null(모노톤).
+  const bins = new Array(12).fill(0), hueSum = new Array(12).fill(0);
+  let chroma = 0, total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 200) continue;
+    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    total++;
+    if (l > 0.93 || l < 0.1) continue;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    if (s < 0.15) continue;
+    let h;
+    if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+    h = (h * 60 + 360) % 360;
+    const k = Math.floor(h / 30) % 12;
+    bins[k] += s; hueSum[k] += h * s; chroma++;
+  }
+  if (!total || chroma / total < 0.06) return null;
+  let best = 0;
+  for (let k = 1; k < 12; k++) if (bins[k] > bins[best]) best = k;
+  if (!bins[best]) return null;
+  return Math.round(hueSum[best] / bins[best]) % 360;
+}
+function _applyCoverWash(book) {
+  if (!book || !book.coverUrl) return;
+  const apply = (w) => {
+    const sheetEl = document.getElementById('bdSheet');
+    const heroEl = document.querySelector('#bdBody .bd-hero');
+    [sheetEl, heroEl].forEach(el => { if (el) { el.style.setProperty('--w1', w.w1); el.style.setProperty('--w2', w.w2); } });
+  };
+  const hit = _coverWashCache()[book.id];
+  if (hit && hit.u === book.coverUrl) { if (hit.h != null) apply(_washFromHue(hit.h)); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.referrerPolicy = 'no-referrer';
+  img.onload = () => {
+    try {
+      const s = 24, c = document.createElement('canvas');
+      c.width = s; c.height = s;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0, s, s);
+      const hue = _dominantHue(g.getImageData(0, 0, s, s).data);
+      const cc = _coverWashCache();
+      cc[book.id] = { u: book.coverUrl, h: hue };
+      try { localStorage.setItem(_COVER_WASH_LS, JSON.stringify(cc)); } catch (e) {}
+      if (hue != null && typeof BD !== 'undefined' && BD.book && BD.book.id === book.id) apply(_washFromHue(hue));
+    } catch (e) { /* CORS 미허용 표지 — 팔레트 워시 유지 (캐시 안 함, 다음에 재시도) */ }
+  };
+  img.src = book.coverUrl;
 }
 
 function renderBookDetail() {
@@ -41265,6 +41331,7 @@ function renderBookDetail() {
       sheetEl.className = sheetEl.className.replace(/\bpalette-[\w-]+\b/g, '').replace(/\s+/g, ' ').trim();
       sheetEl.classList.add('bd-sheet-wash', 'palette-' + (b.palette || 'demian'));
     }
+    _applyCoverWash(b);
     headEl.classList.toggle('bd-head-mini', (bodyEl.scrollTop || 0) > 300);
     let mc = document.getElementById('bdHeadMiniCov');
     if (!mc) {
