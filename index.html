@@ -5713,7 +5713,7 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
   color: var(--c-gold-glow);
   border-color: rgba(212,167,106,0.4);
 }
-.lifebook-star::before { content: '⭐'; font-size: 10px; margin-right: 0; line-height: 1; }
+.lifebook-star::before { content: '★'; font-size: 10px; margin-right: 0; line-height: 1; }
 
 /* v1.10.0 — H.O.F 리본 (인생책 책 표지 우상단) */
 /* v2.2.x — 재독 뱃지 B4 유리 (완독 N회, 2회독부터 · 우하단 — 우상단 hof-ribbon 회피) */
@@ -14875,10 +14875,7 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   margin-bottom: 8px;
   font-feature-settings: 'tnum';
 }
-.wn-search-demo-input::before {
-  content: '🔍';
-  font-size: 11px;
-}
+.wn-search-demo-input::before { content:''; width:11px; height:11px; flex:0 0 auto; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M20.5 20.5l-5.8-5.8'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M20.5 20.5l-5.8-5.8'/%3E%3C/svg%3E") center/contain no-repeat; }
 .wn-search-demo-results {
   display: flex;
   flex-direction: column;
@@ -15011,7 +15008,7 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   font-weight: 600;
   margin-bottom: 4px;
 }
-.wn-qa-search::before { content: '🔍'; font-size: 11px; }
+.wn-qa-search::before { content:''; width:11px; height:11px; flex:0 0 auto; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M20.5 20.5l-5.8-5.8'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M20.5 20.5l-5.8-5.8'/%3E%3C/svg%3E") center/contain no-repeat; }
 .wn-qa-row {
   display: flex;
   align-items: center;
@@ -20741,6 +20738,7 @@ body.cn-locked {
   line-height: 1.6;
 }
 .bp-empty .emoji { font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.5; }
+.tag-dot { display:inline-block; width:7px; height:7px; border-radius:50%; flex:0 0 auto; vertical-align:1px; }
 .bp-empty b { color: var(--c-text-2); font-weight: 700; display: block; margin-bottom: 4px; }
 
 /* v1.8.0 — 모달 안 책별 종이값 행 (.price-card 재활용, 가로 행 형태) */
@@ -22443,6 +22441,11 @@ html[data-theme="midnight"] .bd-head-minipct { background: rgba(255,255,255,.08)
   <!-- 책 (닫힌) — 커버 fallback -->
   <symbol id="i-book-closed" viewBox="0 0 24 24"><path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12" /><path d="M19 16h-12a2 2 0 0 0 -2 2" /><path d="M9 8h6" /></symbol>
   <symbol id="i-webnovel" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><line x1="8.5" y1="7" x2="15.5" y2="7"/><line x1="8.5" y1="10" x2="15.5" y2="10"/><line x1="8.5" y1="13" x2="13" y2="13"/><circle cx="12" cy="18.5" r="0.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-smartphone" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M10.5 18h3"/></symbol>
+  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 14a8 8 0 0 1 16 0"/><rect x="3" y="14" width="4.5" height="6" rx="1.8"/><rect x="16.5" y="14" width="4.5" height="6" rx="1.8"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6.33 8h11.34a2 2 0 0 1 1.98 2.3l-1.26 8.15a3 3 0 0 1 -2.96 2.55h-6.86a3 3 0 0 1 -2.96 -2.55l-1.26 -8.15a2 2 0 0 1 1.98 -2.3z"/><path d="M9 11v-5a3 3 0 0 1 6 0v5"/></symbol>
   <!-- 책 (펼친) -->
   <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></symbol>
   <!-- 책 2권 스택 -->
@@ -23011,7 +23014,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 북카드 뷰 (기존 콘텐츠) -->
     <div class="demo-banner" id="demoBanner" style="display:none">
-      <span class="demo-banner-txt">👋 지금 보이는 책들은 <b>예시 서재</b>예요 — 둘러보신 뒤 지워도 돼요</span>
+      <span class="demo-banner-txt">지금 보이는 책들은 <b>예시 서재</b>예요 — 둘러보신 뒤 지워도 돼요</span>
       <button type="button" class="demo-banner-btn" id="demoBannerClear">한 번에 지우기</button>
     </div>
     <div class="library-cards" id="libCards">
@@ -23548,7 +23551,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         </span>
       </div>
       <button class="lt-paste-btn" id="ltPasteBtn" type="button">
-        <span class="lt-paste-ttl">📋 복사한 텍스트 가져오기</span>
+        <span class="lt-paste-ttl">복사한 텍스트 가져오기</span>
         <span class="lt-paste-sub">iOS가 "붙여넣기" 다시 물으면 허용</span>
       </button>
     </div>
@@ -23651,7 +23654,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="settings-section-ttl">기기 간 동기화</div>
       </div>
       <div class="cloud-sync-notice">
-        📱 로그인 안 해도 모든 기능을 쓸 수 있어요. 폰·PC 등 여러 기기에서 같이 쓰고 싶을 때만 로그인하세요.
+        로그인 안 해도 모든 기능을 쓸 수 있어요. 폰·PC 등 여러 기기에서 같이 쓰고 싶을 때만 로그인하세요.
       </div>
       <div class="settings-list" id="cloudSyncBody">
         <!-- READ_AUTH.refreshUI()가 동적으로 채움 -->
@@ -23800,7 +23803,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="bundle-toggle-card" id="bundleToggleCard">
           <label class="bundle-toggle-row" for="bundleToggleInput">
             <div class="bundle-label-wrap">
-              <div class="bundle-label-main">📚 권 묶음 등록</div>
+              <div class="bundle-label-main">권 묶음 등록</div>
               <div class="bundle-label-sub" id="bundleSubLabel">시리즈를 1~N권으로 한 번에</div>
             </div>
             <div class="bundle-switch">
@@ -23847,15 +23850,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
           <label class="form-label">매체</label>
           <div class="format-toggle" id="manualFormatToggle">
             <button type="button" class="active" data-fmt="paper">
-              <span class="fmt-emoji">📕</span>
+              <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-closed"/></svg>
               <span>종이책</span>
             </button>
             <button type="button" data-fmt="ebook">
-              <span class="fmt-emoji">📱</span>
+              <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-smartphone"/></svg>
               <span>전자책</span>
             </button>
             <button type="button" data-fmt="audio">
-              <span class="fmt-emoji">🎧</span>
+              <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-headphones"/></svg>
               <span>오디오북</span>
             </button>
             <button type="button" data-fmt="webnovel">
@@ -23873,16 +23876,16 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
         <!-- 웹소설 전용: 연재 상태 + 진행 단위 + 회차/권 (webnovel 선택 시만 표시) -->
         <div id="manualWebnovelFields" hidden>
-          <div class="manual-wn-hint">권마다 페이지를 따로 기록하고 싶다면 — 뒤로 가서 <b>직접 입력(✏️)</b>으로 들어간 뒤, 매체를 <b>전자책</b>으로 두고 <b>권 묶음 등록</b>을 켜보세요. 각 권이 따로 등록돼 권별 페이지·타이머·완독 확인이 전부 돼요. 이 화면(웹소설)은 회차/권 단위로 기록하는 방식이에요.</div>
+          <div class="manual-wn-hint">권마다 페이지를 따로 기록하고 싶다면 — 뒤로 가서 <b>직접 입력(✎)</b>으로 들어간 뒤, 매체를 <b>전자책</b>으로 두고 <b>권 묶음 등록</b>을 켜보세요. 각 권이 따로 등록돼 권별 페이지·타이머·완독 확인이 전부 돼요. 이 화면(웹소설)은 회차/권 단위로 기록하는 방식이에요.</div>
           <div class="form-field">
             <label class="form-label">연재 상태</label>
             <div class="format-toggle novel-status-toggle">
               <button type="button" class="active" data-novel-status="serial">
-                <span class="fmt-emoji">📡</span>
+                <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-radio"/></svg>
                 <span>연재 중</span>
               </button>
               <button type="button" data-novel-status="completed">
-                <span class="fmt-emoji">✅</span>
+                <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-check-circle"/></svg>
                 <span>완결</span>
               </button>
             </div>
@@ -23893,11 +23896,11 @@ body.sayu-active #pane-sayu{ background:transparent; }
             <label class="form-label">진행 단위</label>
             <div class="format-toggle novel-unit-toggle">
               <button type="button" class="active" data-novel-unit="episode">
-                <span class="fmt-emoji">📑</span>
+                <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-file-text"/></svg>
                 <span>회차</span>
               </button>
               <button type="button" data-novel-unit="volume">
-                <span class="fmt-emoji">📚</span>
+                <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-books"/></svg>
                 <span>권</span>
               </button>
             </div>
@@ -23985,7 +23988,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         </div>
 
         <div class="scan-error" id="scanError" style="display:none">
-          <div class="scan-error-ico">📷</div>
+          <div class="scan-error-ico"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:26px;height:26px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-camera"/></svg></div>
           <div class="scan-error-ttl" id="scanErrorTtl">카메라 권한이 필요해요</div>
           <div class="scan-error-msg" id="scanErrorMsg">브라우저 설정에서 카메라를 허용해주세요</div>
         </div>
@@ -23998,7 +24001,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
           </svg>
-          <span>📸 사진 찍어서 인식</span>
+          <span><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-camera"/></svg> 사진 찍어서 인식</span>
           <input type="file" accept="image/*" capture="environment" id="scanPhotoInput" style="display:none">
         </label>
 
@@ -24056,15 +24059,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="confirm-section-lbl">매체</div>
         <div class="format-toggle" id="confirmFormatToggle">
           <button type="button" class="active" data-fmt="paper">
-            <span class="fmt-emoji">📕</span>
+            <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-closed"/></svg>
             <span>종이책</span>
           </button>
           <button type="button" data-fmt="ebook">
-            <span class="fmt-emoji">📱</span>
+            <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-smartphone"/></svg>
             <span>전자책</span>
           </button>
           <button type="button" data-fmt="audio">
-            <span class="fmt-emoji">🎧</span>
+            <svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-headphones"/></svg>
             <span>오디오북</span>
           </button>
         </div>
@@ -24118,7 +24121,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
           <div class="lifebook-toggle-check"></div>
           <div class="lifebook-toggle-body">
             <div class="lifebook-toggle-ttl">
-              <span>⭐ 인생책으로 등록</span>
+              <span>★ 인생책으로 등록</span>
               <span class="lifebook-toggle-count" id="lifebookCount">0 / 100</span>
             </div>
             <div class="lifebook-toggle-sub" id="lifebookSub">완독한 책만 인생책으로 등록할 수 있어요</div>
@@ -24136,7 +24139,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
-        <div class="tag-cat-edit-hint" id="tagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+        <div class="tag-cat-edit-hint" id="tagCatEditHint">대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
         <div class="tag-cat-add-wrap" id="tagCatAddWrap">
           <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
           <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BA')">추가</button>
@@ -24156,7 +24159,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
           <button class="tag-new-btn" id="tagNewBtn">+ 추가</button>
         </div>
         <div class="tag-new-cat-row" id="tagNewCatRow">
-          <span class="tnc-label">📂 이 태그를 어느 분류에?</span>
+          <span class="tnc-label">이 태그를 어느 분류에?</span>
           <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
           <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
           <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
@@ -24370,7 +24373,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <!-- 잠든 의심 경고 (3시간 이상 자동 표시) -->
       <div class="tm-sleep-warn" id="tmSleepWarn">
         <div class="tm-sleep-warn-head">
-          <div class="tm-sleep-warn-icon">💤</div>
+          <div class="tm-sleep-warn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-moon"/></svg></div>
           <div class="tm-sleep-warn-ttl">혹시 잠드셨나요?</div>
         </div>
         <div class="tm-sleep-warn-body">
@@ -24467,7 +24470,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   </div>
 
   <div class="ts-info">
-    📌 책의 <strong id="tsCurInfo">현재 진행</strong>은 그대로 두고, 이 기록의 시간·진행량만 바꿔요.
+    책의 <strong id="tsCurInfo">현재 진행</strong>은 그대로 두고, 이 기록의 시간·진행량만 바꿔요.
   </div>
   <label class="ts-sync-row" id="tsSyncRow" hidden>
     <input type="checkbox" id="tsSyncChk">
@@ -24477,7 +24480,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   </div>
 
   <div class="ts-actions">
-    <button class="ts-btn ts-btn-delete" id="tsDeleteBtn" type="button" aria-label="삭제">🗑</button>
+    <button class="ts-btn ts-btn-delete" id="tsDeleteBtn" type="button" aria-label="삭제"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-trash"/></svg></button>
     <button class="ts-btn ts-btn-cancel" id="tsCancelBtn" type="button">취소</button>
     <button class="ts-btn ts-btn-save" id="tsSaveBtn" type="button">저장</button>
   </div>
@@ -24605,7 +24608,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <span class="nf-loc-u" id="nfLocU">%</span>
     </label>
     <button class="nf-star" id="naFav" aria-label="즐겨찾기">
-      <span class="na-fav-icon">⭐</span><span id="naFavLbl" class="nf-hide"></span>
+      <span class="na-fav-icon">★</span><span id="naFavLbl" class="nf-hide"></span>
     </button>
     <button type="button" class="nf-ocr" id="naOcrBtn" onclick="openLtModal()" aria-label="Live Text로 문장 추출">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg>
@@ -24681,7 +24684,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="ob-ttl">마지막으로…</div>
       <div class="ob-desc-list">
         <div><strong>타이머</strong> · 독서중 책에서 분 단위 기록</div>
-        <div><strong>명예의 전당</strong> · 완독한 책을 ⭐로 모으기</div>
+        <div><strong>명예의 전당</strong> · 완독한 책을 ★로 모으기</div>
         <div><strong>책갈피</strong> · 안 맞는 책은 하차로 사유까지 기록</div>
         <div><strong>테마</strong> · 설정에서 6가지 색감 중 선택</div>
       </div>
@@ -24701,14 +24704,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
       </div>
       <div class="ob-choice">
         <button class="ob-choice-btn" data-choice="keep">
-          <div class="ob-choice-icon">📚</div>
+          <div class="ob-choice-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-books"/></svg></div>
           <div class="ob-choice-text">
             <div class="ob-choice-ttl">샘플로 둘러보기</div>
             <div class="ob-choice-sub">전자책·하차 사례 포함 13권 · 언제든 삭제 가능</div>
           </div>
         </button>
         <button class="ob-choice-btn" data-choice="reset">
-          <div class="ob-choice-icon">✨</div>
+          <div class="ob-choice-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-plus-circle"/></svg></div>
           <div class="ob-choice-text">
             <div class="ob-choice-ttl">빈 서재로 시작</div>
             <div class="ob-choice-sub">샘플 데이터 모두 삭제 · 내 책부터 추가</div>
@@ -24835,49 +24838,49 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="wn-sub">그동안 카페와 문의로 주신 제보·제안을 담아, 곳곳을 손봤어요.</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
       <div class="wn-item wn-item-highlight">
-        <div class="wn-icon">🏃</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-target"/></svg></div>
         <div>
           <div class="wn-item-ttl">완독 목표 페이서 — keep your pace</div>
           <div class="wn-item-sub">목표일을 정하면 오늘 몇 쪽 읽으면 되는지 매일 알려드려요. 며칠 쉬어도 다그치지 않고, 남은 날에 맞춰 조용히 다시 나눠드릴 뿐이에요. 홈의 keep your pace를 펼치면 진행 링까지.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">🔑</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-user"/></svg></div>
         <div>
           <div class="wn-item-ttl">Google 로그인</div>
           <div class="wn-item-sub">카카오가 부담스러웠다면 이제 Google로도 시작할 수 있어요. 두 계정은 서로 달라서, 쓰던 쪽으로 계속 로그인해 주세요.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">🔙</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-chevron-left"/></svg></div>
         <div>
           <div class="wn-item-ttl">뒤로가기 새 단장</div>
           <div class="wn-item-sub">열린 창 닫기 → 서재로 → 종료. 이제 앱이 갑자기 꺼지지 않아요.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">🏁</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-check-circle"/></svg></div>
         <div>
           <div class="wn-item-ttl">마지막 페이지를 읽으면</div>
           <div class="wn-item-sub">완독으로 옮길지 바로 물어봐요. 탭 한 번이면 완독 처리 끝.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">📖</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-open"/></svg></div>
         <div>
           <div class="wn-item-ttl">북플렉스가 더 똑똑해졌어요</div>
           <div class="wn-item-sub">웹소설 금액 집계, 장르 줄 탭 → 책 목록, 그리고 대여로 아낀 돈을 대여처별로도 볼 수 있어요.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">✏️</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-pen"/></svg></div>
         <div>
           <div class="wn-item-ttl">책 제목·저자 수정</div>
           <div class="wn-item-sub">책 상세에서 제목 옆 연필을 누르면 고칠 수 있어요. "(완결)" 같은 괄호 꼬리표는 한 번에 정리돼요.</div>
         </div>
       </div>
       <div class="wn-item">
-        <div class="wn-icon">🌼</div>
+        <div class="wn-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-heart"/></svg></div>
         <div>
           <div class="wn-item-ttl">봄날 개나리 테마 · 자잘한 수리</div>
           <div class="wn-item-sub">노란 봄 테마가 생겼고, 아침 기록 날짜·잡지 등록·공유 오류를 고쳤어요.</div>
@@ -24899,7 +24902,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="qn-head-info">
       <div class="qn-head-ttl" id="qnHeadTtl">제목</div>
       <div class="qn-head-sub" id="qnHeadSub">저자</div>
-      <div class="qn-head-meta" id="qnHeadMeta">💬 한줄평 남기기</div>
+      <div class="qn-head-meta" id="qnHeadMeta">한줄평 남기기</div>
     </div>
   </div>
   <div class="qn-textarea-wrap">
@@ -24985,10 +24988,10 @@ body.sayu-active #pane-sayu{ background:transparent; }
     </div>
     <div class="blkx-body off" id="blkFmtBody">
       <div class="blkx-pills" id="blkFmtPills">
-        <button type="button" class="blkx-pill" data-fmt="paper">📕 종이책</button>
-        <button type="button" class="blkx-pill" data-fmt="ebook">📱 전자책</button>
-        <button type="button" class="blkx-pill" data-fmt="audio">🎧 오디오북</button>
-        <button type="button" class="blkx-pill" data-fmt="webnovel">🌐 웹소설</button>
+        <button type="button" class="blkx-pill" data-fmt="paper"><svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-closed"/></svg> 종이책</button>
+        <button type="button" class="blkx-pill" data-fmt="ebook"><svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-smartphone"/></svg> 전자책</button>
+        <button type="button" class="blkx-pill" data-fmt="audio"><svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-headphones"/></svg> 오디오북</button>
+        <button type="button" class="blkx-pill" data-fmt="webnovel"><svg class="fmt-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-webnovel"/></svg> 웹소설</button>
       </div>
     </div>
   </div>
@@ -25042,7 +25045,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 <aside class="qn-sheet cat-edit-sheet" id="catEditSheet" aria-hidden="true">
   <div class="qn-grip"></div>
   <div class="tes-head">
-    <div class="tes-title">📂 대분류 수정</div>
+    <div class="tes-title">대분류 수정</div>
     <div class="tes-count" id="catSheetCount"></div>
   </div>
   <div class="tes-row">
@@ -25050,7 +25053,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       onkeydown="if(event.key==='Enter'){event.preventDefault();saveCatEditSheet();}" />
   </div>
   <div class="cat-sheet-del-row">
-    <button type="button" class="cat-sheet-del-btn" id="catSheetDelete" onclick="deleteCatFromSheet()">🗑️ 이 대분류 삭제</button>
+    <button type="button" class="cat-sheet-del-btn" id="catSheetDelete" onclick="deleteCatFromSheet()">이 대분류 삭제</button>
     <div class="cat-sheet-del-hint" id="catSheetDelHint"></div>
   </div>
   <div class="qn-actions">
@@ -25206,7 +25209,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     </div>
 
     <div class="ig-note">
-      💡 <b>설치 후</b> · 인터넷이 없어도 일부 기능을 사용할 수 있어요. 데이터는 모두 기기에 저장됩니다
+      <b>설치 후</b> · 인터넷이 없어도 일부 기능을 사용할 수 있어요. 데이터는 모두 기기에 저장됩니다
     </div>
   </div>
 </div>
@@ -25218,7 +25221,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="ct-head">
       <div class="ct-icon"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-mail"/></svg></div>
       <div class="ct-ttl">keepbook에 문의하기</div>
-      <div class="ct-desc">보내주신 내용은 제작자에게 전달돼요.<br/>빠른 시일 내에 확인하겠습니다 🙏</div>
+      <div class="ct-desc">보내주신 내용은 제작자에게 전달돼요.<br/>빠른 시일 내에 확인하겠습니다</div>
     </div>
 
     <div class="ct-field">
@@ -25267,7 +25270,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <!-- 동적 채움 -->
       </ul>
       <div class="rs-warn-advice">
-        💾 정말 떠나실 거면 <strong>데이터 관리</strong>에서 백업 먼저 해두시길 권해요.
+        정말 떠나실 거면 <strong>데이터 관리</strong>에서 백업 먼저 해두시길 권해요.
       </div>
     </div>
 
@@ -25363,11 +25366,11 @@ body.sayu-active #pane-sayu{ background:transparent; }
               <span>완독</span>
             </button>
             <button type="button" data-status="reading">
-              <span class="im-status-emoji">📖</span>
+              <span class="im-status-emoji"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-open"/></svg></span>
               <span>독서중</span>
             </button>
             <button type="button" data-status="wish">
-              <span class="im-status-emoji">⭐</span>
+              <span class="im-status-emoji">★</span>
               <span>위시</span>
             </button>
           </div>
@@ -25549,7 +25552,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 <div class="sc-modal" id="scModal" aria-hidden="true">
   <div class="sc-card">
     <div class="sc-head">
-      <span class="sc-icn">⚠️</span>
+      <span class="sc-icn"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-alert"/></svg></span>
       <p class="sc-ttl">동기화 충돌</p>
     </div>
     <p class="sc-desc">두 기기 모두 변경됐어요. 어느 쪽을 살릴까요?</p>
@@ -25557,7 +25560,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="sc-cards">
       <!-- 이 기기 -->
       <div class="sc-side">
-        <div class="sc-side-hdr">📱 이 기기</div>
+        <div class="sc-side-hdr">이 기기</div>
         <div class="sc-side-main">
           <span class="sc-side-num" id="scLocalTotal">0</span>
           <span class="sc-side-unit">권</span>
@@ -25572,7 +25575,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       </div>
       <!-- 클라우드 -->
       <div class="sc-side">
-        <div class="sc-side-hdr">☁️ 클라우드</div>
+        <div class="sc-side-hdr">클라우드</div>
         <div class="sc-side-main">
           <span class="sc-side-num muted" id="scCloudTotal">0</span>
           <span class="sc-side-unit">권</span>
@@ -25630,9 +25633,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 탭: iPhone · Android · PC -->
     <div class="ex-tabs" id="exTabs">
-      <button class="ex-tab active" data-plat="ios">🍎 iPhone</button>
-      <button class="ex-tab" data-plat="android">🤖 Android</button>
-      <button class="ex-tab" data-plat="pc">💻 PC</button>
+      <button class="ex-tab active" data-plat="ios">iPhone</button>
+      <button class="ex-tab" data-plat="android">Android</button>
+      <button class="ex-tab" data-plat="pc">PC</button>
     </div>
 
     <!-- 각 플랫폼별 안내 -->
@@ -25640,21 +25643,21 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
       <div class="ex-step"><span class="ex-step-n">2</span><div>상단에 <strong>다운로드</strong> 알림이 뜨면 눌러서 열기</div></div>
       <div class="ex-step"><span class="ex-step-n">3</span><div>공유 시트에서 <strong>"파일에 저장"</strong> → iCloud Drive 같은 곳에 저장</div></div>
-      <div class="ex-tip">💡 iCloud Drive에 저장하면 다른 Apple 기기에서도 접근 가능해요</div>
+      <div class="ex-tip">iCloud Drive에 저장하면 다른 Apple 기기에서도 접근 가능해요</div>
     </div>
 
     <div class="ex-guide" data-plat="android">
       <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
       <div class="ex-step"><span class="ex-step-n">2</span><div><strong>파일 앱</strong>(My Files) → <strong>Download</strong> 폴더에서 확인</div></div>
       <div class="ex-step"><span class="ex-step-n">3</span><div>파일을 길게 눌러 <strong>공유</strong> → Google Drive · Gmail 등으로 저장</div></div>
-      <div class="ex-tip">💡 Google Drive에 올려두면 다른 기기에서 내려받을 수 있어요</div>
+      <div class="ex-tip">Google Drive에 올려두면 다른 기기에서 내려받을 수 있어요</div>
     </div>
 
     <div class="ex-guide" data-plat="pc">
       <div class="ex-step"><span class="ex-step-n">1</span><div>아래에서 <strong>형식</strong>을 고르고 내보내기 버튼을 눌러요</div></div>
       <div class="ex-step"><span class="ex-step-n">2</span><div>다운로드 폴더에서 저장된 파일 확인</div></div>
       <div class="ex-step"><span class="ex-step-n">3</span><div>USB, 클라우드(Drive · Dropbox · iCloud), 이메일 등 원하는 곳으로 이동</div></div>
-      <div class="ex-tip">💡 JSON 파일은 복원/백업용, PDF는 공유/보기용이에요</div>
+      <div class="ex-tip">JSON 파일은 복원/백업용, PDF는 공유/보기용이에요</div>
     </div>
 
     <!-- 형식 선택 -->
@@ -25662,14 +25665,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="ex-format-lbl">내보낼 형식</div>
       <div class="ex-format-grid">
         <button class="ex-format-btn active" data-format="json">
-          <div class="ex-format-icon">💾</div>
+          <div class="ex-format-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-download"/></svg></div>
           <div class="ex-format-text">
             <div class="ex-format-ttl">JSON</div>
             <div class="ex-format-sub">백업 · 복원용</div>
           </div>
         </button>
         <button class="ex-format-btn" data-format="pdf">
-          <div class="ex-format-icon">📄</div>
+          <div class="ex-format-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-file-text"/></svg></div>
           <div class="ex-format-text">
             <div class="ex-format-ttl">PDF</div>
             <div class="ex-format-sub">읽기 · 공유용</div>
@@ -25741,9 +25744,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="drop-sheet-section">
       <h3>나중에 다시 읽으실 의향은? <span class="opt">선택</span></h3>
       <div class="drop-retry-row" id="dropRetryRow">
-        <button type="button" class="drop-retry-btn" data-val="yes">🌱 그럼요</button>
-        <button type="button" class="drop-retry-btn active" data-val="maybe">🤷 글쎄요</button>
-        <button type="button" class="drop-retry-btn" data-val="no">🙅 안 읽을래요</button>
+        <button type="button" class="drop-retry-btn" data-val="yes">그럼요</button>
+        <button type="button" class="drop-retry-btn active" data-val="maybe">글쎄요</button>
+        <button type="button" class="drop-retry-btn" data-val="no">안 읽을래요</button>
       </div>
     </div>
 
@@ -25759,7 +25762,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
      ═══════════════════════════════════════════════════════════ -->
 <div class="retry-dialog-backdrop" id="retryDialogBackdrop" aria-hidden="true">
   <div class="retry-dialog" role="dialog" aria-labelledby="retryDialogTitle">
-    <div class="retry-dialog-emoji">🌱</div>
+    <div class="retry-dialog-emoji"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:24px;height:24px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-refresh-cw"/></svg></div>
     <h3 class="retry-dialog-title" id="retryDialogTitle">다시 도전하기</h3>
     <p class="retry-dialog-desc" id="retryDialogDesc">독서중 상태로 되돌릴게요.</p>
 
@@ -25767,14 +25770,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <button type="button" class="retry-dialog-opt selected" data-opt="resume">
         <div class="retry-dialog-opt-radio"></div>
         <div class="retry-dialog-opt-content">
-          <div class="retry-dialog-opt-title" id="retryResumeTitle">📖 멈췄던 곳에서 이어 읽기</div>
+          <div class="retry-dialog-opt-title" id="retryResumeTitle">멈췄던 곳에서 이어 읽기</div>
           <div class="retry-dialog-opt-desc" id="retryResumeDesc">진행률 그대로 유지</div>
         </div>
       </button>
       <button type="button" class="retry-dialog-opt" data-opt="restart">
         <div class="retry-dialog-opt-radio"></div>
         <div class="retry-dialog-opt-content">
-          <div class="retry-dialog-opt-title">🔄 처음부터 다시</div>
+          <div class="retry-dialog-opt-title">처음부터 다시</div>
           <div class="retry-dialog-opt-desc">진행률 0%로 — 이전 하차 기록은 보존</div>
         </div>
       </button>
@@ -25937,7 +25940,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <!-- 헤더 -->
     <div class="wel-header">
       <div class="complete-box">✓ 새 도메인 이전 완료</div>
-      <div class="wel-icon-wrap">🎉</div>
+      
       <h2 class="wel-title" id="welTitle">환영합니다!</h2>
       <p class="wel-sub">
         keepbook이 정식 도메인 <strong>keepbook.co.kr</strong>로 이사했어요.<br>
@@ -25950,7 +25953,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
       <!-- 이전 완료 안내 -->
       <div class="wel-domain-done">
-        <div class="wel-domain-ttl">📍 새 주소 안내</div>
+        <div class="wel-domain-ttl">새 주소 안내</div>
         <div class="wel-domain-row">
           <span class="wel-domain-label old">기존</span>
           <span class="wel-domain-value old">josefernando-aramco.github.io/READ</span>
@@ -25968,7 +25971,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <!-- 복원하기 카드 -->
       <div class="restore-card">
         <div class="restore-head">
-          <div class="restore-icon">📥</div>
+          <div class="restore-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-upload"/></svg></div>
           <div class="restore-ttl">데이터 복원 방법</div>
         </div>
         <div class="restore-body">
@@ -26019,7 +26022,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 풋터 -->
     <div class="wel-foot">
-      <button class="wel-foot-primary" id="welOpenSettingsBtn" type="button">⚙️ 설정 열기</button>
+      <button class="wel-foot-primary" id="welOpenSettingsBtn" type="button">설정 열기</button>
       <button class="wel-foot-ghost" id="welDismissBtn" type="button">둘러보기 시작</button>
     </div>
 
@@ -26034,14 +26037,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="mig-card">
     <div class="da-card-body">
       <div class="da-head">
-        <div class="da-icon warn" id="daIcon">📚</div>
+        <div class="da-icon warn" id="daIcon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-books"/></svg></div>
         <h2 class="da-title" id="daTitle">기록이 많이 쌓였어요</h2>
       </div>
       <div class="da-body-text" id="daBody">
         현재 저장된 데이터가 <strong id="daSize">— MB</strong>로 적지 않아요. 아이폰 PWA에선 데이터가 매우 클 경우 앱이 갑자기 종료될 수 있어요.
       </div>
       <div class="da-tip" id="daTip">
-        <div class="da-tip-ttl">💡 미리 백업해두세요</div>
+        <div class="da-tip-ttl">미리 백업해두세요</div>
         <div class="da-tip-body">설정 → 데이터 관리에서 JSON 파일로 받을 수 있어요. 표지 사진까지 포함된 완전한 백업이에요.</div>
       </div>
     </div>
@@ -26062,7 +26065,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
   <div class="ms-sheet-section">
     <div class="ms-sheet-section-head">
-      <div class="ms-sheet-section-icon">📖</div>
+      <div class="ms-sheet-section-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-open"/></svg></div>
       <div class="ms-sheet-section-ttl">완독</div>
     </div>
     <div class="ms-sheet-section-body">
@@ -26073,7 +26076,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
   <div class="ms-sheet-section">
     <div class="ms-sheet-section-head">
-      <div class="ms-sheet-section-icon">📄</div>
+      <div class="ms-sheet-section-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-file-text"/></svg></div>
       <div class="ms-sheet-section-ttl">페이지</div>
     </div>
     <div class="ms-sheet-section-body">
@@ -26084,7 +26087,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
   <div class="ms-sheet-section">
     <div class="ms-sheet-section-head">
-      <div class="ms-sheet-section-icon">📅</div>
+      <div class="ms-sheet-section-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-calendar"/></svg></div>
       <div class="ms-sheet-section-ttl">독서일</div>
     </div>
     <div class="ms-sheet-section-body">
@@ -26669,7 +26672,7 @@ const READ_AUTH = {
 
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
-      let msg = `☁️ 백업 완료 · 책 ${bookCount}권 · 노트 ${noteCount}개`;
+      let msg = `백업 완료 · 책 ${bookCount}권 · 노트 ${noteCount}개`;
       if (attachedCoverCount > 0) {
         msg += ` · 첨부 표지 ${attachedCoverCount}권은 제외됨`;
       }
@@ -26791,7 +26794,7 @@ const READ_AUTH = {
       const bookCount = (BOOKS || []).length;
       const noteCount = (NOTES || []).length;
       if (typeof showToast === 'function') {
-        showToast(`☁️ 복원 완료 · 책 ${bookCount}권 · 노트 ${noteCount}개`);
+        showToast(`복원 완료 · 책 ${bookCount}권 · 노트 ${noteCount}개`);
       }
 
       // 모든 화면 다시 그리기
@@ -26821,7 +26824,7 @@ const READ_AUTH = {
       const date = result.serverUpdatedAt ? new Date(result.serverUpdatedAt) : null;
       const dateStr = date ? `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}시` : '최근';
       const ok = confirm(
-        `⚠️ 충돌 발생\n\n` +
+        `충돌 발생\n\n` +
         `다른 기기(${dateStr})에서 더 최근에 백업한 데이터가 있어요.\n\n` +
         `이 기기 데이터로 덮어쓸까요? (다른 기기 백업은 사라져요)`
       );
@@ -26836,9 +26839,9 @@ const READ_AUTH = {
   /* 복원 버튼 핸들러 — 확인 후 실행 */
   async onRestoreClick() {
     const localCount = (BOOKS || []).length;
-    let msg = '☁️ 클라우드에서 복원할까요?';
+    let msg = '클라우드에서 복원할까요?';
     if (localCount > 0) {
-      msg = `⚠️ 이 기기의 ${localCount}권의 데이터가\n클라우드 데이터로 덮어써집니다.\n\n계속할까요?`;
+      msg = `이 기기의 ${localCount}권의 데이터가\n클라우드 데이터로 덮어써집니다.\n\n계속할까요?`;
     }
     if (!confirm(msg)) return;
 
@@ -27085,7 +27088,7 @@ window.KEEPBOOK_SYNC = {
         await this._restoreWithConfirm(serverState);
       } else if (serverUpdatedAt === localUpdatedAt && !localDirty) {
         // 둘 다 같음, 로컬 변경 없음 → 이미 최신
-        if (typeof showToast === 'function') showToast('☁️ 이미 최신 상태예요');
+        if (typeof showToast === 'function') showToast('이미 최신 상태예요');
       } else if (serverUpdatedAt === localUpdatedAt && localDirty) {
         // 서버 = 로컬, 로컬 변경 있음 → push
         const result = await READ_AUTH.backupToCloud();
@@ -27138,9 +27141,9 @@ window.KEEPBOOK_SYNC = {
     
     let msg;
     if (localCount === 0) {
-      msg = `☁️ 다른 기기에서 백업된 데이터가 있어요.\n(${dateStr} 백업)\n\n가져올까요?`;
+      msg = `다른 기기에서 백업된 데이터가 있어요.\n(${dateStr} 백업)\n\n가져올까요?`;
     } else {
-      msg = `📲 다른 기기에서 더 최근에 백업한 데이터가 있어요.\n(${dateStr} 백업)\n\n⚠️ 이 기기의 ${localCount}권 데이터는 사라집니다.\n계속할까요?`;
+      msg = `다른 기기에서 더 최근에 백업한 데이터가 있어요.\n(${dateStr} 백업)\n\n이 기기의 ${localCount}권 데이터는 사라집니다.\n계속할까요?`;
     }
     
     if (!confirm(msg)) {
@@ -27757,7 +27760,7 @@ function _libSearchRowHtml(b, q) {
   const pagesStr = b.pages ? ` · ${b.pages}${fmt === 'webnovel' ? '화' : 'p'}` : '';
   const acq = _latestAcqOf(b);
   const srcChip = acq
-    ? `<span class="lsr-src${acq.type === 'rent' ? ' rent' : ''}">${acq.type === 'rent' ? '🔄' : '🛒'} ${esc(acq.place)}${acq.type === 'rent' ? ' · 대여' : ''}</span>`
+    ? `<span class="lsr-src${acq.type === 'rent' ? ' rent' : ''}">${esc(acq.place)}${acq.type === 'rent' ? ' · 대여' : ''}</span>`
     : '';
   return `
       <div class="lib-search-result" data-id="${b.id}">
@@ -29341,7 +29344,7 @@ function renderHeatmap() {
   const streakEl = document.getElementById('hmMetricStreak');
   const bestEl = document.getElementById('hmMetricBest');
   const rateEl = document.getElementById('hmMetricRate');
-  if (streakEl) streakEl.textContent = currentStreak > 0 ? `🔥 ${currentStreak}일` : '0일';
+  if (streakEl) streakEl.textContent = `${currentStreak}일`;
   if (bestEl) bestEl.textContent = `${bestStreak}일`;
   if (rateEl) rateEl.textContent = `${rate}%`;
 
@@ -29474,26 +29477,27 @@ function isDigital(book) {
 /* 매체별 이모지 prefix (책 카드/메타용) — 종이책은 무 */
 function mediaIcon(book) {
   const f = getBookFormat(book);
-  if (f === 'ebook') return '📱 ';
-  if (f === 'audio') return '🎧 ';
-  if (f === 'webnovel') return '🌐 ';
+  const s = (id) => `<svg class="media-ic" aria-hidden="true" viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px;"><use href="#${id}"/></svg> `;
+  if (f === 'ebook') return s('i-smartphone');
+  if (f === 'audio') return s('i-headphones');
+  if (f === 'webnovel') return s('i-webnovel');
   return '';
 }
 
 /* 매체 라벨 (UI 표시용) */
 function formatLabel(fmt) {
-  if (fmt === 'ebook') return '📱 전자책';
-  if (fmt === 'audio') return '🎧 오디오북';
-  if (fmt === 'webnovel') return '🌐 웹소설';
-  return '📕 종이책';
+  if (fmt === 'ebook') return '전자책';
+  if (fmt === 'audio') return '오디오북';
+  if (fmt === 'webnovel') return '웹소설';
+  return '종이책';
 }
 
 /* 매체 짧은 라벨 (작은 배지) */
 function formatLabelShort(fmt) {
-  if (fmt === 'ebook') return '📱 전자';
-  if (fmt === 'audio') return '🎧 오디오';
-  if (fmt === 'webnovel') return '🌐 웹소설';
-  return '📕 종이';
+  if (fmt === 'ebook') return '전자';
+  if (fmt === 'audio') return '오디오';
+  if (fmt === 'webnovel') return '웹소설';
+  return '종이';
 }
 
 /* % → 환산 페이지 (반올림) */
@@ -30901,7 +30905,7 @@ function renderSearchResults(items, errors, ctx) {
     const year = b.year || '';
     const pages = b.pages ? `${b.pages}p` : '';
     const isOrig = b.language && b.language !== 'ko';
-    const lang = isOrig ? `<span class="lang">🌐 ${esc(b.language.toUpperCase())}</span>` : '';
+    const lang = isOrig ? `<span class="lang">${esc(b.language.toUpperCase())}</span>` : '';
     const meta = [year, pages].filter(Boolean).join(' · ');
     const sourceBadge =
         b.source === 'kakao'  ? '<span class="result-source kakao">K</span>'
@@ -31222,16 +31226,16 @@ async function quickAddToWish(idx, btnEl) {
 
   // v2.2.x — [B+C] 상태별 토스트 · 위시엔 '지금 읽는 중' 원탭 액션
   if (_addedAs === 'reading') {
-    showToast(`독서중에 추가됐어요 📖 · "${newBook.title}"`);
+    showToast(`독서중에 추가됐어요 · "${newBook.title}"`);
   } else if (_addedAs === 'done') {
     // v2.4 — 완독일이 '오늘'로 저장됨을 알리고 바로 고칠 길 제공 (예전에 읽은 책 등록 시 오해 방지)
-    showActionToast(`완독으로 기록했어요 ✅ 완독일은 일단 오늘로 적었어요`, '날짜 바꾸기', () => openTitleEdit(newBook.id));
+    showActionToast(`완독으로 기록했어요 · 완독일은 일단 오늘로 적었어요`, '날짜 바꾸기', () => openTitleEdit(newBook.id));
   } else {
     showActionToast(`위시에 담았어요 ✓ · "${newBook.title}"`, '지금 읽는 중', () => {
       const bk = BOOKS.find(x => x.id === newBook.id);
       if (!bk || bk.status !== 'wish') return;
       updateBook(bk.id, { status: 'reading', dateStart: todayStr() });
-      showToast(`독서중으로 옮겼어요 📖`);
+      showToast(`독서중으로 옮겼어요`);
     });
   }
 
@@ -31756,7 +31760,7 @@ function submitManualBundle() {
     // 시트 닫기 + 토스트
     closeBookAdd();
     const stLabel = batch.status === 'done' ? ' · 완독' : (batch.status === 'reading' ? ' · 독서중' : '');
-    showToast('📚 ' + baseTitle + ' 시리즈 ' + n + '권 등록 완료' + stLabel);
+    showToast(baseTitle + ' 시리즈 ' + n + '권 등록 완료' + stLabel);
   } finally {
     BA._submitting = false;
   }
@@ -31793,9 +31797,9 @@ function renderConfirm() {
   // 미리보기 — 웹소설은 페이지 대신 회차 표시
   const preview = document.getElementById('confirmPreview');
   const metaParts = isWebnov
-    ? [b.episodes ? `${b.episodes}${getNovelUnitChar(b)}` : '', b.novelStatus === 'serial' ? '📡 연재중' : '✅ 완결', b.publisher]
+    ? [b.episodes ? `${b.episodes}${getNovelUnitChar(b)}` : '', b.novelStatus === 'serial' ? '연재중' : '완결', b.publisher]
         .filter(Boolean).join(' · ')
-    : [b.year, `${b.pages}p`, b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
+    : [b.year, `${b.pages}p`, b.language !== 'ko' ? b.language.toUpperCase() : '', b.publisher]
         .filter(Boolean).join(' · ');
   preview.innerHTML = `
     ${b.cover
@@ -31827,7 +31831,7 @@ function renderConfirm() {
         const metaEl = preview.querySelector('.confirm-meta');
         if (metaEl) {
           const parts = [b.year, `${v || b.pages || '?'}p`,
-            b.language !== 'ko' ? `🌐 ${b.language.toUpperCase()}` : '', b.publisher]
+            b.language !== 'ko' ? b.language.toUpperCase() : '', b.publisher]
             .filter(Boolean).join(' · ');
           metaEl.textContent = parts;
         }
@@ -31844,7 +31848,7 @@ function renderConfirm() {
       pagesHint.textContent = 'ISBN으로 페이지 수 조회 중…';
     } else {
       pagesHint.className = 'pages-hint warn';
-      pagesHint.textContent = '⚠ 페이지 정보를 자동으로 찾지 못했어요. 실제 페이지 수를 입력해주세요';
+      pagesHint.textContent = '페이지 정보를 자동으로 찾지 못했어요. 실제 페이지 수를 입력해주세요';
     }
   }
 
@@ -31910,7 +31914,7 @@ function updateDatesSection() {
     if (status === 'done' && start && end) {
       if (start > end) {
         hint.className = 'dates-hint error';
-        hint.textContent = '⚠️ 시작일이 완독일보다 늦어요';
+        hint.textContent = '시작일이 완독일보다 늦어요';
       } else {
         const d1 = new Date(start);
         const d2 = new Date(end);
@@ -32105,7 +32109,7 @@ function updateLifebookToggle() {
   } else {
     toggle.classList.toggle('checked', !!BA.isLifeBook);
     sub.textContent = BA.isLifeBook
-      ? '⭐ 선택 완료 · 로그·통계에서 특별 표시돼요'
+      ? '★ 선택 완료 · 로그·통계에서 특별 표시돼요'
       : '두번 세번 다시 읽고 싶은 책을 체크해주세요';
   }
   const currentCount = BOOKS.filter(x => x.isLifeBook).length;
@@ -32728,7 +32732,7 @@ function renderTagNewCatRow(scope) {
   if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory)) {
     state.newTagCategory = getTagCategoriesSorted()[0]?.id || 'genre';
   }
-  let html = `<span class="tnc-label">📂 이 태그를 어느 분류에?</span>`;
+  let html = `<span class="tnc-label">이 태그를 어느 분류에?</span>`;
   html += getTagCategoriesSorted().map(c =>
     `<button type="button" class="tnc-chip${state.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`
   ).join('');
@@ -32793,7 +32797,7 @@ function renderTagChips() {
         ? `<button type="button" class="tc-action tc-restore" data-action="restore" data-tag="${esc(t.name)}">↻</button>`
         : '';
       return `<div class="${cls}" data-tag="${esc(t.name)}">
-        <span class="tc-emoji">${t.emoji || ''}</span>
+        <span class="tc-emoji">${tagMark(t.name)}</span>
         <span class="tc-name">${esc(t.name)}</span>
         <span class="tc-cat-tag">${catLabel}${sourceMark}</span>
         ${actionBtn}
@@ -32802,7 +32806,7 @@ function renderTagChips() {
   } else {
     const items = _getTagsByCategory(activeCat);
     if (items.length === 0) {
-      container.innerHTML = `<div class="tag-empty"><div class="te-icon">📭</div>이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
+      container.innerHTML = `<div class="tag-empty">이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
       return;
     }
     // 정렬: 선택된 거 먼저, 그 다음 사용자 만든 거, 그 다음 기본
@@ -32837,7 +32841,7 @@ function renderTagChips() {
         }
       }
       return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
-        <span class="tc-emoji">${t.emoji || ''}</span>
+        <span class="tc-emoji">${tagMark(t.name)}</span>
         <span class="tc-name">${esc(t.name)}</span>
         ${actionBtn}
       </div>`;
@@ -33104,7 +33108,7 @@ function renderBookDetailTags() {
           ? `<button type="button" class="tc-action tc-restore" data-action="restore" data-tag="${esc(t.name)}">↻</button>`
           : '';
         return `<div class="${cls}" data-tag="${esc(t.name)}">
-          <span class="tc-emoji">${t.emoji || ''}</span>
+          <span class="tc-emoji">${tagMark(t.name)}</span>
           <span class="tc-name">${esc(t.name)}</span>
           <span class="tc-cat-tag">${catLabel}${sourceMark}</span>
           ${actionBtn}
@@ -33114,7 +33118,7 @@ function renderBookDetailTags() {
   } else {
     const items = _getTagsByCategory(activeCat);
     if (items.length === 0) {
-      container.innerHTML = `<div class="tag-empty"><div class="te-icon">📭</div>이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
+      container.innerHTML = `<div class="tag-empty">이 카테고리 태그를 모두 숨기셨네요<br><span class="te-hint">[숨김] 탭에서 복구할 수 있어요</span></div>`;
     } else {
       items.sort((a, c) => {
         const aSel = bookTags.includes(a.name) ? 0 : 1;
@@ -33147,7 +33151,7 @@ function renderBookDetailTags() {
           }
         }
         return `<div class="${cls}" data-tag="${esc(t.name)}" style="--tag-color:${t.color || '#888'}">
-          <span class="tc-emoji">${t.emoji || ''}</span>
+          <span class="tc-emoji">${tagMark(t.name)}</span>
           <span class="tc-name">${esc(t.name)}</span>
           ${actionBtn}
         </div>`;
@@ -33370,7 +33374,7 @@ function confirmAddBook() {
   }
 
   const statusLabel = { wish: '위시리스트', reading: '독서중', done: '완독' }[status];
-  const lifebookMsg = newBook.isLifeBook ? ' · ⭐ 인생책' : '';
+  const lifebookMsg = newBook.isLifeBook ? ' · ★ 인생책' : '';
   const ratingMsg = (status === 'done' && newBook.rating > 0) ? ` · ★ ${newBook.rating.toFixed(1)}` : '';
   closeBookAdd();
   showToast(`${statusLabel}에 추가됐어요${ratingMsg}${lifebookMsg} · "${newBook.title}"`);
@@ -34228,6 +34232,21 @@ const TAGS = JSON.parse(JSON.stringify(DEFAULT_TAGS));
 // DEFAULT_TAGS의 source 마킹 (앱 기본 vs 사용자)
 Object.keys(TAGS).forEach(k => { TAGS[k].source = 'default'; });
 
+/* v2.4 — 기본 태그는 분류색 점, 사용자 태그(또는 이모지를 바꾼 기본 태그)는 이모지 유지 */
+const TAG_CAT_DOT = { genre:'#A58D7B', nonfiction:'#8CA3C4', growth:'#A3C0BC', format:'#CBB9A2', webnovel:'#B5A8CE' };
+function _isDefaultTagMark(t, name) {
+  return !!(t && t.source !== 'user' && DEFAULT_TAGS[name] && t.emoji === DEFAULT_TAGS[name].emoji);
+}
+function tagMark(name) {
+  const t = TAGS[name] || DEFAULT_TAGS[name];
+  if (!t) return '';
+  if (_isDefaultTagMark(t, name)) {
+    const c = TAG_CAT_DOT[t.category] || '#A79F90';
+    return `<span class="tag-dot" style="background:${c}"></span>`;
+  }
+  return t.emoji ? esc(t.emoji) : '';
+}
+
 // 숨김 처리된 태그 이름 Set
 const HIDDEN_TAGS = new Set();
 
@@ -34617,7 +34636,9 @@ try { _demoteIdbCovers(); } catch (e) {}
 
     // 내용 채우기
     icon.className = 'da-icon ' + (opts.danger ? 'danger' : 'warn');
-    icon.textContent = opts.iconEmoji || '📚';
+    icon.innerHTML = (opts.iconEmoji === '\u26A0\uFE0F')
+      ? '<svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-alert"/></svg>'
+      : '<svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-books"/></svg>';
     title.textContent = opts.title || '';
     body.innerHTML = opts.bodyHtml || '';
     if (sizeEl && opts.sizeText) sizeEl.textContent = opts.sizeText;
@@ -34669,7 +34690,7 @@ try { _demoteIdbCovers(); } catch (e) {}
           iconEmoji: '⚠️',
           title: '데이터를 불러오지 못했어요',
           bodyHtml: '저장된 기록을 읽는 중 문제가 발생했어요.<br><br>손상된 원본은 <strong>자동으로 안전한 위치에 백업</strong>해뒀습니다. 설정에서 현재 상태를 내보낸 후, 카페에 문의해주시면 복구를 도와드릴게요.',
-          tipTitle: '🔐 백업 키',
+          tipTitle: '백업 키',
           tipBody: 'read.books.corrupted.' + err.at,
           primaryLabel: '설정으로 이동',
           secondaryLabel: '닫기',
@@ -34983,7 +35004,7 @@ function renderTagRadar() {
     return `
       <div class="tag-chart-row" data-tag="${name}">
         <div class="tag-chart-name">
-          <span class="tag-chart-emoji">${tag.emoji}</span>
+          <span class="tag-chart-emoji">${tagMark(name)}</span>
           <span>${name}</span>
         </div>
         <div class="tag-chart-bar-wrap">
@@ -35057,9 +35078,8 @@ function renderLogEntry(b, isFirst, isLast) {
 
   // 태그 - 책별 색 톤 적용
   const tagHtml = b.tags.map(t => {
-    const tag = TAGS[t] || { emoji:'📖' };
     return `<span class="log-tag" data-tag="${t}">
-      <span class="log-tag-emoji">${tag.emoji}</span>${t}
+      <span class="log-tag-emoji">${tagMark(t)}</span>${t}
     </span>`;
   }).join('');
 
@@ -35239,7 +35259,7 @@ function clearDemoLibrary(reason) {
   }
   try { renderLibraryCards(); } catch (e) {}
   try { renderNotesTab(); } catch (e) {}
-  showToast(reason === 'login' ? '예시 서재를 정리했어요 — 이제 진짜 기록을 시작해요!' : '예시 서재를 지웠어요 ✨');
+  showToast(reason === 'login' ? '예시 서재를 정리했어요 — 이제 진짜 기록을 시작해요!' : '예시 서재를 지웠어요');
   return demoIds.size;
 }
 function _syncDemoBanner() {
@@ -36505,7 +36525,7 @@ function _libSortPillsHtml(tab, count, showRec) {
     pills += `<button type="button" class="wish-sort-pill ${mode === 'rating' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rating">별점순</button>`;
   }
   if (tab === 'wish' && showRec) {
-    pills += `<button type="button" class="wish-sort-pill ${mode === 'rec' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rec">취향순 ✨</button>`;
+    pills += `<button type="button" class="wish-sort-pill ${mode === 'rec' ? 'on' : ''}" data-action="tab-sort" data-tab="${tab}" data-sort="rec">취향순</button>`;
   }
   return `<div class="wish-sort-toggle">${pills}</div>`;
 }
@@ -37260,7 +37280,7 @@ function _libMountEditBar(activeCat) {
     const grpInfo = _libGetGroupMoveInfo(books);
     const warnHeading = items.length > 0 ? `잠깐, ${itemsText}이 사라져요` : `${targetLabelShort}로 이동할까요?`;
     const grpNote = grpInfo.groups.length > 0
-      ? `<div class="lib-warn-note">📚 ${grpInfo.groups.length === 1
+      ? `<div class="lib-warn-note">${grpInfo.groups.length === 1
             ? `'${esc(grpInfo.groups[0].name)}' 묶음 ${grpInfo.groups[0].cnt}권 전체가 함께 ${targetLabelShort}로 이동해요`
             : `묶음 ${grpInfo.groups.length}개(총 ${grpInfo.total}권)가 함께 ${targetLabelShort}로 이동해요`}<div class="lib-warn-subhint">일부 권만 바꾸려면 취소 후, 묶음 카드를 탭해 펼친 다음 권별로 변경하세요</div></div>`
       : '';
@@ -37341,7 +37361,7 @@ function _libMountEditBar(activeCat) {
 
   // v1.11.0 / v1.3.0 — 묶기 버튼 활성 조건 (4케이스 분기)
   //   Case 01: 묶음 0개 + 단일 ≥2권    → "📦 묶기" 활성 (새 묶음)
-  //   Case 02: 묶음 1개 + 단일 ≥1권    → "➕ 묶음에 추가" 활성 (기존 묶음에 합치기)
+  //   Case 02: 묶음 1개 + 단일 ≥1권    → "+ 묶음에 추가" 활성 (기존 묶음에 합치기)
   //   Case 03: 묶음 1개만 (단일 0권)  → 비활성 (혼자 묶을 게 없음)
   //   Case 04: 묶음 ≥2개              → 비활성 (의도치 않은 거대 묶음 방지)
   const selectedBooks = [...BOOKS].filter(b => _libEdit.selected.has(b.id));
@@ -37352,7 +37372,7 @@ function _libMountEditBar(activeCat) {
   const canGroup = canGroupNew || canAddToGroup;
   // 라벨: 묶음에 추가일 때는 추가 권수(+N) 표시
   const groupBtnLabel = canAddToGroup
-    ? (singlesInSel.length >= 2 ? `➕ 묶음에 추가 (+${singlesInSel.length}권)` : '➕ 묶음에 추가')
+    ? (singlesInSel.length >= 2 ? `+ 묶음에 추가 (+${singlesInSel.length}권)` : '+ 묶음에 추가')
     : '묶기';
   const groupBtn = `<button class="lib-edit-bar-action lib-action-group" data-action="lib-group"${canGroup ? '' : ' disabled'}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l3-3h12l3 3"/><path d="M3 7v13h18V7"/><path d="M8 11h8"/></svg>
@@ -37592,7 +37612,7 @@ function _libEditApplyGroup() {
     try { STORE.set('books', BOOKS); } catch(e){}
     if (typeof showToast === 'function') {
       const grpName = targetGroup.name || '묶음';
-      showToast(`📚 "${grpName}" 묶음에 ${addBookIds.length}권 추가했어요`);
+      showToast(`"${grpName}" 묶음에 ${addBookIds.length}권 추가했어요`);
     }
   } else {
     // Case 01: 새 묶음 생성 — 단일 책들만 묶음 (기존 그룹 책 섞여있으면 안전망 제외)
@@ -37639,7 +37659,7 @@ function _blkUpdatePreview(){
     prev.textContent = '빈 ' + empties + '권에 적용 · ' + keep + '권은 그대로 유지';
     prev.style.color = 'var(--c-terra-400)';
   } else {
-    prev.textContent = '⚠ ' + sel.length + '권 전체 덮어쓰기 (기존 별점 바뀜)';
+    prev.textContent = sel.length + '권 전체 덮어쓰기 (기존 별점 바뀜)';
     prev.style.color = '#C2691E';
   }
 }
@@ -37769,7 +37789,7 @@ function _blkRenderTagChips(){
   let items = [];
   try{ items = getTagCategoriesSorted().flatMap(c => _getTagsByCategory(c.id)); }catch(e){}
   box.innerHTML = items.map(t =>
-    '<button type="button" class="blkx-chip' + (_blkTags.has(t.name) ? ' sel' : '') + '" data-tag="' + esc(t.name) + '">' + (t.emoji ? t.emoji + ' ' : '') + esc(t.name) + '</button>'
+    '<button type="button" class="blkx-chip' + (_blkTags.has(t.name) ? ' sel' : '') + '" data-tag="' + esc(t.name) + '">' + (tagMark(t.name) ? tagMark(t.name) + ' ' : '') + esc(t.name) + '</button>'
   ).join('');
 }
 function _blkResetExtras(){
@@ -38285,7 +38305,7 @@ function saveQuickNote(bookId, text) {
       });
     }
     try { STORE.set('notes', NOTES); } catch(e){}
-    showToast('💬 한줄평 저장');
+    showToast('한줄평 저장');
   } else if (existing) {
     // 빈 입력 = 삭제
     const idx = NOTES.findIndex(n => n.id === existing.id);
@@ -38314,7 +38334,7 @@ function _refreshBdReviewCardIfOpen(bookId) {
   const edit = card.querySelector('.bd-review-card-edit');
   if (head) head.textContent = hasReview ? '한줄평' : '아직 한줄평이 없어요';
   if (body) body.textContent = hasReview ? review.body : '탭하면 이 책에 대한 한 줄을 남길 수 있어요';
-  if (edit) edit.textContent = hasReview ? '✏️ 수정' : '+ 남기기';
+  if (edit) edit.textContent = hasReview ? '수정' : '+ 남기기';
 }
 
 /* 한줄평 시트 — 열기 */
@@ -38334,7 +38354,7 @@ function openQuickNote(bookId) {
   const review = findReviewNote(bookId);
   if (ttl) ttl.textContent = b.title || '';
   if (sub) sub.textContent = b.author || '';
-  if (meta) meta.textContent = review ? '✏️ 한줄평 수정' : '💬 한줄평 남기기';
+  if (meta) meta.textContent = review ? '한줄평 수정' : '한줄평 남기기';
 
   // 미니 표지 — 책 cover URL 있으면 img 태그로 삽입 (background-image는 referrer 거부 이슈 회피)
   if (cover) {
@@ -39060,7 +39080,7 @@ function setLogFilter(tag) {
   const chip = document.getElementById('logFilterChip');
   if (tag) {
     const t = TAGS[tag] || { emoji:'📖', color:'#64748b' };
-    chip.innerHTML = `<span style="color:${t.color}">${t.emoji} #${tag}</span>`;
+    chip.innerHTML = `<span style="color:${t.color}">${tagMark(tag)} #${tag}</span>`;
     bar.style.display = 'flex';
   } else {
     bar.style.display = 'none';
@@ -39386,7 +39406,7 @@ function toggleTimerPause() {
 function _renderTmTimeDisplay(minutes) {
   const display = document.getElementById('tmTimeDisplay');
   if (!display) return;
-  const editBadge = '<span class="tm-time-edit-icon" aria-hidden="true">✏️</span>';
+  const editBadge = '<span class="tm-time-edit-icon" aria-hidden="true">✎</span>';
   display.innerHTML =
     `<span class="tm-time-num">${minutes}</span><span class="tm-time-unit">분</span>${editBadge}`;
 
@@ -39555,7 +39575,7 @@ function closeTimerStop(opts) {
   //   닫히면 저장이 안 됐다는 뜻이므로 즉시 알려준다. (의도적 '취소' 버튼은 silent로 조용히)
   const silent = opts && opts.silent;
   if (wasOpen && !silent && TIMER.bookId) {
-    showToast('기록이 저장되지 않았어요 — 타이머는 계속 갑니다 ⏱️');
+    showToast('기록이 저장되지 않았어요 — 타이머는 계속 갑니다');
   }
 }
 
@@ -40023,7 +40043,7 @@ const CINEMA = {
       // Safari 사용자에게 PWA 안내 한 번만 (전역 1회 한정)
       if (!STORE.get('cinemaPwaHintShown', false)) {
         setTimeout(() => {
-          showToast('💡 홈 화면에 추가하면 더 깊은 몰입을 즐기실 수 있어요');
+          showToast('홈 화면에 추가하면 더 깊은 몰입을 즐기실 수 있어요');
           STORE.set('cinemaPwaHintShown', true);
         }, 2200);
       }
@@ -40901,7 +40921,7 @@ function _renderWishTagChips(tags) {
     const styleAttr = color
       ? ` style="border-color: ${color}33; color: ${color};"`
       : '';
-    return `<span class="bd-tag-readonly-chip"${styleAttr}>${emoji ? esc(emoji) + ' ' : ''}${esc(name)}</span>`;
+    return `<span class="bd-tag-readonly-chip"${styleAttr}>${tagMark(name) ? tagMark(name) + ' ' : ''}${esc(name)}</span>`;
   }).join('');
 }
 
@@ -41089,15 +41109,15 @@ function renderBookDetail() {
           </button>
           ` : `
           <button type="button" class="${getBookFormat(b) === 'paper' ? 'active' : ''}" data-fmt="paper" aria-label="종이책으로 변경">
-            <span class="fmt-pill-emoji">📕</span>
+            <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-book-closed"/></svg>
             <span>종이</span>
           </button>
           <button type="button" class="${getBookFormat(b) === 'ebook' ? 'active' : ''}" data-fmt="ebook" aria-label="전자책으로 변경">
-            <span class="fmt-pill-emoji">📱</span>
+            <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-smartphone"/></svg>
             <span>전자</span>
           </button>
           <button type="button" class="${getBookFormat(b) === 'audio' ? 'active' : ''}" data-fmt="audio" aria-label="오디오북으로 변경">
-            <span class="fmt-pill-emoji">🎧</span>
+            <svg class="fmt-pill-emoji" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-headphones"/></svg>
             <span>오디오</span>
           </button>
           `}
@@ -41146,7 +41166,7 @@ function renderBookDetail() {
         </div>
         <div class="bd-hero-prog-sub">
           ${daysBetween(b.dateStart, todayStr())}일째 보는 중
-          ${isSerialNovel(b) ? '<span style="color:#b89968;font-weight:700;margin-left:6px;">📡 연재중</span>' : ''}
+          ${isSerialNovel(b) ? '<span style="color:#b89968;font-weight:700;margin-left:6px;">연재 중</span>' : ''}
         </div>
       </div>
       ` : (isDigital(b) ? `
@@ -41203,11 +41223,11 @@ function renderBookDetail() {
       <div class="bd-section">
         <div class="bd-review-card ${hasReview ? '' : 'empty'}" id="bdReviewCard" data-book-id="${b.id}">
           <div class="bd-review-card-head">
-            <span class="ic">💬</span>
+            <svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>
             <span>${hasReview ? '한줄평' : '아직 한줄평이 없어요'}</span>
           </div>
           <div class="bd-review-card-body">${hasReview ? esc(review.body) : '탭하면 이 책에 대한 한 줄을 남길 수 있어요'}</div>
-          <span class="bd-review-card-edit">${hasReview ? '✏️ 수정' : '+ 남기기'}</span>
+          <span class="bd-review-card-edit">${hasReview ? '수정' : '+ 남기기'}</span>
         ${(() => {
           // v2.2.x — 과거 회독 감상 스택 (최근 회차부터)
           const curRound = _bookRound(b);
@@ -41237,7 +41257,7 @@ function renderBookDetail() {
       if (sess.length === 0) {
         return `
       <div class="bd-section">
-        <button class="tm-sess-add-empty" id="bdTmSessAdd" type="button">⏱ 독서 기록 직접 추가 <span class="tm-sess-add-sub">타이머 없이 읽은 날도 남길 수 있어요</span></button>
+        <button class="tm-sess-add-empty" id="bdTmSessAdd" type="button">독서 기록 직접 추가 <span class="tm-sess-add-sub">타이머 없이 읽은 날도 남길 수 있어요</span></button>
       </div>
       `;
       }
@@ -41249,7 +41269,7 @@ function renderBookDetail() {
         <button class="tm-sess-toggle ${isOpen ? 'open' : ''}" id="bdTmSessToggle" type="button">
           <div class="tm-sess-toggle-left">
             <div class="tm-sess-toggle-count">
-              <span>⏱</span>
+              <span><svg aria-hidden="true" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-timer"/></svg></span>
               <span>타이머 세션 ${sess.length}회</span>
             </div>
             <div class="tm-sess-toggle-meta">${formatTimerToggleMeta(totalMins, totalPages, b)}</div>
@@ -41447,7 +41467,7 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
-      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">📂 대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
       <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
         <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
         <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BD')">추가</button>
@@ -41467,7 +41487,7 @@ function renderBookDetail() {
         <button class="tag-new-btn" id="bdTagNewBtn">+ 추가</button>
       </div>
       <div class="tag-new-cat-row" id="bdTagNewCatRow">
-        <span class="tnc-label">📂 이 태그를 어느 분류에?</span>
+        <span class="tnc-label">이 태그를 어느 분류에?</span>
         <button type="button" class="tnc-chip is-active" data-cat="genre">장르</button>
         <button type="button" class="tnc-chip" data-cat="nonfiction">논픽션</button>
         <button type="button" class="tnc-chip" data-cat="growth">자기개발</button>
@@ -41582,14 +41602,13 @@ function renderBookDetail() {
         : '';
 
       const retryMap = {
-        yes:   { emoji: '🌱', label: '그럼요',     sub: '다시 도전할 의지가 있어요' },
-        maybe: { emoji: '🤷', label: '글쎄요',     sub: '나중에 마음 바뀌면' },
-        no:    { emoji: '🙅', label: '안 읽을래요', sub: '취향이 확실히 안 맞아요' },
+        yes:   { label: '그럼요',     sub: '다시 도전할 의지가 있어요' },
+        maybe: { label: '글쎄요',     sub: '나중에 마음 바뀌면' },
+        no:    { label: '안 읽을래요', sub: '취향이 확실히 안 맞아요' },
       };
       const retryInfo = retryMap[dd.wouldRetry || 'maybe'];
       const retryHtml = `<div class="bd-drop-meta-card"><h4>다시 읽을 의향</h4>
         <div class="bd-drop-retry">
-          <span class="bd-drop-retry-emoji">${retryInfo.emoji}</span>
           <span class="bd-drop-retry-label ${dd.wouldRetry || 'maybe'}">${retryInfo.label}</span>
           <span class="bd-drop-retry-sub">— ${retryInfo.sub}</span>
         </div></div>`;
@@ -41729,7 +41748,7 @@ function _applyStatusChange(b, newStatus) {
       };
       if (TIMER.startTime) rec.start = _hm(new Date(TIMER.startTime));
       update.readingSessions = [...(b.readingSessions || []), rec];
-      showToast(`타이머 ${elapsedMin}분도 함께 기록했어요 ⏱️`);
+      showToast(`타이머 ${elapsedMin}분도 함께 기록했어요`);
     } catch (e) {}
     if (TIMER.intervalId) clearInterval(TIMER.intervalId);
     TIMER.bookId = null; TIMER.startTime = null; TIMER.intervalId = null;
@@ -42028,7 +42047,7 @@ function wireBookDetailEvents() {
   function _spawnStarFabSparkles(starEl) {
     const cx = starEl.offsetWidth / 2;
     const cy = starEl.offsetHeight / 2;
-    const colors = ['\u2726', '\u2727', '\u22c6', '\u2728'];  // ✦✧⋆✨
+    const colors = ['\u2726', '\u2727', '\u22c6', '\u2735'];  // ✦✧⋆✨
     for (let i = 0; i < 6; i++) {
       const p = document.createElement('span');
       p.className = 'star-fab-sparkle';
@@ -42060,7 +42079,7 @@ function wireBookDetailEvents() {
       }
       // 데이터 즉시 저장
       updateBook(b.id, { isLifeBook: willBeActive });
-      showToast(willBeActive ? '⭐ 인생책 등록' : '인생책 해제');
+      showToast(willBeActive ? '★ 인생책 등록' : '인생책 해제');
       // v1.10.0 — 모든 서재 뷰 즉시 갱신 (북카드/로그/명예의 전당 어디서 와도 백그라운드 반영)
       try { renderLibraryCards && renderLibraryCards(); } catch(e){}
       try { renderHallOfFame && renderHallOfFame(); } catch(e){}
@@ -42680,9 +42699,9 @@ function wireBookDetailEvents() {
       if (cur === newFmt) return; // 이미 같은 매체면 무시
 
       updateBook(b.id, { format: newFmt });
-      const toastMsg = newFmt === 'ebook' ? '📱 전자책으로 변경했어요'
-                     : newFmt === 'audio' ? '🎧 오디오북으로 변경했어요'
-                     : '📕 종이책으로 변경했어요';
+      const toastMsg = newFmt === 'ebook' ? '전자책으로 변경했어요'
+                     : newFmt === 'audio' ? '오디오북으로 변경했어요'
+                     : '종이책으로 변경했어요';
       showToast(toastMsg);
       // 입력 UI 자체가 매체에 따라 다르므로 전체 재렌더
       renderBookDetail();
@@ -43286,7 +43305,7 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
           if (!hasData) {
             statHtml += `
               <div class="dd-timer-hint">
-                <span class="dh-ic">🎬</span>
+                <span class="dh-ic"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-play"/></svg></span>
                 <div>이 날은 <b>타이머 기록이 없어요</b>. 시네마 모드로 읽으면 자동으로 시간과 페이지가 기록됩니다.</div>
               </div>`;
           }
@@ -44020,7 +44039,7 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
       (b) => {
         const isFinishedToday = b.dateEnd && new Date(b.dateEnd).toDateString() === dt.toDateString();
         if (isFinishedToday) return '✓ 완독';
-        if (b.status === 'reading') return '📖';
+        if (b.status === 'reading') return '읽는 중';
         if (b.rating) return `★ ${b.rating.toFixed(1)}`;
         return '';
       },
@@ -44035,10 +44054,10 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
     const books = ddBooksByTag(tag);
     const tagMeta = TAGS[tag];
     openDrillDown(
-      `${tagMeta?.emoji || '🏷️'} #${tag} · ${books.length}권`,
+      `#${tag} · ${books.length}권`,
       'TAG',
       books,
-      (b) => b.rating ? `★ ${b.rating.toFixed(1)}` : b.status === 'reading' ? '📖' : ''
+      (b) => b.rating ? `★ ${b.rating.toFixed(1)}` : b.status === 'reading' ? '읽는 중' : ''
     );
     return;
   }
@@ -44106,7 +44125,7 @@ function renderLifebookCard() {
   if (!subEl) return;
   const s = computeLifebookStats();
   if (s.count === 0) {
-    subEl.textContent = '완독한 책을 ⭐ 인생책으로 표시해보세요';
+    subEl.textContent = '완독한 책을 ★ 인생책으로 표시해보세요';
     return;
   }
   const parts = [`인생책 ${s.count}권`];
@@ -44190,10 +44209,9 @@ function renderWeekdayChart() {
   if (max === 0) {
     insightEl.innerHTML = '완독한 책이 쌓이면 요일별 패턴이 보여요';
   } else {
-    const emoji = peakIdx === 0 || peakIdx === 6 ? '🌴' : peakIdx >= 1 && peakIdx <= 4 ? '💼' : '🌙';
     const compareLine = weekendAvg && weekdayAvg
-      ? `${emoji} 주말 하루 <strong>${weekendAvg}p</strong> · 평일 <strong>${weekdayAvg}p</strong>`
-      : `${emoji} 독서 습관이 자리 잡고 있어요`;
+      ? `주말 하루 <strong>${weekendAvg}p</strong> · 평일 <strong>${weekdayAvg}p</strong>`
+      : `독서 습관이 자리 잡고 있어요`;
     insightEl.innerHTML = `
       <div style="margin-bottom:4px">가장 많이 읽는 요일: <strong>${labels[peakIdx]}요일</strong></div>
       <div>${compareLine}</div>`;
@@ -44257,7 +44275,7 @@ function renderReadingTypeCard() {
   const st = computeReadingTypeStats();
 
   if (st.total < RTYPE_MIN_SESSIONS) {
-    body.innerHTML = '<div class="rtype-empty">독서 시각이 ' + RTYPE_MIN_SESSIONS + '회 이상 기록되면<br>나의 독서 유형이 나타나요 🕰️</div>';
+    body.innerHTML = '<div class="rtype-empty">독서 시각이 ' + RTYPE_MIN_SESSIONS + '회 이상 기록되면<br>나의 독서 유형이 나타나요</div>';
     return;
   }
 
@@ -44488,9 +44506,9 @@ function nextStreakGoal(current) {
      acqMemo: '선물받음' (선택)
    ═══════════════════════════════════════════════════════════ */
 const ACQ_TYPES = {
-  purchase: { label: '구매', icon: '🛒' },
-  rent:     { label: '대여', icon: '📚' },
-  own:      { label: '소장', icon: '📖' },
+  purchase: { label: '구매', icon: '<svg aria-hidden="true" viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px;"><use href="#i-bag"/></svg>' },
+  rent:     { label: '대여', icon: '<svg aria-hidden="true" viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px;"><use href="#i-refresh-cw"/></svg>' },
+  own:      { label: '소장', icon: '<svg aria-hidden="true" viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px;"><use href="#i-books"/></svg>' },
 };
 
 /* 오늘 날짜 YYYY-MM-DD */
@@ -44572,7 +44590,7 @@ function renderReturnAlertBar() {
   const restSuffix = restCount > 0 ? ` · +${restCount}권` : '';
   return `
     <div class="return-alert-bar" onclick="window._goToRentStatCard && window._goToRentStatCard()">
-      <span class="return-alert-bar-icon">🔔</span>
+      <span class="return-alert-bar-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-bell"/></svg></span>
       <span class="return-alert-bar-text">반납 임박 · <strong>${esc(first.book.title)} (${ddayLabel})</strong>${restSuffix}</span>
       <span class="return-alert-bar-chevron">›</span>
     </div>`;
@@ -44869,7 +44887,7 @@ function _acqSheetHtml(b) {
   const today = _todayStr();
   const showForm = mode.view === 'form';
   const rows = list.slice().reverse().map((r, ri) => {
-    const t = ACQ_TYPES[r.type] || { icon: '📦', label: r.type };
+    const t = ACQ_TYPES[r.type] || { icon: '', label: r.type };
     const cur = ri === 0 ? '<span class="acq-hist-cur">현재</span>' : '';
     const sum = _acqRecSummary(r);
     return `<div class="acq-hist-row">
@@ -44877,7 +44895,7 @@ function _acqSheetHtml(b) {
       <span class="acq-hist-in"><span class="acq-hist-tt">${t.label}${cur}</span>${sum ? `<span class="acq-hist-sub">${sum}</span>` : ''}</span>
       <span class="acq-hist-act">
         <button type="button" class="acq-hist-btn" onclick="_acqOpenForm('${r.id}')" aria-label="이력 수정">✎</button>
-        <button type="button" class="acq-hist-btn" onclick="_acqDeleteRec(${b.id}, '${r.id}')" aria-label="이력 삭제">🗑</button>
+        <button type="button" class="acq-hist-btn" onclick="_acqDeleteRec(${b.id}, '${r.id}')" aria-label="이력 삭제"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-trash"/></svg></button>
       </span>
     </div>`;
   }).join('');
@@ -44908,9 +44926,9 @@ function _acqSheetHtml(b) {
       ${list.length ? `<div class="acq-form-title">${editRec ? '이력 수정' : '새 이력'}</div>` : ''}
       <!-- 타입 라디오 -->
       <div class="acq-type-grid">
-        <label class="acq-type-opt"><input type="radio" name="acqType" value="purchase" ${acq==='purchase'?'checked':''}><span>🛒 구매</span></label>
-        <label class="acq-type-opt"><input type="radio" name="acqType" value="rent" ${acq==='rent'?'checked':''}><span>📚 대여</span></label>
-        <label class="acq-type-opt"><input type="radio" name="acqType" value="own" ${acq==='own'?'checked':''}><span>📖 소장</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="purchase" ${acq==='purchase'?'checked':''}><span>구매</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="rent" ${acq==='rent'?'checked':''}><span>대여</span></label>
+        <label class="acq-type-opt"><input type="radio" name="acqType" value="own" ${acq==='own'?'checked':''}><span>소장</span></label>
       </div>
       
       <!-- 구매 폼 -->
@@ -45575,10 +45593,10 @@ function renderAchievements() {
     const label = col.dataset.achvLabel || '';
     if (!title) return;
     let msg = '';
-    if (status === 'master')      msg = `👑 ${title} · 마스터`;
-    else if (status === 'done')    msg = `🏆 ${title}`;
+    if (status === 'master')      msg = `${title} · 마스터`;
+    else if (status === 'done')    msg = `${title}`;
     else if (status === 'current') msg = `진행 중 · ${title}`;
-    else                            msg = `🔒 ${label} 달성 시 · ${title}`;
+    else                            msg = `${label} 달성 시 · ${title}`;
     if (typeof showToast === 'function') showToast(msg);
   });
 })();
@@ -45815,7 +45833,7 @@ function renderGoalsPane() {
     saveGoals({ streak: nextTarget });
     // 토스트 알림 (있으면)
     if (typeof showToast === 'function') {
-      showToast(`🎉 ${streakTarget}일 연속 독서 달성! 다음 목표는 ${nextTarget}일이에요`);
+      showToast(`${streakTarget}일 연속 독서 달성! 다음 목표는 ${nextTarget}일이에요`);
     }
     streakTarget = nextTarget;
   }
@@ -46717,7 +46735,7 @@ function _renderMonthCalFooter(year, month) {
   if (!hasData) {
     html += `
       <div class="timer-hint-box">
-        <span class="th-ic">🎬</span>
+        <span class="th-ic"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-play"/></svg></span>
         <div><b>시네마 모드 타이머</b>로 읽으면 시간·페이지가 자동으로 기록돼요. 책 카드의 ▶ 버튼을 눌러 시작하세요.</div>
       </div>`;
   }
@@ -46936,10 +46954,10 @@ function renderCatStatsView(container) {
   // 분류 대표 이모지 (첫 태그의 이모지)
   const grpEmoji = (g) => {
     for (const n of g.tags) {
-      const t = TAGS[n];
-      if (t && t.emoji) return t.emoji;
+      const m = tagMark(n);
+      if (m) return m;
     }
-    return '📚';
+    return '';
   };
 
   const total = withCounts.length;
@@ -47005,7 +47023,7 @@ function renderCatStatsEdit(container) {
       Object.entries(TAGS).forEach(([n, t]) => {
         if (typeof HIDDEN_TAGS !== 'undefined' && HIDDEN_TAGS.has(n)) return;
         const inG = g.tags.includes(n);
-        h += `<button type="button" class="cat-pick-tag${inG ? ' is-in' : ''}" data-action="cat-grp-toggletag" data-grp="${esc(g.id)}" data-tag="${esc(n)}">${inG ? '✓ ' : ''}${t.emoji || ''} ${esc(n)}</button>`;
+        h += `<button type="button" class="cat-pick-tag${inG ? ' is-in' : ''}" data-action="cat-grp-toggletag" data-grp="${esc(g.id)}" data-tag="${esc(n)}">${inG ? '✓ ' : ''}${tagMark(n) ? tagMark(n) + ' ' : ''}${esc(n)}</button>`;
       });
       h += `</div></div>`;
     }
@@ -47152,10 +47170,8 @@ function renderCatStatsEdit(container) {
         if (bTime !== aTime) return bTime - aTime;
         return (b.rating || 0) - (a.rating || 0);
       });
-      const info = TAGS[tagName] || {};
-      const emoji = info.emoji || '🏷';
       if (typeof openDrillDown === 'function') {
-        openDrillDown(`${emoji} ${tagName}`, `총 ${sorted.length}권`, sorted);
+        openDrillDown(`#${tagName}`, `총 ${sorted.length}권`, sorted);
       }
       return;
     }
@@ -47302,7 +47318,7 @@ function renderAnnualLedger() {
       } else if (annualGoal) {
         const remain = Math.max(0, annualGoal - total);
         if (remain === 0) {
-          msg = `목표 <strong>${annualGoal}권</strong> 달성 🎉`;
+          msg = `목표 <strong>${annualGoal}권</strong> 달성`;
         } else {
           msg = `목표까지 <strong>${remain}권</strong> 남았어요.`;
         }
@@ -47644,7 +47660,7 @@ function renderGenreDonut() {
   legend.innerHTML = slices.map(([name, count], i) => {
     const pct = Math.round(count / total * 100);
     const tag = TAGS[name];
-    const icon = tag ? `${tag.emoji} ` : '';
+    const icon = tagMark(name) ? `${tagMark(name)} ` : '';
     const isEtc = name === '기타';
     const dataAttr = isEtc ? 'data-dd-tag-etc="1"' : `data-dd-tag="${esc(name)}"`;
     return `
@@ -47979,7 +47995,7 @@ function _cmtAdd(noteId, body) {
   if (!Array.isArray(note.comments)) note.comments = [];
   note.comments.push({ id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), body: body, createdAt: new Date().toISOString() });
   STORE.set('notes', NOTES);
-  showToast('코멘트를 남겼어요 💬');
+  showToast('코멘트를 남겼어요');
   _cmtRerender(noteId);
 }
 function _cmtDelete(noteId, cmtId) {
@@ -48086,7 +48102,7 @@ function renderNoteCard(n) {
         : `<span class="note-type-pill thought">내 생각</span>`);
 
   const headHtml = isReview
-    ? `<div class="note-thought-tag" style="color:var(--c-sage-700,#455045);background:var(--c-sage-50,#E8ECE6);"><span style="font-size:11px;">💬</span><span>한줄평</span></div>`
+    ? `<div class="note-thought-tag" style="color:var(--c-sage-700,#455045);background:var(--c-sage-50,#E8ECE6);"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-message"/></svg><span>한줄평</span></div>`
     : (isQuote
         ? `<div class="note-quote-mark">"</div>`
         : `<div class="note-thought-tag"><svg class="ic" aria-hidden="true" style="width:11px;height:11px"><use href="#i-pen"/></svg><span>내 메모</span></div>`);
@@ -48116,7 +48132,7 @@ function renderNoteCard(n) {
         </div>
         <div class="note-meta-actions">
           <button class="note-keep-btn${noteShared ? ' shared-done' : ''}" data-action="note-sayu-share" data-note-id="${n.id}" aria-label="${noteShared ? '이미 KEEP에 공유됨' : 'KEEP에 공유'}"${noteShared ? ' disabled' : ''}>${noteShared ? '✓ KEEP' : '+ KEEP'}</button>
-          <button class="note-meta-btn note-cmt-pc" data-action="note-cmt-open" data-note-id="${n.id}" aria-label="코멘트 달기">💬</button>
+          <button class="note-meta-btn note-cmt-pc" data-action="note-cmt-open" data-note-id="${n.id}" aria-label="코멘트 달기"><svg class="ic" aria-hidden="true" style="width:13px;height:13px"><use href="#i-message"/></svg></button>
           <button class="note-meta-btn" data-action="note-share" data-note-id="${n.id}" aria-label="공유">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
@@ -48593,7 +48609,7 @@ function toggleNoteFavorite(id) {
   STORE.set('notes', NOTES);
   renderNotesTab();
   _refreshBdNotesViewIfOpen();
-  showToast(note.favorite ? '⭐ 즐겨찾기에 추가' : '즐겨찾기 해제');
+  showToast(note.favorite ? '★ 즐겨찾기에 추가' : '즐겨찾기 해제');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -49138,14 +49154,13 @@ function renderBookPicker(query) {
     if (matched.length === 0) {
       list.innerHTML = `
         <div class="bp-empty">
-          <span class="emoji">🔍</span>
           <b>"${esc(query)}"에 맞는 책이 없어요</b>
           제목이나 저자 일부를 다시 확인해주세요.
         </div>`;
       foot.style.display = 'none';
       return;
     }
-    let html = `<div class="bp-group-head">🔍 매칭 <span class="badge">${matched.length}건</span></div>`;
+    let html = `<div class="bp-group-head">매칭 <span class="badge">${matched.length}건</span></div>`;
     html += matched.map(b => _bpItemHtml(b)).join('');
     list.innerHTML = html;
     foot.style.display = 'none';
@@ -49175,11 +49190,11 @@ function renderBookPicker(query) {
 
     let html = '';
     if (reading.length > 0) {
-      html += `<div class="bp-group-head">📖 읽는 중 <span class="badge">${reading.length}</span></div>`;
+      html += `<div class="bp-group-head">읽는 중 <span class="badge">${reading.length}</span></div>`;
       html += reading.map(b => _bpItemHtml(b)).join('');
     }
     if (doneBooks.length > 0) {
-      html += `<div class="bp-group-head">✅ 최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
+      html += `<div class="bp-group-head">최근 완독 <span class="badge">${doneBooks.length}</span></div>`;
       html += doneBooks.map(b => _bpItemHtml(b)).join('');
     }
 
@@ -50193,15 +50208,13 @@ let _bfgRowsCache = null;
 function _bfgOpenBooks(i) {
   const g = _bfgRowsCache && _bfgRowsCache[i];
   if (!g || !Array.isArray(g.books) || !g.books.length) return;
-  const t = TAGS[g.name];
-  const em = (t && t.emoji) ? t.emoji : '📦';
   const bd = document.getElementById('ddBackdrop');
   const sh = document.getElementById('ddSheet');
   if (bd) bd.classList.add('dd-above-bf');  // 북플렉스 모달(400) 위로
   if (sh) sh.classList.add('dd-above-bf');  // 시트는 배경막의 형제 요소 — 함께 승격
   const _fmt = (n) => '₩' + Number(n || 0).toLocaleString('ko-KR');
   openDrillDown(
-    em + ' ' + g.name,
+    g.name,
     'BOOKFLEX',
     g.books,
     (b) => _fmt(_bookSpendAmt(b, _SPEND_VIEW_YEAR)),
@@ -50360,10 +50373,9 @@ function _rentPlaceRowsHtml(rows) {
   const maxAmt = rows.length ? rows[0].amt : 0;
   const fmt = (n) => '\u20A9' + n.toLocaleString('ko-KR');
   return rows.map((g, i) => {
-    const em = g.name === '대여처 미입력' ? '📦' : '📚';
     const pct = maxAmt > 0 ? Math.max(3, Math.round(g.amt / maxAmt * 100)) : 0;
     return '<div class="bfrp-row" data-rpl-i="' + i + '" role="button" tabindex="0" aria-label="' + _spEsc(g.name) + ' 책 모아보기">' +
-      '<div class="bfrp-top"><span class="bfrp-nm">' + em + ' ' + _spEsc(g.name) +
+      '<div class="bfrp-top"><span class="bfrp-nm">' + _spEsc(g.name) +
       '<span class="bfrp-cnt">' + g.count + '권</span></span>' +
       '<span class="bfrp-amt">' + fmt(g.amt) + '</span></div>' +
       '<div class="bfrp-bar"><div class="bfrp-fill" style="width:' + pct + '%"></div></div>' +
@@ -50382,13 +50394,12 @@ function _rentPlaceToggle(btn) {
 function _rentPlaceOpenBooks(i) {
   const g = _rentPlaceCache && _rentPlaceCache[i];
   if (!g || !Array.isArray(g.books) || !g.books.length) return;
-  const em = g.name === '대여처 미입력' ? '📦' : '📚';
   const bd = document.getElementById('ddBackdrop');
   const sh = document.getElementById('ddSheet');
   if (bd) bd.classList.add('dd-above-bf');
   if (sh) sh.classList.add('dd-above-bf');
   const fmt = (n) => '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
-  openDrillDown(em + ' ' + g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)), { amountOf: _rentBookPrice });
+  openDrillDown(g.name, 'BOOKFLEX · 대여', g.books, (b) => fmt(_rentBookPrice(b)), { amountOf: _rentBookPrice });
 }
 let _bfRentBooksCache = [];
 document.addEventListener('click', (e) => {
@@ -50843,11 +50854,10 @@ function _renderSpendModal() {
   const genreRows = _spendByRepTag(_SPEND_VIEW_YEAR);
   _bfgRowsCache = genreRows;  // v2.x — 행 탭 → 해당 장르 책 모아보기용
   const _bfgRowHtml = (g, i, maxAmt) => {
-    const t = TAGS[g.name];
-    const em = (t && t.emoji) ? t.emoji : '📦';
+    const em = tagMark(g.name);
     const pct = maxAmt > 0 ? Math.max(3, Math.round(g.amt / maxAmt * 100)) : 0;
     return '<div class="bfg-row' + (i >= 5 ? ' bfg-rest' : '') + (g.name === '미분류' ? ' bfg-etc' : '') + '" data-bfg-i="' + i + '" role="button" tabindex="0" aria-label="' + esc(g.name) + ' 책 모아보기">' +
-      '<div class="bfg-rh"><span class="bfg-nm">' + em + ' ' + esc(g.name) + '<span class="bfg-cnt">' + g.count + '권</span></span>' +
+      '<div class="bfg-rh"><span class="bfg-nm">' + (em ? em + ' ' : '') + esc(g.name) + '<span class="bfg-cnt">' + g.count + '권</span></span>' +
       '<span class="bfg-amt">' + fmtN(g.amt) + '</span></div>' +
       '<div class="bfg-tr"><div class="bfg-fl" style="width:' + pct + '%"></div></div>' +
     '</div>';
@@ -51272,7 +51282,7 @@ function _renderPriceCard(b) {
   const editSale = sale != null ? sale.toLocaleString('ko-KR') : '';
 
   const audioHintHtml = showAudioHint
-    ? '<div class="audio-hint"><b>🎧 오디오북도 종이책처럼 입력하세요.</b> 구독·도서관에서 들으셨다면 비워두시면 합계에서 빠져요.</div>'
+    ? '<div class="audio-hint"><b>오디오북도 종이책처럼 입력하세요.</b> 구독·도서관에서 들으셨다면 비워두시면 합계에서 빠져요.</div>'
     : '';
 
   slot.innerHTML =
@@ -51509,7 +51519,7 @@ document.getElementById('ctSubmit')?.addEventListener('click', async () => {
     // Apps Script 응답은 CORS 로 못 읽을 수 있어서 상태만 보지 않고 성공 가정
     // (네트워크 에러가 아니면 시트에는 기록됨)
 
-    showToast('문의가 접수되었어요 🙏');
+    showToast('문의가 접수되었어요');
     if (bodyEl) bodyEl.value = '';
     closeContactModal();
   } catch (err) {
@@ -51627,7 +51637,7 @@ function _imClose() {
       const subEl = document.getElementById('imMatchingSub');
       if (subEl) {
         const orig = subEl.textContent;
-        subEl.textContent = '⚠️ 보강 중이에요. 끝나면 자동으로 닫혀요.';
+        subEl.textContent = '보강 중이에요. 끝나면 자동으로 닫혀요.';
         setTimeout(() => { if (subEl) subEl.textContent = orig; }, 2000);
       }
     } catch(e){}
@@ -52176,7 +52186,7 @@ function _imRenderPreview() {
     warn.style.display = '';
     const lines = IM_STATE.skipped.slice(0, 10).map(s => `${s.row}행: ${s.reason}`);
     const extra = IM_STATE.skipped.length > 10 ? ` 외 ${IM_STATE.skipped.length - 10}건` : '';
-    warn.innerHTML = `⚠️ ${IM_STATE.skipped.length}개 행 건너뜀${extra}<br/>${lines.join('<br/>')}`;
+    warn.innerHTML = `${IM_STATE.skipped.length}개 행 건너뜀${extra}<br/>${lines.join('<br/>')}`;
   } else {
     warn.style.display = 'none';
   }
@@ -52234,7 +52244,7 @@ async function _imFinalizeInner() {
     const totalEl = document.getElementById('imMatchingTotal');
     const subEl   = document.getElementById('imMatchingSub');
     if (totalEl) totalEl.textContent = IM_STATE.parsedBooks.length;
-    if (subEl) subEl.textContent = '메타데이터 보강 중이에요. 닫지 말고 잠시 기다려주세요 🙏';
+    if (subEl) subEl.textContent = '메타데이터 보강 중이에요. 닫지 말고 잠시 기다려주세요';
   }
 
   let added = 0, dupe = 0, enriched = 0;
@@ -54225,7 +54235,7 @@ function exportDataAsPdf() {
 
     const bookRows = (list) => list.map(b => {
       const rating = b.rating ? ` · ★${b.rating.toFixed(1)}` : '';
-      const life = b.isLifeBook ? ' ⭐' : '';
+      const life = b.isLifeBook ? ' ★' : '';
       const dates = b.dateEnd ? `${fmtDate(b.dateStart)} – ${fmtDate(b.dateEnd)}` : (b.dateStart ? fmtDate(b.dateStart) + ' –' : '');
       const prog = (b.status === 'reading' && b.pages) ? ` · ${Math.round((b.currentPage||0)/b.pages*100)}%` : '';
       return `
@@ -54367,7 +54377,7 @@ async function handleImportFile(file) {
 
     const ok = window.confirm(
       `복원할까요?\n\n` +
-      `📚 책 ${bookCount}권 · 📝 노트 ${noteCount}개\n` +
+      `책 ${bookCount}권 · 노트 ${noteCount}개\n` +
       `백업 날짜: ${exportedAt}\n\n` +
       `⚠️ 현재 데이터는 모두 대체됩니다.\n계속하시겠어요?`
     );
@@ -54546,7 +54556,7 @@ function renderOnboarding() {
       guideEndMsg = document.createElement('div');
       guideEndMsg.id = 'obGuideEndMsg';
       guideEndMsg.style.cssText = 'padding: 20px; text-align: center; color: var(--c-text-2); font-size: 13px; line-height: 1.7;';
-      guideEndMsg.innerHTML = '가이드를 모두 확인하셨어요 👋<br/>기록을 초기화하시려면<br/><strong>설정 → 위험 영역</strong>을 이용해 주세요.';
+      guideEndMsg.innerHTML = '가이드를 모두 확인하셨어요<br/>기록을 초기화하시려면<br/><strong>설정 → 위험 영역</strong>을 이용해 주세요.';
       step5.appendChild(guideEndMsg);
     }
     guideEndMsg.style.display = '';
@@ -55183,10 +55193,10 @@ function _renderDropSheet(book) {
       ? (getBookFormat(book) === 'ebook' ? '전자책' : getBookFormat(book) === 'audio' ? '오디오북' : '종이책')
       : '종이책';
     const isDigitalBook = (typeof isDigital === 'function') && isDigital(book);
-    const audioMark = (typeof isAudio === 'function') && isAudio(book) ? '🎧 ' : '';
+    const audioMark = (typeof isAudio === 'function') && isAudio(book) ? mediaIcon(book) : '';
     const progressLabel = isDigitalBook
       ? `<span>${audioMark}${pct}%</span><span>${curPage}p / ${totalPages}p</span>`
-      : `<span>📖 ${curPage}p / ${totalPages}p</span><span>${pct}%</span>`;
+      : `<span>${curPage}p / ${totalPages}p</span><span>${pct}%</span>`;
 
     previewEl.innerHTML = `
       <div class="drop-sheet-book-cover">${coverHtml}</div>
@@ -55295,7 +55305,7 @@ function commitDrop() {
     BD.book = BOOKS.find(b => b.id === bookId);
     renderBookDetail();
   }
-  showToast('하차 완료 · 책갈피를 꽂아뒀어요 🔖');
+  showToast('하차 완료 · 책갈피를 꽂아뒀어요');
 }
 
 /* 다시 도전 (resume / restart) */
@@ -55332,7 +55342,7 @@ function retryDroppedBook(bookId, mode) {
     BD.book = BOOKS.find(b => b.id === bookId);
     renderBookDetail();
   }
-  showToast(mode === 'restart' ? '처음부터 다시 시작해요 🔄' : '다시 독서중으로 되돌렸어요 📖');
+  showToast(mode === 'restart' ? '처음부터 다시 시작해요' : '다시 독서중으로 되돌렸어요');
 }
 
 /* ═══ 하차 시트 — 이벤트 와이어링 ═══ */
@@ -55500,7 +55510,7 @@ function openRetryDialog(bookId) {
   const resumeDescEl = document.getElementById('retryResumeDesc');
   if (resumeDescEl) resumeDescEl.textContent = `멈췄던 곳 그대로 — 진행률 ${pct}% 유지`;
   const resumeTitleEl = document.getElementById('retryResumeTitle');
-  if (resumeTitleEl) resumeTitleEl.textContent = `📖 ${atPage}p에서 이어 읽기`;
+  if (resumeTitleEl) resumeTitleEl.textContent = `${atPage}p에서 이어 읽기`;
 
   const descEl = document.getElementById('retryDialogDesc');
   if (descEl) descEl.innerHTML = `<strong>"${esc(book.title)}"</strong>를<br>독서중 상태로 되돌릴게요.`;
@@ -55698,7 +55708,7 @@ function renderDropStatCard() {
     }
 
     insight.innerHTML = `
-      <div class="drop-stat-insight-icon">💡</div>
+      <div class="drop-stat-insight-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-info"/></svg></div>
       <div class="drop-stat-insight-text">${insightText}</div>`;
   }
 }
@@ -55723,14 +55733,14 @@ function renderDropStatCard() {
     <div class="share-choice-handle"></div>
     <div class="share-choice-title" id="shareChoiceTitle">어떻게 할까요?</div>
     <button class="share-choice-btn" id="shareChoiceSave" type="button">
-      <div class="share-choice-icon">📷</div>
+      <div class="share-choice-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-download"/></svg></div>
       <div class="share-choice-text">
         <div class="share-choice-text-main">사진에 저장</div>
         <div class="share-choice-text-sub">갤러리로 바로 받기</div>
       </div>
     </button>
     <button class="share-choice-btn" id="shareChoiceShare" type="button">
-      <div class="share-choice-icon">📤</div>
+      <div class="share-choice-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-upload"/></svg></div>
       <div class="share-choice-text">
         <div class="share-choice-text-main">공유하기</div>
         <div class="share-choice-text-sub">카톡·인스타·드라이브 등</div>
