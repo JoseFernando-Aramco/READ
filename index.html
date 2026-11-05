@@ -43221,7 +43221,11 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
 
       if (opts.dayContext) {
         // DAY 뷰: 읽는 중 / 완독 두 섹션. 각 3권 + 더보기 (3권 초과 시 접기)
-        const reading = sorted.filter(b => b.status === 'reading');
+        // v2.4 — [건의] 그날 실제로 읽은(타이머 기록 있는) 진행중 책을 섹션 맨 위로
+        let _daySessIds = new Set();
+        try { if (opts.dayISO) _daySessIds = new Set(_getSessionsInRange(opts.dayISO, opts.dayISO).map(s => s.book.id)); } catch (e) {}
+        const reading = sorted.filter(b => b.status === 'reading')
+          .sort((a, b) => (_daySessIds.has(b.id) ? 1 : 0) - (_daySessIds.has(a.id) ? 1 : 0));
         const others  = sorted.filter(b => b.status !== 'reading');
         const COLLAPSE_THRESHOLD = 3;
 
@@ -43275,8 +43279,9 @@ function openDrillDown(title, subtitle, books, valFormatter, options) {
         }
 
         let html = statHtml;
-        html += renderSection('읽는 중', reading, 'reading');
+        // v2.4 — [건의] 완독을 먼저, 읽는 중을 뒤로 (진행중 다독 유저의 완독이 밑에 깔리던 문제)
         html += renderSection('완독', others, 'others');
+        html += renderSection('읽는 중', reading, 'reading');
         list.innerHTML = html;
 
         // 더 보기 버튼 핸들러 (data-more-target 위임)
