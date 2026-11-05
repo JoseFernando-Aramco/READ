@@ -22337,6 +22337,24 @@ html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in
 .mr-hl .q { font-size: 13px; line-height: 1.65; font-weight: 600; color: #3F3A32; }
 .mr-hl .q b { font-weight: 800; color: #26302A; }
 .mr-foot2 { display: flex; justify-content: space-between; margin: 18px 16px 0; font-size: 9px; font-weight: 700; letter-spacing: .18em; color: #B5B1A4; }
+.mr-bar-row { display: flex; align-items: center; gap: 10px; margin: 0 16px 8px; }
+.mr-bar-lbl { width: 64px; font-size: 11px; font-weight: 700; color: #5C564A; flex: 0 0 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-bar-track { flex: 1; height: 9px; border-radius: 100px; background: #EFEBE2; overflow: hidden; }
+.mr-bar-fill { display: block; height: 100%; border-radius: 100px; }
+.mr-bar-val { min-width: 36px; text-align: right; font-size: 11px; font-weight: 800; color: #3F3A32; flex: 0 0 auto; }
+.mr-bar-val small { font-weight: 700; color: #A79F90; font-size: 9.5px; }
+.mr-dow-wrap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 0 16px; }
+.mr-dow { border-radius: 10px; background: #F7F4ED; padding: 8px 0 7px; text-align: center; overflow: hidden; }
+.mr-dow span { display: block; font-size: 9px; font-weight: 700; color: #A79F90; margin-bottom: 3px; }
+.mr-dow b { font-size: 10.5px; font-weight: 800; color: #8A8372; letter-spacing: -.3px; }
+.mr-dow.lv1 { background: #F4F1EA; }
+.mr-dow.lv2 { background: #EAE2D4; } .mr-dow.lv2 b { color: #6B6253; }
+.mr-dow.lv3, .mr-dow.lv4 { background: #DFD2C0; } .mr-dow.lv3 b, .mr-dow.lv4 b { color: #5C4F3E; }
+.mr-dow.top { background: linear-gradient(160deg, #B99E8C, #C9B2A4); }
+.mr-dow.top span { color: rgba(255,255,255,.8); }
+.mr-dow.top b { color: #fff; }
+.mr-dow-cap { font-size: 10.5px; font-weight: 700; color: #A79F90; text-align: center; margin: 9px 16px 0; }
+.mr-dow-cap b { color: #5C564A; }
 /* ④ 시트 헤더 워시 + 스크롤 미니바 */
 html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
 html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
@@ -35631,17 +35649,16 @@ function renderMonthStrip() {
   }
 
   function renderGenreBars(topGenres) {
+    // v2.4 커버 무드 — 이모지 제거, 워시 농도 바(1위가 가장 진하고 순위 따라 옅어짐)
     if (!topGenres.length) return '';
     const max = topGenres[0].count || 1;
-    const primaryHex = _currentPrimaryHex();
+    const SHADES = ['#8A7363', '#A58D7B', '#C2AD9D', '#CFBEB0', '#DACCC0'];
     return topGenres.map((g, i) => {
-      const pct = (g.count / max) * 100;
-      const lbl = (g.emoji ? g.emoji + ' ' : '') + esc(g.name);
-      const color = _genreColor(i, primaryHex);
+      const pct = Math.max(6, (g.count / max) * 100);
       return `<div class="mr-bar-row">
-        <div class="mr-bar-lbl">${lbl}</div>
-        <div class="mr-bar-track"><div class="mr-bar-fill" style="width:${pct.toFixed(1)}%; background:${color}"></div></div>
-        <div class="mr-bar-val">${g.count}권</div>
+        <div class="mr-bar-lbl">${esc(g.name)}</div>
+        <div class="mr-bar-track"><div class="mr-bar-fill" style="width:${pct.toFixed(1)}%; background:${SHADES[Math.min(i, SHADES.length - 1)]}"></div></div>
+        <div class="mr-bar-val">${g.count}<small>권</small></div>
       </div>`;
     }).join('');
   }
@@ -35668,27 +35685,22 @@ function renderMonthStrip() {
       if (r < 0.75) return 3;
       return 4;
     };
-    const headers = DOW_LABELS.map((d, i) => {
-      const cls = (i === 0 || i === 6) ? ' weekend' : '';
-      return `<div class="mr-heat-head${cls}">${d}</div>`;
-    }).join('');
-    const cells = dayOfWeekPages.map(v => {
+    // v2.4 커버 무드 — 숫자 칩: 농도가 양, 최고 요일만 워시색. 1만 이상은 '1.4만' 축약(5자리 넘침 방지)
+    const fmtP = (n) => n >= 10000 ? (Math.round(n / 1000) / 10) + '만' : n.toLocaleString();
+    const chips = dayOfWeekPages.map((v, i) => {
       const level = lv(v);
-      const cls = level > 0 ? `lv${level}` : '';
-      return `<div class="mr-heat-cell ${cls}">${v}</div>`;
+      const isPeak = i === peakDow && v > 0;
+      return `<div class="mr-dow${isPeak ? ' top' : (level > 0 ? ' lv' + level : '')}"><span>${DOW_LABELS[i]}</span><b>${fmtP(v)}</b></div>`;
     }).join('');
 
     const peakLabel = DOW_LABELS[peakDow];
     const totalActive = dayOfWeekPages.reduce((a, b) => a + b, 0);
     const summary = totalActive > 0
-      ? `☆ ${peakLabel}요일 가장 활발 · 평일 평균 ${wkdayAvg}p · 주말 평균 ${wkndAvg}p`
+      ? `<b>${peakLabel}요일</b>이 가장 활발 · 평일 평균 ${fmtP(wkdayAvg)}p · 주말 평균 ${fmtP(wkndAvg)}p`
       : '';
 
-    return `<div class="mr-heatmap">
-      <div class="mr-heat-headers">${headers}</div>
-      <div class="mr-heat-cells">${cells}</div>
-      ${summary ? `<div class="mr-heat-summary">${summary}</div>` : ''}
-    </div>`;
+    return `<div class="mr-dow-wrap">${chips}</div>
+      ${summary ? `<div class="mr-dow-cap">${summary}</div>` : ''}`;
   }
 
   function renderHighlight(topSession) {
@@ -35830,6 +35842,16 @@ function renderMonthStrip() {
         <div class="mr-media-leg">${legs}</div>`;
     }
 
+    // v2.4 — 장르·요일 리듬 복원 (커버 무드 톤, 기존 노출 조건 그대로)
+    let genreSection = '';
+    if (data.topGenres.length >= 2) {
+      genreSection = `<div class="mr-sect-lbl">장르</div>${renderGenreBars(data.topGenres)}`;
+    }
+    let heatSection = '';
+    if (m.totalSessionCount > 0) {
+      heatSection = `<div class="mr-sect-lbl">요일 리듬</div>${renderHeatmap(data.dayOfWeekPages)}`;
+    }
+
     // v2.4 커버 무드 — 하이라이트 4종 선별 카드
     const hls = _mrHighlights(data, m, year, month);
     const highlightSection = hls.length
@@ -35853,6 +35875,8 @@ function renderMonthStrip() {
       <div class="mr-sect-lbl">이 달의 책</div>
       ${shelf}
       ${formatSection}
+      ${genreSection}
+      ${heatSection}
       ${highlightSection}
       ${footer}
     `;
