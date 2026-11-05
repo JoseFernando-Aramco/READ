@@ -22355,6 +22355,12 @@ html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in
 .mr-dow.top b { color: #fff; }
 .mr-dow-cap { font-size: 10.5px; font-weight: 700; color: #A79F90; text-align: center; margin: 9px 16px 0; }
 .mr-dow-cap b { color: #5C564A; }
+/* 공유 버튼 — B안: 모노 선 아이콘, 커버 무드 톤 */
+.mr-share-actions { background: #FBF8F2; border: none; border-radius: 16px; gap: 8px; }
+.mr-share-btn { border-radius: 12px; min-height: 46px; font-weight: 800; }
+.mr-share-btn.secondary { background: #F1EDE4; color: #5C564A; }
+.mr-share-btn.primary { background: #3C4350; color: #F2F2F0; }
+.mrsb-ic { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
 /* ④ 시트 헤더 워시 + 스크롤 미니바 */
 html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
 html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
@@ -25464,9 +25470,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 공유 액션 -->
     <div class="mr-share-actions">
-      <button class="mr-share-btn secondary" id="mrCopyBtn" type="button">📋 이미지 복사</button>
-      <button class="mr-share-btn secondary" id="mrSaveBtn" type="button">💾 저장</button>
-      <button class="mr-share-btn primary" id="mrShareBtn" type="button">📤 공유</button>
+      <button class="mr-share-btn secondary" id="mrCopyBtn" type="button"><svg class="mrsb-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>복사</button>
+      <button class="mr-share-btn secondary" id="mrSaveBtn" type="button"><svg class="mrsb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>저장</button>
+      <button class="mr-share-btn primary" id="mrShareBtn" type="button"><svg class="mrsb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>공유</button>
     </div>
   </div>
 </div>
