@@ -43968,11 +43968,6 @@ document.getElementById('pane-stats').addEventListener('click', (e) => {
   }
   // 캘린더 셀 (특정 일자)
   const dayCell = e.target.closest('[data-dd-day]');
-  if (dayCell && dayCell.hasAttribute('data-cv-book')) {
-    // v2.3.x — 완독 1권 썸네일: 드릴다운 건너뛰고 책 상세 직행
-    const bid = parseInt(dayCell.getAttribute('data-cv-book'), 10);
-    if (!isNaN(bid) && BOOKS.some(x => x.id === bid)) { openBookDetail(bid); return; }
-  }
   if (dayCell) {
     const day = parseInt(dayCell.dataset.ddDay, 10);
     const month = parseInt(dayCell.dataset.ddMonth, 10);
@@ -46424,8 +46419,9 @@ function renderMonthCal() {
     const ddAttrs = isActive
       ? `data-dd-day="${d}" data-dd-month="${month}" data-dd-year="${year}"`
       : '';
-    // v2.3.x — [건의] 완독 1권인 날 썸네일 탭 → 책 상세 직행 (여러 권이면 기존 일별 보기)
-    const directId = (hasCover && finishedBooks.length === 1) ? ` data-cv-book="${coverBook.id}"` : '';
+    // v2.4 — [수정] 완독 1권 직행 분기 제거: 날마다 동작이 달라지는 비일관 해소.
+    //        모든 날이 일별 개요를 먼저 열고, 개요에서 책을 탭하면 상세로 간다.
+    const directId = '';
     let inner;
     if (hasCover) {
       const cvUrl = esc(coverBook.coverUrl);
