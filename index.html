@@ -22334,7 +22334,8 @@ html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in
 .mr-hl .lb { font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; color: #A79F90; margin-bottom: 4px; }
 .mr-hl .q { font-size: 13px; line-height: 1.65; font-weight: 600; color: #3F3A32; }
 .mr-hl .q b { font-weight: 800; color: #26302A; }
-.mr-foot2 { display: flex; justify-content: space-between; margin: 18px 16px 0; font-size: 9px; font-weight: 700; letter-spacing: .18em; color: #B5B1A4; }
+.mr-foot2 { display: flex; justify-content: space-between; align-items: center; margin: 18px 16px 0; font-size: 9px; font-weight: 700; letter-spacing: .18em; color: #B5B1A4; }
+.mr-foot2 .keepbook-logo { height: 10px; opacity: .55; }
 .mr-bar-row { display: flex; align-items: center; gap: 10px; margin: 0 16px 8px; }
 .mr-bar-lbl { width: 64px; font-size: 11px; font-weight: 700; color: #5C564A; flex: 0 0 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mr-bar-track { flex: 1; height: 9px; border-radius: 100px; background: #EFEBE2; overflow: hidden; }
@@ -35885,7 +35886,7 @@ function renderMonthStrip() {
       : '';
 
     // v2.4 — 푸터: SEAT·바코드 → 조용한 브랜드 줄
-    const footer = `<div class="mr-foot2"><span>KEEPBOOK</span><span>${MONTH_NAMES_EN[month]} ${year}</span></div>`;
+    const footer = `<div class="mr-foot2"><span class="keepbook-logo" aria-label="keepbook">keepbook</span><span>${MONTH_NAMES_EN[month]} ${year}</span></div>`;
 
     // v2.4 — 워시 혼합 헤더 (이 달 완독 책들의 색, 인생책→별점순 상위 3권)
     const heroBooks = data.doneBooks.slice().sort((a, b) =>
