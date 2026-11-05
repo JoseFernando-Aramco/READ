@@ -22304,6 +22304,39 @@ html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in
 .nf-ocr svg { width: 18px; height: 18px; }
 /* 책이 정해진 경우의 '책' 표시 필드 — 상단 책 바가 대신하므로 숨김 (미선택 시 picker는 그대로) */
 #naLockedBookField { display: none !important; }
+/* v2.4 — 월간 리포트 커버 무드 (①안, 아이콘 제로) · html2canvas 호환 고정색 */
+.mr-ticket { background: #FBF8F2; }
+.mr-stub { display: none; }
+.mr-body { padding: 0 0 16px; }
+.mr-hero { padding: 22px 20px 18px; color: #26302A; }
+.mr-hero .mr-brand-lbl { color: rgba(38,48,42,.55); letter-spacing: .2em; margin-bottom: 5px; }
+.mr-hero .mr-headline { color: #26302A; }
+.mr-hero .mr-tagline { color: rgba(38,48,42,.72); }
+.mr-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin: 14px 16px 2px; border: none; background: transparent; border-radius: 0; overflow: visible; }
+.mr-metric { background: #F4F1EA; border: none; border-radius: 12px; padding: 11px 4px; text-align: center; }
+.mr-metric-v { color: #3F3A32; }
+.mr-metric-k, .mr-metric-sub { color: #A79F90; }
+.mr-sect-lbl { margin: 18px 16px 8px; color: #A79F90; letter-spacing: .16em; font-weight: 800; }
+.mr-sect-lbl::after { display: none; }
+.mr-shelf { margin: 0 16px; }
+.mr-cover { border-radius: 7px; box-shadow: 0 3px 10px rgba(40,45,60,.18); }
+.mr-cover.is-life { box-shadow: 0 0 0 2px #C9A227, 0 3px 10px rgba(40,45,60,.22); }
+.mr-cover .star { display: none; }
+.mr-rt { position: absolute; left: 4px; bottom: 4px; font-size: 8.5px; font-weight: 800; background: rgba(0,0,0,.42); border-radius: 100px; padding: 2px 6px; color: #fff; letter-spacing: .2px; z-index: 2; }
+.mr-rt.life { background: rgba(138,109,27,.85); }
+.mr-cover-more { background: #EDE9DF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: none; }
+.mr-cover-more b { font-size: 14px; font-weight: 800; color: #8A8372; }
+.mr-cover-more span { font-size: 8.5px; font-weight: 700; color: #A79F90; }
+.mr-media-bar { display: flex; height: 10px; border-radius: 100px; overflow: hidden; background: #EFEBE2; margin: 0 16px; }
+.mr-media-bar i { display: block; }
+.mr-media-leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 10.5px; font-weight: 700; color: #7A766B; margin: 7px 16px 0; }
+.mr-media-leg u { text-decoration: none; display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.mr-hlist { display: flex; flex-direction: column; gap: 8px; margin: 0 16px; }
+.mr-hl { background: #F4F1EA; border-radius: 12px; padding: 12px 14px; }
+.mr-hl .lb { font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; color: #A79F90; margin-bottom: 4px; }
+.mr-hl .q { font-size: 13px; line-height: 1.65; font-weight: 600; color: #3F3A32; }
+.mr-hl .q b { font-weight: 800; color: #26302A; }
+.mr-foot2 { display: flex; justify-content: space-between; margin: 18px 16px 0; font-size: 9px; font-weight: 700; letter-spacing: .18em; color: #B5B1A4; }
 /* ④ 시트 헤더 워시 + 스크롤 미니바 */
 html:not([data-theme="midnight"]) .bd-head.bd-head-wash { background: var(--w1, #C6CEDB); border-bottom-color: transparent; }
 html:not([data-theme="midnight"]) .bd-sheet.bd-sheet-wash .bas-grip { background: var(--w1, #C6CEDB); }
@@ -35552,14 +35585,17 @@ function renderMonthStrip() {
 
   function renderShelf(books) {
     books = _collapseSeriesForShelf(books);  // v1.5.x — 같은 시리즈는 한 장으로
-    const n = books.length;
-    if (n === 0) {
+    // v2.4 커버 무드 — 명예의 전당 먼저, 그다음 별점순 (무평점·진행중은 뒤)
+    books = books.slice().sort((a, b) =>
+      ((b.isLifeBook ? 1 : 0) - (a.isLifeBook ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)));
+    const total = books.length;
+    if (total === 0) {
       return `<div class="mr-empty">이번 달 완독한 책이 없어요</div>`;
     }
-    // 모드 결정
-    let mode = 'mode-large';
-    if (n >= 22) mode = 'mode-scroll';
-    else if (n >= 11) mode = 'mode-compact';
+    // v2.4 — 상한 8칸: 초과분은 +N권 타일로 (두 줄을 넘지 않게)
+    const MAX = 8;
+    const over = total > MAX;
+    if (over) books = books.slice(0, MAX - 1);
 
     const covers = books.map(b => {
       const isSeries = b._isSeries && b._seriesCount > 1;
@@ -35572,20 +35608,26 @@ function renderMonthStrip() {
           : b.coverUrl;
         img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
       }
-      // v1.5.x — 시리즈 묶음은 좌상단 "N권/화" 뱃지 + 스택 느낌
       const seriesBadge = isSeries
         ? `<span class="mr-cover-series">${b._seriesCount}${b._seriesUnit || '권'}</span>`
         : '';
       const stackCls = isSeries ? ' is-series' : '';
-      return `<div class="mr-cover${stackCls}" title="${t}">
+      // v2.4 — ★ 마크 대신 별점 뱃지, 인생책은 금테
+      const rt = (isDone && b.rating)
+        ? `<span class="mr-rt${b.isLifeBook ? ' life' : ''}">★ ${Number(b.rating).toFixed(1)}</span>`
+        : '';
+      return `<div class="mr-cover${stackCls}${b.isLifeBook ? ' is-life' : ''}" title="${t}">
         ${img}
         <span class="cover-title">${t}</span>
         ${seriesBadge}
-        ${isDone ? '<span class="star">★</span>' : ''}
+        ${rt}
       </div>`;
     }).join('');
 
-    return `<div class="mr-shelf ${mode}">${covers}</div>`;
+    const moreTile = over
+      ? `<div class="mr-cover mr-cover-more"><b>+${total - (MAX - 1)}권</b><span>더 읽었어요</span></div>`
+      : '';
+    return `<div class="mr-shelf mode-large">${covers}${moreTile}</div>`;
   }
 
   function renderGenreBars(topGenres) {
@@ -35679,6 +35721,49 @@ function renderMonthStrip() {
     </div>`;
   }
 
+  // v2.4 커버 무드 — 책의 워시색 (주조색 캐시 우선, 팔레트 폴백) · html2canvas 호환 고정색
+  const _MR_W1 = { demian:'#C9B2A4', '1984':'#AEBCD2', sapiens:'#AFC0AC', cosmos:'#B3B2CE', prince:'#A9BCD8', guns:'#A3C0BC', nudge:'#BDAECB', endhistory:'#C9B2A4', factful:'#A3C2B5', atomic:'#CDBCA0', homo:'#B5A8CE', courage:'#A5BCC9' };
+  function _mrWashOf(b) {
+    try {
+      const c = _coverWashCache()[b.id];
+      if (c && c.u === b.coverUrl && c.h != null) return 'hsl(' + c.h + ', 26%, 76%)';
+    } catch (e) {}
+    return _MR_W1[b.palette] || '#C6CEDB';
+  }
+  function _mrHeroGrad(books) {
+    if (!books.length) return 'linear-gradient(120deg, #D9D6CD, #E6E3DA)';
+    const cols = books.slice(0, 3).map(b => _mrWashOf(b));
+    if (cols.length === 1) cols.push(cols[0]);
+    const n = cols.length - 1;
+    return 'linear-gradient(120deg, ' + cols.map((c, i) => c + ' ' + Math.round(i * 100 / n) + '%').join(', ') + ')';
+  }
+  // v2.4 — 하이라이트 4종 선별: 쉬어가는 달(단독) / 기록 경신 / 앉은자리 완독 / 이 달의 몰입
+  function _mrHighlights(data, m, year, month) {
+    if (m.doneCount === 0 && m.readDays <= 3) {
+      return [['쉬어가는 달', '이 달은 쉬어가는 달이었어요. 책은 늘 그 자리에 있으니까요 — 다음 달의 첫 장을 함께 열어요']];
+    }
+    const out = [];
+    try {
+      const months = _getMonthsWithData();
+      const key = year + '-' + String(month + 1).padStart(2, '0');
+      const others = months.filter(x => (x.year + '-' + String(x.month + 1).padStart(2, '0')) !== key);
+      const prevMax = others.reduce((mx, x) => Math.max(mx, x.totalPages || 0), 0);
+      if (others.length > 0 && prevMax > 0 && m.totalPages > prevMax) {
+        out.push(['기록 경신', '역대 가장 많이 읽은 달 — <b>' + m.totalPages.toLocaleString() + '쪽</b>, 지난 최고 기록을 넘었어요']);
+      }
+    } catch (e) {}
+    const oneDay = data.doneBooks.find(b => b.dateStart && b.dateEnd && b.dateStart === b.dateEnd);
+    if (oneDay) {
+      out.push(['앉은자리 완독', '『' + esc(oneDay.title) + '』 — <b>하루 만에</b> 처음부터 끝까지']);
+    }
+    if (data.topSession) {
+      const d = new Date(data.topSession.date);
+      const bt = (data.topSession.book && data.topSession.book.title) || '';
+      out.push(['이 달의 몰입', (d.getMonth() + 1) + '월 ' + d.getDate() + '일, <b>' + _fmtSessionTime(data.topSession.minutes) + '</b> 동안 ' + data.topSession.pages + '쪽' + (bt ? ' — 『' + esc(bt) + '』' : '')]);
+    }
+    return out.slice(0, 3);
+  }
+
   function renderMonthReport(year, month) {
     const data = _calcMonthReport(year, month);
     const m = data.metrics;
@@ -35730,89 +35815,45 @@ function renderMonthStrip() {
     const allBooks = [...data.doneBooks, ...data.inProgressBooks];
     const shelf = renderShelf(allBooks);
 
-    // 매체 도넛 — 2매체 이상일 때만 표시
+    // v2.4 커버 무드 — 매체: 도넛 → 워시 톤 스택 바 (1매체여도 표시, 아이콘 없음)
     const formatKeys = Object.keys(data.formatPages).filter(k => data.formatPages[k] > 0);
     let formatSection = '';
-    if (formatKeys.length >= 2) {
-      const totalP = Object.values(data.formatPages).reduce((a, b) => a + b, 0);
+    if (formatKeys.length >= 1 && m.totalPages > 0) {
+      const totalP = Object.values(data.formatPages).reduce((a, b) => a + b, 0) || 1;
+      const MCOL = { paper: '#C9B2A4', ebook: '#8CA3C4', audio: '#A3C0BC', webnovel: '#B5A8CE' };
+      const MLBL = { paper: '종이책', ebook: '전자책', audio: '오디오북', webnovel: '웹소설' };
+      const segs = formatKeys.map(k => `<i style="width:${Math.round(data.formatPages[k] / totalP * 100)}%;background:${MCOL[k] || '#B9B4A6'}"></i>`).join('');
+      const legs = formatKeys.map(k => `<span><u style="background:${MCOL[k] || '#B9B4A6'}"></u>${MLBL[k] || k} ${Math.round(data.formatPages[k] / totalP * 100)}% · ${data.formatPages[k].toLocaleString()}p</span>`).join('');
       formatSection = `
-        <div class="mr-sect-lbl">🎯 매체별 비중</div>
-        <div class="mr-donut-row">
-          <div class="mr-donut">
-            ${donutSVG(data.formatPages)}
-            <div class="mr-donut-center">
-              <div class="total">${totalP.toLocaleString()}p</div>
-              <div class="lbl">TOTAL</div>
-            </div>
-          </div>
-          <div class="mr-donut-legend">${renderDonutLegend(data.formatPages)}</div>
-        </div>`;
-    } else if (formatKeys.length === 1 && m.totalPages > 0) {
-      const k = formatKeys[0];
-      const meta = FORMAT_META[k];
-      formatSection = `
-        <div class="mr-sect-lbl">🎯 매체</div>
-        <div class="mr-empty">
-          ${meta.lbl} ${m.totalPages}p<br>
-          <span style="color:var(--c-muted); font-size:10px;">2종 이상 읽으면 비중이 표시돼요</span>
-        </div>`;
+        <div class="mr-sect-lbl">매체</div>
+        <div class="mr-media-bar">${segs}</div>
+        <div class="mr-media-leg">${legs}</div>`;
     }
 
-    // 장르 — 2개 이상일 때만
-    let genreSection = '';
-    if (data.topGenres.length >= 2) {
-      genreSection = `
-        <div class="mr-sect-lbl">🏷 장르 분포</div>
-        ${renderGenreBars(data.topGenres)}`;
-    }
+    // v2.4 커버 무드 — 하이라이트 4종 선별 카드
+    const hls = _mrHighlights(data, m, year, month);
+    const highlightSection = hls.length
+      ? `<div class="mr-sect-lbl">하이라이트</div><div class="mr-hlist">${hls.map(h => `<div class="mr-hl"><div class="lb">${h[0]}</div><div class="q">${h[1]}</div></div>`).join('')}</div>`
+      : '';
 
-    // 요일 패턴 — 세션 있을 때만
-    let heatSection = '';
-    if (m.totalSessionCount > 0) {
-      heatSection = `
-        <div class="mr-sect-lbl">📅 요일별 패턴</div>
-        ${renderHeatmap(data.dayOfWeekPages)}`;
-    }
+    // v2.4 — 푸터: SEAT·바코드 → 조용한 브랜드 줄
+    const footer = `<div class="mr-foot2"><span>KEEPBOOK</span><span>${MONTH_NAMES_EN[month]} ${year}</span></div>`;
 
-    // 하이라이트
-    let highlightSection = '';
-    if (data.topSession) {
-      highlightSection = `
-        <div class="mr-sect-lbl">★ 하이라이트</div>
-        ${renderHighlight(data.topSession)}`;
-    }
-
-    // 인용구
-    let quoteSection = '';
-    if (data.quote) {
-      quoteSection = `
-        <div class="mr-sect-lbl">💬 이 달의 한 줄</div>
-        ${renderQuote(data.quote)}`;
-    }
-
-    // 푸터 (서명 — 권수+페이지 기반 시리얼)
-    const seatStr = data.doneBooks.length > 0
-      ? data.doneBooks.slice(0, 3).map((_, i) => `A${i+1}`).join('·') || 'A1'
-      : 'A0';
-    const serial = `JC${String(month + 1).padStart(2,'0')}${String(year).slice(-2)}`;
-    const footer = `<div class="mr-foot">
-      <span>SEAT: ${seatStr}</span>
-      <div class="mr-barcode"></div>
-      <span>${serial}</span>
-    </div>`;
+    // v2.4 — 워시 혼합 헤더 (이 달 완독 책들의 색, 인생책→별점순 상위 3권)
+    const heroBooks = data.doneBooks.slice().sort((a, b) =>
+      ((b.isLifeBook ? 1 : 0) - (a.isLifeBook ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)));
 
     return `
-      <div class="mr-brand-lbl">월간 독서 리포트 · ${year}.${String(month + 1).padStart(2, '0')}</div>
-      <div class="mr-headline" id="mrHeadline">${month + 1}월의 독서</div>
-      <div class="mr-tagline">${tagline}</div>
+      <div class="mr-hero" style="background:${_mrHeroGrad(heroBooks)}">
+        <div class="mr-brand-lbl">MONTHLY READING · ${year}.${String(month + 1).padStart(2, '0')}</div>
+        <div class="mr-headline" id="mrHeadline">${month + 1}월의 독서</div>
+        <div class="mr-tagline">${tagline}</div>
+      </div>
       ${metrics}
-      <div class="mr-sect-lbl">📚 이 달의 책</div>
+      <div class="mr-sect-lbl">이 달의 책</div>
       ${shelf}
       ${formatSection}
-      ${genreSection}
-      ${heatSection}
       ${highlightSection}
-      ${quoteSection}
       ${footer}
     `;
   }
