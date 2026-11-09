@@ -378,6 +378,68 @@
   --c-gold-glow: #E4C455;
 }
 
+/* ═══════════ 테마 · 설경 [겨울 한정 · 눈 내린 아침 + 눈발] ═══════════ */
+[data-theme="winter"] {
+  --c-canvas:    #F0F4F7;
+  --c-surface:   #FBFDFE;
+  --c-surface-2: #E2EAF0;
+  --c-border:    #D8E2EA;
+  --c-border-2:  #B8C9D6;
+  --c-text:   #1C2733;
+  --c-text-2: #39485A;
+  --c-label:  #7C8FA0;
+  --c-muted:  #7C8FA0;
+  --primary:          #4A6880;
+  --primary-bg:       #DCE7EF;
+  --brand-primary:    #4A6880;
+  --brand-primary-dk: #334F63;
+  --c-terra-900: #1C2733;
+  --c-terra-700: #334F63;
+  --c-terra-500: #4A6880;
+  --c-terra-400: #6D8DA8;
+  --c-terra-100: #DCE7EF;
+  --c-terra-50:  #EAF1F6;
+  --g-main-bar: linear-gradient(95deg, #4A6880, #334F63);
+  --g-gold:     linear-gradient(95deg, #4A6880, #334F63);
+  --c-gold-warm: #6D8DA8;
+  --c-gold-deep: #4A6880;
+  --c-gold-glow: #9FB9CF;
+}
+
+/* ═══════════ 설경 — 배경 눈발 (GPU transform, 터치 통과) ═══════════ */
+.kb-snow { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.kb-snow i {
+  position: absolute; top: -4%; border-radius: 50%;
+  background: #AFC6D8; opacity: 0;
+  animation: kbSnowFall linear infinite;
+  animation-duration: var(--d);
+  will-change: transform, opacity;
+}
+@keyframes kbSnowFall {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  8%   { opacity: var(--o); }
+  85%  { opacity: var(--o); }
+  100% { transform: translate3d(var(--dx), 105vh, 0); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .kb-snow { display: none; } }
+
+/* ═══════════ 설경 — 시네마 모드 윈터 스킨 (골드 → 아이스 블루, 눈 오는 밤) ═══════════ */
+html[data-theme="winter"] .cn-overlay {
+  --cn-gold:      #8FB4D4;
+  --cn-gold-soft: #B8D4EA;
+  --cn-gold-glow: rgba(143, 180, 212, 0.25);
+  background: linear-gradient(180deg, #0C131B 0%, #14202C 60%, #1A2836 100%);
+}
+html[data-theme="winter"] .cn-overlay .cn-snow { display: block; }
+.cn-snow { display: none; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cn-snow i {
+  position: absolute; top: -4%; border-radius: 50%;
+  background: #fff; opacity: 0; box-shadow: 0 0 4px rgba(255,255,255,.35);
+  animation: kbSnowFall linear infinite;
+  animation-duration: var(--d);
+  will-change: transform, opacity;
+}
+
 /* ═══════════ 테마 6 · 미드나잇 [다크모드 · 딥 네이비 + 앰버] ═══════════ */
 [data-theme="midnight"] {
   --c-canvas:    #0F1117;
@@ -23598,11 +23660,6 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="kbm-item-main"><div class="kbm-item-ttl">keepbook 매뉴얼</div><div class="kbm-item-sub">기능 · 조작 · 데이터 안내</div></div>
       <span class="kbm-item-arrow">›</span>
     </button>
-    <button class="kbm-item" onclick="kbmCall('openWhatsNew', '업데이트 노트 준비 중')">
-      <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
-      <div class="kbm-item-main"><div class="kbm-item-ttl">최신 업데이트</div></div>
-      <span class="kbm-item-arrow">›</span>
-    </button>
     <button class="kbm-item" onclick="kbmCall('openInstallGuide', '설치 안내 준비 중')">
       <div class="kbm-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
       <div class="kbm-item-main"><div class="kbm-item-ttl">앱처럼 설치하기</div><div class="kbm-item-sub">홈 화면에 추가 · 빠른 접속</div></div>
@@ -27574,8 +27631,47 @@ const THEMES = [
     swatches: ['#B8860B','#D4A72C','#F7E9B8','#FDF8E7'] },
   { id: 'midnight',    name: '미드나잇',        desc: '다크모드 · 딥 네이비 + 라이트 블루',
     swatches: ['#0F1117','#191D26','#7AA2FF','#A3BEFF'] },
+  { id: 'winter',      name: '설경',            desc: '겨울 한정 · 눈 내린 아침 + 눈발',
+    swatches: ['#3C4F60','#6D8DA8','#D8E2EA','#F0F4F7'] },
 ];
 const THEME_KEY = 'read.theme';
+
+/* v2.4 윈터 — 배경(.kb-snow)·시네마(.cn-snow) 눈발 레이어 생성/제거 */
+function _kbSnowParticles(el, n, slow) {
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('i');
+    const sz = 2 + Math.random() * 2.5;
+    s.style.width = s.style.height = sz + 'px';
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.setProperty('--d', ((9 + Math.random() * 9) * (slow || 1)) + 's');
+    s.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
+    s.style.setProperty('--o', (0.3 + Math.random() * 0.4).toFixed(2));
+    s.style.animationDelay = (-Math.random() * 25) + 's';
+    el.appendChild(s);
+  }
+}
+function _kbSnowToggle(on) {
+  const run = () => {
+    let bg = document.getElementById('kbSnow');
+    const stage = document.getElementById('cnStage');
+    let cn = stage ? stage.querySelector('.cn-snow') : null;
+    if (!on) { if (bg) bg.remove(); if (cn) cn.remove(); return; }
+    if (!bg) {
+      bg = document.createElement('div');
+      bg.id = 'kbSnow'; bg.className = 'kb-snow'; bg.setAttribute('aria-hidden', 'true');
+      _kbSnowParticles(bg, 20, 1);
+      document.body.appendChild(bg);
+    }
+    if (stage && !cn) {
+      cn = document.createElement('div');
+      cn.className = 'cn-snow'; cn.setAttribute('aria-hidden', 'true');
+      _kbSnowParticles(cn, 30, 1.6);
+      stage.insertBefore(cn, stage.firstChild);
+    }
+  };
+  if (document.body) run();
+  else document.addEventListener('DOMContentLoaded', run, { once: true });
+}
 
 function applyTheme(id) {
   const root = document.documentElement;
@@ -27583,6 +27679,7 @@ function applyTheme(id) {
   if (id === 'mono') id = '';
   if (id) root.setAttribute('data-theme', id);
   else    root.removeAttribute('data-theme');
+  _kbSnowToggle(id === 'winter');  // v2.4 윈터 — 설경 눈발
   try { localStorage.setItem(THEME_KEY, id || ''); } catch(e){}
   // theme-color 메타도 함께 업데이트
   const css = getComputedStyle(root);
