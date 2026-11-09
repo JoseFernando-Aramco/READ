@@ -35726,6 +35726,9 @@ function renderMonthStrip() {
   }
 
   function renderShelf(books) {
+    // v2.4 — [오렌지푸우] +N권 타일 탭 → 전체 목록: 접기 전 원본을 책장과 같은 기준으로 정렬해 캐시
+    window._mrShelfAll = books.slice().sort((a, b) =>
+      ((b.isLifeBook ? 1 : 0) - (a.isLifeBook ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)));
     books = _collapseSeriesForShelf(books);  // v1.5.x — 같은 시리즈는 한 장으로
     // v2.4 커버 무드 — 명예의 전당 먼저, 그다음 별점순 (무평점·진행중은 뒤)
     books = books.slice().sort((a, b) =>
@@ -35767,7 +35770,7 @@ function renderMonthStrip() {
     }).join('');
 
     const moreTile = over
-      ? `<div class="mr-cover mr-cover-more"><b>+${total - (MAX - 1)}권</b><span>더 읽었어요</span></div>`
+      ? `<div class="mr-cover mr-cover-more" role="button" tabindex="0" onclick="_mrShelfMore()" onkeydown="if(event.key==='Enter')_mrShelfMore()" aria-label="이 달의 책 전체 보기"><b>+${total - (MAX - 1)}권</b><span>모두 보기</span></div>`
       : '';
     return `<div class="mr-shelf mode-large">${covers}${moreTile}</div>`;
   }
@@ -35903,6 +35906,7 @@ function renderMonthStrip() {
   function renderMonthReport(year, month) {
     const data = _calcMonthReport(year, month);
     const m = data.metrics;
+    window._mrShelfMonth = month + 1;  // v2.4 — +N권 전체 보기 타이틀용
 
     // 헤드라인 + 태그라인
     const tagParts = [];
@@ -36119,6 +36123,16 @@ function renderMonthStrip() {
       } catch (_) { /* noop */ }
     }));
   }
+  /* v2.4 — [오렌지푸우] 책장 +N권 타일 → 이 달의 책 전체 드릴다운 (리포트 모달 위로 승격) */
+  window._mrShelfMore = function () {
+    const books = window._mrShelfAll || [];
+    if (!books.length || typeof openDrillDown !== 'function') return;
+    const bd = document.getElementById('ddBackdrop');
+    const sh = document.getElementById('ddSheet');
+    if (bd) bd.classList.add('dd-above-bf');  // 리포트 모달(400) 위로 — 북플렉스와 같은 승격 패턴
+    if (sh) sh.classList.add('dd-above-bf');
+    openDrillDown(`${window._mrShelfMonth || ''}월의 책장`, `${books.length}권`, books);
+  };
   window.openMonthReport = openMonthReport;
 
   function closeMonthReport() {
