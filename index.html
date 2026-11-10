@@ -431,6 +431,8 @@ html[data-theme="winter"] .cn-overlay {
   background: linear-gradient(180deg, #0C131B 0%, #14202C 60%, #1A2836 100%);
 }
 html[data-theme="winter"] .cn-overlay .cn-snow { display: block; }
+/* 윈터 스킨 — 영화관 레터박스는 검정 띠라 밤하늘 배경과 충돌 → 숨기고 풀블리드 설야로 */
+html[data-theme="winter"] .cn-overlay .cn-letterbox { display: none; }
 .cn-snow { display: none; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .cn-snow i {
   position: absolute; top: -4%; border-radius: 50%;
@@ -27726,6 +27728,7 @@ function renderThemeGrid() {
     saved = '';
   }
   if (saved) document.documentElement.setAttribute('data-theme', saved);
+  _kbSnowToggle(saved === 'winter');  // v2.4 수리 — 앱 재시작 시 저장 테마 복원이 속성만 세팅하고 눈발을 안 만들던 문제
 })();
 
 /* ═══════════ 설정 모달 ═══════════ */
