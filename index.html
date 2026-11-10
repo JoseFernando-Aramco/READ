@@ -448,7 +448,7 @@ html[data-theme="winter"] .cn-overlay {
   --cn-gold:      #8FB4D4;
   --cn-gold-soft: #B8D4EA;
   --cn-gold-glow: rgba(143, 180, 212, 0.25);
-  background: linear-gradient(180deg, #0C131B 0%, #14202C 60%, #1A2836 100%);
+  background: linear-gradient(180deg, #0C131B 0%, #14202C 55%, #1A2836 84%, #0C131B 100%);  /* 하단 비네트 — 끝이 어두워 경계가 안 생김 */
 }
 html[data-theme="winter"] .cn-overlay .cn-snow { display: block; }
 /* 윈터 스킨 — 영화관 레터박스는 검정 띠라 밤하늘 배경과 충돌 → 숨기고 풀블리드 설야로 */
@@ -17067,6 +17067,7 @@ body.cn-locked > :not(#cnOverlay), body.cn-locked > :not(#cnOverlay) * { animati
 
   position: fixed;
   inset: 0;
+  min-height: 100lvh; /* iOS PWA — fixed bottom이 하단 안전영역 앞에서 끊기는 현상 방어 */
   background: #000;
   z-index: var(--z-cinema); /* 모든 모달 위 */
   opacity: 0;
@@ -27671,7 +27672,7 @@ function _kbSnowParticles(el, n, slow) {
     const drop = document.createElement('span');
     drop.className = 'sf-fall';
     drop.style.left = (Math.random() * 100) + '%';
-    drop.style.setProperty('--d', (([15, 11, 8][layer] + Math.random() * 4) * (slow || 1)) + 's');
+    drop.style.setProperty('--d', (([28, 21, 16][layer] + Math.random() * 6) * (slow || 1)) + 's');  // 105vh 낙하 기준 — 시안(460px)과 같은 px/s
     drop.style.setProperty('--dl', (-Math.random() * 30) + 's');
     drop.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
     const sway = document.createElement('span');
