@@ -406,22 +406,42 @@
   --c-gold-glow: #9FB9CF;
 }
 
-/* ═══════════ 설경 — 배경 눈발 (GPU transform, 터치 통과) ═══════════ */
+/* ═══════════ 설경 — 배경 눈발 (결정 5형 · 3계층 원근 · GPU transform, 터치 통과) ═══════════ */
 .kb-snow { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
-.kb-snow i {
-  position: absolute; top: -4%; border-radius: 50%;
-  background: #AFC6D8; opacity: 0;
+.kb-snow .sf-fall, .cn-snow .sf-fall {
+  position: absolute; top: -6%; opacity: 0;
   animation: kbSnowFall linear infinite;
-  animation-duration: var(--d);
+  animation-duration: var(--d); animation-delay: var(--dl);
   will-change: transform, opacity;
 }
+.sf-sway {
+  display: block;
+  animation: kbSnowSway ease-in-out infinite alternate;
+  animation-duration: var(--sd);
+  will-change: transform;
+}
+.sf-flake {
+  display: block; width: var(--sz); height: var(--sz);
+  color: rgba(255, 255, 255, var(--op));
+  filter: blur(var(--bl));  /* 고정값 블러 — 1회 래스터 후 transform만 변함 */
+  animation: kbSnowSpin linear infinite;
+  animation-duration: var(--spd);
+  will-change: transform;
+}
+html[data-theme="winter"] .kb-snow .sf-flake { color: rgba(116, 148, 178, var(--op)); }
+.sf-flake svg { width: 100%; height: 100%; display: block; }
 @keyframes kbSnowFall {
   0%   { transform: translate3d(0, 0, 0); opacity: 0; }
-  8%   { opacity: var(--o); }
-  85%  { opacity: var(--o); }
+  6%   { opacity: 1; }
+  86%  { opacity: 1; }
   100% { transform: translate3d(var(--dx), 105vh, 0); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .kb-snow { display: none; } }
+@keyframes kbSnowSway {
+  from { transform: translateX(calc(var(--sw) * -1)); }
+  to   { transform: translateX(var(--sw)); }
+}
+@keyframes kbSnowSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .kb-snow, .cn-snow { display: none !important; } }
 
 /* ═══════════ 설경 — 시네마 모드 윈터 스킨 (골드 → 아이스 블루, 눈 오는 밤) ═══════════ */
 html[data-theme="winter"] .cn-overlay {
@@ -434,13 +454,6 @@ html[data-theme="winter"] .cn-overlay .cn-snow { display: block; }
 /* 윈터 스킨 — 영화관 레터박스는 검정 띠라 밤하늘 배경과 충돌 → 숨기고 풀블리드 설야로 */
 html[data-theme="winter"] .cn-overlay .cn-letterbox { display: none; }
 .cn-snow { display: none; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.cn-snow i {
-  position: absolute; top: -4%; border-radius: 50%;
-  background: #fff; opacity: 0; box-shadow: 0 0 4px rgba(255,255,255,.35);
-  animation: kbSnowFall linear infinite;
-  animation-duration: var(--d);
-  will-change: transform, opacity;
-}
 
 /* ═══════════ 테마 6 · 미드나잇 [다크모드 · 딥 네이비 + 앰버] ═══════════ */
 [data-theme="midnight"] {
@@ -27639,17 +27652,43 @@ const THEMES = [
 const THEME_KEY = 'read.theme';
 
 /* v2.4 윈터 — 배경(.kb-snow)·시네마(.cn-snow) 눈발 레이어 생성/제거 */
+/* 눈 결정 5형 — 육각판·별형 가지·부채판·바늘판·꽃판 (팔 하나를 60도씩 6회 복제) */
+const _KB_CRYSTALS = (() => {
+  const mk = (id, arm, extra = '', sw = 1.6) =>
+    `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"><defs><g id="${id}">${arm}</g></defs>${extra}${[0, 60, 120, 180, 240, 300].map(a => `<use href="#${id}" transform="rotate(${a} 24 24)"/>`).join('')}</svg>`;
+  return [
+    mk('kbcxA', '<path d="M24 24V7"/>', '<path d="M24 4.5 40.9 14.2V33.8L24 43.5 7.1 33.8V14.2Z"/>'),
+    mk('kbcxB', '<path d="M24 24V5M24 17l-4.5-4M24 17l4.5-4M24 11l-3.4-3M24 11l3.4-3M24 5l-2.6 2.2M24 5l2.6 2.2"/>'),
+    mk('kbcxC', '<path d="M24 24V13"/><path d="M24 5.2 29 8v5.6l-5 2.8-5-2.8V8Z"/>'),
+    mk('kbcxD', '<path d="M24 24V9M21 16h6"/><path d="M24 4.6 27 8l-3 3.4L21 8Z"/>', '', 1.4),
+    mk('kbcxE', '<path d="M24 24V14"/><circle cx="24" cy="10.5" r="4.2"/>', '<path d="M24 18.5 28.8 21.3V26.7L24 29.5 19.2 26.7V21.3Z" stroke-width="1.2"/>'),
+  ];
+})();
 function _kbSnowParticles(el, n, slow) {
   for (let i = 0; i < n; i++) {
-    const s = document.createElement('i');
-    const sz = 2 + Math.random() * 2.5;
-    s.style.width = s.style.height = sz + 'px';
-    s.style.left = (Math.random() * 100) + '%';
-    s.style.setProperty('--d', ((9 + Math.random() * 9) * (slow || 1)) + 's');
-    s.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
-    s.style.setProperty('--o', (0.3 + Math.random() * 0.4).toFixed(2));
-    s.style.animationDelay = (-Math.random() * 25) + 's';
-    el.appendChild(s);
+    const layer = i % 3;  // 0 멀리 · 1 중간 · 2 가까이
+    const sz = [6, 10, 12][layer] * (0.9 + Math.random() * 0.35);
+    const drop = document.createElement('span');
+    drop.className = 'sf-fall';
+    drop.style.left = (Math.random() * 100) + '%';
+    drop.style.setProperty('--d', (([15, 11, 8][layer] + Math.random() * 4) * (slow || 1)) + 's');
+    drop.style.setProperty('--dl', (-Math.random() * 30) + 's');
+    drop.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
+    const sway = document.createElement('span');
+    sway.className = 'sf-sway';
+    sway.style.setProperty('--sd', (2.2 + Math.random() * 2.6) + 's');
+    sway.style.setProperty('--sw', (4 + Math.random() * 10) + 'px');
+    const flake = document.createElement('span');
+    flake.className = 'sf-flake';
+    flake.style.setProperty('--sz', sz.toFixed(1) + 'px');
+    flake.style.setProperty('--bl', [2.2, 1.1, 0][layer] + 'px');
+    flake.style.setProperty('--op', [0.45, 0.65, 0.9][layer]);
+    flake.style.setProperty('--spd', (14 + Math.random() * 14) + 's');
+    flake.style.transform = 'rotate(' + Math.floor(Math.random() * 360) + 'deg)';
+    flake.innerHTML = _KB_CRYSTALS[Math.floor(Math.random() * _KB_CRYSTALS.length)];
+    sway.appendChild(flake);
+    drop.appendChild(sway);
+    el.appendChild(drop);
   }
 }
 function _kbSnowToggle(on) {
@@ -27667,7 +27706,7 @@ function _kbSnowToggle(on) {
     if (stage && !cn) {
       cn = document.createElement('div');
       cn.className = 'cn-snow'; cn.setAttribute('aria-hidden', 'true');
-      _kbSnowParticles(cn, 30, 1.6);
+      _kbSnowParticles(cn, 24, 1.6);
       stage.insertBefore(cn, stage.firstChild);
     }
   };
@@ -35728,7 +35767,7 @@ function renderMonthStrip() {
     return out;
   }
 
-  function renderShelf(books) {
+  function renderShelf(books, full) {
     // v2.4 — [오렌지푸우] +N권 타일 탭 → 전체 목록: 접기 전 원본을 책장과 같은 기준으로 정렬해 캐시
     window._mrShelfAll = books.slice().sort((a, b) =>
       ((b.isLifeBook ? 1 : 0) - (a.isLifeBook ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)));
@@ -35742,7 +35781,7 @@ function renderMonthStrip() {
     }
     // v2.4 — 상한 8칸: 초과분은 +N권 타일로 (두 줄을 넘지 않게)
     const MAX = 8;
-    const over = total > MAX;
+    const over = !full && total > MAX;
     if (over) books = books.slice(0, MAX - 1);
 
     const covers = books.map(b => {
@@ -35909,7 +35948,6 @@ function renderMonthStrip() {
   function renderMonthReport(year, month) {
     const data = _calcMonthReport(year, month);
     const m = data.metrics;
-    window._mrShelfMonth = month + 1;  // v2.4 — +N권 전체 보기 타이틀용
 
     // 헤드라인 + 태그라인
     const tagParts = [];
@@ -36126,15 +36164,12 @@ function renderMonthStrip() {
       } catch (_) { /* noop */ }
     }));
   }
-  /* v2.4 — [오렌지푸우] 책장 +N권 타일 → 이 달의 책 전체 드릴다운 (리포트 모달 위로 승격) */
+  /* v2.4 — [오렌지푸우] 책장 +N권 타일 → 그 자리에서 전체 책장으로 펼침 */
   window._mrShelfMore = function () {
     const books = window._mrShelfAll || [];
-    if (!books.length || typeof openDrillDown !== 'function') return;
-    const bd = document.getElementById('ddBackdrop');
-    const sh = document.getElementById('ddSheet');
-    if (bd) bd.classList.add('dd-above-bf');  // 리포트 모달(400) 위로 — 북플렉스와 같은 승격 패턴
-    if (sh) sh.classList.add('dd-above-bf');
-    openDrillDown(`${window._mrShelfMonth || ''}월의 책장`, `${books.length}권`, books);
+    const el = document.querySelector('.mr-shelf');
+    if (!books.length || !el) return;
+    el.outerHTML = renderShelf(books, true);
   };
   window.openMonthReport = openMonthReport;
 
