@@ -48934,6 +48934,9 @@ function _noteCardClickHandler(e) {
   const card = e.target.closest('[data-note-id]');
   if (card) {
     const id = parseInt(card.dataset.noteId, 10);
+    // v2.4 — 독후감은 범용 노트 편집이 아니라 전용(기념관) 시트로
+    const n = NOTES.find(x => x.id === id);
+    if (n && n.type === 'review') { openQuickNote(n.bookId); return; }
     openNoteEdit(id);
   }
 }
