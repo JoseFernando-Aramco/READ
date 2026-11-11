@@ -4737,6 +4737,23 @@ body:has(.lib-edit-bar) /* v2.2.x — 예시 서재 안내 (신규 유저 혼란
   transition: transform .12s;
 }
 .note-card:active { transform: scale(0.998); }
+/* v2.4 — 오늘 다시 만난 문장 */
+.note-daily { margin-bottom: 12px; }
+.nd-card {
+  border-radius: 14px; padding: 15px 18px 13px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--w1, #D9CFC0) 45%, var(--c-surface)) 0%, var(--c-surface) 88%);
+  box-shadow: 0 2px 10px rgba(25,22,18,0.07);
+}
+html[data-theme="midnight"] .nd-card { background: var(--c-surface-2); }
+.nd-lbl { font-size: 9px; font-weight: 800; letter-spacing: 1.8px; color: var(--c-text-2); opacity: 0.7; margin-bottom: 9px; }
+.nd-body { font-family: 'Noto Serif KR', Georgia, serif; font-size: 14.5px; line-height: 1.85; color: var(--c-text); }
+.nd-src { margin-top: 10px; font-size: 10.5px; font-weight: 600; color: var(--c-muted); }
+/* v2.4 — 인용구 문장 카드: 세리프 중앙 정렬 (긴 글은 왼쪽 정렬 폴백) */
+.note-card.quote { border-left: none; border-radius: 12px; }
+.note-card.quote .note-quote-mark { text-align: center; font-size: 30px; margin: 12px 0 2px; }
+.note-card.quote .note-body { font-family: 'Noto Serif KR', Georgia, serif; text-align: center; font-size: 14.5px; line-height: 1.95; padding: 0 6px; }
+.note-card.quote .note-body.collapsed { text-align: left; }
+.note-card.quote .note-thought-add { text-align: left; }
 /* v2.4 — 독후감 카드 승격(A안): 워시 헤더 + 세리프 본문. 인용구·내 생각 카드는 무변 */
 .note-card.review { border-left: none; padding-top: 0; overflow: hidden; border-radius: 12px; }
 .nrv-head {
@@ -23505,6 +23522,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
 
     <!-- 헤더 통계 — JS 렌더 -->
     <div class="notes-summary-head" id="notesSummaryHead"></div>
+
+    <!-- v2.4 — 오늘 다시 만난 문장 (JS 렌더) -->
+    <div class="note-daily" id="noteDaily" style="display:none"></div>
 
     <!-- 검색 -->
     <div class="note-search">
@@ -48576,9 +48596,38 @@ function renderNoteCarousel() {
   carousel.innerHTML = searchTileHtml + tileHtml + moreHtml;
 }
 
+/* v2.4 — 오늘 다시 만난 문장: 7일 이상 지난 노트 중 하루 한 개 고정(날짜 시드) 재표면 */
+function renderNoteDaily() {
+  const el = document.getElementById('noteDaily');
+  if (!el) return;
+  const hide = () => { el.style.display = 'none'; el.innerHTML = ''; };
+  const now = new Date();
+  const weekAgo = now.getTime() - 7 * 86400000;
+  const pool = NOTES.filter(n => {
+    const t = new Date(n.createdAt).getTime();
+    return t > 0 && t < weekAgo && String(n.body || '').trim();
+  });
+  if (NOTES.length < 3 || !pool.length) { hide(); return; }
+  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  const pick = pool[(seed * 2654435761 >>> 0) % pool.length];
+  const book = BOOKS.find(b => b.id === pick.bookId);
+  if (!book) { hide(); return; }
+  const palette = esc(book.palette || 'demian');
+  let body = String(pick.body).trim().replace(/^[\s"'“”‘’「」『』]+|[\s"'“”‘’「」『』]+$/g, '');
+  if (body.length > 120) body = body.slice(0, 120) + '…';
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="nd-card palette-${palette}">
+      <div class="nd-lbl">${pick.type === 'review' ? '오늘 다시 만난 감상' : '오늘 다시 만난 문장'}</div>
+      <div class="nd-body">${esc(body)}</div>
+      <div class="nd-src">${timeAgo(pick.createdAt)} · 『${esc(book.title)}』</div>
+    </div>`;
+}
+
 /* ─── 메인 렌더 ─── */
 function renderNotesTab() {
   renderNoteSummaryHead();
+  renderNoteDaily();
   renderNoteFilterRow();
   renderNoteCarousel();
   const list = document.getElementById('noteList');
