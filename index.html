@@ -3065,13 +3065,10 @@ body:has(.lib-edit-bar) /* v2.2.x — 예시 서재 안내 (신규 유저 혼란
   display: block;
   font-family: inherit;
 }
-.stats-fold.stats-link {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 18px;
-}
+/* v2.4 — 명예의 전당 한 줄 링크(간소화) */
+.stats-hall-slim { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 44px; margin-top: 2px; padding: 0 12px; border: none; background: transparent; font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--c-text-2); letter-spacing: -0.1px; cursor: pointer; }
+.stats-hall-slim .hall-slim-star { color: var(--c-gold-500); font-size: 13px; }
+.stats-hall-slim .hall-slim-arrow { opacity: 0.55; }
 .stats-fold .fold-head {
   display: flex;
   align-items: center;
@@ -6259,7 +6256,9 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .rtype-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 0.5px solid var(--c-border-2); margin-top: 14px; padding-top: 14px; }
 .rtype-bdg { display: flex; align-items: center; gap: 9px; background: color-mix(in srgb, var(--c-border-2) 24%, var(--c-surface)); border-radius: 9px; padding: 10px 11px; min-width: 0; }
 .rtype-bdg.off { opacity: 0.55; }
-.rtype-bdg-em { font-size: 20px; line-height: 1; flex: 0 0 auto; }
+.rtype-bdg-chip { width: 32px; height: 32px; border-radius: 50%; background: color-mix(in srgb, var(--c-border-2) 42%, var(--c-surface)); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.rtype-bdg-chip .ic { width: 17px; height: 17px; stroke-width: 1.8; }
+.rtype-bdg-ax { font-size: 9px; font-weight: 700; color: var(--c-text-2); opacity: 0.6; letter-spacing: 0.4px; margin-bottom: 2px; }
 .rtype-bdg-nm { font-size: 12.5px; font-weight: 800; color: var(--c-text); letter-spacing: -0.2px; }
 .rtype-bdg-vl { font-size: 10.5px; color: var(--c-text-2); opacity: 0.8; margin-top: 2px; }
 .stat-card-v2:first-of-type {
@@ -22658,6 +22657,20 @@ html[data-theme="midnight"] .bd-head-minipct { background: rgba(255,255,255,.08)
     <symbol id="i-bookmark-solid" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.2L5 21V4a1 1 0 0 1 1-1z"/></symbol>
     <symbol id="i-book-solid" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M11 5.4C9.3 4.1 7 3.3 4.5 3.3c-.7 0-1.3.6-1.3 1.3v13c0 .7.6 1.3 1.3 1.3 2.6 0 4.8.7 6.5 2z"/><path fill="currentColor" stroke="none" d="M13 5.4c1.7-1.3 4-2.1 6.5-2.1.7 0 1.3.6 1.3 1.3v13c0 .7-.6 1.3-1.3 1.3-2.6 0-4.8.7-6.5 2z"/></symbol>
     <symbol id="i-check-solid" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.5-4.3-4.3 1.7-1.7 2.6 2.6 5.8-5.8 1.7 1.7z"/></symbol>
+  <!-- v2.4 — 독서 DNA 뱃지 아이콘 (등급별 13종) -->
+  <symbol id="i-rd-run" viewBox="0 0 24 24"><path d="M13 2 7 13h4.5L9 22l8-11h-4.5L13 2Z"/></symbol>
+  <symbol id="i-rd-steady" viewBox="0 0 24 24"><path d="M3.5 20h5v-5.5h5.5V9H20V4.5"/></symbol>
+  <symbol id="i-rd-slow" viewBox="0 0 24 24"><path d="M6.5 3.5h11M6.5 20.5h11M8.5 3.5v2.2c0 2.6 1.6 3.9 3.5 6.3 1.9-2.4 3.5-3.7 3.5-6.3V3.5M8.5 20.5v-2.2c0-2.6 1.6-3.9 3.5-6.3 1.9 2.4 3.5 3.7 3.5 6.3v2.2"/></symbol>
+  <symbol id="i-rd-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r=".8" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-rd-cup" viewBox="0 0 24 24"><path d="M5 9h12v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9ZM17 10h1.4a2.4 2.4 0 0 1 0 4.8H17M9 3.5v2M13 3.5v2"/></symbol>
+  <symbol id="i-rd-forks" viewBox="0 0 24 24"><path d="M6.5 3v5.5M4.5 3v3.8a2 2 0 0 0 4 0V3M6.5 10.5V21M16.8 3c2.4 2.6 2.4 6.8 0 9.2V21"/></symbol>
+  <symbol id="i-rd-brick" viewBox="0 0 24 24"><path d="M6 3.5h8.5A3.5 3.5 0 0 1 18 7v13.5H9.5A3.5 3.5 0 0 1 6 17V3.5Z"/><path d="M6 7.5h12M6 11h12M6 14.5h12" opacity=".45"/></symbol>
+  <symbol id="i-rd-book" viewBox="0 0 24 24"><path d="M6.8 4H18v16H6.8A1.8 1.8 0 0 1 5 18.2V5.8A1.8 1.8 0 0 1 6.8 4Z"/><path d="M5 16.8c0-1 .8-1.6 1.8-1.6H18"/></symbol>
+  <symbol id="i-rd-feather" viewBox="0 0 24 24"><path d="M19 5c-7 0-12 5-13 13M19 5c0 7-5 12-13 13M9.5 13.5 16 7"/></symbol>
+  <symbol id="i-rd-branch" viewBox="0 0 24 24"><path d="M12 21v-8.5M12 12.5C12 9 8.5 8.5 6 5.5M12 12.5c0-3.5 3.5-4 6-7M12 12.5V5"/><circle cx="6" cy="5" r="1.4"/><circle cx="18" cy="5" r="1.4"/><circle cx="12" cy="4.4" r="1.4"/></symbol>
+  <symbol id="i-rd-shuffle" viewBox="0 0 24 24"><path d="M4 7h3.5L16 17h4M17.5 14.5 20 17l-2.5 2.5M4 17h3.5l2.6-3.1M13.9 10.1 16 7h4M17.5 4.5 20 7l-2.5 2.5"/></symbol>
+  <symbol id="i-rd-pick" viewBox="0 0 24 24"><path d="M4 20.5 12.6 11.9M6.8 8.2C11 3.6 17.6 3.4 21.4 6.2M6.8 8.2c.8 1.5 2 2.9 3.4 4M21.4 6.2c-.3 1.7-.9 3.4-1.9 5M11 9.5l3.6 3.6"/></symbol>
+  <symbol id="i-rd-sprout" viewBox="0 0 24 24"><path d="M12 21v-6.5M12 14.5C11.4 9.8 8.7 7.6 4.8 7.6c.4 4.4 3.3 6.9 7.2 6.9ZM12 14.5c.6-4.7 3.3-6.9 7.2-6.9-.4 4.4-3.3 6.9-7.2 6.9Z"/></symbol>
 </svg>
 
 <div id="sayuBackdrop" aria-hidden="true"></div>
@@ -23272,16 +23285,9 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div id="rtypeBody"></div>
     </div>
 
-    <!-- ═══ 명예의 전당 링크 ═══ -->
-    <button class="stats-fold stats-link" id="statsHallLink" type="button">
-      <div class="fold-head-l">
-        <div class="fold-icon gold">★</div>
-        <div class="fold-head-text">
-          <div class="fold-t">명예의 전당</div>
-          <div class="fold-s" id="statsHallSub">인생책을 모아둔 공간</div>
-        </div>
-      </div>
-      <span class="fold-arrow arrow-right">›</span>
+    <!-- ═══ 명예의 전당 링크 (v2.4 — 한 줄 간소화, 서재 탭 명예의 전당 뷰와 중복이라 축소) ═══ -->
+    <button class="stats-hall-slim" id="statsHallLink" type="button">
+      <span class="hall-slim-star">★</span> 명예의 전당<span id="statsHallSub"></span> <span class="hall-slim-arrow">›</span>
     </button>
 
     <!-- v1.x — 곧 반납할 책 (대여 책이 1권 이상 있을 때만 노출, JS에서 display 토글) -->
@@ -44414,18 +44420,8 @@ function renderLifebookCard() {
   const subEl = document.getElementById('statsHallSub');
   if (!subEl) return;
   const s = computeLifebookStats();
-  if (s.count === 0) {
-    subEl.textContent = '완독한 책을 ★ 인생책으로 표시해보세요';
-    return;
-  }
-  const parts = [`인생책 ${s.count}권`];
-  if (s.count && typeof s.avgRating === 'number' && s.avgRating > 0) {
-    parts.push(`평균 ★${s.avgRating.toFixed(1)}`);
-  }
-  if (s.topTags && s.topTags.length) {
-    parts.push(s.topTags.slice(0, 2).join(' · '));
-  }
-  subEl.textContent = parts.join(' · ');
+  // v2.4 — 한 줄 링크 간소화: 0권이면 이름만, 있으면 '· 인생책 N권'까지만
+  subEl.textContent = s.count > 0 ? ` · 인생책 ${s.count}권` : '';
 }
 
 /* ─── ② 요일별 패턴 ─── */
@@ -44575,7 +44571,7 @@ function _rdnaEsc(s) {
 function computeReadingDnaBadges() {
   const books = Array.isArray(BOOKS) ? BOOKS : [];
   const done = books.filter(b => b && b.status === 'done');
-  const pending = () => ({ emoji: '🌱', name: '알아가는 중', value: '완독 ' + RDNA_MIN_BOOKS + '권부터', off: true });
+  const pending = () => ({ icon: 'i-rd-sprout', name: '알아가는 중', value: '완독 ' + RDNA_MIN_BOOKS + '권부터', off: true });
 
   // ① 페이스 — 완독 책별 pages÷(완독일−시작일+1)의 평균
   let pace = pending();
@@ -44589,9 +44585,9 @@ function computeReadingDnaBadges() {
   });
   if (rates.length >= RDNA_MIN_BOOKS) {
     const avg = rates.reduce((a, x) => a + x, 0) / rates.length;
-    pace = avg >= 60 ? { emoji: '🏃', name: '질주형' }
-         : avg >= 20 ? { emoji: '🚶', name: '꾸준형' }
-         : { emoji: '🐢', name: '음미형' };
+    pace = avg >= 60 ? { icon: 'i-rd-run', name: '질주형' }
+         : avg >= 20 ? { icon: 'i-rd-steady', name: '꾸준형' }
+         : { icon: 'i-rd-slow', name: '음미형' };
     pace.value = '하루 평균 ' + Math.round(avg) + 'p';
   }
 
@@ -44612,9 +44608,9 @@ function computeReadingDnaBadges() {
     let top = '', topN = 0;
     Object.keys(tagBooks).forEach(t => { if (tagBooks[t] > topN) { top = t; topN = tagBooks[t]; } });
     const sharePct = Math.round((topN / taggedTotal) * 100);
-    genre = sharePct >= 55 ? { emoji: '🎯', name: _rdnaEsc(top) + ' 장인', value: '읽은 책의 ' + sharePct + '%' }
-          : sharePct < 35 ? { emoji: '🍽️', name: '잡식가', value: '최다 장르 ' + sharePct + '%' }
-          : { emoji: '🎨', name: '균형파', value: _rdnaEsc(top) + ' ' + sharePct + '%' };
+    genre = sharePct >= 55 ? { icon: 'i-rd-target', name: _rdnaEsc(top) + ' 장인', value: '읽은 책의 ' + sharePct + '%' }
+          : sharePct < 35 ? { icon: 'i-rd-forks', name: '잡식가', value: '최다 장르 ' + sharePct + '%' }
+          : { icon: 'i-rd-cup', name: '단골파', value: _rdnaEsc(top) + ' ' + sharePct + '%' };
   }
 
   // ③ 두께 — 완독 책 평균 페이지
@@ -44622,9 +44618,9 @@ function computeReadingDnaBadges() {
   const pagesArr = done.map(b => Number(b.pages) || 0).filter(p => p > 0);
   if (pagesArr.length >= RDNA_MIN_BOOKS) {
     const avg = pagesArr.reduce((a, x) => a + x, 0) / pagesArr.length;
-    thick = avg >= 420 ? { emoji: '🧱', name: '벽돌형' }
-          : avg < 250 ? { emoji: '🪶', name: '경장편형' }
-          : { emoji: '📗', name: '균형형' };
+    thick = avg >= 420 ? { icon: 'i-rd-brick', name: '벽돌형' }
+          : avg < 250 ? { icon: 'i-rd-feather', name: '경장편형' }
+          : { icon: 'i-rd-book', name: '중장편형' };
     thick.value = '평균 ' + Math.round(avg) + 'p';
   }
 
@@ -44648,12 +44644,14 @@ function computeReadingDnaBadges() {
     }
     union += ce - cs + 1;
     const conc = union > 0 ? bookDays / union : 1;
-    multi = conc >= 2.5 ? { emoji: '🐙', name: '문어발형' }
-          : conc <= 1.5 ? { emoji: '⛏️', name: '한우물형' }
-          : { emoji: '🔀', name: '넘나들기형' };
+    multi = conc >= 2.5 ? { icon: 'i-rd-branch', name: '문어발형' }
+          : conc <= 1.5 ? { icon: 'i-rd-pick', name: '한우물형' }
+          : { icon: 'i-rd-shuffle', name: '넘나들기형' };
     multi.value = '동시에 ' + (Math.round(conc * 10) / 10) + '권';
   }
 
+  // v2.4 — 각 뱃지에 축 타이틀 (무엇의 유형인지)
+  pace.axis = '페이스'; genre.axis = '장르'; thick.axis = '두께'; multi.axis = '동시 독서';
   return [pace, genre, thick, multi];
 }
 
@@ -44662,8 +44660,9 @@ function _renderRdnaGrid() {
   if (badges.every(x => x.off)) return '';
   return '<div class="rtype-grid">' + badges.map(x =>
     '<div class="rtype-bdg' + (x.off ? ' off' : '') + '">' +
-      '<div class="rtype-bdg-em">' + x.emoji + '</div>' +
-      '<div><div class="rtype-bdg-nm">' + x.name + '</div>' +
+      '<div class="rtype-bdg-chip"><svg class="ic" aria-hidden="true"><use href="#' + x.icon + '"/></svg></div>' +
+      '<div><div class="rtype-bdg-ax">' + x.axis + '</div>' +
+      '<div class="rtype-bdg-nm">' + x.name + '</div>' +
       '<div class="rtype-bdg-vl">' + x.value + '</div></div>' +
     '</div>').join('');
 }
