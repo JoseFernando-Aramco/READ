@@ -1021,6 +1021,7 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
 .now-slim-actions .now-btn.ghost {
   padding: 11px 18px;
 }
+.now-slim-actions .now-btn.ghost.bc-full { flex: 1; }  /* v2.4 — 타이머 버튼 숨김 시 */
 .now-slim-progress {
   position: absolute;
   left: 0; bottom: 0; right: 0;
@@ -1094,10 +1095,10 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 2px;
+  margin-top: 12px;  /* v2.4 — [카페 건의] 타이머 버튼과 오터치 방지 간격 */
 }
 .now-slim-arrow {
-  width: 30px; height: 30px;
+  width: 44px; height: 34px;  /* v2.4 — 터치 타깃 확대 */
   background: rgba(255,255,255,0.85);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
@@ -18723,7 +18724,7 @@ body.cn-locked {
 /* v1.5.x — 독서중 진행률: 표지 우상단 흰 글씨 + 이중 그림자 (밝은/어두운 표지 모두 또렷, 표지색 안 죽임) */
 .bc-pct-corner {
   position: absolute;
-  top: 6px;
+  bottom: 6px;  /* v2.4 — [카페 건의] 표지 상단 제목 가림 → 우하단으로 */
   right: 7px;
   z-index: 9;
   color: #fff;
@@ -23829,6 +23830,14 @@ body.sayu-active #pane-sayu{ background:transparent; }
           </div>
           <div class="settings-row-right" id="noteFontState">명조</div>
         </button>
+        <button class="settings-row" id="bcTimerRow">
+          <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-timer"/></svg></div>
+          <div class="settings-row-main">
+            <div class="settings-row-ttl">북카드 타이머 버튼</div>
+            <div class="settings-row-sub">타이머를 안 쓰면 숨길 수 있어요</div>
+          </div>
+          <div class="settings-row-right" id="bcTimerState">표시</div>
+        </button>
         <button class="settings-row" id="notifRow">
           <div class="settings-row-icon"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-bell"/></svg></div>
           <div class="settings-row-main">
@@ -25818,7 +25827,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="ex-format-lbl">내보낼 형식</div>
       <div class="ex-format-grid">
         <button class="ex-format-btn active" data-format="json">
-          <div class="ex-format-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-download"/></svg></div>
+          <div class="ex-format-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-upload"/></svg></div>
           <div class="ex-format-text">
             <div class="ex-format-ttl">JSON</div>
             <div class="ex-format-sub">백업 · 복원용</div>
@@ -25837,10 +25846,10 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="ex-actions">
       <button class="ex-btn ghost small" id="exCancelBtn">취소</button>
       <button class="ex-btn secondary" id="exImportBtn" title="JSON 백업 파일 복원">
-        <svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> <span>JSON 가져오기</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> <span>JSON 가져오기</span>
       </button>
       <button class="ex-btn primary" id="exExportBtn">
-        <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> <span id="exExportLbl">JSON 내보내기</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> <span id="exExportLbl">JSON 내보내기</span>
       </button>
     </div>
 
@@ -26124,7 +26133,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <!-- 복원하기 카드 -->
       <div class="restore-card">
         <div class="restore-head">
-          <div class="restore-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-upload"/></svg></div>
+          <div class="restore-icon"><svg aria-hidden="true" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><use href="#i-download"/></svg></div>
           <div class="restore-ttl">데이터 복원 방법</div>
         </div>
         <div class="restore-body">
@@ -35581,7 +35590,9 @@ function renderNowHero(arr) {
   const b = arr[_nowHeroIdx];
   const pct = b.pages ? Math.round((b.currentPage || 0) / b.pages * 100) : 0;
   const timerRunning = TIMER.bookId === b.id;
-  const primaryBtn = timerRunning
+  // v2.4 — [카페 건의] 타이머 비사용자용 숨김 옵션 (실행 중일 땐 항상 표시)
+  const _bcHideTimer = localStorage.getItem('read.bcTimerBtn') === 'hide' && !timerRunning;
+  const primaryBtn = _bcHideTimer ? '' : timerRunning
     ? `<button class="now-btn primary timer-running" data-action="cinema-resume" id="nowTimerBtn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> --:-- · 계속 읽기</button>`
     : `<button class="now-btn primary" data-action="start-timer" data-book-id="${b.id}"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg> 타이머 시작</button>`;
 
@@ -35620,7 +35631,7 @@ function renderNowHero(arr) {
         </div>
         <div class="now-slim-actions">
           ${primaryBtn}
-          <button class="now-btn ghost" data-action="open-detail" data-book-id="${b.id}">상세</button>
+          <button class="now-btn ghost${_bcHideTimer ? ' bc-full' : ''}" data-action="open-detail" data-book-id="${b.id}">상세${_bcHideTimer ? ' 보기' : ''}</button>
         </div>
         ${progressBlock}
         ${typeof _pcHeroPaceHtml === 'function' ? _pcHeroPaceHtml(b) : ''}
@@ -41356,11 +41367,11 @@ function renderBookDetail() {
           <div class="bd-hero-meta">
             <div class="bd-meta-list">
               ${b.publisher ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-publisher"></span><span class="bd-meta-lbl">출판사</span><span class="bd-meta-val">${esc(b.publisher)}</span></div>` : ''}
-              ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
               ${isWebnovel(b) && b.episodes
                 ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">${getNovelUnitLabel(b)}</span><span class="bd-meta-val">${b.episodes}${getNovelUnitChar(b)}${isSerialNovel(b) ? ' <span style="color:#b89968;font-weight:700;margin-left:2px;">· 연재중</span>' : ''}</span></div>`
                 : (b.pages ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-pages"></span><span class="bd-meta-lbl">페이지</span><span class="bd-meta-val">${b.pages}p</span></div>` : '')}
               ${isNonKo ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-lang"></span><span class="bd-meta-lbl">언어</span><span class="bd-meta-val">${esc(b.language.toUpperCase())}</span></div>` : ''}
+              ${hasPrice ? `<div class="bd-meta-row"><span class="bd-meta-dot bd-meta-dot-price"></span><span class="bd-meta-lbl">정가</span><span class="bd-meta-val">${b.priceSales.toLocaleString('ko-KR')}원</span></div>` : ''}
               ${renderAcqMetaRow(b)}
               ${isWebnovel(b) ? '' : `<button type="button" class="bd-meta-row bd-meta-enrich" id="bdEnrichBtn" aria-label="책 정보 자동으로 채우기">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
@@ -50340,6 +50351,29 @@ function scheduleNextNotif() {
       apply(cur);
       showToast('노트 서체: ' + LABEL[cur]);
       try { renderNotesTab(); } catch (e) {}
+    });
+  })();
+  /* v2.4 — [카페 건의] 북카드 타이머 버튼 표시/숨김 */
+  (function wireBcTimer() {
+    const KEY = 'read.bcTimerBtn';
+    const st = document.getElementById('bcTimerState');
+    const apply = () => { if (st) st.textContent = localStorage.getItem(KEY) === 'hide' ? '숨김' : '표시'; };
+    apply();
+    const row = document.getElementById('bcTimerRow');
+    if (row) row.addEventListener('click', () => {
+      const wasHidden = localStorage.getItem(KEY) === 'hide';
+      if (wasHidden) localStorage.removeItem(KEY); else localStorage.setItem(KEY, 'hide');
+      apply();
+      showToast(wasHidden ? '북카드에 타이머 버튼을 다시 표시해요' : '북카드에서 타이머 버튼을 숨겼어요');
+      try {
+        const oldHero = document.getElementById('nowHero');
+        const arr = BOOKS.filter(b => b.status === 'reading');
+        if (oldHero && arr.length) {
+          const wrap = document.createElement('div');
+          wrap.innerHTML = renderNowHero(arr);
+          if (wrap.firstElementChild) oldHero.replaceWith(wrap.firstElementChild);
+        }
+      } catch (e) {}
     });
   })();
   const row = document.getElementById('notifRow');
