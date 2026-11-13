@@ -31262,7 +31262,19 @@ const ALADIN_PROXY_URL = 'https://read.jych0116.workers.dev';
    ═══════════════════════════════════════════════════════════ */
 (function _trackVisit() {
   try {
-    const url = ALADIN_PROXY_URL + '/track';
+    // v2.4 — 접속 경로(홈 화면 앱/브라우저)·유입처를 쿼리로 동봉 (어드민 경로 분석용, 개인정보 X)
+    let mode = 'web';
+    try {
+      if ((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true) mode = 'pwa';
+    } catch (e) {}
+    let ref = 'direct';
+    try {
+      if (document.referrer) {
+        const h = new URL(document.referrer).hostname;
+        if (h && h !== location.hostname) ref = h;
+      }
+    } catch (e) {}
+    const url = ALADIN_PROXY_URL + '/track?m=' + mode + '&r=' + encodeURIComponent(ref);
     if (navigator.sendBeacon) {
       navigator.sendBeacon(url);
     } else {
