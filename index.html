@@ -16583,7 +16583,7 @@ html.kbd-open .ct-modal.open .ct-card {
 .na-head {
   padding: 14px 18px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--c-border);
@@ -22444,6 +22444,11 @@ html[data-theme="midnight"] .bdpc-ring-me { stroke: #8A7765; }
 .bdpc-foot-ring { justify-content: flex-end; margin-top: 2px; }
 /* v2.4 — 새 노트 집중 모드 (nf) */
 .na-head { border-bottom: none; padding: 12px 14px 10px; }
+/* v2.4 — 노트 시트 B안: 책 변경 칩 · 인용 따옴표 · 도구바 휴지통 */
+.na-chg-book { border: 1px solid var(--c-border-2); background: transparent; color: var(--c-text-2); font-size: 11px; font-weight: 700; border-radius: 100px; padding: 7px 11px; font-family: inherit; white-space: nowrap; cursor: pointer; }
+.nf-qmark { font-family: Georgia, 'Noto Serif KR', serif; font-size: 34px; line-height: 0.5; color: var(--w2, var(--c-border-2)); margin: 10px 4px -2px; }
+.nf-del { border: none; background: transparent; color: #B85A4A; margin-left: auto; min-width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.nf-del .ic { width: 17px; height: 17px; }
 html:not([data-theme="midnight"]) .na-head { background: linear-gradient(180deg, color-mix(in srgb, var(--w1, #C6CEDB) 50%, transparent), transparent); }
 html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in srgb, var(--w1, #C6CEDB) 50%, transparent); }
 .nf-bookbar { display: flex; align-items: center; gap: 9px; min-width: 0; }
@@ -22455,6 +22460,7 @@ html:not([data-theme="midnight"]) .na-sheet .bas-grip { background: color-mix(in
 .na-sheet .na-body { gap: 10px; padding: 12px 20px 40px; }
 .nf-thlbl { align-self: flex-start; font-size: 10px; font-weight: 800; color: #8A7A55; background: rgba(201,162,39,.13); border-radius: 5px; padding: 4px 9px; letter-spacing: .3px; }
 .na-sheet .na-textarea.nf-main { border: none; background: transparent; padding: 4px 2px; font-size: 17px; line-height: 1.85; min-height: 132px; border-radius: 0; box-shadow: none; }
+.na-sheet.nf-roomy .na-textarea.nf-main { min-height: min(320px, 38dvh); }  /* v2.4 — 책 영역 접힘 시 본문 확장 */
 .na-sheet .na-textarea.nf-main:focus { border: none; box-shadow: none; }
 .na-sheet .na-textarea.nf-main.nf-serif { font-family: 'Noto Serif KR', Georgia, serif; }
 .na-sheet .na-textarea.nf-sub { border: none; background: var(--c-surface-2); border-radius: 12px; font-size: 16px; line-height: 1.7; padding: 12px 14px; min-height: 72px; box-shadow: none; }
@@ -24758,6 +24764,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="na-head-ttl" id="naHeadTtl">새 노트</div>
       </div>
     </div>
+    <button type="button" class="na-chg-book" id="naChangeBook" hidden>책 변경</button>
     <button class="na-save-btn" id="naSave" disabled>저장</button>
   </div>
   <div class="na-body">
@@ -24780,11 +24787,11 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="na-locked-book" id="naLockedBook"></div>
     </div>
 
+    <div class="nf-qmark" id="nfQmark" aria-hidden="true" hidden>“</div>
     <span class="nf-thlbl" id="nfThLbl" hidden>✎ 내 생각</span>
     <textarea class="na-textarea nf-main nf-serif" id="naBody" placeholder="마음에 닿은 문장을 옮겨 적어보세요"></textarea>
     <textarea class="na-textarea na-thought nf-sub" id="naThought" placeholder="이 문장이 왜 좋았나요? — 내 생각 (선택)"></textarea>
 
-    <div class="na-delete-zone" id="naDeleteZone" style="display:none"></div>
   </div>
   <!-- v2.4 집중 모드 — 하단 도구 바 (타입 · 위치 · 즐겨찾기 · Live Text) -->
   <div class="nf-tools" id="nfTools">
@@ -24800,6 +24807,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <button class="nf-star" id="naFav" aria-label="즐겨찾기">
       <span class="na-fav-icon">★</span><span id="naFavLbl" class="nf-hide"></span>
     </button>
+    <button type="button" class="nf-del" id="naDelTool" hidden aria-label="이 노트 삭제"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
     <button type="button" class="nf-ocr" id="naOcrBtn" onclick="openLtModal()" aria-label="Live Text로 문장 추출">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg>
     </button>
@@ -49636,6 +49644,8 @@ function resetNA(defaults = {}) {
   NA.thought = defaults.thought || '';
   NA.favorite = !!defaults.favorite;
   NA.bookLocked = !!defaults.bookLocked;
+  // v2.4 — 책 선택 영역 펼침 여부 (편집은 접힌 채 시작, 새 노트는 펼침)
+  NA.pickerOpen = defaults.pickerOpen != null ? !!defaults.pickerOpen : true;
 }
 
 /* v1.8.0 — 노트 책 선택 picker (검색형 + 그룹 리스트) */
@@ -49788,12 +49798,24 @@ function renderNA() {
       if (el) el.innerHTML = _naLockedBookHtml(b);
     }
   } else {
-    if (bookField) bookField.style.display = '';
+    // v2.4 — 책이 정해져 있고 펼침 요청이 없으면 책 선택 영역 접기 (본문이 주인공)
+    const pickOpen = !NA.bookId || !!NA.pickerOpen;
+    if (bookField) bookField.style.display = pickOpen ? '' : 'none';
     if (lockedField) lockedField.style.display = 'none';
-    // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
-    const searchInput = document.getElementById('bpSearch');
-    const currentQuery = searchInput ? searchInput.value : '';
-    renderBookPicker(currentQuery);
+    if (pickOpen) {
+      // v1.8.0 — picker는 현재 검색어 유지하면서 재렌더
+      const searchInput = document.getElementById('bpSearch');
+      const currentQuery = searchInput ? searchInput.value : '';
+      renderBookPicker(currentQuery);
+    }
+  }
+  // v2.4 — [책 변경] 칩: 책 선택 영역이 접혀 있을 때만 노출
+  {
+    const chg = document.getElementById('naChangeBook');
+    if (chg) chg.hidden = !(!locked && NA.bookId && !NA.pickerOpen);
+    // 접혀 있으면 본문이 주인공 — 기본 높이 확장
+    const sheetEl = document.getElementById('naSheet');
+    if (sheetEl) sheetEl.classList.toggle('nf-roomy', !!(locked || (NA.bookId && !NA.pickerOpen)));
   }
 
   document.getElementById('naHeadTtl').textContent = NA.editingId ? '노트 편집' : '새 노트';
@@ -49827,6 +49849,8 @@ function renderNA() {
     }
     const _thl = document.getElementById('nfThLbl');
     if (_thl) _thl.hidden = NA.type !== 'thought';
+    const _qm = document.getElementById('nfQmark');
+    if (_qm) _qm.hidden = NA.type !== 'quote';
     const _u = document.getElementById('nfLocU');
     if (_u) _u.textContent = _naBookIsDigital() ? '%' : 'p';
   }
@@ -49870,15 +49894,9 @@ function renderNA() {
   fav.classList.toggle('on', NA.favorite);
   document.getElementById('naFavLbl').textContent = NA.favorite ? '즐겨찾기 설정됨' : '즐겨찾기에 추가';
 
-  // 편집 모드에서 삭제 구역 노출
-  const delZone = document.getElementById('naDeleteZone');
-  if (NA.editingId) {
-    delZone.style.display = '';
-    delZone.innerHTML = `<button class="na-delete-btn" id="naDeleteBtn"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 이 노트 삭제</button>`;
-  } else {
-    delZone.style.display = 'none';
-    delZone.innerHTML = '';
-  }
+  // v2.4 — 삭제는 하단 도구 바의 휴지통으로 (본문 공간 확보)
+  const delTool = document.getElementById('naDelTool');
+  if (delTool) delTool.hidden = !NA.editingId;
 
   updateNASaveBtn();
 }
@@ -49927,6 +49945,7 @@ function openNoteEdit(id) {
     body: note.body,
     thought: note.thought || '',
     favorite: note.favorite,
+    pickerOpen: false,
   });
   renderNA();
   // v2.x — 묶음 펼침 시트 위에서 열렸으면 상세보다 위 레이어로
@@ -50080,6 +50099,7 @@ document.getElementById('naClose').addEventListener('click', closeNoteSheet);
       // 같은 책 다시 누르면 선택 해제 (저장 버튼 비활성화)
       const numId = isNaN(+id) ? id : +id;
       NA.bookId = (String(NA.bookId) === String(id)) ? null : numId;
+      if (NA.bookId != null) NA.pickerOpen = false;   // v2.4 — 고르면 자동 접힘
       // v2.4 집중 모드 — 책 고르면 위치 제안 + 상단 책 바·워시까지 갱신 (renderNA가 picker 재렌더 포함)
       if (NA.bookId != null && !NA.page) {
         const _sv2 = _naSuggestLoc(BOOKS.find(x => String(x.id) === String(NA.bookId)));
@@ -50128,6 +50148,8 @@ document.getElementById('naTypeSeg').addEventListener('click', (e) => {
   }
   const _thl2 = document.getElementById('nfThLbl');
   if (_thl2) _thl2.hidden = NA.type !== 'thought';
+  const _qm2 = document.getElementById('nfQmark');
+  if (_qm2) _qm2.hidden = NA.type !== 'quote';
 });
 
 document.getElementById('naPage').addEventListener('input', (e) => {
@@ -50186,27 +50208,24 @@ document.getElementById('naFav').addEventListener('click', () => {
 
 document.getElementById('naSave').addEventListener('click', saveNote);
 
-// 삭제 (위임 — 동적 생성된 버튼)
-document.getElementById('naDeleteZone').addEventListener('click', (e) => {
-  const delBtn = e.target.closest('#naDeleteBtn');
-  const delConfirm = e.target.closest('#naDeleteConfirm');
-  const delCancel = e.target.closest('#naDeleteCancel');
+// v2.4 — 삭제: 하단 도구 바 휴지통 → 공통 확인 모달 (confirm z 600 > 시트 301)
+document.getElementById('naDelTool')?.addEventListener('click', () => {
+  if (!NA.editingId) return;
+  showConfirm({
+    title: '이 노트 삭제',
+    message: '이 노트를 삭제할까요?',
+    confirmLabel: '삭제',
+    cancelLabel: '취소',
+    destructive: true,
+    onConfirm: () => deleteNote(NA.editingId),
+  });
+});
 
-  if (delBtn) {
-    // 확인 UI 전환
-    document.getElementById('naDeleteZone').innerHTML = `
-      <div class="na-delete-confirm">
-        <div class="na-delete-confirm-ttl">정말 삭제할까요?</div>
-        <div class="na-delete-actions">
-          <button class="cancel" id="naDeleteCancel">취소</button>
-          <button class="confirm" id="naDeleteConfirm">삭제</button>
-        </div>
-      </div>`;
-  } else if (delCancel) {
-    document.getElementById('naDeleteZone').innerHTML = `<button class="na-delete-btn" id="naDeleteBtn"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 이 노트 삭제</button>`;
-  } else if (delConfirm) {
-    if (NA.editingId) deleteNote(NA.editingId);
-  }
+// v2.4 — [책 변경] 칩: 접힌 책 선택 영역 다시 펼치기
+document.getElementById('naChangeBook')?.addEventListener('click', () => {
+  NA.pickerOpen = true;
+  renderNA();
+  setTimeout(() => document.getElementById('bpSearch')?.focus(), 60);
 });
 
 /* ─── FAB 컨텍스트 인식 (노트 탭에선 노트 추가) ─── */
