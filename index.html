@@ -33188,10 +33188,9 @@ function _hideTag(name) {
 function _restoreTag(name) {
   HIDDEN_TAGS.delete(name);
   STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
-  // 숨김 탭 비면 자동으로 다른 탭으로
+  // 숨김 탭 비면 복구된 태그의 분류로 이동 (v2.4 — 편집 모드는 유지, 완료는 사용자가 누른다)
   if (HIDDEN_TAGS.size === 0 && BA.tagsActiveCat === 'hidden') {
     BA.tagsActiveCat = TAGS[name]?.category || 'genre';
-    BA.tagEditMode = false;
   }
   renderTagChips();
   showToast(`"${name}" 복구됨`);
@@ -33469,9 +33468,9 @@ function renderBookDetailTags() {
         } else if (action === 'restore') {
           HIDDEN_TAGS.delete(name);
           STORE.set('hiddenTags', Array.from(HIDDEN_TAGS));
+          // v2.4 — 편집 모드는 유지, 완료는 사용자가 누른다
           if (HIDDEN_TAGS.size === 0 && BD.tagsActiveCat === 'hidden') {
             BD.tagsActiveCat = TAGS[name]?.category || 'genre';
-            BD.tagEditMode = false;
           }
           renderBookDetailTags();
           refreshTagSummary(); // v1.10.4 — 위 요약도 즉시 갱신 (복구된 태그가 책에 있으면 다시 노출)
