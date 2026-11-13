@@ -32999,9 +32999,16 @@ function _onCatDragEnd(e) {
     saveTagCategories();
     showToast('순서 변경됨');
   }
+  // v2.4 수리 — 움직이지 않았으면(단순 클릭) 탭을 제거·재렌더하지 않는다.
+  // pointerup에서 tab.remove()를 하면 뒤따르는 click 이벤트가 소멸해 편집 모드의 탭 본체 클릭이 전부 먹통이었다.
+  if (!_catDrag.moved) {
+    _catDragMoved = false;
+    _catDrag = null;
+    return;
+  }
   if (_catDrag.placeholder) _catDrag.placeholder.remove();
   tab.remove();  // v1.12.1 — body로 빼둔 원본 제거 (재렌더가 strip을 새로 그림)
-  _catDragMoved = _catDrag.moved;  // 드래그였으면 직후 click 무시
+  _catDragMoved = true;  // 드래그 직후 click 무시
   _catDrag = null;
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
 }
