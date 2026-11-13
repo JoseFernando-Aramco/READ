@@ -8601,7 +8601,7 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
   z-index: 1199;
 }
 .cat-edit-backdrop.is-open { opacity: 1; pointer-events: auto; }
-.cat-edit-sheet { z-index: 1200; }
+.qn-sheet.cat-edit-sheet { z-index: 1200; }  /* v2.4 수리 — 뒤에 선언된 .qn-sheet(z 701)가 덮지 않게 특이도 상향 */
 .cat-sheet-del-row { margin: 14px 0 4px; }
 /* v2.4 — 숨긴 대분류 (편집 모드에서만 흐리게 노출) */
 .tag-cat-tab.is-cat-off { opacity: 0.42; }
@@ -32818,17 +32818,20 @@ function openCatEditSheet(id, scope) {
   const hideBtn = document.getElementById('catSheetHide');
   if (hideBtn) hideBtn.textContent = cat.hidden ? '이 대분류 다시 보이기' : '이 대분류 숨기기';
 
-  // 삭제 버튼 가드: 기본 분류 불가 / 태그 있으면 불가
+  // 삭제 버튼: 기본 분류는 버튼·힌트 자체 숨김(v2.4) / 커스텀은 태그 있으면 비활성
   if (delBtn && delHint) {
     if (cat.locked) {
-      delBtn.disabled = true;
-      delHint.textContent = '기본 대분류는 삭제할 수 없어요';
-    } else if (count > 0) {
-      delBtn.disabled = true;
-      delHint.textContent = '태그를 먼저 비우거나 옮긴 뒤 삭제할 수 있어요';
-    } else {
-      delBtn.disabled = false;
+      delBtn.style.display = 'none';
       delHint.textContent = '';
+    } else {
+      delBtn.style.display = '';
+      if (count > 0) {
+        delBtn.disabled = true;
+        delHint.textContent = '태그를 먼저 비우거나 옮긴 뒤 삭제할 수 있어요';
+      } else {
+        delBtn.disabled = false;
+        delHint.textContent = '';
+      }
     }
   }
 
