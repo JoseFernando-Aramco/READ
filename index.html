@@ -8603,6 +8603,22 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .cat-edit-backdrop.is-open { opacity: 1; pointer-events: auto; }
 .cat-edit-sheet { z-index: 1200; }
 .cat-sheet-del-row { margin: 14px 0 4px; }
+/* v2.4 — 숨긴 대분류 (편집 모드에서만 흐리게 노출) */
+.tag-cat-tab.is-cat-off { opacity: 0.42; }
+.cat-sheet-hide-btn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: transparent;
+  color: var(--c-text-2);
+  border: 1px solid var(--c-border-2);
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
 .cat-sheet-del-btn {
   width: 100%;
   padding: 10px;
@@ -24314,7 +24330,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
-        <div class="tag-cat-edit-hint" id="tagCatEditHint">대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+        <div class="tag-cat-edit-hint" id="tagCatEditHint">대분류 탭을 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
         <div class="tag-cat-add-wrap" id="tagCatAddWrap">
           <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
           <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BA')">추가</button>
@@ -25228,6 +25244,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       onkeydown="if(event.key==='Enter'){event.preventDefault();saveCatEditSheet();}" />
   </div>
   <div class="cat-sheet-del-row">
+    <button type="button" class="cat-sheet-hide-btn" id="catSheetHide" onclick="toggleCatHideFromSheet()">이 대분류 숨기기</button>
     <button type="button" class="cat-sheet-del-btn" id="catSheetDelete" onclick="deleteCatFromSheet()">이 대분류 삭제</button>
     <div class="cat-sheet-del-hint" id="catSheetDelHint"></div>
   </div>
@@ -32654,7 +32671,9 @@ function _renderCatTabs(tabsEl, scope) {
   const editing = !!state.tagEditMode && state.tagsActiveCat !== 'hidden';
   // 편집 모드면 컨테이너에 여백 클래스 (좌상단 ✎ 배지가 잘리지 않게)
   tabsEl.classList.toggle('is-editing-mode', editing);
-  const sorted = getTagCategoriesSorted();
+  // v2.4 — 숨긴 대분류는 편집 모드에서만 흐리게 노출 (복구 진입용)
+  const rawEdit = !!state.tagEditMode;
+  const sorted = getTagCategoriesSorted().filter(c => !c.hidden || rawEdit);
 
   let html = sorted.map(c => {
     const count = _getTagsByCategory(c.id).length;
@@ -32664,6 +32683,7 @@ function _renderCatTabs(tabsEl, scope) {
     if (editing) {
       cls += ' is-cat-editing';
     }
+    if (c.hidden) cls += ' is-cat-off';
     if (state.tagsActiveCat === c.id) cls += ' is-active';  // 편집 중에도 현재 탭 표시 유지
 
     // 편집 모드: 소분류와 동일하게 ✏️ 배지 하나만 (삭제는 모달에서)
@@ -32674,8 +32694,8 @@ function _renderCatTabs(tabsEl, scope) {
     return `<button type="button" class="${cls}" data-cat="${c.id}" data-catact="select">${actions}${esc(c.label)}${cntBadge}</button>`;
   }).join('');
 
-  // 숨김 탭 (항상 노출 — 숨긴 태그 있을 때)
-  if (HIDDEN_TAGS.size > 0) {
+  // 숨김 탭 (v2.4 — 편집 모드에서만 노출, 숨긴 태그 있을 때)
+  if (rawEdit && HIDDEN_TAGS.size > 0) {
     const hcls = 'tag-cat-tab is-hidden-tab' + (state.tagsActiveCat === 'hidden' ? ' is-active' : '');
     html += `<button type="button" class="${hcls}" data-cat="hidden" data-catact="select">숨김<span class="tcc">${HIDDEN_TAGS.size}</span></button>`;
   }
@@ -32754,7 +32774,7 @@ function _deleteCatCategory(id, scope) {
   if (cat.locked) { showToast('기본 대분류는 삭제할 수 없어요'); return false; }
   if (_getTagsByCategory(id).length > 0) { showToast('이 대분류의 태그를 먼저 비우거나 옮겨주세요'); return false; }
   TAG_CAT_LIST = TAG_CAT_LIST.filter(c => c.id !== id);
-  if (state.tagsActiveCat === id) state.tagsActiveCat = getTagCategoriesSorted()[0]?.id || 'genre';
+  if (state.tagsActiveCat === id) state.tagsActiveCat = getTagCategoriesSorted().find(c => !c.hidden)?.id || 'genre';
   saveTagCategories();
   showToast(`"${cat.label}" 삭제됨`);
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
@@ -32793,6 +32813,10 @@ function openCatEditSheet(id, scope) {
   const delHint = document.getElementById('catSheetDelHint');
   if (nameInput) nameInput.value = cat.label;
   if (countEl) countEl.textContent = count > 0 ? `태그 ${count}개` : '태그 없음';
+
+  // v2.4 — 숨김 토글 버튼 라벨
+  const hideBtn = document.getElementById('catSheetHide');
+  if (hideBtn) hideBtn.textContent = cat.hidden ? '이 대분류 다시 보이기' : '이 대분류 숨기기';
 
   // 삭제 버튼 가드: 기본 분류 불가 / 태그 있으면 불가
   if (delBtn && delHint) {
@@ -32843,6 +32867,27 @@ function saveCatEditSheet() {
     saveTagCategories();
     showToast(`"${newLabel}"(으)로 변경`);
   }
+  closeCatEditSheet();
+  if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
+}
+
+/* v2.4 — 대분류 숨김 토글 (기본 분류 포함 · 삭제 대신 숨김) */
+function toggleCatHideFromSheet() {
+  if (!_catSheetCtx) return;
+  const { id, scope } = _catSheetCtx;
+  const cat = TAG_CAT_LIST.find(c => c.id === id);
+  if (!cat) return;
+  if (!cat.hidden && TAG_CAT_LIST.filter(c => !c.hidden).length <= 1) {
+    showToast('마지막 대분류는 숨길 수 없어요');
+    return;
+  }
+  cat.hidden = !cat.hidden;
+  const state = scope === 'BA' ? BA : BD;
+  if (cat.hidden && state.tagsActiveCat === id) {
+    state.tagsActiveCat = getTagCategoriesSorted().find(c => !c.hidden)?.id || 'genre';
+  }
+  saveTagCategories();
+  showToast(cat.hidden ? `"${cat.label}" 숨김 · 편집 모드에서 복구할 수 있어요` : `"${cat.label}" 다시 보여요`);
   closeCatEditSheet();
   if (scope === 'BA') { renderTagCategoryTabs(); renderTagChips(); } else { renderBookDetailTags(); }
 }
@@ -32971,11 +33016,11 @@ function renderTagNewCatRow(scope) {
   const state = isBA ? BA : BD;
   const row = document.getElementById(rowId);
   if (!row) return;
-  if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory)) {
-    state.newTagCategory = getTagCategoriesSorted()[0]?.id || 'genre';
+  if (!TAG_CAT_LIST.some(c => c.id === state.newTagCategory && !c.hidden)) {
+    state.newTagCategory = getTagCategoriesSorted().find(c => !c.hidden)?.id || 'genre';
   }
   let html = `<span class="tnc-label">이 태그를 어느 분류에?</span>`;
-  html += getTagCategoriesSorted().map(c =>
+  html += getTagCategoriesSorted().filter(c => !c.hidden).map(c =>
     `<button type="button" class="tnc-chip${state.newTagCategory === c.id ? ' is-active' : ''}" data-cat="${c.id}">${esc(c.label)}</button>`
   ).join('');
   row.innerHTML = html;
@@ -34046,6 +34091,13 @@ document.getElementById('tagNewCatRow')?.addEventListener('click', (e) => {
 // 태그 편집(삭제) 모드 토글
 document.getElementById('tagEditToggle').addEventListener('click', () => {
   BA.tagEditMode = !BA.tagEditMode;
+  // v2.4 — 편집 종료 시 숨김 탭·숨긴 분류에 있으면 첫 가시 분류로
+  if (!BA.tagEditMode) {
+    const cur = TAG_CAT_LIST.find(c => c.id === BA.tagsActiveCat);
+    if (BA.tagsActiveCat === 'hidden' || (cur && cur.hidden)) {
+      BA.tagsActiveCat = getTagCategoriesSorted().find(c => !c.hidden)?.id || 'genre';
+    }
+  }
   renderTagChips();
 });
 
@@ -41763,7 +41815,7 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
-      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">대분류 탭을 누르면 이름수정·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">대분류 탭을 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
       <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
         <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
         <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BD')">추가</button>
@@ -42858,6 +42910,13 @@ function wireBookDetailEvents() {
   if (bdEditToggle) {
     bdEditToggle.addEventListener('click', () => {
       BD.tagEditMode = !BD.tagEditMode;
+      // v2.4 — 편집 종료 시 숨김 탭·숨긴 분류에 있으면 첫 가시 분류로
+      if (!BD.tagEditMode) {
+        const cur = TAG_CAT_LIST.find(c => c.id === BD.tagsActiveCat);
+        if (BD.tagsActiveCat === 'hidden' || (cur && cur.hidden)) {
+          BD.tagsActiveCat = getTagCategoriesSorted().find(c => !c.hidden)?.id || 'genre';
+        }
+      }
       renderBookDetailTags();
     });
   }
