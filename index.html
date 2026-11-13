@@ -24329,7 +24329,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="tag-cat-tabs" id="tagCatTabs">
           <!-- JS 렌더 -->
         </div>
-        <div class="tag-cat-edit-hint" id="tagCatEditHint">대분류 탭을 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+        <div class="tag-cat-edit-hint" id="tagCatEditHint">✎ 배지를 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
         <div class="tag-cat-add-wrap" id="tagCatAddWrap">
           <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BA');}">
           <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BA')">추가</button>
@@ -32744,15 +32744,10 @@ function _wireCatTabs(tabsEl, scope) {
         if (id !== 'hidden') openCatEditSheet(id, scope);
         return;
       }
-      // select
+      // select — v2.4: 편집 모드에서도 탭 본체 클릭은 '전환' (분류 옮겨가며 하위 태그 연속 수정).
+      // 대분류 자체 수정(이름·숨김·삭제)은 ✎ 배지로만 진입.
       if (act === 'select') {
         if (_catDragMoved) { _catDragMoved = false; return; }  // 드래그 직후 클릭 무시
-        // 편집 모드 + 일반 탭이면 → 탭 본체 눌러도 편집 모달 (소분류처럼 칩 자체가 편집 진입)
-        if (editing && id !== 'hidden') {
-          openCatEditSheet(id, scope);
-          return;
-        }
-        // 일반: 탭 전환
         state.tagsActiveCat = id;
         if (scope === 'BA') renderTagChips(); else renderBookDetailTags();
       }
@@ -41817,7 +41812,7 @@ function renderBookDetail() {
       <div class="tag-cat-tabs" id="bdTagCatTabs">
         <!-- JS 렌더 -->
       </div>
-      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">대분류 탭을 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
+      <div class="tag-cat-edit-hint" id="bdTagCatEditHint">✎ 배지를 누르면 이름수정·숨김·삭제 · 드래그로 순서변경 &nbsp;|&nbsp; 아래 태그도 함께 편집돼요</div>
       <div class="tag-cat-add-wrap" id="bdTagCatAddWrap">
         <input class="tcaw-input" type="text" placeholder="새 대분류 이름 (예: 에세이)" maxlength="8" onkeydown="if(event.key==='Enter'){event.preventDefault();_addCatCategory('BD');}">
         <button type="button" class="tcaw-confirm" onclick="_addCatCategory('BD')">추가</button>
