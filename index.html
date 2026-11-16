@@ -42105,7 +42105,7 @@ async function loadBdSocial(b) {
   el.dataset.bid = String(b.id);
 
   let st = null;
-  const ck = 'read.bookstats.' + isbn;
+  const ck = 'read.bs2.' + isbn;   // v2.4.1 — 키 교체: 집계 전 0명 응답이 구키에 캐시됐던 것 무효화
   try {
     const c = JSON.parse(localStorage.getItem(ck) || 'null');
     if (c && Date.now() - c.t < 6 * 60 * 60 * 1000) st = c.v;
@@ -42115,7 +42115,10 @@ async function loadBdSocial(b) {
       const r = await fetch(ALADIN_PROXY_URL + '/bookstats?isbn=' + isbn);
       if (!r.ok) return;
       st = await r.json();
-      try { localStorage.setItem(ck, JSON.stringify({ t: Date.now(), v: { reading: st.reading, done: st.done } })); } catch (e) { /* ignore */ }
+      // v2.4.1 — 집계가 한 번이라도 돈 응답(at>0)만 캐시. 집계 전 0명을 6시간 박아두지 않는다
+      if (st && st.at) {
+        try { localStorage.setItem(ck, JSON.stringify({ t: Date.now(), v: { reading: st.reading, done: st.done } })); } catch (e) { /* ignore */ }
+      }
     } catch (e) { return; }
   }
   // 응답이 늦게 왔는데 다른 책 상세가 열려 있으면 무시
