@@ -13397,6 +13397,16 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
 }
 .bde-tag.has { background: #d4edda; color: #059669; }
 .bde-tag.miss { background: var(--c-border); color: var(--c-label); }
+/* v2.4 — 정보 검색 모달 직접 입력 행 */
+.bde-manual { padding: 11px 20px 12px; border-top: 1px solid var(--c-border); flex-shrink: 0; }
+.bde-manual-lbl { font-size: 10.5px; font-weight: 700; color: var(--c-muted); margin-bottom: 7px; }
+.bde-manual-row { display: flex; gap: 8px; align-items: stretch; }
+.bde-mi { flex: 1; display: flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--c-border-2) 22%, var(--c-surface)); border: 1px solid var(--c-border); border-radius: 9px; padding: 0 10px; min-height: 44px; min-width: 0; }
+.bde-mi span { font-size: 10.5px; font-weight: 700; color: var(--c-text-2); flex: 0 0 auto; }
+.bde-mi input { flex: 1; min-width: 0; width: 100%; border: none; background: transparent; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--c-text); text-align: right; outline: none; }
+.bde-mi input::-webkit-outer-spin-button, .bde-mi input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.bde-mi em { font-style: normal; font-size: 11px; color: var(--c-muted); flex: 0 0 auto; }
+.bde-manual-save { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: none; border-radius: 9px; background: var(--c-terra-700); color: var(--c-surface); font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer; }
 .bde-footer {
   display: flex;
   gap: 8px;
@@ -25831,6 +25841,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="bde-loading">
         <div class="bf-spinner"></div>
         <div>검색 중...</div>
+      </div>
+    </div>
+    <!-- v2.4 — 직접 입력 (오렌지푸우 건의: 검색으로 안 채워질 때 페이지·가격 수기 입력, 기존 값 수정 겸용) -->
+    <div class="bde-manual">
+      <div class="bde-manual-lbl">검색으로 안 채워지면 직접 입력하세요</div>
+      <div class="bde-manual-row">
+        <label class="bde-mi"><span>페이지</span><input type="number" id="bdeMiPages" inputmode="numeric" min="0" placeholder="0"><em>p</em></label>
+        <label class="bde-mi"><span>정가</span><input type="number" id="bdeMiPrice" inputmode="numeric" min="0" step="100" placeholder="0"><em>원</em></label>
+        <button type="button" class="bde-manual-save" id="bdeMiSave">저장</button>
       </div>
     </div>
     <div class="bde-footer">
@@ -54417,6 +54436,12 @@ function _bdeOpen(bookId) {
     </div>`;
   document.getElementById('bdeBtnApply').disabled = true;
 
+  // v2.4 — 직접 입력 프리필: 현재 값이 있으면 보여줘서 수정도 가능하게
+  const _miP = document.getElementById('bdeMiPages');
+  const _miW = document.getElementById('bdeMiPrice');
+  if (_miP) _miP.value = (Number(book.pages) > 0) ? book.pages : '';
+  if (_miW) _miW.value = (Number(book.priceSales) > 0) ? book.priceSales : '';
+
   backdrop.classList.add('open');
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
@@ -54661,6 +54686,31 @@ document.addEventListener('click', (e) => {
     _bdeOpen(BD.book.id);
   }
 });
+// v2.4 — 직접 입력 저장: 양수로 바뀐 값만 반영, 가격은 manual로 찍어 자동 보강이 안 덮게
+document.getElementById('bdeMiSave')?.addEventListener('click', () => {
+  const book = BOOKS.find(b => b.id === BDE_STATE.bookId);
+  if (!book) return;
+  const pages = parseInt(document.getElementById('bdeMiPages')?.value, 10);
+  const price = parseInt(document.getElementById('bdeMiPrice')?.value, 10);
+  const touched = [];
+  if (pages > 0 && pages !== Number(book.pages)) { book.pages = pages; touched.push('페이지'); }
+  if (price > 0 && price !== Number(book.priceSales)) {
+    book.priceSales = price;
+    book.priceList = price;
+    book.priceSource = 'manual';
+    touched.push('가격');
+  }
+  if (!touched.length) { showToast('바뀐 값이 없어요'); return; }
+  try { STORE.set('books', BOOKS); } catch (e) { /* ignore */ }
+  if (typeof BD !== 'undefined' && BD.book && BD.book.id === book.id) {
+    BD.book = book;
+    try { renderBookDetail(); } catch (e) { /* ignore */ }
+  }
+  try { renderLibraryCards && renderLibraryCards(); } catch (e) { /* ignore */ }
+  _bdeClose();
+  showToast(`직접 입력 저장: ${touched.join(' · ')}`);
+});
+
 document.getElementById('bdeBtnCancel')?.addEventListener('click', _bdeClose);
 document.getElementById('bdeBtnApply')?.addEventListener('click', _bdeApply);
 document.getElementById('bdeBackdrop')?.addEventListener('click', _bdeClose);
