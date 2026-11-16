@@ -42143,10 +42143,9 @@ async function loadBdSocial(b) {
   const l1 = reading > 0
     ? `지금 <b>${reading}명</b>이 이 책을 함께 읽고 있어요`
     : `<b>${done}명</b>이 이 책을 완독했어요`;
-  const l2 = reading > 0 && done > 0
-    ? `완독한 멤버 ${done}명 · 클라우드 백업 기준`
-    : '클라우드 백업 멤버 기준';
-  cur.innerHTML = `<div class="bd-social-avs">${avs}</div><div><div class="bd-social-l1">${l1}</div><div class="bd-social-l2">${l2}</div></div>`;
+  // v2.4.1 — '클라우드 백업 기준' 꼬리표 제거 (Jason: 사찰 느낌 우려)
+  const l2 = reading > 0 && done > 0 ? `완독한 멤버 ${done}명` : '';
+  cur.innerHTML = `<div class="bd-social-avs">${avs}</div><div><div class="bd-social-l1">${l1}</div>${l2 ? `<div class="bd-social-l2">${l2}</div>` : ''}</div>`;
   cur.hidden = false;
 }
 
