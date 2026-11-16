@@ -11251,6 +11251,17 @@ html[data-theme="midnight"] .rv-grip { background: rgba(255,255,255,0.22); }
 .bd-meta-dot-publisher { background: #4a6b8a; }
 .bd-meta-dot-pages     { background: #b88838; }
 .bd-meta-dot-price     { background: var(--brand-primary); }
+/* v2.4 — 함께 읽기(C-1): 익명 아바타 + 한 줄, 클라우드 백업 멤버 집계 */
+.bd-social { display: flex; align-items: center; gap: 12px; background: color-mix(in srgb, var(--c-border-2) 22%, var(--c-surface)); border-radius: 13px; padding: 13px 15px; margin-top: 12px; width: 100%; text-align: left; }
+.bd-social[hidden] { display: none; }
+.bd-social-avs { display: flex; flex: 0 0 auto; }
+.bd-social-av { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--c-surface); display: flex; align-items: center; justify-content: center; margin-left: -9px; color: #6A6557; }
+.bd-social-av:first-child { margin-left: 0; }
+.bd-social-av .ic { width: 14px; height: 14px; stroke-width: 1.9; }
+.bd-social-av.n { background: color-mix(in srgb, var(--c-border-2) 55%, var(--c-surface)); color: var(--c-text-2); font-size: 10.5px; font-weight: 800; }
+.bd-social-l1 { font-size: 12.5px; font-weight: 700; color: var(--c-text-2); letter-spacing: -0.2px; }
+.bd-social-l1 b { color: var(--c-text); }
+.bd-social-l2 { font-size: 10.5px; color: var(--c-muted); margin-top: 2px; font-weight: 600; }
 .bd-meta-dot-lang      { background: var(--c-muted); }
 .bd-meta-lbl {
   color: var(--c-muted);
@@ -41513,6 +41524,7 @@ function renderBookDetail() {
               ${hasAnyMeta ? `<div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>` : ''}
             </div>
           </div>
+          <div class="bd-social" id="bdSocial" hidden></div>
         </div>
       </div>
       <!-- v2.4 커버 무드 — 매체 토글 + 바로 읽기 (워시 경계 행, 시안 body 첫 행) -->
@@ -42075,6 +42087,64 @@ function renderBookDetail() {
 
   // v1.8.0 — 종이값 카드 렌더 (모든 status에서 노출, 합산은 _calcSpend에서 done만)
   try { _renderPriceCard(b); } catch (e) { console.error('[priceCard]', e); }
+
+  // v2.4 — 함께 읽기(C-1): 이 책을 읽는 중/완독한 멤버 수 (비동기, 실패 시 조용히 숨김)
+  try { loadBdSocial(b); } catch (e) { /* ignore */ }
+}
+
+/* v2.4 — 함께 읽기: /bookstats 익명 집계 조회 (6시간 로컬 캐시 · 본인 제외 · 0명이면 숨김) */
+const _BD_SOCIAL_AV_COLORS = ['#E8D5C2', '#D5DEE8', '#D8E3D4'];
+async function loadBdSocial(b) {
+  const el = document.getElementById('bdSocial');
+  if (!el) return;
+  el.hidden = true;
+  el.innerHTML = '';
+  if (!b || !b.isbn || b.source === 'manual' || isWebnovel(b)) return;
+  const isbn = String(b.isbn).replace(/[^0-9Xx]/g, '');
+  if (isbn.length < 10) return;
+  el.dataset.bid = String(b.id);
+
+  let st = null;
+  const ck = 'read.bookstats.' + isbn;
+  try {
+    const c = JSON.parse(localStorage.getItem(ck) || 'null');
+    if (c && Date.now() - c.t < 6 * 60 * 60 * 1000) st = c.v;
+  } catch (e) { /* ignore */ }
+  if (!st) {
+    try {
+      const r = await fetch(ALADIN_PROXY_URL + '/bookstats?isbn=' + isbn);
+      if (!r.ok) return;
+      st = await r.json();
+      try { localStorage.setItem(ck, JSON.stringify({ t: Date.now(), v: { reading: st.reading, done: st.done } })); } catch (e) { /* ignore */ }
+    } catch (e) { return; }
+  }
+  // 응답이 늦게 왔는데 다른 책 상세가 열려 있으면 무시
+  const cur = document.getElementById('bdSocial');
+  if (!cur || cur.dataset.bid !== String(b.id)) return;
+
+  // 본인 제외
+  let reading = Math.max(0, Number(st.reading) || 0);
+  let done = Math.max(0, Number(st.done) || 0);
+  if (b.status === 'reading') reading = Math.max(0, reading - 1);
+  if (b.status === 'done') done = Math.max(0, done - 1);
+  if (reading <= 0 && done <= 0) return;
+
+  const main = reading > 0 ? reading : done;
+  const avN = Math.min(main, 3);
+  const plus = reading + done - avN;
+  let avs = '';
+  for (let i = 0; i < avN; i++) {
+    avs += `<div class="bd-social-av" style="background:${_BD_SOCIAL_AV_COLORS[i]}"><svg class="ic" aria-hidden="true"><use href="#i-rd-book"/></svg></div>`;
+  }
+  if (plus > 0) avs += `<div class="bd-social-av n">+${plus}</div>`;
+  const l1 = reading > 0
+    ? `지금 <b>${reading}명</b>이 이 책을 함께 읽고 있어요`
+    : `<b>${done}명</b>이 이 책을 완독했어요`;
+  const l2 = reading > 0 && done > 0
+    ? `완독한 멤버 ${done}명 · 클라우드 백업 기준`
+    : '클라우드 백업 멤버 기준';
+  cur.innerHTML = `<div class="bd-social-avs">${avs}</div><div><div class="bd-social-l1">${l1}</div><div class="bd-social-l2">${l2}</div></div>`;
+  cur.hidden = false;
 }
 
 /* ─── 상태 변경 ─ 확인 팝업 로직 ─── */
