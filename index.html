@@ -7431,6 +7431,7 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .cd-actions-row {
   display: flex;
   gap: 8px;
+  flex: 1;  /* v2.4 수리 — .cd-actions(flex) 안에서 내용 폭으로 수축해 버튼이 쪼그라들고 라벨이 꺾이던 것 */
 }
 .cd-actions-row .cd-btn { flex: 1; }
 .cd-btn-extra {
@@ -49879,7 +49880,7 @@ function renderNA() {
     const _inp = document.getElementById('naPage');
     const _hint = document.getElementById('naPageHint');
     if (_lbl) _lbl.innerHTML = _dig ? '위치 (%) <span class="subct">(선택)</span>' : '페이지 <span class="subct">(선택)</span>';
-    if (_inp) { _inp.placeholder = _dig ? '예: 34' : '예: 127'; _inp.max = _dig ? 100 : ''; }
+    if (_inp) { _inp.placeholder = _dig ? '34' : '127'; _inp.max = _dig ? 100 : ''; }  // v2.4 — 좁은 알약 안 '예:' 군더더기 제거 (오렌지푸우 건의)
     if (_hint) {
       if (_dig && _b) {
         const parts = [];
