@@ -24251,6 +24251,15 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="pages-hint" id="pagesHint"></div>
       </div>
 
+      <!-- v2.4 — 정가 (오렌지푸우 건의: 검색 결과에 가격이 없거나 틀리면 등록 때 바로 수정) -->
+      <div class="confirm-section" id="priceSection">
+        <div class="confirm-section-lbl">정가 <span style="color:var(--c-muted);font-weight:500;font-size:11px;">(선택)</span></div>
+        <div class="pages-field">
+          <input type="number" id="confirmPrice" class="pages-input" min="0" max="99999999" inputmode="numeric" placeholder="모르면 비워두세요">
+          <span class="pages-unit">원</span>
+        </div>
+      </div>
+
       <!-- 매체 (종이/전자) -->
       <div class="confirm-section">
         <div class="confirm-section-lbl">매체</div>
@@ -32117,6 +32126,17 @@ function renderConfirm() {
       }
     };
   }
+  // v2.4 — 정가 프리필 (검색값, 수정 가능 · 웹소설은 가격 없음이 정상이라 숨김)
+  {
+    const priceInput = document.getElementById('confirmPrice');
+    const priceSection = document.getElementById('priceSection');
+    if (priceSection) priceSection.hidden = !!isWebnov;
+    if (priceInput) {
+      const pv = (typeof b.priceSales === 'number' && b.priceSales > 0) ? b.priceSales
+               : (typeof b.priceList === 'number' && b.priceList > 0) ? b.priceList : null;
+      priceInput.value = pv != null ? pv : '';
+    }
+  }
   if (pagesHint && !isWebnov) {
     if (BA.pagesFromApi) {
       pagesHint.className = 'pages-hint';
@@ -33607,6 +33627,30 @@ function confirmAddBook() {
     }
   }
 
+  // v2.4 — 정가 입력 반영: 검색값과 다르게 고치면 manual(자동 보강이 안 덮음),
+  //   비우면 null(나중에 메타 일괄 보강이 채울 수 있음), 그대로면 검색 소스 유지
+  const srchSales = (typeof b.priceSales === 'number' && b.priceSales > 0) ? b.priceSales : null;
+  const srchList = (typeof b.priceList === 'number' && b.priceList > 0) ? b.priceList : null;
+  let priceSalesF = srchSales, priceListF = srchList;
+  let priceSourceF = srchSales ? 'aladin' : null;
+  {
+    const priceInputEl = document.getElementById('confirmPrice');
+    const rawP = priceInputEl ? priceInputEl.value.trim() : '';
+    if (rawP === '') {
+      if (srchSales != null || srchList != null) { priceSalesF = null; priceListF = null; priceSourceF = null; }
+    } else {
+      const parsedP = parseInt(rawP, 10);
+      if (isNaN(parsedP) || parsedP < 0 || parsedP > 99999999) {
+        showToast('정가가 올바르지 않아요 (비워두면 가격 없이 등록됩니다)');
+        priceInputEl?.focus();
+        return;
+      }
+      if (parsedP !== (srchSales != null ? srchSales : srchList)) {
+        priceSalesF = parsedP; priceListF = parsedP; priceSourceF = 'manual';
+      }
+    }
+  }
+
   // 사용자가 입력한 날짜 (없으면 오늘)
   const inputStart = document.getElementById('dateStart')?.value || today;
   const inputEnd = document.getElementById('dateEnd')?.value || today;
@@ -33646,9 +33690,9 @@ function confirmAddBook() {
     episodes: b.format === 'webnovel' ? (b.episodes || 0) : undefined,
     currentEpisode: b.format === 'webnovel' ? (b.currentEpisode || 0) : undefined,
     // v1.8.0 — 종이값: 검색 결과(알라딘)에서 가격이 있으면 그대로 저장, 출처 'aladin'
-    priceList: (typeof b.priceList === 'number' && b.priceList > 0) ? b.priceList : null,
-    priceSales: (typeof b.priceSales === 'number' && b.priceSales > 0) ? b.priceSales : null,
-    priceSource: (typeof b.priceSales === 'number' && b.priceSales > 0) ? 'aladin' : null,
+    priceList: priceListF,
+    priceSales: priceSalesF,
+    priceSource: priceSourceF,
   };
   // v2.x — 직접 입력의 구매 금액(선택): 오늘 날짜 구매 취득 기록 자동 생성 → 북플렉스 즉시 집계.
   //   검색 등록(source!=='manual')과 권 묶음에는 미적용 (칸이 숨김이지만 낡은 입력값 대비 이중 가드)
