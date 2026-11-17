@@ -11519,7 +11519,7 @@ a.bd-meta-source u { text-decoration: underline; text-underline-offset: 2px; tex
 }
 .bd-read-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: auto 1fr auto auto auto auto;
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
@@ -11565,6 +11565,24 @@ a.bd-meta-source u { text-decoration: underline; text-underline-offset: 2px; tex
   font-family: 'Plus Jakarta Sans', sans-serif;
   white-space: nowrap;
 }
+.bd-read-fmt-seg { display: flex; gap: 5px; }
+.bd-read-fmt-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 38px; border: 1px solid var(--c-border); background: var(--c-surface); border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--c-muted); font-family: inherit; cursor: pointer; padding: 0 6px; }
+.bd-read-fmt-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+.bd-read-fmt-btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bd-read-fmt { width: 12px; height: 12px; margin-left: 5px; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--c-label); }
+.bd-read-rv {
+  width: 24px; height: 24px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--c-muted);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+  transition: all .15s;
+}
+.bd-read-rv svg { width: 14px; height: 14px; }
+.bd-read-rv.has { color: var(--c-gold-900, #8a7748); }
+.bd-read-rv:hover { background: color-mix(in srgb, var(--c-gold-500) 14%, transparent); }
 .bd-read-del {
   width: 24px; height: 24px;
   border-radius: 3px;
@@ -22418,46 +22436,6 @@ html:not([data-theme="midnight"]) .bd-hero-unified .bd-progress-fill { backgroun
 .bd-done-stars { font-size: 17px; letter-spacing: 3px; color: #C9A227; }
 .bd-done-pill { display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 800; color: var(--c-text-2); background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 100px; padding: 5px 13px; border: none; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-/* ═══ v2.6 — 읽은 기록(회차 타임라인) 시트 ═══ */
-.rr-sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 102%); width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; background: var(--c-surface); border-radius: 20px 20px 0 0; padding: 8px 18px calc(18px + env(safe-area-inset-bottom)); z-index: var(--z-toast); transition: transform 0.3s cubic-bezier(.32,.72,.33,1); box-shadow: 0 -10px 34px rgba(0,0,0,.22); box-sizing: border-box; }
-.rr-sheet.open { transform: translate(-50%, 0); }
-.rr-grip { width: 38px; height: 4.5px; border-radius: 100px; background: var(--c-border); margin: 6px auto 10px; }
-.rr-ttl { font-size: 14px; font-weight: 800; text-align: center; color: var(--c-terra-700); }
-.rr-sub { font-size: 10.5px; font-weight: 600; text-align: center; color: var(--c-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rr-tl { margin-top: 14px; position: relative; padding-left: 16px; }
-.rr-tl::before { content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 2px; background: var(--c-border); border-radius: 2px; }
-.rr-item { position: relative; padding: 9px 0; }
-.rr-item::before { content: ''; position: absolute; left: -16px; top: 17px; width: 8px; height: 8px; border-radius: 50%; background: var(--c-muted); border: 2px solid var(--c-surface); }
-.rr-item.now::before { background: var(--c-gold-500); }
-.rr-l1 { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; flex-wrap: wrap; color: var(--c-terra-700); }
-.rr-n { font-size: 10px; font-weight: 800; color: var(--c-gold-900, #8a7748); background: color-mix(in srgb, var(--c-gold-500) 16%, transparent); border-radius: 100px; padding: 3px 9px; flex: 0 0 auto; }
-.rr-fmt { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--c-text-2, var(--c-muted)); background: var(--c-surface-2); border-radius: 5px; padding: 3px 7px; font-weight: 700; }
-.rr-fmt .ic, .rr-rv-btn .ic, .rr-edit .ic, .rr-add .ic { width: 12px; height: 12px; }
-.rr-dates { font-size: 11px; color: var(--c-text-2, var(--c-muted)); font-weight: 600; }
-.rr-st { color: var(--c-gold-500); font-size: 11px; font-weight: 800; margin-left: auto; }
-.rr-reading { font-size: 10px; font-weight: 800; color: var(--c-gold-900, #8a7748); margin-left: auto; }
-.rr-edit { border: none; background: transparent; color: var(--c-muted); padding: 8px; margin: -8px -4px -8px 0; cursor: pointer; font-family: inherit; display: inline-flex; }
-.rr-st + .rr-edit, .rr-reading + .rr-edit { margin-left: 0; }
-.rr-l1 .rr-edit:last-child { margin-left: auto; }
-.rr-st ~ .rr-edit, .rr-reading ~ .rr-edit { margin-left: 0 !important; }
-.rr-ed-lbl { font-size: 11px; color: var(--c-muted); font-weight: 700; }
-.rr-rv { margin-top: 7px; background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: 10px; padding: 9px 11px; font-size: 11px; color: var(--c-text-2, var(--c-terra-700)); line-height: 1.65; cursor: pointer; }
-.rr-rv-lbl { font-size: 9px; font-weight: 800; color: var(--c-muted); letter-spacing: 0.08em; margin-bottom: 3px; }
-.rr-rv-btn { margin-top: 7px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: 1.5px dashed color-mix(in srgb, var(--c-gold-500) 55%, var(--c-border)); background: color-mix(in srgb, var(--c-gold-500) 7%, var(--c-surface)); border-radius: 10px; padding: 11px; min-height: 44px; font-size: 11.5px; font-weight: 800; color: var(--c-gold-900, #8a7748); font-family: inherit; cursor: pointer; box-sizing: border-box; }
-.rr-add { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: 1.5px dashed var(--c-border); background: transparent; border-radius: 10px; padding: 12px; min-height: 44px; font-size: 11.5px; font-weight: 700; color: var(--c-muted); font-family: inherit; cursor: pointer; box-sizing: border-box; }
-.rr-form { margin-top: 8px; background: var(--c-surface-2); border-radius: 11px; padding: 11px 12px; }
-.rr-form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
-.rr-form-row label { flex: 1; min-width: 120px; font-size: 10px; font-weight: 700; color: var(--c-muted); display: flex; flex-direction: column; gap: 4px; }
-.rr-form-row input[type="date"], .rr-form-row select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--c-border); border-radius: 9px; background: var(--c-surface); color: var(--c-terra-700); font-size: 13px; font-family: inherit; box-sizing: border-box; }
-.rr-form-row select { flex: 1; min-width: 100px; width: auto; }
-.rr-fmt-seg { display: flex; gap: 5px; flex: 2; }
-.rr-fmt-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; border: 1px solid var(--c-border); background: var(--c-surface); border-radius: 9px; font-size: 11px; font-weight: 700; color: var(--c-muted); font-family: inherit; cursor: pointer; padding: 0 6px; }
-.rr-fmt-btn.on { background: var(--c-terra-700); color: var(--c-surface); border-color: var(--c-terra-700); }
-.rr-fmt-btn .ic { width: 13px; height: 13px; }
-.rr-form-btns { display: flex; gap: 8px; align-items: center; }
-.rr-btn { min-height: 40px; padding: 0 16px; border-radius: 9px; border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-terra-700); font-size: 12px; font-weight: 800; font-family: inherit; cursor: pointer; }
-.rr-btn.primary { background: var(--c-terra-700); color: var(--c-surface); border-color: var(--c-terra-700); }
-.rr-btn.danger { color: #B85A4A; border-color: color-mix(in srgb, #B85A4A 45%, var(--c-border)); }
 html[data-theme="midnight"] .bd-done-pill { background: rgba(255,255,255,.07); }
 /* 상태 탭 — 라인 탭 → 시안 박스 세그먼트 */
 .bd-hero-unified .bd-hero-status { margin: 0; border-top: none; padding: 12px 0 0; }
@@ -38743,7 +38721,7 @@ function saveQuickNote(bookId, text, round) {
   try { renderNotesTab && renderNotesTab(); } catch(e){}
   try { _refreshBdNotesViewIfOpen && _refreshBdNotesViewIfOpen(); } catch(e){}
   try { _refreshBdReviewCardIfOpen && _refreshBdReviewCardIfOpen(bookId); } catch(e){}
-  try { _rrRefreshIfOpen && _rrRefreshIfOpen(); } catch(e){}
+  try { if (typeof BD !== 'undefined' && BD.book && BD.book.id === bookId) renderBookDetail(); } catch(e){}
 }
 
 /* v1.3.0 — 책 상세 모달의 한줄평 카드만 갱신 (별점 섹션의 OPTION 02 카드) */
@@ -38856,121 +38834,21 @@ function closeQuickNote() {
   backdrop.classList.remove('is-open');
   sheet.setAttribute('aria-hidden', 'true');
   unlockBodyScroll();
-  // v2.6 — 읽은 기록 시트에서 열었으면 복귀
-  if (window._rrReturnBookId != null) {
-    const _rid = window._rrReturnBookId; window._rrReturnBookId = null;
-    setTimeout(() => { try { openRereadSheet(_rid); } catch (e) {} }, 260);
-  }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🔁 v2.6 — 읽은 기록 (회차 타임라인) 시트
-   ─ 진입: 책 상세 완독 pill 탭
-   ─ 회차 = rereads 배열 순서(과거) + 현재 기록. 회차별 날짜·매체·별점·독후감.
-   ─ 독후감은 review 노트의 round 필드로 연결 (기존 회독별 감상 구조 재사용).
-   ═══════════════════════════════════════════════════════════ */
-const _RR = { bookId: null, edit: null };  // edit: 'cur' | rereads idx | 'add' | null
-
-function _rrRecords(b) {
-  const rr = Array.isArray(b.rereads) ? b.rereads : [];
-  const out = rr.map((r, i) => ({ round: i + 1, dateStart: r.dateStart || null, dateEnd: r.dateEnd || null, rating: r.rating || null, format: r.format || null, idx: i, past: true }));
-  const cur = _bookRound(b);
-  if (b.status === 'done' && b.dateEnd) {
-    out.push({ round: cur, dateStart: b.dateStart || null, dateEnd: b.dateEnd, rating: b.rating || null, format: b.format || 'paper', current: true });
-  } else if (b.status === 'reading') {
-    out.push({ round: cur, dateStart: b.dateStart || null, dateEnd: null, rating: null, format: b.format || 'paper', current: true, reading: true });
-  }
-  return out;
+/* ═══ v2.6 — 독서 기록 통합 보조 (회차별 매체·독후감 — 기존 '독서 기록' 섹션에 통합) ═══
+   회차 번호 = rereads 배열 index+1, 현재 기록 = len+1. 독후감은 review 노트의 round로 연결. */
+const _READ_FMT = { paper: 'i-book-closed', ebook: 'i-smartphone', audio: 'i-headphones', webnovel: 'i-book-open' };
+const _READ_FMT_LBL = { paper: '종이책', ebook: '전자책', audio: '오디오북', webnovel: '웹소설' };
+function _readFmtIcon(f) {
+  const ic = _READ_FMT[f];
+  if (!ic) return '';
+  return `<svg class="bd-read-fmt" aria-hidden="true" viewBox="0 0 24 24"><use href="#${ic}"/></svg>`;
 }
-
-const _RR_FMT = { paper: ['i-book-closed', '종이책'], ebook: ['i-smartphone', '전자책'], audio: ['i-headphones', '오디오북'], webnovel: ['i-book-open', '웹소설'] };
-function _rrFmtChip(f) {
-  const m = _RR_FMT[f];
-  if (!m) return '';
-  return `<span class="rr-fmt"><svg class="ic" aria-hidden="true"><use href="#${m[0]}"/></svg>${m[1]}</span>`;
-}
-function _rrDateTxt(r) {
-  const f = (d) => { if (!d) return ''; const p = String(d).split('-'); return p.length === 3 ? `${p[0]}.${p[1]}.${p[2]}` : String(d); };
-  const fShort = (d) => { if (!d) return ''; const p = String(d).split('-'); return p.length === 3 ? `${p[1]}.${p[2]}` : String(d); };
-  if (r.reading) return `${f(r.dateStart)} – 읽는 중`;
-  if (!r.dateEnd) return f(r.dateStart);
-  if (r.dateStart && String(r.dateStart).slice(0, 4) === String(r.dateEnd).slice(0, 4)) return `${f(r.dateStart)} – ${fShort(r.dateEnd)}`;
-  return r.dateStart ? `${f(r.dateStart)} – ${f(r.dateEnd)}` : f(r.dateEnd);
-}
-
-function _rrEditFormHtml(rec) {
-  const isAdd = !rec;
-  const ds = rec && rec.dateStart || '';
-  const de = rec && rec.dateEnd || '';
-  const fmt = (rec && rec.format) || 'paper';
-  const rating = rec && rec.rating || '';
-  const ratingOpts = ['<option value="">별점 없음</option>'];
-  for (let v = 10; v >= 1; v--) { const x = v / 2; ratingOpts.push(`<option value="${x}"${String(rating) === String(x) ? ' selected' : ''}>★ ${x.toFixed(1)}</option>`); }
-  const fmtBtns = ['paper', 'ebook', 'audio'].map(k =>
-    `<button type="button" class="rr-fmt-btn${fmt === k ? ' on' : ''}" data-rr-fmt="${k}"><svg class="ic" aria-hidden="true"><use href="#${_RR_FMT[k][0]}"/></svg>${_RR_FMT[k][1]}</button>`).join('');
-  return `
-    <div class="rr-form">
-      <div class="rr-form-row"><label>시작일<input type="date" id="rrDs" value="${esc(ds)}"></label><label>완독일<input type="date" id="rrDe" value="${esc(de)}"></label></div>
-      <div class="rr-form-row"><div class="rr-fmt-seg">${fmtBtns}</div><select id="rrRating" aria-label="별점">${ratingOpts.join('')}</select></div>
-      <div class="rr-form-btns">
-        ${(!isAdd && rec.past) ? '<button type="button" class="rr-btn danger" data-rr-del>삭제</button>' : ''}
-        <span style="flex:1"></span>
-        <button type="button" class="rr-btn" data-rr-cancel>취소</button>
-        <button type="button" class="rr-btn primary" data-rr-save>저장</button>
-      </div>
-    </div>`;
-}
-
-function _rrRowHtml(b, rec) {
-  const editKey = rec.current ? 'cur' : rec.idx;
-  if (_RR.edit === editKey) {
-    return `<div class="rr-item${rec.current ? ' now' : ''}"><div class="rr-l1"><span class="rr-n">${rec.round}회차</span><span class="rr-ed-lbl">기록 수정</span></div>${_rrEditFormHtml(rec)}</div>`;
-  }
-  const review = findReviewNoteByRound(b.id, rec.round);
-  let rvHtml = '';
-  if (!rec.reading) {
-    rvHtml = (review && review.body)
-      ? `<div class="rr-rv" data-rr-review="${rec.round}" role="button" tabindex="0"><div class="rr-rv-lbl">이 회차의 독후감</div>${esc(review.body.length > 110 ? review.body.slice(0, 110) + '…' : review.body)}</div>`
-      : `<button type="button" class="rr-rv-btn" data-rr-review="${rec.round}"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 이 회차의 독후감 남기기</button>`;
-  }
-  return `
-    <div class="rr-item${rec.current ? ' now' : ''}">
-      <div class="rr-l1">
-        <span class="rr-n">${rec.round}회차</span>
-        ${_rrFmtChip(rec.format)}
-        <span class="rr-dates">${_rrDateTxt(rec)}</span>
-        ${rec.rating ? `<span class="rr-st">★ ${Number(rec.rating).toFixed(1)}</span>` : ''}
-        ${rec.reading ? '<span class="rr-reading">읽는 중</span>' : ''}
-        <button type="button" class="rr-edit" data-rr-edit="${editKey}" aria-label="${rec.round}회차 수정"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg></button>
-      </div>
-      ${rvHtml}
-    </div>`;
-}
-
-function _rrSheetHtml(b) {
-  const recs = _rrRecords(b).slice().reverse();  // 최신 회차가 위
-  const doneN = recs.filter(r => !r.reading).length;
-  return `
-    <div class="rr-grip"></div>
-    <div class="rr-ttl">읽은 기록</div>
-    <div class="rr-sub">${esc(b.title)} · ${doneN}번 완독</div>
-    <div class="rr-tl">${recs.map(r => _rrRowHtml(b, r)).join('')}</div>
-    ${_RR.edit === 'add'
-      ? `<div class="rr-item"><div class="rr-l1"><span class="rr-n">지난 기록</span><span class="rr-ed-lbl">추가</span></div>${_rrEditFormHtml(null)}</div>`
-      : '<button type="button" class="rr-add" data-rr-add><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> 지난 완독 기록 추가</button>'}
-  `;
-}
-
-function _rrRender() {
-  const sheet = document.getElementById('rrSheet');
-  const b = BOOKS.find(x => x.id === _RR.bookId);
-  if (!sheet || !b) return;
-  sheet.innerHTML = _rrSheetHtml(b);
-}
-function _rrRefreshIfOpen() {
-  if (document.getElementById('rrSheet')) _rrRender();
-}
-
+window._bdScrollToReads = function () {
+  const el = document.getElementById('bdReadsSection');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 /* 과거 기록 삽입 — 완독일 기준 올바른 위치 + 독후감 round 리맵(+1) */
 function _rrInsertPast(b, rec) {
   if (!Array.isArray(b.rereads)) b.rereads = [];
@@ -38998,104 +38876,6 @@ function _rrDeletePast(b, idx) {
   for (const id of delIds) { const k = NOTES.findIndex(n => n.id === id); if (k >= 0) { NOTES.splice(k, 1); changed = true; } }
   if (changed) { try { STORE.set('notes', NOTES); } catch (e) {} }
 }
-
-function _rrAfterDataChange(b) {
-  try { STORE.set('books', BOOKS); } catch (e) {}
-  try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
-  if (typeof BD !== 'undefined' && BD.book && BD.book.id === b.id) { BD.book = b; try { renderBookDetail(); } catch (e) {} }
-  _rrRender();
-}
-
-function openRereadSheet(bookId) {
-  const b = BOOKS.find(x => x.id === bookId);
-  if (!b) return;
-  closeRereadSheet(true);
-  _RR.bookId = bookId;
-  _RR.edit = null;
-
-  const backdrop = document.createElement('div');
-  backdrop.id = 'rrBackdrop';
-  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-toast) - 1);opacity:0;transition:opacity 0.25s ease;';
-  document.body.appendChild(backdrop);
-
-  const sheet = document.createElement('div');
-  sheet.id = 'rrSheet';
-  sheet.className = 'rr-sheet';
-  document.body.appendChild(sheet);
-  _rrRender();
-
-  requestAnimationFrame(() => { backdrop.style.opacity = '1'; sheet.classList.add('open'); });
-  backdrop.addEventListener('click', () => closeRereadSheet());
-
-  sheet.addEventListener('click', (e) => {
-    const b2 = BOOKS.find(x => x.id === _RR.bookId);
-    if (!b2) return;
-    const edBtn = e.target.closest('[data-rr-edit]');
-    if (edBtn) { const k = edBtn.dataset.rrEdit; _RR.edit = k === 'cur' ? 'cur' : parseInt(k, 10); _rrRender(); return; }
-    if (e.target.closest('[data-rr-add]')) { _RR.edit = 'add'; _rrRender(); return; }
-    if (e.target.closest('[data-rr-cancel]')) { _RR.edit = null; _rrRender(); return; }
-    const fmtBtn = e.target.closest('[data-rr-fmt]');
-    if (fmtBtn) {
-      sheet.querySelectorAll('.rr-fmt-btn').forEach(x => x.classList.toggle('on', x === fmtBtn));
-      return;
-    }
-    const rvBtn = e.target.closest('[data-rr-review]');
-    if (rvBtn) {
-      const round = parseInt(rvBtn.dataset.rrReview, 10);
-      window._rrReturnBookId = _RR.bookId;
-      closeRereadSheet();
-      setTimeout(() => { try { openQuickNote(_RR.bookId, round); } catch (e2) {} }, 280);
-      return;
-    }
-    if (e.target.closest('[data-rr-del]')) {
-      const idx = _RR.edit;
-      if (typeof idx !== 'number') return;
-      const hasRv = !!findReviewNoteByRound(b2.id, idx + 1);
-      showConfirm({
-        title: `${idx + 1}회차 기록 삭제`,
-        message: hasRv ? '이 회차의 독후감도 함께 삭제됩니다. 되돌릴 수 없어요.' : '이 회차의 완독 기록을 삭제합니다.',
-        confirmLabel: '삭제', cancelLabel: '취소', destructive: true,
-        onConfirm: () => { _rrDeletePast(b2, idx); _RR.edit = null; _rrAfterDataChange(b2); showToast('기록을 삭제했어요'); },
-      });
-      return;
-    }
-    if (e.target.closest('[data-rr-save]')) {
-      const ds = (document.getElementById('rrDs') || {}).value || '';
-      const de = (document.getElementById('rrDe') || {}).value || '';
-      const fmtEl = sheet.querySelector('.rr-fmt-btn.on');
-      const fmt = fmtEl ? fmtEl.dataset.rrFmt : 'paper';
-      const rtRaw = (document.getElementById('rrRating') || {}).value || '';
-      const rating = rtRaw ? parseFloat(rtRaw) : null;
-      if (!de) { showToast('완독일을 입력해주세요'); return; }
-      if (ds && ds > de) { showToast('시작일이 완독일보다 늦어요'); return; }
-      if (_RR.edit === 'add') {
-        _rrInsertPast(b2, { dateStart: ds || de, dateEnd: de, rating, format: fmt });
-        showToast('지난 기록을 추가했어요');
-      } else if (_RR.edit === 'cur') {
-        b2.dateStart = ds || b2.dateStart;
-        b2.dateEnd = de;
-        b2.rating = rating;
-        b2.format = fmt;
-      } else if (typeof _RR.edit === 'number' && b2.rereads && b2.rereads[_RR.edit]) {
-        b2.rereads[_RR.edit] = { ...b2.rereads[_RR.edit], dateStart: ds || de, dateEnd: de, rating, format: fmt };
-      } else { return; }
-      _RR.edit = null;
-      _rrAfterDataChange(b2);
-      return;
-    }
-  });
-}
-
-function closeRereadSheet(instant) {
-  const sheet = document.getElementById('rrSheet');
-  const backdrop = document.getElementById('rrBackdrop');
-  if (!sheet && !backdrop) return;
-  if (instant) { sheet && sheet.remove(); backdrop && backdrop.remove(); return; }
-  if (sheet) sheet.classList.remove('open');
-  if (backdrop) backdrop.style.opacity = '0';
-  setTimeout(() => { sheet && sheet.remove(); backdrop && backdrop.remove(); }, 280);
-}
-window.openRereadSheet = openRereadSheet;
 
 /* v1.5.x — 한줄평 textarea 자동 높이 (30줄=660px에서 멈춤, 그 안에서 스크롤)
    iOS Safari 큰 textarea 점프 차단: 한글 조합 중엔 갱신 X, rAF 디바운스 */
@@ -39846,6 +39626,7 @@ function getAllReads(b) {
       dateStart: b.dateStart,
       dateEnd: b.dateEnd || null,
       rating: b.rating || null,
+      format: b.format || 'paper',
       isCurrent: true,
       index: -1,
     });
@@ -41794,7 +41575,7 @@ function renderBookDetail() {
               const dateTxt = dp.length === 3 ? `${dp[0]}. ${+dp[1]}. ${+dp[2]}` : esc(String(b.dateEnd));
               const dur = b.dateStart ? daysBetween(b.dateStart, b.dateEnd) : null;
               const rrN = Array.isArray(b.rereads) ? b.rereads.length : 0;
-              pill = `<button type="button" class="bd-done-pill" onclick="openRereadSheet(${b.id})" aria-label="읽은 기록 보기">✓ ${dateTxt} 완독${dur ? ` · ${dur}일` : ''}${rrN ? ` · ×${rrN + 1}` : ''}</button>`;
+              pill = `<button type="button" class="bd-done-pill" onclick="_bdScrollToReads()" aria-label="독서 기록으로 이동">✓ ${dateTxt} 완독${dur ? ` · ${dur}일` : ''}${rrN ? ` · ×${rrN + 1}` : ''}</button>`;
             }
             return (stars || pill) ? `<div class="bd-hero-done">${stars}${pill}</div>` : '';
           })() : ''}
@@ -42044,7 +41825,7 @@ function renderBookDetail() {
 
     ${!wish && (done || reads.length > 0) ? `
     <!-- 독서 기록 -->
-    <div class="bd-section">
+    <div class="bd-section" id="bdReadsSection">
       <div class="bd-section-lbl">독서 기록<span class="subct">${totalReads}회 독서</span></div>
       <div class="bd-reads">
         ${reads.map((r, i) => {
@@ -42074,6 +41855,14 @@ function renderBookDetail() {
                     </div>
                     `}
                   </div>
+                  ${(r.index !== -1) ? `
+                  <div class="bd-read-form-field">
+                    <label class="bd-read-form-lbl">매체</label>
+                    <div class="bd-read-fmt-seg" id="bdReadEditFmt">
+                      ${['paper','ebook','audio'].map(k => `<button type="button" class="bd-read-fmt-btn${(r.format || 'paper') === k ? ' on' : ''}" data-fmt="${k}"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#${_READ_FMT[k]}"/></svg>${_READ_FMT_LBL[k]}</button>`).join('')}
+                    </div>
+                  </div>
+                  ` : ''}
                   ${canEditEnd ? `
                   <div class="bd-read-form-field">
                     <label class="bd-read-form-lbl">별점</label>
@@ -42091,14 +41880,23 @@ function renderBookDetail() {
                 </div>
               </div>`;
           }
+          const rvRound = r.isCurrent ? ((b.rereads || []).length + 1) : (r.index + 1);
+          const rvNote = r.dateEnd ? findReviewNoteByRound(b.id, rvRound) : null;
+          const rvBtn = r.dateEnd
+            ? `<button class="bd-read-rv${rvNote ? ' has' : ''}" data-rv-round="${rvRound}" aria-label="${n}회차 독후감${rvNote ? ' 보기' : ' 남기기'}" type="button">
+                <svg viewBox="0 0 24 24" fill="${rvNote ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </button>`
+            : '<span style="width:24px"></span>';
           return `
             <div class="bd-read-item ${r.isCurrent ? 'current' : ''}">
               <div class="bd-read-num">${n}</div>
               <div class="bd-read-dates">
                 ${formatReadDateRange(r.dateStart, r.dateEnd)}
                 ${days ? `<span class="days">${days}일</span>` : ''}
+                ${_readFmtIcon(r.format)}
               </div>
               <div class="bd-read-rating">${r.rating ? `★ ${r.rating.toFixed(1)}` : '—'}</div>
+              ${rvBtn}
               <button class="bd-read-edit" data-edit-idx="${r.index}" aria-label="수정" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -42127,6 +41925,12 @@ function renderBookDetail() {
               <span class="bd-stars-val"></span>
             </div>
             <div class="bd-stars-hint"><span class="arrow-icn">←→</span> 좌우로 쓸어 평점 · 0.5점 단위</div>
+          </div>
+          <div class="bd-read-form-field">
+            <label class="bd-read-form-lbl">매체</label>
+            <div class="bd-read-fmt-seg" id="bdRrFmt">
+              ${['paper','ebook','audio'].map((k, i) => `<button type="button" class="bd-read-fmt-btn${i === 0 ? ' on' : ''}" data-fmt="${k}"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#${_READ_FMT[k]}"/></svg>${_READ_FMT_LBL[k]}</button>`).join('')}
+            </div>
           </div>
           <div class="bd-read-form-actions">
             <button class="btn-secondary" id="bdRrCancel">취소</button>
@@ -43058,6 +42862,24 @@ function wireBookDetailEvents() {
     });
   }
 
+  // v2.6 — 매체 세그 토글 (편집 폼·재독 추가 폼 공용)
+  document.querySelectorAll('.bd-read-fmt-seg').forEach(seg => {
+    seg.querySelectorAll('.bd-read-fmt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        seg.querySelectorAll('.bd-read-fmt-btn').forEach(x => x.classList.toggle('on', x === btn));
+      });
+    });
+  });
+
+  // v2.6 — 회차별 독후감 (말풍선 버튼 → 그 회차의 독후감 열기)
+  document.querySelectorAll('.bd-read-rv').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const round = parseInt(btn.dataset.rvRound, 10);
+      if (!isNaN(round)) { try { openQuickNote(b.id, round); } catch (e2) {} }
+    });
+  });
+
   // 재독 기록 추가 버튼
   const addBtn = document.getElementById('bdAddRereadBtn');
   if (addBtn) {
@@ -43091,12 +42913,15 @@ function wireBookDetailEvents() {
       const end   = document.getElementById('bdRrEnd').value;
       if (!start || !end) { showToast('날짜를 모두 입력해주세요'); return; }
       if (new Date(start) > new Date(end)) { showToast('종료일이 시작일보다 빨라요'); return; }
-      const newRereads = [...(b.rereads || []), {
+      const fmtBtn = document.querySelector('#bdRrFmt .bd-read-fmt-btn.on');
+      // v2.6 — 완독일 기준 올바른 위치에 삽입 + 기존 회차 독후감(round) 자동 리맵
+      _rrInsertPast(b, {
         dateStart: start,
         dateEnd: end,
         rating: newRereadRating || b.rating || 4.0,
-      }];
-      updateBook(b.id, { rereads: newRereads });
+        format: fmtBtn ? fmtBtn.dataset.fmt : 'paper',
+      });
+      updateBook(b.id, { rereads: b.rereads });
       BD.showRereadForm = false;
       renderBookDetail();
       showToast('재독 기록이 추가됐어요 ✓');
@@ -43109,11 +42934,23 @@ function wireBookDetailEvents() {
       e.stopPropagation();
       const idx = parseInt(btn.dataset.rereadIdx, 10);
       if (idx >= 0) {
-        // 일반 재독 기록 삭제 (rereads 배열에서 제거)
-        const newRereads = (b.rereads || []).filter((_, i) => i !== idx);
-        updateBook(b.id, { rereads: newRereads });
-        renderBookDetail();
-        showToast('독서 기록 삭제됨');
+        // v2.6 — 삭제 시 그 회차 독후감 동반 삭제 + 이후 회차 round 리맵
+        const doDel = () => {
+          _rrDeletePast(b, idx);
+          updateBook(b.id, { rereads: b.rereads });
+          renderBookDetail();
+          showToast('독서 기록 삭제됨');
+        };
+        if (findReviewNoteByRound(b.id, idx + 1)) {
+          showConfirm({
+            title: '독서 기록 삭제',
+            message: '이 회차의 독후감도 함께 삭제됩니다. 되돌릴 수 없어요.',
+            confirmLabel: '삭제', cancelLabel: '취소', destructive: true,
+            onConfirm: doDel,
+          });
+        } else {
+          doDel();
+        }
         return;
       }
       // v1.5.x — 현재(본체) 완독 기록 삭제 → 남은 재독 중 가장 최근 걸 본체로 승격, 없으면 위시로
@@ -43239,10 +43076,11 @@ function wireBookDetailEvents() {
         }
         updateBook(b.id, patch);
       } else {
-        // rereads 배열의 해당 인덱스 수정
+        // rereads 배열의 해당 인덱스 수정 (v2.6 — 매체 포함)
+        const _fmtBtn = document.querySelector('#bdReadEditFmt .bd-read-fmt-btn.on');
         const newRereads = (b.rereads || []).map((r, i) => {
           if (i !== BD.editingReadIdx) return r;
-          return { ...r, dateStart: newStart, dateEnd: newEnd, rating: newRating };
+          return { ...r, dateStart: newStart, dateEnd: newEnd, rating: newRating, format: _fmtBtn ? _fmtBtn.dataset.fmt : r.format };
         });
         updateBook(b.id, { rereads: newRereads });
       }
