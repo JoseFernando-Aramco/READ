@@ -11275,6 +11275,8 @@ html[data-theme="midnight"] .rv-grip { background: rgba(255,255,255,0.22); }
 }
 
 /* v1.10.0 — 데이터 출처 표기 (약관 보호 + 사용자 정보 제공) */
+a.bd-meta-source { display: block; text-decoration: none; padding-bottom: 12px; margin-bottom: -10px; -webkit-tap-highlight-color: transparent; }
+a.bd-meta-source u { text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
 .bd-meta-source {
   margin-top: 8px;
   padding-top: 8px;
@@ -13386,6 +13388,7 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
 .bde-tag.miss { background: var(--c-border); color: var(--c-label); }
 /* v2.4 — 정보 검색 모달 직접 입력 행 */
 .bde-manual { padding: 11px 20px 12px; border-top: 1px solid var(--c-border); flex-shrink: 0; }
+.bde-src { padding: 7px 20px 0; font-size: 9.5px; color: var(--c-muted, #b0b0b0); text-align: center; flex-shrink: 0; }
 .bde-manual-lbl { font-size: 10.5px; font-weight: 700; color: var(--c-muted); margin-bottom: 7px; }
 .bde-manual-row { display: flex; gap: 8px; align-items: stretch; }
 .bde-mi { flex: 1; display: flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--c-border-2) 22%, var(--c-surface)); border: 1px solid var(--c-border); border-radius: 9px; padding: 0 10px; min-height: 44px; min-width: 0; }
@@ -25838,6 +25841,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <button type="button" class="bde-manual-save" id="bdeMiSave">저장</button>
       </div>
     </div>
+    <div class="bde-src">※ 도서 정보: YES24 · Kakao · Google Books</div>
     <div class="bde-footer">
       <button type="button" class="bde-btn-ghost" id="bdeBtnCancel">취소</button>
       <button type="button" class="bde-btn-primary" id="bdeBtnApply" disabled>이 정보로 채우기</button>
@@ -30802,6 +30806,7 @@ async function _searchAladin(q) {
       isbn: it.isbn13 || it.isbn || '',
       contents: it.description || '',
       source: 'aladin',
+      link: it.link || '',
       priceList: priceListRaw,
       priceSales: priceSalesRaw,
       // v1.12.0 — 알라딘 카테고리 (자동 태그 부여용). Worker가 안 보내면 빈 값.
@@ -41526,7 +41531,12 @@ function renderBookDetail() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
                 <span>정보 검색</span>
               </button>`}
-              ${hasAnyMeta ? `<div class="bd-meta-source">※ 온라인 도서 데이터 기반</div>` : ''}
+              ${hasAnyMeta ? (() => {
+                const yl = b.y24link || (b.isbn ? 'https://www.yes24.com/product/search?domain=BOOK&query=' + encodeURIComponent(String(b.isbn).replace(/[-\s]/g, '')) : '');
+                return yl
+                  ? `<a class="bd-meta-source" href="${esc(yl)}" target="_blank" rel="noopener">※ 도서 정보: <u>YES24</u> · Kakao · Google Books</a>`
+                  : `<div class="bd-meta-source">※ 도서 정보: YES24 · Kakao · Google Books</div>`;
+              })() : ''}
             </div>
           </div>
           <div class="bd-social" id="bdSocial" hidden></div>
@@ -54627,6 +54637,7 @@ function _bdeApply() {
   if (c.publisher && c.publisher !== book.publisher) { book.publisher = c.publisher; touchedFields.push('출판사'); }
   if (c.year && c.year !== book.year) { book.year = c.year; touchedFields.push('출판연도'); }
   if (c.isbn && c.isbn !== book.isbn) { book.isbn = c.isbn; touchedFields.push('ISBN'); }
+  if (c.link) book.y24link = c.link; // 출처 표기 각주의 상품 페이지 링크용
   // 가격 — 'manual' 보호
   if (book.priceSource !== 'manual') {
     const pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
