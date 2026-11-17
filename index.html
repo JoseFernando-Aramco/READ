@@ -13368,19 +13368,6 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   color: var(--c-label);
   line-height: 1.55;
 }
-.bde-cand-source {
-  display: inline-block;
-  padding: 1px 6px;
-  background: var(--c-border);
-  color: var(--c-text-2, var(--c-label));
-  border-radius: 3px;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-left: 4px;
-  vertical-align: 1px;
-}
 .bde-cand-tags {
   display: flex;
   gap: 4px;
@@ -23642,7 +23629,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <footer class="app-footer">
     <span class="keepbook-logo app-footer-logo">keepbook</span>
     <div class="app-footer-meta"><span id="appFooterVer"></span>© 2026 <b>Locadomingo</b></div>
-    <div class="app-footer-credit">책 정보 · 예스24 · 카카오 · Google Books</div>
+    <div class="app-footer-credit">책 정보 · 국내외 도서 데이터베이스</div>
   </footer>
 
 </div>
@@ -25233,7 +25220,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="blkx-body off" id="blkAcqBody">
       <div style="display:flex; gap:8px;">
         <input type="number" inputmode="numeric" id="blkAcqPrice" placeholder="가격 (원)" min="0" step="100" style="flex:1; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
-        <input type="text" id="blkAcqPlace" placeholder="구매처 (예: 알라딘)" maxlength="30" style="flex:1.2; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
+        <input type="text" id="blkAcqPlace" placeholder="구매처 (예: 교보문고)" maxlength="30" style="flex:1.2; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid var(--c-border); border-radius:10px; background:var(--c-surface); color:var(--c-terra-700); font-size:14px; font-family:inherit;" />
       </div>
       <div id="blkAcqHint" style="font-size:11px; color:var(--c-terra-400); margin-top:7px;"></div>
     </div>
@@ -25314,9 +25301,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
     <div class="ab-section">
       <div class="ab-sec-ttl">데이터 출처</div>
       <div class="ab-sec-body">
-        책 검색 · 표지 · 메타데이터: <strong>Kakao Books</strong> · <strong>Aladin OpenAPI</strong> · <strong>Google Books</strong> · <strong>네이버 책 검색</strong><br/>
-        가격 정보: <strong>Aladin</strong> · <strong>네이버</strong><br/>
-        페이지 정보: <strong>Aladin</strong> · <strong>Google Books</strong><br/>
+        책 검색 · 표지 · 메타데이터 · 가격 · 페이지: 국내외 도서 데이터베이스 · 오픈 API<br/>
         폰트: <strong>Pretendard</strong> · <strong>Noto Serif KR</strong><br/>
         <span class="ab-muted">표지·서지정보의 저작권은 각 출판사·저자에게 있습니다.</span>
       </div>
@@ -25750,7 +25735,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="bf-head">
         <div class="bf-icon"><div class="bf-spinner"></div></div>
         <div class="bf-ttl">보강 중</div>
-        <div class="bf-desc">예스24·카카오에서 정보 찾는 중이에요</div>
+        <div class="bf-desc">책 정보를 찾는 중이에요</div>
       </div>
       <div class="bf-prog">
         <div class="bf-bar"><div class="bf-fill" id="bfFill"></div></div>
@@ -25835,7 +25820,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="bde-card">
     <div class="bde-head">
       <div class="bde-ttl">책 정보 검색</div>
-      <div class="bde-desc" id="bdeDesc">예스24·카카오·구글에서 후보를 찾아요</div>
+      <div class="bde-desc" id="bdeDesc">도서 데이터베이스에서 후보를 찾아요</div>
     </div>
     <div class="bde-body" id="bdeBody">
       <div class="bde-loading">
@@ -31136,7 +31121,7 @@ function renderSearchWelcome() {
     <div class="search-state">
       <div class="search-state-emoji" style="color:var(--c-muted)"><svg class="ic ic-3xl" aria-hidden="true"><use href="#i-books"/></svg></div>
       <div class="search-state-ttl">책 이름이나 저자를 검색해보세요</div>
-      <div class="search-state-sub">국내서(카카오·알라딘) · 원서(Google Books) 동시 검색</div>
+      <div class="search-state-sub">국내서 · 원서 동시 검색</div>
     </div>`;
 }
 function renderSearchNoKey() {
@@ -41540,7 +41525,7 @@ function renderBookDetail() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
                 <span>정보 검색</span>
               </button>`}
-              ${hasAnyMeta ? `<div class="bd-meta-source">※ 예스24 · 카카오 · Google Books 데이터 기반</div>` : ''}
+              ${hasAnyMeta ? `<div class="bd-meta-source">※ 온라인 도서 데이터 기반</div>` : ''}
             </div>
           </div>
           <div class="bd-social" id="bdSocial" hidden></div>
@@ -51475,7 +51460,7 @@ function _renderSpendModal() {
       '<div class="sp-empty">' +
         '<b>아직 입력된 종이값이 없어요</b>' +
         '책 상세에서 종이값을 입력하시면 여기 쌓여요.<br>' +
-        '검색으로 추가하신 책은 알라딘 가격이 자동 입력돼요.' +
+        '검색으로 추가하신 책은 가격이 자동 입력돼요.' +
       '</div>' + rentSavedCardHtml;
     return;
   }
@@ -51717,7 +51702,7 @@ function _renderSpendModal() {
 
     '<div class="sp-notice">' +
       '<b>결제 금액이 아닌 그 책의 정가 합계예요.</b> ' +
-      '도서관\u00B7구독\u00B7선물받은 책은 비워두시면 합계에서 빠져요. 알라딘 자동값은 \u270F\uFE0F로 언제든 고칠 수 있어요.' +
+      '도서관\u00B7구독\u00B7선물받은 책은 비워두시면 합계에서 빠져요. 자동 입력된 가격은 \u270F\uFE0F로 언제든 고칠 수 있어요.' +
     '</div>' +
 
     '<div class="sp-expand-row">' +
@@ -51995,8 +51980,8 @@ function _renderPriceCard(b) {
 
   // 출처 칩
   let srcChip;
-  if (src === 'aladin') srcChip = '<span class="src-chip"><span class="dot"></span>알라딘 자동</span>';
-  else if (src === 'naver') srcChip = '<span class="src-chip"><span class="dot"></span>네이버 자동</span>';
+  if (src === 'aladin') srcChip = '<span class="src-chip"><span class="dot"></span>자동 입력</span>';
+  else if (src === 'naver') srcChip = '<span class="src-chip"><span class="dot"></span>자동 입력</span>';
   else if (src === 'manual') srcChip = '<span class="src-chip manual"><span class="dot"></span>직접 입력</span>';
   else srcChip = '<span class="src-chip empty"><span class="dot"></span>비워둠 — 합계 제외</span>';
 
@@ -54432,7 +54417,7 @@ function _bdeOpen(bookId) {
   document.getElementById('bdeBody').innerHTML = `
     <div class="bde-loading">
       <div class="bf-spinner"></div>
-      <div>예스24·카카오·구글에서 검색 중...</div>
+      <div>책 정보를 검색 중...</div>
     </div>`;
   document.getElementById('bdeBtnApply').disabled = true;
 
@@ -54572,7 +54557,7 @@ function _bdeRenderResults(book, searchInfo) {
       <div class="bde-empty">
         <div class="bde-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
-        <div>예스24·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
+        <div>이 책의 정보를 찾지 못했어요.<br>
         절판이거나 등록되지 않은 책일 수 있어요.</div>
       </div>`;
     return;
@@ -54584,10 +54569,6 @@ function _bdeRenderResults(book, searchInfo) {
     const hasPrice = (c.priceSales && c.priceSales > 0) || (c.priceList && c.priceList > 0);
     const hasCover = !!c.cover;
     // v1.9.1 — 합성된 후보면 여러 source 표시 (A+N+K 등)
-    const SOURCE_ABBR = { aladin: 'A', naver: 'N', kakao: 'K', google: 'G' };
-    const sourceLbl = Array.isArray(c.sources) && c.sources.length > 1
-      ? c.sources.map(s => SOURCE_ABBR[s] || '?').join('+')
-      : (SOURCE_ABBR[c.source] || 'G');
     const cover = hasCover
       ? `<img src="${esc(c.cover)}" alt="" referrerpolicy="no-referrer" draggable="false" onerror="this.style.display='none'">`
       : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:20px;color:var(--c-label);">📖</div>';
@@ -54601,7 +54582,7 @@ function _bdeRenderResults(book, searchInfo) {
       <div class="bde-card-item" data-idx="${idx}">
         <div class="bde-cand-cover">${cover}</div>
         <div class="bde-cand-info">
-          <div class="bde-cand-title">${esc(c.title)}<span class="bde-cand-source">${sourceLbl}</span></div>
+          <div class="bde-cand-title">${esc(c.title)}</div>
           <div class="bde-cand-meta">${metaLine || '정보 없음'}</div>
           <div class="bde-cand-tags">
             <span class="bde-tag ${hasCover ? 'has' : 'miss'}">표지${hasCover ? '✓' : '✗'}</span>
