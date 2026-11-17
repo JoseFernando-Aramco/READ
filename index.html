@@ -42172,7 +42172,7 @@ async function loadBdSeries(b) {
 
   // 2) 시리즈 전체 권 목록 (24시간 로컬 캐시)
   let sd = null;
-  const ck = 'read.series.' + b.seriesId;
+  const ck = 'read.series2.' + b.seriesId;  // v2.5.2 — 부≠권 수정 전 구캐시 무효화
   try {
     const c = JSON.parse(localStorage.getItem(ck) || 'null');
     if (c && Date.now() - c.t < 24 * 3600 * 1000) sd = c.v;
@@ -42209,7 +42209,7 @@ function _renderBdSeries(el, b, sd) {
     let v = null;
     const k = String(x.isbn || '').replace(/[-\s]/g, '');
     if (k && volByIsbn.has(k)) v = volByIsbn.get(k);
-    else if (x.seriesId != null && String(x.seriesId) === String(b.seriesId)) v = _volFromTitle(x.title, sd.name);
+    else if (x.seriesId != null && String(x.seriesId) === String(b.seriesId) && !String(b.seriesId).startsWith('sub:')) v = _volFromTitle(x.title, sd.name);  // 의사 시리즈는 순번≠제목 숫자라 ISBN만
     if (v == null) continue;
     const prev = mine.get(v);
     if (!prev || (rank[x.status] || 0) > (rank[prev] || 0)) mine.set(v, x.status);
