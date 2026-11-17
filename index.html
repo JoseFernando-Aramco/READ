@@ -4738,6 +4738,8 @@ body:has(.lib-edit-bar) /* v2.2.x — 예시 서재 안내 (신규 유저 혼란
 }
 .note-card:active { transform: scale(0.998); }
 /* v2.4 — 오늘 다시 만난 문장 */
+.nd-card { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.nd-more { margin-left: 8px; font-weight: 700; opacity: .75; }
 .note-daily { margin-bottom: 12px; }
 .nd-card {
   border-radius: 14px; padding: 15px 18px 13px;
@@ -22414,7 +22416,48 @@ html:not([data-theme="midnight"]) .bd-hero-unified .bd-progress-fill { backgroun
 /* ③ 완독 기념 — 별점 + 완독 pill (제목·저자 아래, 칩 위) */
 .bd-hero-done { text-align: center; margin-top: 9px; }
 .bd-done-stars { font-size: 17px; letter-spacing: 3px; color: #C9A227; }
-.bd-done-pill { display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 800; color: var(--c-text-2); background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 100px; padding: 5px 13px; }
+.bd-done-pill { display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 800; color: var(--c-text-2); background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 100px; padding: 5px 13px; border: none; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* ═══ v2.6 — 읽은 기록(회차 타임라인) 시트 ═══ */
+.rr-sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 102%); width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; background: var(--c-surface); border-radius: 20px 20px 0 0; padding: 8px 18px calc(18px + env(safe-area-inset-bottom)); z-index: var(--z-toast); transition: transform 0.3s cubic-bezier(.32,.72,.33,1); box-shadow: 0 -10px 34px rgba(0,0,0,.22); box-sizing: border-box; }
+.rr-sheet.open { transform: translate(-50%, 0); }
+.rr-grip { width: 38px; height: 4.5px; border-radius: 100px; background: var(--c-border); margin: 6px auto 10px; }
+.rr-ttl { font-size: 14px; font-weight: 800; text-align: center; color: var(--c-terra-700); }
+.rr-sub { font-size: 10.5px; font-weight: 600; text-align: center; color: var(--c-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rr-tl { margin-top: 14px; position: relative; padding-left: 16px; }
+.rr-tl::before { content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 2px; background: var(--c-border); border-radius: 2px; }
+.rr-item { position: relative; padding: 9px 0; }
+.rr-item::before { content: ''; position: absolute; left: -16px; top: 17px; width: 8px; height: 8px; border-radius: 50%; background: var(--c-muted); border: 2px solid var(--c-surface); }
+.rr-item.now::before { background: var(--c-gold-500); }
+.rr-l1 { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; flex-wrap: wrap; color: var(--c-terra-700); }
+.rr-n { font-size: 10px; font-weight: 800; color: var(--c-gold-900, #8a7748); background: color-mix(in srgb, var(--c-gold-500) 16%, transparent); border-radius: 100px; padding: 3px 9px; flex: 0 0 auto; }
+.rr-fmt { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--c-text-2, var(--c-muted)); background: var(--c-surface-2); border-radius: 5px; padding: 3px 7px; font-weight: 700; }
+.rr-fmt .ic, .rr-rv-btn .ic, .rr-edit .ic, .rr-add .ic { width: 12px; height: 12px; }
+.rr-dates { font-size: 11px; color: var(--c-text-2, var(--c-muted)); font-weight: 600; }
+.rr-st { color: var(--c-gold-500); font-size: 11px; font-weight: 800; margin-left: auto; }
+.rr-reading { font-size: 10px; font-weight: 800; color: var(--c-gold-900, #8a7748); margin-left: auto; }
+.rr-edit { border: none; background: transparent; color: var(--c-muted); padding: 8px; margin: -8px -4px -8px 0; cursor: pointer; font-family: inherit; display: inline-flex; }
+.rr-st + .rr-edit, .rr-reading + .rr-edit { margin-left: 0; }
+.rr-l1 .rr-edit:last-child { margin-left: auto; }
+.rr-st ~ .rr-edit, .rr-reading ~ .rr-edit { margin-left: 0 !important; }
+.rr-ed-lbl { font-size: 11px; color: var(--c-muted); font-weight: 700; }
+.rr-rv { margin-top: 7px; background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: 10px; padding: 9px 11px; font-size: 11px; color: var(--c-text-2, var(--c-terra-700)); line-height: 1.65; cursor: pointer; }
+.rr-rv-lbl { font-size: 9px; font-weight: 800; color: var(--c-muted); letter-spacing: 0.08em; margin-bottom: 3px; }
+.rr-rv-btn { margin-top: 7px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: 1.5px dashed color-mix(in srgb, var(--c-gold-500) 55%, var(--c-border)); background: color-mix(in srgb, var(--c-gold-500) 7%, var(--c-surface)); border-radius: 10px; padding: 11px; min-height: 44px; font-size: 11.5px; font-weight: 800; color: var(--c-gold-900, #8a7748); font-family: inherit; cursor: pointer; box-sizing: border-box; }
+.rr-add { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: 1.5px dashed var(--c-border); background: transparent; border-radius: 10px; padding: 12px; min-height: 44px; font-size: 11.5px; font-weight: 700; color: var(--c-muted); font-family: inherit; cursor: pointer; box-sizing: border-box; }
+.rr-form { margin-top: 8px; background: var(--c-surface-2); border-radius: 11px; padding: 11px 12px; }
+.rr-form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+.rr-form-row label { flex: 1; min-width: 120px; font-size: 10px; font-weight: 700; color: var(--c-muted); display: flex; flex-direction: column; gap: 4px; }
+.rr-form-row input[type="date"], .rr-form-row select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--c-border); border-radius: 9px; background: var(--c-surface); color: var(--c-terra-700); font-size: 13px; font-family: inherit; box-sizing: border-box; }
+.rr-form-row select { flex: 1; min-width: 100px; width: auto; }
+.rr-fmt-seg { display: flex; gap: 5px; flex: 2; }
+.rr-fmt-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; border: 1px solid var(--c-border); background: var(--c-surface); border-radius: 9px; font-size: 11px; font-weight: 700; color: var(--c-muted); font-family: inherit; cursor: pointer; padding: 0 6px; }
+.rr-fmt-btn.on { background: var(--c-terra-700); color: var(--c-surface); border-color: var(--c-terra-700); }
+.rr-fmt-btn .ic { width: 13px; height: 13px; }
+.rr-form-btns { display: flex; gap: 8px; align-items: center; }
+.rr-btn { min-height: 40px; padding: 0 16px; border-radius: 9px; border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-terra-700); font-size: 12px; font-weight: 800; font-family: inherit; cursor: pointer; }
+.rr-btn.primary { background: var(--c-terra-700); color: var(--c-surface); border-color: var(--c-terra-700); }
+.rr-btn.danger { color: #B85A4A; border-color: color-mix(in srgb, #B85A4A 45%, var(--c-border)); }
 html[data-theme="midnight"] .bd-done-pill { background: rgba(255,255,255,.07); }
 /* 상태 탭 — 라인 탭 → 시안 박스 세그먼트 */
 .bd-hero-unified .bd-hero-status { margin: 0; border-top: none; padding: 12px 0 0; }
@@ -38425,6 +38468,7 @@ function _libBuildStatusUpdate(b, newStatus, today) {
           dateStart: b.dateStart || b.dateEnd,
           dateEnd: b.dateEnd,
           rating: b.rating || null,
+          format: b.format || 'paper',  // v2.6 — 회차별 매체 기록
         }];
       }
       update.dateStart = today;
@@ -38459,6 +38503,7 @@ function _libBuildStatusUpdate(b, newStatus, today) {
           dateStart: b.dateStart || b.dateEnd,
           dateEnd: b.dateEnd,
           rating: b.rating || null,
+          format: b.format || 'paper',  // v2.6 — 회차별 매체 기록
         }];
       }
     }
@@ -38661,11 +38706,11 @@ function findReviewNote(bookId) {
 }
 
 /* 한줄평 저장/덮어쓰기 (text가 빈 문자열이면 삭제) */
-function saveQuickNote(bookId, text) {
+function saveQuickNote(bookId, text, round) {
   const b = BOOKS.find(x => x.id === bookId);
   if (!b) return;
   const trimmed = (text || '').trim();
-  const existing = findReviewNote(bookId);
+  const existing = (round != null) ? findReviewNoteByRound(bookId, round) : findReviewNote(bookId);
   if (trimmed) {
     if (existing) {
       existing.body = trimmed;
@@ -38677,7 +38722,7 @@ function saveQuickNote(bookId, text) {
         id: newId,
         bookId: bookId,
         type: 'review',
-        round: _rvBook ? _bookRound(_rvBook) : 1,
+        round: (round != null) ? round : (_rvBook ? _bookRound(_rvBook) : 1),
         page: null,
         body: trimmed,
         favorite: false,
@@ -38698,6 +38743,7 @@ function saveQuickNote(bookId, text) {
   try { renderNotesTab && renderNotesTab(); } catch(e){}
   try { _refreshBdNotesViewIfOpen && _refreshBdNotesViewIfOpen(); } catch(e){}
   try { _refreshBdReviewCardIfOpen && _refreshBdReviewCardIfOpen(bookId); } catch(e){}
+  try { _rrRefreshIfOpen && _rrRefreshIfOpen(); } catch(e){}
 }
 
 /* v1.3.0 — 책 상세 모달의 한줄평 카드만 갱신 (별점 섹션의 OPTION 02 카드) */
@@ -38718,9 +38764,11 @@ function _refreshBdReviewCardIfOpen(bookId) {
 }
 
 /* 한줄평 시트 — 열기 */
-function openQuickNote(bookId) {
+function openQuickNote(bookId, round) {
   const b = BOOKS.find(x => x.id === bookId);
   if (!b) return;
+  // v2.6 — round 지정 시 그 회차의 독후감을 대상(읽은 기록 시트에서 진입). 과거 회차면 그 회차 기록으로 메타 표시.
+  const _rrRec = (round != null && Array.isArray(b.rereads) && b.rereads[round - 1]) ? b.rereads[round - 1] : null;
   const sheet = document.getElementById('qnSheet');
   const backdrop = document.getElementById('qnBackdrop');
   const ttl = document.getElementById('qnHeadTtl');
@@ -38731,15 +38779,17 @@ function openQuickNote(bookId) {
   const del = document.getElementById('qnDelete');
   if (!sheet || !backdrop || !ta) return;
 
-  const review = findReviewNote(bookId);
+  const review = (round != null) ? findReviewNoteByRound(bookId, round) : findReviewNote(bookId);
   if (ttl) ttl.textContent = b.title || '';
   // v2.4 독후감 — 메타 줄: ★별점 · 저자 · N일 동안 읽음
   if (sub) {
     const parts = [];
-    if (b.rating) parts.push(`<span class="rv-stars">★ ${Number(b.rating).toFixed(1)}</span>`);
+    const _mr = _rrRec || b;  // 과거 회차면 그 회차의 별점·날짜
+    if (round != null) parts.push(`${round}회차`);
+    if (_mr.rating) parts.push(`<span class="rv-stars">★ ${Number(_mr.rating).toFixed(1)}</span>`);
     if (b.author) parts.push(esc(b.author));
-    if (b.dateStart && b.dateEnd) {
-      const days = Math.round((new Date(b.dateEnd) - new Date(b.dateStart)) / 86400000) + 1;
+    if (_mr.dateStart && _mr.dateEnd) {
+      const days = Math.round((new Date(_mr.dateEnd) - new Date(_mr.dateStart)) / 86400000) + 1;
       if (days > 0) parts.push(`${days}일 동안 읽음`);
     }
     sub.innerHTML = parts.join(' &nbsp;·&nbsp; ') || '&nbsp;';
@@ -38747,7 +38797,8 @@ function openQuickNote(bookId) {
   // FINISHED · 완독일 (완독 아닌 책이면 라벨만)
   if (meta) {
     let d = '';
-    if (b.dateEnd) { const dt = new Date(b.dateEnd); if (!isNaN(dt)) d = ` · ${dt.getFullYear()}. ${dt.getMonth() + 1}. ${dt.getDate()}`; }
+    const _me = _rrRec ? _rrRec.dateEnd : b.dateEnd;
+    if (_me) { const dt = new Date(_me); if (!isNaN(dt)) d = ` · ${dt.getFullYear()}. ${dt.getMonth() + 1}. ${dt.getDate()}`; }
     meta.textContent = (b.status === 'done' ? 'FINISHED' : 'BOOK REPORT') + d;
   }
   // 표지 워시 — 책 상세와 같은 캐시(read.coverWash.v1) 재사용, 미스면 기본 세이지
@@ -38777,9 +38828,11 @@ function openQuickNote(bookId) {
 
   // v2.4 — 초안 복원 (저장 전 닫았던 글)
   let draft = '';
-  try { draft = localStorage.getItem('read.rvDraft.' + bookId) || ''; } catch (e) {}
+  const _dk = 'read.rvDraft.' + bookId + (round != null ? '.r' + round : '');
+  try { draft = localStorage.getItem(_dk) || ''; } catch (e) {}
   ta.value = review && review.body ? review.body : draft;
   ta.dataset.bookId = String(bookId);
+  if (round != null) ta.dataset.round = String(round); else delete ta.dataset.round;
   if (del) del.hidden = !review;
   const cntEl = document.getElementById('rvCount');
   if (cntEl) cntEl.textContent = ta.value.length + '자';
@@ -38803,7 +38856,246 @@ function closeQuickNote() {
   backdrop.classList.remove('is-open');
   sheet.setAttribute('aria-hidden', 'true');
   unlockBodyScroll();
+  // v2.6 — 읽은 기록 시트에서 열었으면 복귀
+  if (window._rrReturnBookId != null) {
+    const _rid = window._rrReturnBookId; window._rrReturnBookId = null;
+    setTimeout(() => { try { openRereadSheet(_rid); } catch (e) {} }, 260);
+  }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   🔁 v2.6 — 읽은 기록 (회차 타임라인) 시트
+   ─ 진입: 책 상세 완독 pill 탭
+   ─ 회차 = rereads 배열 순서(과거) + 현재 기록. 회차별 날짜·매체·별점·독후감.
+   ─ 독후감은 review 노트의 round 필드로 연결 (기존 회독별 감상 구조 재사용).
+   ═══════════════════════════════════════════════════════════ */
+const _RR = { bookId: null, edit: null };  // edit: 'cur' | rereads idx | 'add' | null
+
+function _rrRecords(b) {
+  const rr = Array.isArray(b.rereads) ? b.rereads : [];
+  const out = rr.map((r, i) => ({ round: i + 1, dateStart: r.dateStart || null, dateEnd: r.dateEnd || null, rating: r.rating || null, format: r.format || null, idx: i, past: true }));
+  const cur = _bookRound(b);
+  if (b.status === 'done' && b.dateEnd) {
+    out.push({ round: cur, dateStart: b.dateStart || null, dateEnd: b.dateEnd, rating: b.rating || null, format: b.format || 'paper', current: true });
+  } else if (b.status === 'reading') {
+    out.push({ round: cur, dateStart: b.dateStart || null, dateEnd: null, rating: null, format: b.format || 'paper', current: true, reading: true });
+  }
+  return out;
+}
+
+const _RR_FMT = { paper: ['i-book-closed', '종이책'], ebook: ['i-smartphone', '전자책'], audio: ['i-headphones', '오디오북'], webnovel: ['i-book-open', '웹소설'] };
+function _rrFmtChip(f) {
+  const m = _RR_FMT[f];
+  if (!m) return '';
+  return `<span class="rr-fmt"><svg class="ic" aria-hidden="true"><use href="#${m[0]}"/></svg>${m[1]}</span>`;
+}
+function _rrDateTxt(r) {
+  const f = (d) => { if (!d) return ''; const p = String(d).split('-'); return p.length === 3 ? `${p[0]}.${p[1]}.${p[2]}` : String(d); };
+  const fShort = (d) => { if (!d) return ''; const p = String(d).split('-'); return p.length === 3 ? `${p[1]}.${p[2]}` : String(d); };
+  if (r.reading) return `${f(r.dateStart)} – 읽는 중`;
+  if (!r.dateEnd) return f(r.dateStart);
+  if (r.dateStart && String(r.dateStart).slice(0, 4) === String(r.dateEnd).slice(0, 4)) return `${f(r.dateStart)} – ${fShort(r.dateEnd)}`;
+  return r.dateStart ? `${f(r.dateStart)} – ${f(r.dateEnd)}` : f(r.dateEnd);
+}
+
+function _rrEditFormHtml(rec) {
+  const isAdd = !rec;
+  const ds = rec && rec.dateStart || '';
+  const de = rec && rec.dateEnd || '';
+  const fmt = (rec && rec.format) || 'paper';
+  const rating = rec && rec.rating || '';
+  const ratingOpts = ['<option value="">별점 없음</option>'];
+  for (let v = 10; v >= 1; v--) { const x = v / 2; ratingOpts.push(`<option value="${x}"${String(rating) === String(x) ? ' selected' : ''}>★ ${x.toFixed(1)}</option>`); }
+  const fmtBtns = ['paper', 'ebook', 'audio'].map(k =>
+    `<button type="button" class="rr-fmt-btn${fmt === k ? ' on' : ''}" data-rr-fmt="${k}"><svg class="ic" aria-hidden="true"><use href="#${_RR_FMT[k][0]}"/></svg>${_RR_FMT[k][1]}</button>`).join('');
+  return `
+    <div class="rr-form">
+      <div class="rr-form-row"><label>시작일<input type="date" id="rrDs" value="${esc(ds)}"></label><label>완독일<input type="date" id="rrDe" value="${esc(de)}"></label></div>
+      <div class="rr-form-row"><div class="rr-fmt-seg">${fmtBtns}</div><select id="rrRating" aria-label="별점">${ratingOpts.join('')}</select></div>
+      <div class="rr-form-btns">
+        ${(!isAdd && rec.past) ? '<button type="button" class="rr-btn danger" data-rr-del>삭제</button>' : ''}
+        <span style="flex:1"></span>
+        <button type="button" class="rr-btn" data-rr-cancel>취소</button>
+        <button type="button" class="rr-btn primary" data-rr-save>저장</button>
+      </div>
+    </div>`;
+}
+
+function _rrRowHtml(b, rec) {
+  const editKey = rec.current ? 'cur' : rec.idx;
+  if (_RR.edit === editKey) {
+    return `<div class="rr-item${rec.current ? ' now' : ''}"><div class="rr-l1"><span class="rr-n">${rec.round}회차</span><span class="rr-ed-lbl">기록 수정</span></div>${_rrEditFormHtml(rec)}</div>`;
+  }
+  const review = findReviewNoteByRound(b.id, rec.round);
+  let rvHtml = '';
+  if (!rec.reading) {
+    rvHtml = (review && review.body)
+      ? `<div class="rr-rv" data-rr-review="${rec.round}" role="button" tabindex="0"><div class="rr-rv-lbl">이 회차의 독후감</div>${esc(review.body.length > 110 ? review.body.slice(0, 110) + '…' : review.body)}</div>`
+      : `<button type="button" class="rr-rv-btn" data-rr-review="${rec.round}"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg> 이 회차의 독후감 남기기</button>`;
+  }
+  return `
+    <div class="rr-item${rec.current ? ' now' : ''}">
+      <div class="rr-l1">
+        <span class="rr-n">${rec.round}회차</span>
+        ${_rrFmtChip(rec.format)}
+        <span class="rr-dates">${_rrDateTxt(rec)}</span>
+        ${rec.rating ? `<span class="rr-st">★ ${Number(rec.rating).toFixed(1)}</span>` : ''}
+        ${rec.reading ? '<span class="rr-reading">읽는 중</span>' : ''}
+        <button type="button" class="rr-edit" data-rr-edit="${editKey}" aria-label="${rec.round}회차 수정"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg></button>
+      </div>
+      ${rvHtml}
+    </div>`;
+}
+
+function _rrSheetHtml(b) {
+  const recs = _rrRecords(b).slice().reverse();  // 최신 회차가 위
+  const doneN = recs.filter(r => !r.reading).length;
+  return `
+    <div class="rr-grip"></div>
+    <div class="rr-ttl">읽은 기록</div>
+    <div class="rr-sub">${esc(b.title)} · ${doneN}번 완독</div>
+    <div class="rr-tl">${recs.map(r => _rrRowHtml(b, r)).join('')}</div>
+    ${_RR.edit === 'add'
+      ? `<div class="rr-item"><div class="rr-l1"><span class="rr-n">지난 기록</span><span class="rr-ed-lbl">추가</span></div>${_rrEditFormHtml(null)}</div>`
+      : '<button type="button" class="rr-add" data-rr-add><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> 지난 완독 기록 추가</button>'}
+  `;
+}
+
+function _rrRender() {
+  const sheet = document.getElementById('rrSheet');
+  const b = BOOKS.find(x => x.id === _RR.bookId);
+  if (!sheet || !b) return;
+  sheet.innerHTML = _rrSheetHtml(b);
+}
+function _rrRefreshIfOpen() {
+  if (document.getElementById('rrSheet')) _rrRender();
+}
+
+/* 과거 기록 삽입 — 완독일 기준 올바른 위치 + 독후감 round 리맵(+1) */
+function _rrInsertPast(b, rec) {
+  if (!Array.isArray(b.rereads)) b.rereads = [];
+  const rr = b.rereads;
+  let pos = rr.length;
+  for (let i = 0; i < rr.length; i++) { if ((rr[i].dateEnd || '') > (rec.dateEnd || '')) { pos = i; break; } }
+  rr.splice(pos, 0, rec);
+  let changed = false;
+  NOTES.forEach(n => {
+    if (n.bookId === b.id && n.type === 'review' && (n.round || 1) >= pos + 1) { n.round = (n.round || 1) + 1; changed = true; }
+  });
+  if (changed) { try { STORE.set('notes', NOTES); } catch (e) {} }
+}
+/* 과거 기록 삭제 — 그 회차 독후감도 삭제, 이후 회차 round 리맵(-1) */
+function _rrDeletePast(b, idx) {
+  b.rereads.splice(idx, 1);
+  const delIds = [];
+  let changed = false;
+  NOTES.forEach(n => {
+    if (n.bookId !== b.id || n.type !== 'review') return;
+    const r = n.round || 1;
+    if (r === idx + 1) delIds.push(n.id);
+    else if (r > idx + 1) { n.round = r - 1; changed = true; }
+  });
+  for (const id of delIds) { const k = NOTES.findIndex(n => n.id === id); if (k >= 0) { NOTES.splice(k, 1); changed = true; } }
+  if (changed) { try { STORE.set('notes', NOTES); } catch (e) {} }
+}
+
+function _rrAfterDataChange(b) {
+  try { STORE.set('books', BOOKS); } catch (e) {}
+  try { renderLibraryCards && renderLibraryCards(); } catch (e) {}
+  if (typeof BD !== 'undefined' && BD.book && BD.book.id === b.id) { BD.book = b; try { renderBookDetail(); } catch (e) {} }
+  _rrRender();
+}
+
+function openRereadSheet(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  closeRereadSheet(true);
+  _RR.bookId = bookId;
+  _RR.edit = null;
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'rrBackdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-toast) - 1);opacity:0;transition:opacity 0.25s ease;';
+  document.body.appendChild(backdrop);
+
+  const sheet = document.createElement('div');
+  sheet.id = 'rrSheet';
+  sheet.className = 'rr-sheet';
+  document.body.appendChild(sheet);
+  _rrRender();
+
+  requestAnimationFrame(() => { backdrop.style.opacity = '1'; sheet.classList.add('open'); });
+  backdrop.addEventListener('click', () => closeRereadSheet());
+
+  sheet.addEventListener('click', (e) => {
+    const b2 = BOOKS.find(x => x.id === _RR.bookId);
+    if (!b2) return;
+    const edBtn = e.target.closest('[data-rr-edit]');
+    if (edBtn) { const k = edBtn.dataset.rrEdit; _RR.edit = k === 'cur' ? 'cur' : parseInt(k, 10); _rrRender(); return; }
+    if (e.target.closest('[data-rr-add]')) { _RR.edit = 'add'; _rrRender(); return; }
+    if (e.target.closest('[data-rr-cancel]')) { _RR.edit = null; _rrRender(); return; }
+    const fmtBtn = e.target.closest('[data-rr-fmt]');
+    if (fmtBtn) {
+      sheet.querySelectorAll('.rr-fmt-btn').forEach(x => x.classList.toggle('on', x === fmtBtn));
+      return;
+    }
+    const rvBtn = e.target.closest('[data-rr-review]');
+    if (rvBtn) {
+      const round = parseInt(rvBtn.dataset.rrReview, 10);
+      window._rrReturnBookId = _RR.bookId;
+      closeRereadSheet();
+      setTimeout(() => { try { openQuickNote(_RR.bookId, round); } catch (e2) {} }, 280);
+      return;
+    }
+    if (e.target.closest('[data-rr-del]')) {
+      const idx = _RR.edit;
+      if (typeof idx !== 'number') return;
+      const hasRv = !!findReviewNoteByRound(b2.id, idx + 1);
+      showConfirm({
+        title: `${idx + 1}회차 기록 삭제`,
+        message: hasRv ? '이 회차의 독후감도 함께 삭제됩니다. 되돌릴 수 없어요.' : '이 회차의 완독 기록을 삭제합니다.',
+        confirmLabel: '삭제', cancelLabel: '취소', destructive: true,
+        onConfirm: () => { _rrDeletePast(b2, idx); _RR.edit = null; _rrAfterDataChange(b2); showToast('기록을 삭제했어요'); },
+      });
+      return;
+    }
+    if (e.target.closest('[data-rr-save]')) {
+      const ds = (document.getElementById('rrDs') || {}).value || '';
+      const de = (document.getElementById('rrDe') || {}).value || '';
+      const fmtEl = sheet.querySelector('.rr-fmt-btn.on');
+      const fmt = fmtEl ? fmtEl.dataset.rrFmt : 'paper';
+      const rtRaw = (document.getElementById('rrRating') || {}).value || '';
+      const rating = rtRaw ? parseFloat(rtRaw) : null;
+      if (!de) { showToast('완독일을 입력해주세요'); return; }
+      if (ds && ds > de) { showToast('시작일이 완독일보다 늦어요'); return; }
+      if (_RR.edit === 'add') {
+        _rrInsertPast(b2, { dateStart: ds || de, dateEnd: de, rating, format: fmt });
+        showToast('지난 기록을 추가했어요');
+      } else if (_RR.edit === 'cur') {
+        b2.dateStart = ds || b2.dateStart;
+        b2.dateEnd = de;
+        b2.rating = rating;
+        b2.format = fmt;
+      } else if (typeof _RR.edit === 'number' && b2.rereads && b2.rereads[_RR.edit]) {
+        b2.rereads[_RR.edit] = { ...b2.rereads[_RR.edit], dateStart: ds || de, dateEnd: de, rating, format: fmt };
+      } else { return; }
+      _RR.edit = null;
+      _rrAfterDataChange(b2);
+      return;
+    }
+  });
+}
+
+function closeRereadSheet(instant) {
+  const sheet = document.getElementById('rrSheet');
+  const backdrop = document.getElementById('rrBackdrop');
+  if (!sheet && !backdrop) return;
+  if (instant) { sheet && sheet.remove(); backdrop && backdrop.remove(); return; }
+  if (sheet) sheet.classList.remove('open');
+  if (backdrop) backdrop.style.opacity = '0';
+  setTimeout(() => { sheet && sheet.remove(); backdrop && backdrop.remove(); }, 280);
+}
+window.openRereadSheet = openRereadSheet;
 
 /* v1.5.x — 한줄평 textarea 자동 높이 (30줄=660px에서 멈춤, 그 안에서 스크롤)
    iOS Safari 큰 textarea 점프 차단: 한글 조합 중엔 갱신 X, rAF 디바운스 */
@@ -38844,7 +39136,8 @@ function _qnAutoResize() {
       const c = document.getElementById('rvCount');
       if (c) c.textContent = ta.value.length + '자';
       const bid = ta.dataset.bookId;
-      if (bid) { try { localStorage.setItem('read.rvDraft.' + bid, ta.value); } catch (e) {} }
+      const rk = ta.dataset.round ? '.r' + ta.dataset.round : '';
+      if (bid) { try { localStorage.setItem('read.rvDraft.' + bid + rk, ta.value); } catch (e) {} }
     });
     ta.addEventListener('input', _qnAutoResize);
     // v1.5.x — 한글 IME 조합 중 height 갱신 차단 (iOS 큰 textarea 점프 방지)
@@ -38856,8 +39149,9 @@ function _qnAutoResize() {
     if (!ta) return;
     const bookId = parseInt(ta.dataset.bookId, 10);
     if (!bookId) return;
-    saveQuickNote(bookId, ta.value);
-    try { localStorage.removeItem('read.rvDraft.' + bookId); } catch (e) {}
+    const rnd = ta.dataset.round ? parseInt(ta.dataset.round, 10) : null;
+    saveQuickNote(bookId, ta.value, rnd != null && !isNaN(rnd) ? rnd : undefined);
+    try { localStorage.removeItem('read.rvDraft.' + bookId + (ta.dataset.round ? '.r' + ta.dataset.round : '')); } catch (e) {}
     closeQuickNote();
   });
   if (cancel) cancel.addEventListener('click', closeQuickNote);
@@ -41499,7 +41793,8 @@ function renderBookDetail() {
               const dp = String(b.dateEnd).split('-');
               const dateTxt = dp.length === 3 ? `${dp[0]}. ${+dp[1]}. ${+dp[2]}` : esc(String(b.dateEnd));
               const dur = b.dateStart ? daysBetween(b.dateStart, b.dateEnd) : null;
-              pill = `<div class="bd-done-pill">✓ ${dateTxt} 완독${dur ? ` · ${dur}일` : ''}</div>`;
+              const rrN = Array.isArray(b.rereads) ? b.rereads.length : 0;
+              pill = `<button type="button" class="bd-done-pill" onclick="openRereadSheet(${b.id})" aria-label="읽은 기록 보기">✓ ${dateTxt} 완독${dur ? ` · ${dur}일` : ''}${rrN ? ` · ×${rrN + 1}` : ''}</button>`;
             }
             return (stars || pill) ? `<div class="bd-hero-done">${stars}${pill}</div>` : '';
           })() : ''}
@@ -42259,6 +42554,7 @@ function _applyStatusChange(b, newStatus) {
           dateStart: b.dateStart || b.dateEnd,
           dateEnd: b.dateEnd,
           rating: b.rating || null,
+          format: b.format || 'paper',  // v2.6 — 회차별 매체 기록
         }];
       }
       // 새 독서 세션 시작
@@ -42292,6 +42588,7 @@ function _applyStatusChange(b, newStatus) {
           dateStart: b.dateStart || b.dateEnd,
           dateEnd: b.dateEnd,
           rating: b.rating || null,
+          format: b.format || 'paper',  // v2.6 — 회차별 매체 기록
         }];
       }
       update.dateStart = null;
@@ -48944,12 +49241,20 @@ function renderNoteDaily() {
   let body = String(pick.body).trim().replace(/^[\s"'“”‘’「」『』]+|[\s"'“”‘’「」『』]+$/g, '');
   if (body.length > 120) body = body.slice(0, 120) + '…';
   el.style.display = '';
+  const clipped = body.length < String(pick.body).trim().length;
   el.innerHTML = `
-    <div class="nd-card palette-${palette}">
+    <div class="nd-card palette-${palette}" role="button" tabindex="0" aria-label="이 노트 열기">
       <div class="nd-lbl">${pick.type === 'review' ? '오늘 다시 만난 감상' : '오늘 다시 만난 문장'}</div>
       <div class="nd-body">${esc(body)}</div>
-      <div class="nd-src">${timeAgo(pick.createdAt)} · 『${esc(book.title)}』</div>
+      <div class="nd-src">${timeAgo(pick.createdAt)} · 『${esc(book.title)}』${clipped ? '<span class="nd-more">전체 보기 ›</span>' : ''}</div>
     </div>`;
+  // v2.6 — 카드 탭 → 해당 노트 열기 (오늘 다시만난문장 건의: 잘린 노트를 눌러 바로 읽기)
+  const card = el.querySelector('.nd-card');
+  if (card) {
+    const open = () => { try { openNoteEdit(pick.id); } catch (e) { /* ignore */ } };
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  }
 }
 
 /* ─── 메인 렌더 ─── */
