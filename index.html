@@ -1640,6 +1640,8 @@ button { touch-action: manipulation; font-family: inherit; cursor: pointer; bord
   height: 100%;
   object-fit: cover;
 }
+/* v2.6 — 표지가 있으면 제목 오버레이 숨김 (오렌지푸우 건의). 이미지 실패 시 has-cover 제거로 제목 복귀 */
+.mr-cover.has-cover .cover-title { display: none; }
 .mr-cover .cover-title {
   position: relative;
   z-index: 1;
@@ -36021,7 +36023,7 @@ function renderMonthStrip() {
         const proxied = (typeof ALADIN_PROXY_URL !== 'undefined' && ALADIN_PROXY_URL && !b.coverUrl.startsWith('data:'))
           ? `${ALADIN_PROXY_URL}/img?url=${encodeURIComponent(b.coverUrl)}`
           : b.coverUrl;
-        img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous"/>`;
+        img = `<img src="${esc(proxied)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.closest('.mr-cover').classList.remove('has-cover'); this.remove();"/>`;
       }
       const seriesBadge = isSeries
         ? `<span class="mr-cover-series">${b._seriesCount}${b._seriesUnit || '권'}</span>`
@@ -36031,7 +36033,7 @@ function renderMonthStrip() {
       const rt = (isDone && b.rating)
         ? `<span class="mr-rt${b.isLifeBook ? ' life' : ''}">★ ${Number(b.rating).toFixed(1)}</span>`
         : '';
-      return `<div class="mr-cover${stackCls}${b.isLifeBook ? ' is-life' : ''}" title="${t}">
+      return `<div class="mr-cover${stackCls}${b.isLifeBook ? ' is-life' : ''}${img ? ' has-cover' : ''}" title="${t}">
         ${img}
         <span class="cover-title">${t}</span>
         ${seriesBadge}
@@ -44019,7 +44021,9 @@ async function _inlineCoverImages(clone) {
       if (!wrap) return;
 
       // mr-cover (월간 리포트): 부모에 이미 그라데이션 + 제목 span 있음 → img만 제거
+      //   v2.6 — has-cover면 제목이 숨겨져 있으므로 클래스도 벗겨 제목 복귀
       if (wrap.classList.contains('mr-cover')) {
+        wrap.classList.remove('has-cover');
         img.remove();
         return;
       }
