@@ -23642,7 +23642,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <footer class="app-footer">
     <span class="keepbook-logo app-footer-logo">keepbook</span>
     <div class="app-footer-meta"><span id="appFooterVer"></span>© 2026 <b>Locadomingo</b></div>
-    <div class="app-footer-credit">책 정보 · 카카오 · 알라딘 · Google Books</div>
+    <div class="app-footer-credit">책 정보 · 예스24 · 카카오 · Google Books</div>
   </footer>
 
 </div>
@@ -25750,7 +25750,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
       <div class="bf-head">
         <div class="bf-icon"><div class="bf-spinner"></div></div>
         <div class="bf-ttl">보강 중</div>
-        <div class="bf-desc">알라딘·카카오에서 정보 찾는 중이에요</div>
+        <div class="bf-desc">예스24·카카오에서 정보 찾는 중이에요</div>
       </div>
       <div class="bf-prog">
         <div class="bf-bar"><div class="bf-fill" id="bfFill"></div></div>
@@ -25835,7 +25835,7 @@ body.sayu-active #pane-sayu{ background:transparent; }
   <div class="bde-card">
     <div class="bde-head">
       <div class="bde-ttl">책 정보 검색</div>
-      <div class="bde-desc" id="bdeDesc">알라딘·카카오·구글에서 후보를 찾아요</div>
+      <div class="bde-desc" id="bdeDesc">예스24·카카오·구글에서 후보를 찾아요</div>
     </div>
     <div class="bde-body" id="bdeBody">
       <div class="bde-loading">
@@ -41540,7 +41540,7 @@ function renderBookDetail() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
                 <span>정보 검색</span>
               </button>`}
-              ${hasAnyMeta ? `<div class="bd-meta-source">※ 네이버 · 알라딘 · 카카오 · Google Books 데이터 기반</div>` : ''}
+              ${hasAnyMeta ? `<div class="bd-meta-source">※ 예스24 · 카카오 · Google Books 데이터 기반</div>` : ''}
             </div>
           </div>
           <div class="bd-social" id="bdSocial" hidden></div>
@@ -54432,7 +54432,7 @@ function _bdeOpen(bookId) {
   document.getElementById('bdeBody').innerHTML = `
     <div class="bde-loading">
       <div class="bf-spinner"></div>
-      <div>알라딘·카카오·구글에서 검색 중...</div>
+      <div>예스24·카카오·구글에서 검색 중...</div>
     </div>`;
   document.getElementById('bdeBtnApply').disabled = true;
 
@@ -54572,7 +54572,7 @@ function _bdeRenderResults(book, searchInfo) {
       <div class="bde-empty">
         <div class="bde-empty-icon"><svg class="ic" aria-hidden="true" style="width:32px;height:32px"><use href="#i-search"/></svg></div>
         <div class="bde-empty-title">검색 결과가 없어요</div>
-        <div>알라딘·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
+        <div>예스24·카카오·구글 모두에서 이 책을 찾지 못했어요.<br>
         절판이거나 등록되지 않은 책일 수 있어요.</div>
       </div>`;
     return;
