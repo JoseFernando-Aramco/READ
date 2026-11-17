@@ -42149,7 +42149,8 @@ async function loadBdSeries(b) {
   if (b.seriesId == null) {
     const isbn = String(b.isbn || '').replace(/[^0-9Xx]/g, '');
     if (isbn.length < 10) return;
-    if (b.seriesCheckedAt && Date.now() - b.seriesCheckedAt < 30 * 24 * 3600 * 1000) return;
+    if (b.seriesCheckedAt) { delete b.seriesCheckedAt; }  // v2.5.1 — 의사 시리즈 폴백 전에 찍힌 구도장 청소
+    if (b.seriesCk2 && Date.now() - b.seriesCk2 < 30 * 24 * 3600 * 1000) return;
     try {
       const r = await fetch(ALADIN_PROXY_URL + '/search?isbn=' + isbn);
       if (!r.ok) return;
@@ -42159,10 +42160,10 @@ async function loadBdSeries(b) {
         b.seriesId = it.seriesId;
         b.seriesName = it.seriesName || '';
         if (!b.y24link && it.link) b.y24link = it.link;
-      } else if (it && ('seriesId' in it)) {
-        // 신워커 응답이 '시리즈 아님'을 명시한 경우에만 30일 기억
-        // (구워커 응답·구캐시엔 seriesId 키 자체가 없음 — 판정 보류)
-        b.seriesCheckedAt = Date.now();
+      } else if (it && ('subTitle' in it)) {
+        // v2.5.1 워커(의사 시리즈 폴백 포함) 응답이 '시리즈 아님'을 명시한 경우에만 30일 기억
+        // (그 이전 응답·캐시엔 subTitle 키 자체가 없음 — 판정 보류)
+        b.seriesCk2 = Date.now();
       }
       try { STORE.set('books', BOOKS); } catch (e) { /* ignore */ }
     } catch (e) { return; }
