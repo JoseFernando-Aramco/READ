@@ -42159,7 +42159,9 @@ async function loadBdSeries(b) {
         b.seriesId = it.seriesId;
         b.seriesName = it.seriesName || '';
         if (!b.y24link && it.link) b.y24link = it.link;
-      } else {
+      } else if (it && ('seriesId' in it)) {
+        // 신워커 응답이 '시리즈 아님'을 명시한 경우에만 30일 기억
+        // (구워커 응답·구캐시엔 seriesId 키 자체가 없음 — 판정 보류)
         b.seriesCheckedAt = Date.now();
       }
       try { STORE.set('books', BOOKS); } catch (e) { /* ignore */ }
