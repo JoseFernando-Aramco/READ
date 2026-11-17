@@ -7311,19 +7311,6 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .api-key-help a:hover { opacity: .75; }
 
 /* 검색 결과 소스 배지 */
-.result-source {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 99px;
-  margin-left: 4px;
-  font-size: 9.5px; font-weight: 800;
-  letter-spacing: .4px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  vertical-align: 1px;
-}
-.result-source.kakao { background: #FEE500; color: #3C1E1E; }
-.result-source.aladin { background: #00A4E1; color: #fff; }
-.result-source.google { background: var(--c-surface-2); color: var(--c-text-2); border: 1px solid var(--c-border); }
 
 /* ═══════════════════════════════════════════════════════════
    책 추가 모달 · Book Add Sheet
@@ -11252,6 +11239,28 @@ html[data-theme="midnight"] .rv-grip { background: rgba(255,255,255,0.22); }
 .bd-meta-dot-pages     { background: #b88838; }
 .bd-meta-dot-price     { background: var(--brand-primary); }
 /* v2.4 — 함께 읽기(C-1): 익명 아바타 + 한 줄, 클라우드 백업 멤버 집계 */
+/* v2.5 — 시리즈 진행도 카드 */
+.bd-series { margin-top: 12px; background: var(--c-surface-2); border-radius: 13px; padding: 13px 15px; }
+.bds-hd { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.bds-hd .ic { width: 15px; height: 15px; color: var(--c-terra-700); flex: 0 0 auto; }
+.bds-nm { font-size: 12.5px; font-weight: 800; letter-spacing: -0.2px; color: var(--c-terra-700); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bds-ct { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--c-muted); flex: 0 0 auto; }
+.bds-big { font-size: 12.5px; color: var(--c-text-2, var(--c-terra-700)); margin-top: 9px; letter-spacing: -0.1px; }
+.bds-big b { font-weight: 800; color: var(--c-terra-700); }
+.bds-bar { height: 6px; border-radius: 100px; background: var(--c-border); margin-top: 9px; overflow: hidden; display: flex; }
+.bds-bar i { display: block; height: 100%; }
+.bds-bar i.d { background: var(--c-terra-700); }
+.bds-bar i.r { background: var(--c-gold-500); }
+.bds-vols { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.bds-vol { width: 28px; height: 36px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; box-sizing: border-box; }
+.bds-vol.done { background: var(--c-terra-700); color: var(--c-surface); }
+.bds-vol.reading { background: var(--c-gold-500); color: #fff; }
+.bds-vol.owned { background: var(--c-muted); color: var(--c-surface); opacity: 0.7; }
+.bds-vol.ghost { background: transparent; border: 1.5px dashed var(--c-border); color: var(--c-label); }
+.bds-next { display: flex; align-items: center; gap: 9px; width: 100%; margin-top: 11px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 10px; padding: 10px 12px; min-height: 44px; font-family: inherit; font-size: inherit; cursor: pointer; text-align: left; color: inherit; }
+.bds-next-v { font-size: 11px; font-weight: 800; color: var(--c-terra-700); flex: 0 0 auto; }
+.bds-next-t { font-size: 11.5px; font-weight: 700; color: var(--c-terra-700); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bds-next-go { margin-left: auto; font-size: 10.5px; font-weight: 800; color: var(--c-gold-900, #8a7748); background: color-mix(in srgb, var(--c-gold-500) 18%, transparent); border-radius: 100px; padding: 6px 11px; flex: 0 0 auto; white-space: nowrap; }
 .bd-social { display: flex; align-items: center; gap: 12px; background: color-mix(in srgb, var(--c-border-2) 22%, var(--c-surface)); border-radius: 13px; padding: 13px 15px; margin-top: 12px; width: 100%; text-align: left; }
 .bd-social[hidden] { display: none; }
 .bd-social-avs { display: flex; flex: 0 0 auto; }
@@ -30807,6 +30816,8 @@ async function _searchAladin(q) {
       contents: it.description || '',
       source: 'aladin',
       link: it.link || '',
+      seriesId: (it.seriesId != null) ? it.seriesId : null,
+      seriesName: it.seriesName || '',
       priceList: priceListRaw,
       priceSales: priceSalesRaw,
       // v1.12.0 — 알라딘 카테고리 (자동 태그 부여용). Worker가 안 보내면 빈 값.
@@ -31204,10 +31215,6 @@ function renderSearchResults(items, errors, ctx) {
     const isOrig = b.language && b.language !== 'ko';
     const lang = isOrig ? `<span class="lang">${esc(b.language.toUpperCase())}</span>` : '';
     const meta = [year, pages].filter(Boolean).join(' · ');
-    const sourceBadge =
-        b.source === 'kakao'  ? '<span class="result-source kakao">K</span>'
-      : b.source === 'aladin' ? '<span class="result-source aladin">A</span>'
-      :                         '<span class="result-source google">G</span>';
 
     // v1.6.1 — 이미 서재에 있는지 체크 (ISBN 우선, fallback 제목+저자)
     const existing = _findExistingBookFromSearch(b);
@@ -31228,7 +31235,7 @@ function renderSearchResults(items, errors, ctx) {
                 onerror="this.outerHTML='<div class=&quot;result-cover-fallback&quot;><svg class=&quot;ic ic-2xl&quot; aria-hidden=&quot;true&quot;><use href=&quot;#i-book-closed&quot;/></svg></div>'">`
           : `<div class="result-cover-fallback"><svg class="ic ic-2xl" aria-hidden="true"><use href="#i-book-closed"/></svg></div>`}
         <div class="result-info">
-          <div class="result-title">${title}${sourceBadge}${statusBadge}</div>
+          <div class="result-title">${title}${statusBadge}</div>
           <div class="result-author">${authors}</div>
           <div class="result-meta">${meta}${lang}</div>
         </div>
@@ -41540,6 +41547,7 @@ function renderBookDetail() {
             </div>
           </div>
           <div class="bd-social" id="bdSocial" hidden></div>
+          <div class="bd-series" id="bdSeries" hidden></div>
         </div>
       </div>
       <!-- v2.4 커버 무드 — 매체 토글 + 바로 읽기 (워시 경계 행, 시안 body 첫 행) -->
@@ -42105,6 +42113,158 @@ function renderBookDetail() {
 
   // v2.4 — 함께 읽기(C-1): 이 책을 읽는 중/완독한 멤버 수 (비동기, 실패 시 조용히 숨김)
   try { loadBdSocial(b); } catch (e) { /* ignore */ }
+
+  // v2.5 — 시리즈 진행도 (비동기, 실패 시 조용히 숨김)
+  try { loadBdSeries(b); } catch (e) { /* ignore */ }
+}
+
+/* ═══════════ v2.5 — 시리즈 진행도 (예스24 seriesId 기반) ═══════════
+   책 상세를 열 때 ISBN으로 시리즈를 1회 판별해 책에 저장(기존 책 자동 백필),
+   시리즈면 /series 로 전체 권 목록을 받아 진행 바·권 칩·다음 권을 그린다.
+   실패·비시리즈·1권짜리는 조용히 숨김. */
+function _volFromTitle(title, seriesName) {
+  let t = String(title || '');
+  if (/세트|합본|박스/.test(t)) return null;
+  if (seriesName) {
+    const i = t.toLowerCase().indexOf(String(seriesName).toLowerCase());
+    if (i >= 0) t = t.slice(0, i) + ' ' + t.slice(i + String(seriesName).length);
+  }
+  const m = t.match(/(?<!\d)(\d{1,3})(?!\d)/);
+  if (m) { const n = parseInt(m[1], 10); if (n >= 1 && n <= 400) return n; }
+  if (/(^|[\s(])상([\s).:]|$)/.test(t)) return 1;
+  if (/(^|[\s(])하([\s).:]|$)/.test(t)) return 2;
+  return null;
+}
+
+async function loadBdSeries(b) {
+  const el = document.getElementById('bdSeries');
+  if (!el) return;
+  el.hidden = true;
+  el.innerHTML = '';
+  if (!b || b.source === 'manual' || isWebnovel(b)) return;
+  if (typeof ALADIN_PROXY_URL === 'undefined' || !ALADIN_PROXY_URL) return;
+  el.dataset.bid = String(b.id);
+
+  // 1) seriesId 확보 — 없으면 ISBN으로 1회 판별 (비시리즈 판정도 30일 기억해 재조회 방지)
+  if (b.seriesId == null) {
+    const isbn = String(b.isbn || '').replace(/[^0-9Xx]/g, '');
+    if (isbn.length < 10) return;
+    if (b.seriesCheckedAt && Date.now() - b.seriesCheckedAt < 30 * 24 * 3600 * 1000) return;
+    try {
+      const r = await fetch(ALADIN_PROXY_URL + '/search?isbn=' + isbn);
+      if (!r.ok) return;
+      const d = await r.json();
+      const it = d && d.item && d.item[0];
+      if (it && it.seriesId != null) {
+        b.seriesId = it.seriesId;
+        b.seriesName = it.seriesName || '';
+        if (!b.y24link && it.link) b.y24link = it.link;
+      } else {
+        b.seriesCheckedAt = Date.now();
+      }
+      try { STORE.set('books', BOOKS); } catch (e) { /* ignore */ }
+    } catch (e) { return; }
+    if (b.seriesId == null) return;
+  }
+
+  // 2) 시리즈 전체 권 목록 (24시간 로컬 캐시)
+  let sd = null;
+  const ck = 'read.series.' + b.seriesId;
+  try {
+    const c = JSON.parse(localStorage.getItem(ck) || 'null');
+    if (c && Date.now() - c.t < 24 * 3600 * 1000) sd = c.v;
+  } catch (e) { /* ignore */ }
+  if (!sd) {
+    try {
+      const r = await fetch(ALADIN_PROXY_URL + '/series?id=' + encodeURIComponent(b.seriesId) + '&name=' + encodeURIComponent(b.seriesName || ''));
+      if (!r.ok) return;
+      sd = await r.json();
+      if (sd && sd.total > 0) {
+        try { localStorage.setItem(ck, JSON.stringify({ t: Date.now(), v: sd })); } catch (e) { /* ignore */ }
+      }
+    } catch (e) { return; }
+  }
+  // 응답이 늦게 왔는데 다른 책 상세가 열려 있으면 무시
+  const cur = document.getElementById('bdSeries');
+  if (!cur || cur.dataset.bid !== String(b.id)) return;
+  if (!sd || !sd.total || sd.total < 2) return;  // 1권짜리 시리즈는 표시 안 함
+
+  _renderBdSeries(cur, b, sd);
+}
+
+function _renderBdSeries(el, b, sd) {
+  // 내 서재의 같은 시리즈 책 — ISBN 정확 매칭 우선, seriesId 태그 책은 제목 권수로 보강
+  const volByIsbn = new Map();
+  for (const v of sd.vols) {
+    const k = String(v.isbn || '').replace(/[-\s]/g, '');
+    if (k) volByIsbn.set(k, v.v);
+  }
+  const rank = { done: 3, reading: 2, wish: 1, dropped: 1 };
+  const mine = new Map();  // 권 번호 → status
+  for (const x of BOOKS) {
+    if (isWebnovel(x)) continue;
+    let v = null;
+    const k = String(x.isbn || '').replace(/[-\s]/g, '');
+    if (k && volByIsbn.has(k)) v = volByIsbn.get(k);
+    else if (x.seriesId != null && String(x.seriesId) === String(b.seriesId)) v = _volFromTitle(x.title, sd.name);
+    if (v == null) continue;
+    const prev = mine.get(v);
+    if (!prev || (rank[x.status] || 0) > (rank[prev] || 0)) mine.set(v, x.status);
+  }
+
+  const total = sd.total;
+  let doneN = 0, readingN = 0;
+  mine.forEach(st => { if (st === 'done') doneN++; else if (st === 'reading') readingN++; });
+  const remain = Math.max(0, total - doneN);
+
+  // 다음 권 — 1권부터 훑어 서재에 없는 첫 권
+  let next = null;
+  for (let v = 1; v <= total; v++) {
+    if (!mine.has(v)) { next = sd.vols.find(e => e.v === v) || { v, title: sd.name + ' ' + v, isbn: '' }; break; }
+  }
+
+  // 권 칩 (전 20권 이하일 때만 — 긴 시리즈는 바·숫자로 충분)
+  let chips = '';
+  if (total <= 20) {
+    chips = '<div class="bds-vols">' + Array.from({ length: total }, (_, i) => {
+      const v = i + 1;
+      const st = mine.get(v);
+      const cls = st === 'done' ? ' done' : st === 'reading' ? ' reading' : st ? ' owned' : ' ghost';
+      return `<span class="bds-vol${cls}">${v}</span>`;
+    }).join('') + '</div>';
+  }
+
+  const bigLine = doneN >= total
+    ? `<b>전 ${total}권</b> 완독 — 시리즈를 끝냈어요`
+    : doneN > 0
+      ? `완독 <b>${doneN}권</b> — 다 읽으려면 <b>${remain}권</b> 남았어요`
+      : `이제 시작 — <b>전 ${total}권</b>의 여정이에요`;
+
+  el.innerHTML = `
+    <div class="bds-hd"><svg class="ic" aria-hidden="true"><use href="#i-book-closed"/></svg><span class="bds-nm">${esc(sd.name)} 시리즈</span><span class="bds-ct">전 ${total}권 · 예스24 기준</span></div>
+    <div class="bds-big">${bigLine}</div>
+    <div class="bds-bar"><i class="d" style="width:${Math.round(doneN / total * 100)}%"></i><i class="r" style="width:${Math.round(readingN / total * 100)}%"></i></div>
+    ${chips}
+    ${next ? `<button type="button" class="bds-next"><span class="bds-next-v">${next.v}권</span><span class="bds-next-t">${esc(next.title || sd.name + ' ' + next.v)}</span><span class="bds-next-go">+ 서재에 추가</span></button>` : ''}
+  `;
+  el.hidden = false;
+
+  const nb = el.querySelector('.bds-next');
+  if (nb && next) {
+    nb.addEventListener('click', () => {
+      const q = next.isbn || (sd.name + ' ' + next.v);
+      try { closeBookDetail(); } catch (e) { /* ignore */ }
+      // 상세 닫기가 history.back 경유(비동기 popstate)라, 정착 후에 시트를 연다
+      setTimeout(() => {
+        try { openBookAdd(); } catch (e) { return; }
+        setTimeout(() => {
+          const inp = document.getElementById('bookSearchInput');
+          if (inp) inp.value = q;
+          try { searchBooks(q); } catch (e) { /* ignore */ }
+        }, 300);
+      }, 380);
+    });
+  }
 }
 
 /* v2.4 — 함께 읽기: /bookstats 익명 집계 조회 (6시간 로컬 캐시 · 본인 제외 · 0명이면 숨김) */
@@ -54638,6 +54798,7 @@ function _bdeApply() {
   if (c.year && c.year !== book.year) { book.year = c.year; touchedFields.push('출판연도'); }
   if (c.isbn && c.isbn !== book.isbn) { book.isbn = c.isbn; touchedFields.push('ISBN'); }
   if (c.link) book.y24link = c.link; // 출처 표기 각주의 상품 페이지 링크용
+  if (c.seriesId != null) { book.seriesId = c.seriesId; book.seriesName = c.seriesName || ''; }
   // 가격 — 'manual' 보호
   if (book.priceSource !== 'manual') {
     const pSales = (typeof c.priceSales === 'number' && c.priceSales > 0) ? c.priceSales : null;
