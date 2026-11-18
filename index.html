@@ -36561,8 +36561,9 @@ function renderMonthStrip() {
       const pg = Number(b.pages) || 0;
       if (pg > 0 && (!thickest || pg > thickest.pages)) thickest = { title: b.title, pages: pg };
     });
+    const bookPages = doneBooks.reduce((a, b) => a + (Number(b.pages) || 0), 0);
     return {
-      year, doneBooks, monthlyDone, formatPages, dayOfWeekPages, bestMonth, fastest, thickest,
+      year, doneBooks, monthlyDone, formatPages, dayOfWeekPages, bestMonth, fastest, thickest, bookPages,
       topGenres: _mrGenresOf(doneBooks),
       topAuthor: _mrTopAuthor(doneBooks),
       avgRating: _mrAvgRating(doneBooks),
@@ -36591,7 +36592,7 @@ function renderMonthStrip() {
 
     const metrics = `<div class="mr-metrics">
       <div class="mr-metric"><div class="mr-metric-v">${m.doneCount}<span class="unit">권</span></div><div class="mr-metric-k">완독</div>${m.doneCount > 0 ? `<div class="mr-metric-sub">월평균 ${monthAvg}권</div>` : ''}</div>
-      <div class="mr-metric"><div class="mr-metric-v">${m.totalPages.toLocaleString()}<span class="unit">p</span></div><div class="mr-metric-k">페이지</div></div>
+      <div class="mr-metric"><div class="mr-metric-v">${(data.bookPages > 0 ? data.bookPages : m.totalPages).toLocaleString()}<span class="unit">p</span></div><div class="mr-metric-k">페이지</div>${data.bookPages > 0 ? '<div class="mr-metric-sub">완독 책 기준</div>' : ''}</div>
       <div class="mr-metric"><div class="mr-metric-v">${m.readDays}<span class="unit">일</span></div><div class="mr-metric-k">독서일</div>${m.readDays > 0 ? `<div class="mr-metric-sub">${daysInYear}일 중 ${readPct}%</div>` : ''}</div>
       <div class="mr-metric"><div class="mr-metric-v">${fmtTime(m.totalMinutes)}</div><div class="mr-metric-k">총 시간</div>${m.totalSessionCount > 0 ? `<div class="mr-metric-sub">총 ${m.totalSessionCount} 세션</div>` : ''}</div>
       <div class="mr-metric"><div class="mr-metric-v">${data.avgRating != null ? '★ ' + data.avgRating.toFixed(1) : '—'}</div><div class="mr-metric-k">평균 별점</div></div>
@@ -36746,10 +36747,14 @@ function renderMonthStrip() {
   function rebuildYearDropdown() {
     const list = document.getElementById('mrMonthDdList');
     if (!list) return;
+    // v2.7.1 — 세션 합이 아니라 완독 책 기준(권수·페이지): 타이머 없이 임포트한 과거 연도도 집계
     const byYear = {};
-    _getMonthsWithData().forEach(m => {
-      const y = byYear[m.year] || (byYear[m.year] = { doneCount: 0, totalPages: 0 });
-      y.doneCount += m.doneCount; y.totalPages += m.totalPages;
+    BOOKS.forEach(b => {
+      if (b.status !== 'done' || !b.dateEnd) return;
+      const yy = new Date(b.dateEnd).getFullYear();
+      if (isNaN(yy)) return;
+      const y = byYear[yy] || (byYear[yy] = { doneCount: 0, totalPages: 0 });
+      y.doneCount++; y.totalPages += Number(b.pages) || 0;
     });
     const nowY = new Date().getFullYear();
     if (!byYear[nowY]) byYear[nowY] = { doneCount: 0, totalPages: 0 };
