@@ -6257,7 +6257,8 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .kst-hero-a { font-size: 10.5px; color: var(--c-muted); margin-top: 2px; }
 .kst-hero-n { font-size: 11px; font-weight: 800; color: var(--c-gold-900, #8a7748); margin-top: 6px; }
 .kst-hero-n small, .kst-n small { font-weight: 600; color: var(--c-muted); }
-.kst-st { font-size: 10px; font-weight: 800; color: var(--c-gold-500); margin-left: 6px; }
+.kst-st { font-size: 10px; font-weight: 800; color: var(--c-gold-500); }
+.kst-st + .kst-up { margin-left: 5px; }
 .kst-up { font-size: 9px; font-weight: 800; color: var(--c-sage-700, #8A9A6A); margin-left: 4px; }
 .kst-row { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 0; border: none; border-top: 0.5px solid var(--c-border-2); background: transparent; text-align: left; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
 .kst-rk { width: 18px; text-align: center; font-size: 14px; font-weight: 800; color: var(--c-label); font-style: italic; font-family: Georgia, serif; flex: 0 0 auto; }
@@ -45072,7 +45073,8 @@ function _kstCoverHtml(it, big) {
 }
 
 function _renderKeepstseller(el, items) {
-  const shelf = (it) => `${it.reading + it.done}<small>명이 읽었어요</small>${(it.r > 0) ? `<span class="kst-st">★ ${Number(it.r).toFixed(1)}</span>` : ''}${(it.d && it.d > 0) ? `<span class="kst-up">▲${it.d}</span>` : ''}`;
+  // v2.6.1 — 인원 수는 표시하지 않음(Jason 결정): 별점·순위 변동만
+  const shelf = (it) => `${(it.r > 0) ? `<span class="kst-st">★ ${Number(it.r).toFixed(1)}</span>` : ''}${(it.d && it.d > 0) ? `<span class="kst-up">▲${it.d}</span>` : ''}`;
   const h = items[0];
   const rows = items.slice(1).map((it, i) => `
     <button type="button" class="kst-row" data-kst-isbn="${esc(it.isbn)}">
