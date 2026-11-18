@@ -406,9 +406,78 @@
   --c-gold-glow: #9FB9CF;
 }
 
+/* ═══════════ 테마 · 만추 [가을 한정 · 단풍 얼룩 + 낙엽] ═══════════ */
+[data-theme="autumn"] {
+  --c-canvas:    #F7EDDA;
+  --c-surface:   #FDF8EE;
+  --c-surface-2: #F2E3C9;
+  --c-border:    #EADBB9;
+  --c-border-2:  #D8BE8F;
+  --c-text:   #3B2318;
+  --c-text-2: #6B4226;
+  --c-label:  #A1794F;
+  --c-muted:  #A1794F;
+  --primary:          #A6392B;
+  --primary-bg:       #F4DFC2;
+  --brand-primary:    #A6392B;
+  --brand-primary-dk: #822C21;
+  --c-terra-900: #3B2318;
+  --c-terra-700: #822C21;
+  --c-terra-500: #A6392B;
+  --c-terra-400: #C2641F;
+  --c-terra-100: #F4DFC2;
+  --c-terra-50:  #F9EDD9;
+  --g-main-bar: linear-gradient(95deg, #A6392B, #822C21);
+  /* 진행 바 fill — 단풍 반점 얼룩 */
+  --g-gold: radial-gradient(26px 10px at 15% 50%, rgba(224,179,60,.75), transparent 70%),
+            radial-gradient(30px 10px at 55% 50%, rgba(217,142,50,.6), transparent 70%),
+            linear-gradient(95deg, #A6392B, #C2641F);
+  --c-gold-warm: #C2641F;
+  --c-gold-deep: #A6392B;
+  --c-gold-glow: #D98E32;
+}
+/* 만추 — 얼룩덜룩 배경 워시. body 배경이 음수 z-index ::before를 덮는 페인팅 순서 때문에
+   body는 투명으로 비우고, 고정 ::before에 크림 바탕+단풍 얼룩 전체를 그린다.
+   얼룩은 상단 헤더 띠(~15%)를 피해 배치 — 헤더(--c-canvas 단색)와 이음새가 안 생김. */
+html[data-theme="autumn"] { background: #F7EDDA; }
+html[data-theme="autumn"] body { background: transparent; }
+html[data-theme="autumn"] body::before {
+  content: ''; display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(420px 300px at 85% 18%, rgba(166,57,43,.10), transparent 60%),
+    radial-gradient(380px 300px at -8% 30%, rgba(217,142,50,.13), transparent 55%),
+    radial-gradient(320px 260px at 72% 60%, rgba(224,179,60,.10), transparent 60%),
+    radial-gradient(300px 240px at 95% 82%, rgba(217,142,50,.09), transparent 60%),
+    radial-gradient(360px 300px at 12% 96%, rgba(166,57,43,.09), transparent 55%),
+    linear-gradient(180deg, #F7EDDA, #F2E3C9);
+}
+/* 만추 — 주 버튼·활성 탭 썸에 단풍 반점 얼룩 */
+html[data-theme="autumn"] .now-btn.primary {
+  background:
+    radial-gradient(60px 36px at 18% 0%, rgba(224,179,60,.5), transparent 60%),
+    radial-gradient(70px 44px at 85% 100%, rgba(194,100,31,.65), transparent 65%),
+    radial-gradient(40px 30px at 60% 30%, rgba(217,142,50,.4), transparent 70%),
+    #A6392B;
+}
+html[data-theme="autumn"] .tab-thumb {
+  background:
+    radial-gradient(26px 20px at 25% 15%, rgba(224,179,60,.55), transparent 65%),
+    radial-gradient(30px 22px at 80% 85%, rgba(194,100,31,.6), transparent 70%),
+    #A6392B;
+}
+
+/* ═══════════ 만추 — 배경 낙엽 (🍁🍂 이모지 + 은행잎 SVG · 동시 5장 · 터치 통과) ═══════════ */
+.kb-leaves { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.kb-leaves .lf-glyph {
+  display: block; font-size: var(--sz); line-height: 1; opacity: var(--op);
+  animation: kbSnowSpin linear infinite; animation-duration: var(--spd);
+  will-change: transform;
+}
+.kb-leaves .lf-glyph svg { width: var(--sz); height: auto; display: block; }
+
 /* ═══════════ 설경 — 배경 눈발 (결정 5형 · 3계층 원근 · GPU transform, 터치 통과) ═══════════ */
 .kb-snow { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
-.kb-snow .sf-fall, .cn-snow .sf-fall {
+.kb-snow .sf-fall, .cn-snow .sf-fall, .kb-leaves .sf-fall {
   position: absolute; top: -6%; opacity: 0;
   animation: kbSnowFall linear infinite;
   animation-duration: var(--d); animation-delay: var(--dl);
@@ -441,7 +510,7 @@ html[data-theme="winter"] .kb-snow .sf-flake { color: rgba(116, 148, 178, var(--
   to   { transform: translateX(var(--sw)); }
 }
 @keyframes kbSnowSpin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .kb-snow, .cn-snow { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .kb-snow, .cn-snow, .kb-leaves { display: none !important; } }
 
 /* ═══════════ 설경 — 시네마 모드 윈터 스킨 (골드 → 아이스 블루, 눈 오는 밤) ═══════════ */
 html[data-theme="winter"] .cn-overlay {
@@ -27869,6 +27938,8 @@ const THEMES = [
     swatches: ['#B8860B','#D4A72C','#F7E9B8','#FDF8E7'] },
   { id: 'midnight',    name: '미드나잇',        desc: '다크모드 · 딥 네이비 + 라이트 블루',
     swatches: ['#0F1117','#191D26','#7AA2FF','#A3BEFF'] },
+  { id: 'autumn',      name: '만추',            desc: '가을 한정 · 단풍 얼룩 + 낙엽',
+    swatches: ['#A6392B','#C2641F','#E0B33C','#F7EDDA'] },
   { id: 'winter',      name: '설경',            desc: '겨울 한정 · 눈 내린 아침 + 눈발',
     swatches: ['#3C4F60','#6D8DA8','#D8E2EA','#F0F4F7'] },
 ];
@@ -27937,6 +28008,48 @@ function _kbSnowToggle(on) {
   else document.addEventListener('DOMContentLoaded', run, { once: true });
 }
 
+/* v2.8 만추 — 배경 낙엽(🍁🍂 이모지 + 은행잎 SVG) 레이어 생성/제거 */
+const _KB_GINKGO = '<svg viewBox="0 0 32 34"><path fill="#D9A62E" d="M16 23C13.5 21.5 10 19.5 7.2 16.2C4.8 13.3 3.4 10.6 3 8.2C6.4 4 11.6 2.2 15 2.7L16 8.5L17 2.7C20.4 2.2 25.6 4 29 8.2C28.6 10.6 27.2 13.3 24.8 16.2C22 19.5 18.5 21.5 16 23Z"/><path stroke="#C8941F" stroke-width="1.6" fill="none" stroke-linecap="round" d="M16 23C15.8 26 15.3 29 14.6 32"/></svg>';
+function _kbLeafParticles(el) {
+  const glyphs = ['\u{1F341}', '\u{1F341}', '\u{1F342}', _KB_GINKGO, _KB_GINKGO];  // 🍁 2 · 🍂 1 · 은행잎 2
+  for (let i = 0; i < glyphs.length; i++) {
+    const drop = document.createElement('span');
+    drop.className = 'sf-fall';
+    drop.style.left = (6 + Math.random() * 88) + '%';
+    drop.style.setProperty('--d', (20 + Math.random() * 10) + 's');   // 낙하 20~30초 — 아주 천천히
+    drop.style.setProperty('--dl', (-Math.random() * 30) + 's');
+    drop.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+    const sway = document.createElement('span');
+    sway.className = 'sf-sway';
+    sway.style.setProperty('--sd', (2.4 + Math.random() * 1.8) + 's');
+    sway.style.setProperty('--sw', (8 + Math.random() * 8) + 'px');
+    const g = document.createElement('span');
+    g.className = 'lf-glyph';
+    g.style.setProperty('--sz', (11 + Math.random() * 5).toFixed(1) + 'px');
+    g.style.setProperty('--op', (0.26 + Math.random() * 0.12).toFixed(2));
+    g.style.setProperty('--spd', (16 + Math.random() * 12) + 's');
+    if (glyphs[i].startsWith('<')) g.innerHTML = glyphs[i];
+    else g.textContent = glyphs[i];
+    sway.appendChild(g);
+    drop.appendChild(sway);
+    el.appendChild(drop);
+  }
+}
+function _kbLeavesToggle(on) {
+  const run = () => {
+    let bg = document.getElementById('kbLeaves');
+    if (!on) { if (bg) bg.remove(); return; }
+    if (!bg) {
+      bg = document.createElement('div');
+      bg.id = 'kbLeaves'; bg.className = 'kb-leaves'; bg.setAttribute('aria-hidden', 'true');
+      _kbLeafParticles(bg);
+      document.body.appendChild(bg);
+    }
+  };
+  if (document.body) run();
+  else document.addEventListener('DOMContentLoaded', run, { once: true });
+}
+
 function applyTheme(id) {
   const root = document.documentElement;
   // v1.9.x — '모노 에디션' 제거. 저장돼 있던 사용자는 기본(서재의 밤)으로 폴백.
@@ -27944,6 +28057,7 @@ function applyTheme(id) {
   if (id) root.setAttribute('data-theme', id);
   else    root.removeAttribute('data-theme');
   _kbSnowToggle(id === 'winter');  // v2.4 윈터 — 설경 눈발
+  _kbLeavesToggle(id === 'autumn');  // v2.8 만추 — 낙엽
   try { localStorage.setItem(THEME_KEY, id || ''); } catch(e){}
   // theme-color 메타도 함께 업데이트
   const css = getComputedStyle(root);
@@ -27991,6 +28105,7 @@ function renderThemeGrid() {
   }
   if (saved) document.documentElement.setAttribute('data-theme', saved);
   _kbSnowToggle(saved === 'winter');  // v2.4 수리 — 앱 재시작 시 저장 테마 복원이 속성만 세팅하고 눈발을 안 만들던 문제
+  _kbLeavesToggle(saved === 'autumn');  // v2.8 만추 — 낙엽 복원
 })();
 
 /* ═══════════ 설정 모달 ═══════════ */
