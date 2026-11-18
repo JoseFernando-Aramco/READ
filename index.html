@@ -36518,14 +36518,14 @@ function renderMonthStrip() {
     return rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length * 10) / 10 : null;
   }
   /* 미디어 스택 바 — 월간과 같은 톤 (연간·전체 공용) */
-  function _mrMediaSection(formatPages) {
+  function _mrMediaSection(formatPages, unit) {
     const keys = Object.keys(formatPages).filter(k => formatPages[k] > 0);
     const totalP = Object.values(formatPages).reduce((a, b) => a + b, 0);
     if (!keys.length || totalP <= 0) return '';
     const MCOL = { paper: '#C9B2A4', ebook: '#8CA3C4', audio: '#A3C0BC', webnovel: '#B5A8CE' };
     const MLBL = { paper: '종이책', ebook: '전자책', audio: '오디오북', webnovel: '웹소설' };
     const segs = keys.map(k => `<i style="width:${Math.round(formatPages[k] / totalP * 100)}%;background:${MCOL[k] || '#B9B4A6'}"></i>`).join('');
-    const legs = keys.map(k => `<span><u style="background:${MCOL[k] || '#B9B4A6'}"></u>${MLBL[k] || k} ${Math.round(formatPages[k] / totalP * 100)}% · ${formatPages[k].toLocaleString()}p</span>`).join('');
+    const legs = keys.map(k => `<span><u style="background:${MCOL[k] || '#B9B4A6'}"></u>${MLBL[k] || k} ${Math.round(formatPages[k] / totalP * 100)}% · ${formatPages[k].toLocaleString()}${unit || 'p'}</span>`).join('');
     return `<div class="mr-sect-lbl">매체</div><div class="mr-media-bar">${segs}</div><div class="mr-media-leg">${legs}</div>`;
   }
   /* 세로 바 차트 — labels[i]·values[i], 최댓값 골드 */
@@ -36662,8 +36662,34 @@ function renderMonthStrip() {
     let thickest = null;
     done.forEach(b => { const pg = Number(b.pages) || 0; if (pg > 0 && (!thickest || pg > thickest.pages)) thickest = { title: b.title, pages: pg }; });
     const bookPages = done.reduce((s, b) => s + (Number(b.pages) || 0), 0);
+    // v2.7.2 — 연대기 보강 집계
+    const ratingDist = Array(10).fill(0);  // 0.5~5.0, 0.5 단위
+    done.forEach(b => { const r = Number(b.rating) || 0; if (r > 0 && r <= 5) ratingDist[Math.min(9, Math.round(r * 2) - 1)]++; });
+    const monthRhythm = Array(12).fill(0);  // 연도 불문 1~12월
+    done.forEach(b => { const mo = new Date(b.dateEnd).getMonth(); if (!isNaN(mo)) monthRhythm[mo]++; });
+    const formatBooks = { paper: 0, ebook: 0, audio: 0, webnovel: 0 };
+    done.forEach(b => { const f = formatBooks.hasOwnProperty(b.format) ? b.format : 'paper'; formatBooks[f]++; });
+    const authorSet = new Set();
+    done.forEach(b => { const a = String(b.author || '').trim(); if (a) authorSet.add(a); });
+    const noteCount = (typeof NOTES !== 'undefined' && Array.isArray(NOTES)) ? NOTES.filter(n => n.type !== 'review').length : 0;
+    const reviewCount = (typeof NOTES !== 'undefined' && Array.isArray(NOTES)) ? NOTES.filter(n => n.type === 'review').length : 0;
+    const rereadBookCount = BOOKS.filter(b => (b.rereads || []).some(r => r.dateEnd)).length;
+    let daysSum = 0, daysN = 0;
+    done.forEach(b => {
+      if (b.dateStart && b.dateEnd) {
+        const dd = Math.round((new Date(b.dateEnd) - new Date(b.dateStart)) / 86400000) + 1;
+        if (dd >= 1 && dd <= 730) { daysSum += dd; daysN++; }
+      }
+    });
+    const avgDays = daysN ? Math.round(daysSum / daysN) : null;
+    let topSession = null;
+    sessions.forEach(x => { if ((x.pages || 0) > 0 && (!topSession || x.pages > topSession.pages)) topSession = x; });
+    const perfectCount = done.filter(b => Number(b.rating) >= 5).length;
     return {
       done, rereadCount, years, byYear, bestMonth, firstDate, thickest, bookPages,
+      ratingDist, monthRhythm, formatBooks, noteCount, reviewCount, rereadBookCount,
+      avgDays, topSession, perfectCount,
+      authorCount: authorSet.size,
       firstDone: done[0] || null,
       lifeCount: BOOKS.filter(b => b.isLifeBook).length,
       topAuthor: _mrTopAuthor(done),
@@ -36692,7 +36718,7 @@ function renderMonthStrip() {
 
     const hero = `<div class="mr-gt-hero">
       <div class="n">${d.done.length.toLocaleString()}<small>권</small></div>
-      <div class="c">${d.rereadCount > 0 ? `재독까지 더하면 ${(d.done.length + d.rereadCount).toLocaleString()}번의 완독` : '지금까지 완독한 책'}</div>
+      <div class="c">${d.rereadCount > 0 ? `재독까지 더하면 ${(d.done.length + d.rereadCount).toLocaleString()}번의 완독` : '지금까지 완독한 책'}${d.authorCount > 0 ? ` · ${d.authorCount.toLocaleString()}명의 작가` : ''}</div>
       ${analogy}
     </div>`;
 
@@ -36709,6 +36735,29 @@ function renderMonthStrip() {
       ? `<div class="mr-sect-lbl">연도별 완독</div>${_mrYbars(d.years, d.years.map(y => d.byYear[y]))}`
       : '';
 
+    // v2.7.2 — 기록의 흔적 (노트·독후감·재독)
+    const traceTiles = (d.noteCount + d.reviewCount + d.rereadBookCount) > 0
+      ? `<div class="mr-sect-lbl">기록의 흔적</div><div class="mr-metrics">
+          <div class="mr-metric"><div class="mr-metric-v">${d.noteCount.toLocaleString()}<span class="unit">개</span></div><div class="mr-metric-k">남긴 노트</div></div>
+          <div class="mr-metric"><div class="mr-metric-v">${d.reviewCount.toLocaleString()}<span class="unit">편</span></div><div class="mr-metric-k">독후감</div></div>
+          <div class="mr-metric"><div class="mr-metric-v">${d.rereadBookCount}<span class="unit">권</span></div><div class="mr-metric-k">다시 꺼낸 책</div></div>
+        </div>`
+      : '';
+    // v2.7.2 — 별점 분포 (0.5~5.0)
+    const ratedN = d.ratingDist.reduce((a, b) => a + b, 0);
+    const ratingSection = ratedN >= 5
+      ? `<div class="mr-sect-lbl">별점 분포</div>${_mrYbars(['0.5','1','1.5','2','2.5','3','3.5','4','4.5','5'], d.ratingDist)}`
+      : '';
+    // v2.7.2 — 월 리듬 (연도 불문 — 어느 계절의 독서가인가)
+    const rhythmSection = d.done.length >= 12
+      ? `<div class="mr-sect-lbl">월 리듬</div>${_mrYbars(Array.from({ length: 12 }, (_, i) => i + 1), d.monthRhythm)}`
+      : '';
+    // v2.7.2 — 매체 (완독 권수 기준)
+    const mediaSection = _mrMediaSection(d.formatBooks, '권');
+    // v2.7.2 — 장르
+    const totalGenres = _mrGenresOf(d.done);
+    const genreSection = totalGenres.length >= 2 ? `<div class="mr-sect-lbl">장르</div>${renderGenreBars(totalGenres)}` : '';
+
     const recs = [];
     if (d.firstDone) {
       const fd = new Date(d.firstDone.dateEnd);
@@ -36717,6 +36766,12 @@ function renderMonthStrip() {
     if (d.bestMonth) recs.push(['역대 최고의 달', `${d.bestMonth.year}년 ${d.bestMonth.month + 1}월 · ${d.bestMonth.count}권`]);
     if (d.topAuthor) recs.push(['가장 사랑한 작가', `${esc(d.topAuthor.name)} · ${d.topAuthor.count}권`]);
     if (d.thickest) recs.push(['가장 두꺼운 완독', `『${esc(d.thickest.title)}』 · ${d.thickest.pages.toLocaleString()}p`]);
+    if (d.avgDays != null) recs.push(['평균 완독까지', `${d.avgDays}일`]);
+    if (d.topSession) {
+      const td = new Date(d.topSession.date);
+      recs.push(['하루 최다 기록', `${isNaN(td) ? '' : `${td.getFullYear()}. ${td.getMonth() + 1}. ${td.getDate()} · `}${d.topSession.pages.toLocaleString()}페이지`]);
+    }
+    if (d.perfectCount > 0) recs.push(['★ 5.0을 준 책', `${d.perfectCount}권`]);
     const recSection = recs.length
       ? `<div class="mr-sect-lbl">역대 기록</div><div class="mr-hlist">${recs.map(h => `<div class="mr-hl"><div class="lb">${h[0]}</div><div class="q">${h[1]}</div></div>`).join('')}</div>`
       : '';
@@ -36733,7 +36788,12 @@ function renderMonthStrip() {
       </div>
       ${hero}
       ${metrics}
+      ${traceTiles}
+      ${ratingSection}
       ${yearBars}
+      ${rhythmSection}
+      ${mediaSection}
+      ${genreSection}
       ${recSection}
       ${footer}
     `;
