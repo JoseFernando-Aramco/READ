@@ -6257,6 +6257,7 @@ body[data-note-font="yeonsung"] .note-body { font-family: 'Yeon Sung', 'Noto Ser
 .kst-hero-a { font-size: 10.5px; color: var(--c-muted); margin-top: 2px; }
 .kst-hero-n { font-size: 11px; font-weight: 800; color: var(--c-gold-900, #8a7748); margin-top: 6px; }
 .kst-hero-n small, .kst-n small { font-weight: 600; color: var(--c-muted); }
+.kst-st { font-size: 10px; font-weight: 800; color: var(--c-gold-500); margin-left: 6px; }
 .kst-up { font-size: 9px; font-weight: 800; color: var(--c-sage-700, #8A9A6A); margin-left: 4px; }
 .kst-row { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 0; border: none; border-top: 0.5px solid var(--c-border-2); background: transparent; text-align: left; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
 .kst-rk { width: 18px; text-align: center; font-size: 14px; font-weight: 800; color: var(--c-label); font-style: italic; font-family: Georgia, serif; flex: 0 0 auto; }
@@ -45041,7 +45042,7 @@ async function loadKeepstseller() {
 
   let data = null;
   try {
-    const c = JSON.parse(localStorage.getItem('read.kst') || 'null');
+    const c = JSON.parse(localStorage.getItem('read.kst4') || 'null');
     if (c && Date.now() - c.t < 6 * 60 * 60 * 1000) data = c.v;
   } catch (e) { /* ignore */ }
   if (!data) {
@@ -45050,13 +45051,13 @@ async function loadKeepstseller() {
       if (!r.ok) return;
       data = await r.json();
       if (data && data.at) {
-        try { localStorage.setItem('read.kst', JSON.stringify({ t: Date.now(), v: data })); } catch (e) { /* ignore */ }
+        try { localStorage.setItem('read.kst4', JSON.stringify({ t: Date.now(), v: data })); } catch (e) { /* ignore */ }
       }
     } catch (e) { return; }
   }
   const items = (data && data.items || []).slice(0, 5);
-  // 데이터가 얕으면(5권 미만·1위가 3명 미만) 조용히 숨김 — 썰렁한 차트 방지
-  if (items.length < 5 || (items[0].reading + items[0].done) < 3) { el.hidden = true; return; }
+  // 데이터가 얕으면(3권 미만·1위 2명 미만) 조용히 숨김 — 주간 기준이라 완화
+  if (items.length < 3 || (items[0].reading + items[0].done) < 2) { el.hidden = true; return; }
   _renderKeepstseller(el, items);
 }
 
@@ -45071,7 +45072,7 @@ function _kstCoverHtml(it, big) {
 }
 
 function _renderKeepstseller(el, items) {
-  const shelf = (it) => `${it.reading + it.done}<small>명의 서가에</small>${(it.d && it.d > 0) ? `<span class="kst-up">▲${it.d}</span>` : ''}`;
+  const shelf = (it) => `${it.reading + it.done}<small>명이 읽었어요</small>${(it.r > 0) ? `<span class="kst-st">★ ${Number(it.r).toFixed(1)}</span>` : ''}${(it.d && it.d > 0) ? `<span class="kst-up">▲${it.d}</span>` : ''}`;
   const h = items[0];
   const rows = items.slice(1).map((it, i) => `
     <button type="button" class="kst-row" data-kst-isbn="${esc(it.isbn)}">
@@ -45081,7 +45082,7 @@ function _renderKeepstseller(el, items) {
       <span class="kst-n">${shelf(it)}</span>
     </button>`).join('');
   el.innerHTML = `
-    <div class="kst-brand"><span class="kst-logo">KEEP<i>ST</i>SELLER</span><span class="kst-cap">멤버들이 많이 읽는 책 TOP 5 · 매일 갱신</span></div>
+    <div class="kst-brand"><span class="kst-logo">KEEP<i>ST</i>SELLER</span><span class="kst-cap">요즘 멤버들이 읽는 책 TOP 5 · 최근 30일 · 매일 갱신</span></div>
     <button type="button" class="kst-hero" data-kst-isbn="${esc(h.isbn)}">
       ${_kstCoverHtml(h, true)}
       <span class="kst-hero-tx">
