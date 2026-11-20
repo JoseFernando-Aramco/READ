@@ -13135,6 +13135,49 @@ input.ts-input[type="time"]::-webkit-date-and-time-value {
   color: var(--c-label);
   line-height: 1.55;
 }
+/* v2.8.1 — 보강 완료: 정보를 못 찾은 책 목록 */
+.bf-miss {
+  margin: 4px 0 14px;
+  max-height: 180px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  text-align: left;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+}
+.bf-miss-hd {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-label);
+  padding: 9px 12px 5px;
+}
+.bf-miss-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--c-border);
+}
+.bf-miss-row:first-of-type { border-top: none; }
+.bf-miss-ttl {
+  font-size: 12.5px;
+  color: var(--c-text);
+  line-height: 1.45;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.bf-miss-what {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--c-muted);
+}
+
 .bf-prog {
   padding: 4px 4px 8px;
 }
@@ -25891,6 +25934,8 @@ body.sayu-active #pane-sayu{ background:transparent; }
         <div class="bf-ttl">보강 완료</div>
         <div class="bf-desc" id="bfDoneDesc"></div>
       </div>
+      <!-- v2.8.1 — 정보를 못 찾은 책 목록 -->
+      <div class="bf-miss" id="bfMissList" style="display:none;"></div>
       <div class="bf-footer">
         <button type="button" class="bf-btn-primary" id="bfBtnClose">확인</button>
       </div>
@@ -55054,6 +55099,7 @@ async function _bfStart() {
   document.getElementById('bfSub').textContent = '시작...';
 
   let enriched = 0, skipped = 0, failed = 0;
+  const missList = [];  // v2.8.1 — 처리 후에도 체크 항목이 비어 있는 책
   let cntCover = 0, cntPages = 0, cntPublisher = 0, cntYear = 0, cntIsbn = 0, cntPrice = 0;
 
   // 부가 정보 보강 헬퍼 (matched 응답에서 publisher/year/isbn도 같이 채움)
@@ -55107,9 +55153,17 @@ async function _bfStart() {
 
       if (touched) enriched++;
       else skipped++;
+
+      // v2.8.1 — 처리가 끝났는데도 체크한 항목이 여전히 빈 책은 목록에 기록
+      const miss = [];
+      if (opts.cover && !b.coverUrl) miss.push('표지');
+      if (opts.pages && (!b.pages || b.pages === 0)) miss.push('페이지');
+      if (opts.price && b.priceSales == null && b.priceSource !== 'manual') miss.push('가격');
+      if (miss.length) missList.push({ t: b.title || '(제목 없음)', m: miss.join(' · ') });
     } catch (e) {
       console.warn('[backfill] error on', b.title, e);
       failed++;
+      missList.push({ t: b.title || '(제목 없음)', m: '오류' });
     }
 
     const done = i + 1;
@@ -55161,6 +55215,20 @@ async function _bfStart() {
     if (failed) parts.push(`<strong>${failed}권</strong>은 오류로 실패`);
     if (BF_STATE.abort) parts.push('(중단됨)');
     doneDesc.innerHTML = parts.join('<br>');
+  }
+  // v2.8.1 — 정보를 못 찾은 책 목록 (책별 누락 항목 표기)
+  const missEl = document.getElementById('bfMissList');
+  if (missEl) {
+    if (missList.length) {
+      const rows = missList.map(x =>
+        `<div class="bf-miss-row"><div class="bf-miss-ttl">${esc(x.t)}</div><div class="bf-miss-what">${esc(x.m)}</div></div>`
+      ).join('');
+      missEl.innerHTML = `<div class="bf-miss-hd">정보를 못 찾은 책 ${missList.length}권 — 책 상세의 [정보 검색]이나 직접 입력으로 채울 수 있어요</div>${rows}`;
+      missEl.style.display = '';
+    } else {
+      missEl.style.display = 'none';
+      missEl.innerHTML = '';
+    }
   }
   _bfShowStep('done');
 }
